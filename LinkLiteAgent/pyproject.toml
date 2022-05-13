@@ -19,6 +19,9 @@ SQLAlchemy = "^1.4.36"
 pytest = "^5.2"
 pyinstaller = "^5.0.1"
 
+[tool.poetry.scripts]
+linkliteagent = "linkliteagent.main:main"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
