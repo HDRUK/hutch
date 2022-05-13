@@ -18,6 +18,8 @@ SQLAlchemy = "^1.4.36"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 pyinstaller = "^5.0.1"
+black = "^22.3.0"
+flake8 = "^4.0.1"
 
 [tool.poetry.scripts]
 linkliteagent = "linkliteagent.main:main"
