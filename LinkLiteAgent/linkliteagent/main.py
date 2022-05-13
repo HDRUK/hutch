@@ -5,8 +5,8 @@ import time
 import asyncio
 
 
-async def main():
-    """The main method. The program is run from here."""
+async def loop():
+    """The main method"""
     running = True
     # send the logging to stdout
     handler = logging.StreamHandler(sys.stdout)
@@ -26,5 +26,9 @@ async def main():
             running = False
 
 
+def main():
+    asyncio.run(loop())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
