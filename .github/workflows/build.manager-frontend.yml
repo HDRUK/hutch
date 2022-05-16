@@ -27,4 +27,4 @@ jobs:
           node-version: ${{ env.CI_node-version }}
           cache: pnpm
       - run: pnpm i --frozen-lockfile --filter ${{ env.CI_package }}
-      - run: pnpm build --filter ${{ env.CI_package }}
+      - run: pnpm --filter ${{ env.CI_package }} build

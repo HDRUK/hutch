@@ -45,8 +45,9 @@ jobs:
           --filter ${{ env.CI_client-package }}
           --frozen-lockfile
       - run: >-
-          pnpm build
+          pnpm
           --filter ${{ env.CI_client-package }}
+          build
 
       # 2. Publish the dotnet app (with the built client app)
       - uses: actions/setup-dotnet@v1
