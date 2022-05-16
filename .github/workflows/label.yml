@@ -7,8 +7,14 @@
 
 name: Labeler
 on:
-  pull_request_target:
+  pull_request:
     types: [ready_for_review, opened, synchronize, reopened]
+
+permissions:
+  # All other permissions are set to none
+  checks: write
+  contents: read
+  pull-requests: write
 
 jobs:
   label:

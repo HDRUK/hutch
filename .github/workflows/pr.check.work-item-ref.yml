@@ -3,6 +3,12 @@ on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
+permissions:
+  # All other permissions are set to none
+  checks: write
+  contents: read
+  pull-requests: write
+
 jobs:
   # check presence of id in title
   check:
