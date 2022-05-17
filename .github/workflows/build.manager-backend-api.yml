@@ -1,0 +1,33 @@
+name: Build Manager Backend API
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - app/LinkLiteManager/**
+      - .github/workflows/build.manager-backend-api.yml
+
+env:
+  # Configure these
+  CI_build-config: release
+  CI_dotnet-version: 6.0.x
+  CI_project: ./app/LinkLiteManager/LinkLiteManager.csproj
+
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.CI_dotnet-version }}
+      - name: dotnet build
+        run: >-
+          dotnet build
+          ${{ env.CI_project }}
+          -c ${{ env.CI_build-config }}

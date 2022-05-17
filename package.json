@@ -1,0 +1,16 @@
+{
+  "name": "link-lite",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-plugin-react": "^7.29.4",
+    "husky": "^8.0.1",
+    "prettier": "^2.6.2",
+    "pretty-quick": "^3.1.3",
+    "typescript": "^4.6.4"
+  },
+  "packageManager": "pnpm@7.1.0"
+}
