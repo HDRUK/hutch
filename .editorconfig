@@ -13,6 +13,7 @@ indent_size = 2
 
 [*.py]
 indent_size = 4 # pep8
+profile = black
 
 [*.cs]
 csharp_style_namespace_declarations=file_scoped:suggestion
