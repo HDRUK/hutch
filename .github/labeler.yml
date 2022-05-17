@@ -1,0 +1,13 @@
+# label affected logical areas of the repo
+"Area: CI":
+  - .github/**/*
+"Area: Manager Frontend":
+  - app/manager-frontend/**/*
+"Area: Manager Backend API":
+  - app/LinkLiteManager/**/*
+"Area: Agent":
+  - app/LinkLiteAgent/**/*
+
+# label types of changes contained in a PR
+"Contains: Migrations":
+  - app/**/Migrations/*.cs
