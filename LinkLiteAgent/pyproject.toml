@@ -4,10 +4,10 @@ version = "0.1.0"
 license = "MIT"
 description = ""
 authors = [
-    "Daniel Lea <pszdl@exmail.nottingham.ac.uk>",
-    "Vasiliki Panagi <uizvp@exmail.nottingham.ac.uk>",
-    "Samuel Adejumo <uizsa2@exmail.nottingham.ac.uk>",
-    "Jonathan Couldridge <uczjc@exmail.nottingham.ac.uk>",
+    "Daniel Lea <Daniel.Lea@nottingham.ac.uk>",
+    "Vasiliki Panagi <vasiliki.panagi@nottingham.ac.uk>",
+    "Samuel Adejumo <Samuel.Adejumo1@nottingham.ac.uk>",
+    "Jonathan Couldridge <Jonathan.Couldridge@nottingham.ac.uk>",
 ]
 
 [tool.poetry.dependencies]
