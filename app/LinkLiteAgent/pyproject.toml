@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "linkliteagent"
+version = "0.1.0"
+license = "MIT"
+description = ""
+authors = [
+    "Daniel Lea <Daniel.Lea@nottingham.ac.uk>",
+    "Vasiliki Panagi <vasiliki.panagi@nottingham.ac.uk>",
+    "Samuel Adejumo <Samuel.Adejumo1@nottingham.ac.uk>",
+    "Jonathan Couldridge <Jonathan.Couldridge@nottingham.ac.uk>",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+celery = "^5.2.6"
+SQLAlchemy = "^1.4.36"
+psycopg2 = "^2.9.3"
+asyncpg = "^0.25.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pyinstaller = "^5.0.1"
+tox = "^3.25.0"
+
+[tool.poetry.scripts]
+linkliteagent = "linkliteagent.main:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
