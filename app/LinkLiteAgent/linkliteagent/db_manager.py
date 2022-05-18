@@ -32,7 +32,7 @@ class BaseDBManager:
         """
         raise NotImplementedError
 
-    def exectute_and_fetch(self, stmnt: Any) -> list:
+    def execute_and_fetch(self, stmnt: Any) -> list:
         """Execute a statement against the database and fetch the result.
 
         Args:
@@ -87,10 +87,10 @@ class SyncDBManager(BaseDBManager):
             port=port,
             database=database,
         )
-        self.engine = create_async_engine(url=url)
+        self.engine = create_engine(url=url)
         self.inspector = inspect(self.engine)
 
-    def exectute_and_fetch(self, stmnt: Any) -> list:
+    def execute_and_fetch(self, stmnt: Any) -> list:
         with self.engine.begin() as conn:
             result = conn.execute(statement=stmnt)
             rows = result.all()
@@ -125,20 +125,23 @@ class AsyncDBManager(BaseDBManager):
         self.engine = create_async_engine(url=url)
         self.inspector = inspect(self.engine)
 
-    async def exectute_and_fetch(self, stmnt: Any) -> list:
+    async def execute_and_fetch(self, stmnt: Any) -> list:
         async with self.engine.begin() as conn:
             result = await conn.execute(statement=stmnt)
             rows = result.all()
+        # Need to call `dispose` - not automatic for async
         await self.engine.dispose()
         return rows
 
     async def execute(self, stmnt: Any) -> None:
         async with self.engine.begin() as conn:
             await conn.execute(statement=stmnt)
+        # Need to call `dispose` - not automatic for async
         await self.engine.dispose()
 
     async def list_tables(self) -> list:
         async with self.engine.connect() as conn:
             tables = await conn.run_sync(self.inspector.get_table_names)
+        # Need to call `dispose` - not automatic for async
         await self.engine.dispose()
         return tables
