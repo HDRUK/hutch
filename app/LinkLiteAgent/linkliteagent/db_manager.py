@@ -129,13 +129,16 @@ class AsyncDBManager(BaseDBManager):
         async with self.engine.begin() as conn:
             result = await conn.execute(statement=stmnt)
             rows = result.all()
+        await self.engine.dispose()
         return rows
 
     async def execute(self, stmnt: Any) -> None:
         async with self.engine.begin() as conn:
             await conn.execute(statement=stmnt)
+        await self.engine.dispose()
 
     async def list_tables(self) -> list:
         async with self.engine.connect() as conn:
             tables = await conn.run_sync(self.inspector.get_table_names)
+        await self.engine.dispose()
         return tables
