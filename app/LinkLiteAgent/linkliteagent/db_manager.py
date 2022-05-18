@@ -27,7 +27,7 @@ class BaseDBManager:
             database (str): The name of the database.
             drivername (str): The database driver e.g. "psycopg2", "pymysql", etc.
         """
-        pass
+        raise NotImplementedError
 
     def exectute_and_fetch(self, stmnt: Any) -> list:
         """Execute a statement against the database and fetch the result.
@@ -38,7 +38,7 @@ class BaseDBManager:
         Returns:
             list: The list of rows returned.
         """
-        pass
+        raise NotImplementedError
 
     def execute(self, stmnt: Any) -> None:
         """Execute a statement against the database and don't fetch any results.
@@ -46,10 +46,10 @@ class BaseDBManager:
         Args:
             stmnt (Any): The statement object to be executed.
         """
-        pass
+        raise NotImplementedError
 
     def list_tables(self) -> list:
-        pass
+        raise NotImplementedError
 
 
 class SyncDBManager(BaseDBManager):
