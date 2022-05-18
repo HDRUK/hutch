@@ -26,6 +26,9 @@ class BaseDBManager:
             port (int): The port number for the database.
             database (str): The name of the database.
             drivername (str): The database driver e.g. "psycopg2", "pymysql", etc.
+
+        Raises:
+            NotImplementedError: Raised when this method has not been implemented in subclass.
         """
         raise NotImplementedError
 
@@ -34,6 +37,9 @@ class BaseDBManager:
 
         Args:
             stmnt (Any): The statement object to be executed.
+
+        Raises:
+            NotImplementedError: Raised when this method has not been implemented in subclass.
 
         Returns:
             list: The list of rows returned.
@@ -45,10 +51,21 @@ class BaseDBManager:
 
         Args:
             stmnt (Any): The statement object to be executed.
+
+        Raises:
+            NotImplementedError: Raised when this method has not been implemented in subclass.
         """
         raise NotImplementedError
 
     def list_tables(self) -> list:
+        """List the tables in the database.
+
+        Raises:
+            NotImplementedError: Raised when this method has not been implemented in subclass.
+
+        Returns:
+            list: The list of tables in the database.
+        """
         raise NotImplementedError
 
 
@@ -114,7 +131,7 @@ class AsyncDBManager(BaseDBManager):
             rows = result.all()
         return rows
 
-    async def execute(self, stmnt) -> None:
+    async def execute(self, stmnt: Any) -> None:
         async with self.engine.begin() as conn:
             await conn.execute(statement=stmnt)
 
