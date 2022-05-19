@@ -25,7 +25,7 @@ class Log(Base):
     properties = Column("Properties", Text, nullable=True)
 
 
-class LogDBHandler(Handler):
+class AsyncLogDBHandler(Handler):
     def __init__(self, level, db_manager: AsyncDBManager) -> None:
         super().__init__(level)
         self.db_manager = db_manager
@@ -45,6 +45,30 @@ class LogDBHandler(Handler):
         )
         try:
             await self.db_manager.execute(log_stmnt)
+        except:
+            print("Failed to emit record to DB")
+
+
+class SyncLogDBHandler(Handler):
+    def __init__(self, level, db_manager: AsyncDBManager) -> None:
+        super().__init__(level)
+        self.db_manager = db_manager
+
+    def emit(self, record: LogRecord) -> None:
+        # stack_info looks like `(type, value, traceback)` or `None`
+        # https://docs.python.org/3/library/logging.html#logrecord-attributes
+        if exc_info := record.stack_info:
+            exception = exc_info[0]
+        log_stmnt = insert(Log).values(
+            # `message` is the text given to the logger
+            message=record.message,
+            level=record.levelname,
+            exception=exception,
+            # `msg` is the template string
+            message_template=record.msg,
+        )
+        try:
+            self.db_manager.execute(log_stmnt)
         except:
             print("Failed to emit record to DB")
 
