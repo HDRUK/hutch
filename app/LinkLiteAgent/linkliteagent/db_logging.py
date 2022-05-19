@@ -9,7 +9,7 @@ Base = declarative_base()
 
 class Log(Base):
     __tablename__ = "LinkLiteLog"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column("Id", Integer, primary_key=True, autoincrement=True)
     message = Column("Message", Text, nullable=True)
     message_template = Column("MessageTemplate", Text, nullable=True)
     level = Column("Level", String(128), nullable=True)
