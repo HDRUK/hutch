@@ -1,13 +1,13 @@
 import datetime
 import argparse
 
-from logging import Handler, LogRecord
+from logging import getLogger, Handler, LogRecord
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, insert
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.declarative import declarative_base
 
-from .db_manager import AsyncDBManager
+from .db_manager import SyncDBManager
 
 Base = declarative_base()
 
@@ -25,52 +25,48 @@ class Log(Base):
     properties = Column("Properties", Text, nullable=True)
 
 
-class AsyncLogDBHandler(Handler):
-    def __init__(self, level, db_manager: AsyncDBManager) -> None:
-        super().__init__(level)
-        self.db_manager = db_manager
-
-    async def emit(self, record: LogRecord) -> None:
-        # stack_info looks like `(type, value, traceback)` or `None`
-        # https://docs.python.org/3/library/logging.html#logrecord-attributes
-        if exc_info := record.stack_info:
-            exception = exc_info[0]
-        log_stmnt = insert(Log).values(
-            # `message` is the text given to the logger
-            message=record.message,
-            level=record.levelname,
-            exception=exception,
-            # `msg` is the template string
-            message_template=record.msg,
-        )
-        try:
-            await self.db_manager.execute(log_stmnt)
-        except:
-            print("Failed to emit record to DB")
-
-
 class SyncLogDBHandler(Handler):
-    def __init__(self, level, db_manager: AsyncDBManager) -> None:
+    def __init__(self, db_manager: SyncDBManager, backup_logger: str, level=0) -> None:
+        """Constructor for `SyncLogDBHandler`.
+
+        Args:
+            db_manager (SyncDBManager): The database manager.
+            backup_logger (str): The name of the backup logger.
+            level (int, optional): The numberic value for the log level. Defaults to 0.
+        """
         super().__init__(level)
         self.db_manager = db_manager
+        self.backup_logger = getLogger(backup_logger)
 
     def emit(self, record: LogRecord) -> None:
+        """Record the logging record to the DB or to the backup logger
+
+        Args:
+            record (LogRecord): A `LogRecord` object.
+        """
         # stack_info looks like `(type, value, traceback)` or `None`
         # https://docs.python.org/3/library/logging.html#logrecord-attributes
         if exc_info := record.stack_info:
             exception = exc_info[0]
+        else:
+            exception = None
+
         log_stmnt = insert(Log).values(
-            # `message` is the text given to the logger
-            message=record.message,
-            level=record.levelname,
-            exception=exception,
-            # `msg` is the template string
-            message_template=record.msg,
+            # Use pascal case, as those are the names in the DB.
+            # see `Log` definition above.
+            Message=record.msg,
+            Level=record.levelname,
+            Exception=exception,
+            MessageTemplate=self.formatter._fmt,
         )
+
         try:
             self.db_manager.execute(log_stmnt)
-        except:
-            print("Failed to emit record to DB")
+        except Exception:
+            self.backup_logger.log(
+                level=record.levelno,
+                msg=record.message,
+            )
 
 
 def create_log_table():
