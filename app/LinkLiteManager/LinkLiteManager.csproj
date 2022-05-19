@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <Version>1.0.0-alpha.1</Version>
@@ -9,6 +9,7 @@
     
     <!-- Append GitHash to Version if provided -->
     <Version Condition="'$(GitHash)' != ''">$(Version)+$(GitHash)</Version>
+    <UserSecretsId>b067dc88-f255-44dd-a3cd-4c5b078a2b48</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,6 +29,8 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.1" />
+    <PackageReference Include="Npgsql" Version="6.0.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
     <PackageReference Include="UoN.AspNetCore.VersionMiddleware" Version="1.1.1" />
     
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">

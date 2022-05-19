@@ -9,6 +9,7 @@ using LinkLiteManager.Middleware;
 using LinkLiteManager.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using UoN.AspNetCore.VersionMiddleware;
 
 var b = WebApplication.CreateBuilder(args);
@@ -30,11 +31,16 @@ b.Services
     // if running migrations, `--connection` should be set on the command line
     // in real environments, connection string should be set via config
     // all other cases will error when db access is attempted.
-    var connectionString = b.Configuration.GetConnectionString("Default");
+    var connectionStringBuilder = new NpgsqlConnectionStringBuilder(b.Configuration.GetConnectionString("Default"));
+    connectionStringBuilder.Password = b.Configuration["DBPassword"];
+    connectionStringBuilder.Username = b.Configuration["DBUser"];
+    connectionStringBuilder.Host = b.Configuration["DBServer"];
+    connectionStringBuilder.Database = b.Configuration["DBName"];
+    var connectionString = connectionStringBuilder.ConnectionString;
     if (string.IsNullOrWhiteSpace(connectionString))
-      o.UseSqlServer();
+      o.UseNpgsql();
     else
-      o.UseSqlServer(connectionString,
+      o.UseNpgsql(connectionString,
         o => o.EnableRetryOnFailure());
   });
 
@@ -51,13 +57,11 @@ b.Services
   .AddApplicationInsightsTelemetry()
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
-
   .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
-
   .AddEmailSender(b.Configuration)
-
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>();
+
 #endregion
 
 var app = b.Build();
@@ -76,6 +80,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseVersion();
 app.UseConfigCookieMiddleware();
+
 #endregion
 
 #region Endpoint Routing
