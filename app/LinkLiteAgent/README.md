@@ -23,6 +23,22 @@ poetry run linkliteagent
 ```
 and use `Ctrl+C` to shut it down.
 
+### DB for logging
+To build the DB for logging, you will need a running db server (currently only postgresql is supported). At the root of the repo run:
+```shell
+docker-compose up -d
+```
+and you will get a fresh postgresql db.
+
+Then in `app/LinkLiteAgent`, run:
+```shell
+poetry run build-log-db -u <username> -p <password> -d <database> --drivername <drivername>
+```
+Help can be found by running:
+```shell
+poetry run build-log-db --help
+```
+
 ### Testing and Building
 To run the tests and build `linkliteagent`'s `sdist` and `wheel`, run:
 ```shell
