@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text
+from sqlalchemy.engine import URL
 from sqlalchemy.ext.declarative import declarative_base
 import datetime
 
@@ -17,3 +18,16 @@ class Log(Base):
     )
     exception = Column("Exception", Text, nullable=True)
     properties = Column("Properties", Text, nullable=True)
+
+
+def create_log_table():
+    url = URL(
+        drivername="postgresql+psycopg2",
+        username="postgres",
+        password="example",
+        host="localhost",
+        port=5432,
+        database="postgres",
+    )
+    engine = create_engine(url=url)
+    Log.metadata.create_all(engine, checkfirst=True)
