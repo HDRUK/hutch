@@ -31,12 +31,7 @@ b.Services
     // if running migrations, `--connection` should be set on the command line
     // in real environments, connection string should be set via config
     // all other cases will error when db access is attempted.
-    var connectionStringBuilder = new NpgsqlConnectionStringBuilder(b.Configuration.GetConnectionString("Default"));
-    connectionStringBuilder.Password = b.Configuration["DBPassword"];
-    connectionStringBuilder.Username = b.Configuration["DBUser"];
-    connectionStringBuilder.Host = b.Configuration["DBServer"];
-    connectionStringBuilder.Database = b.Configuration["DBName"];
-    var connectionString = connectionStringBuilder.ConnectionString;
+    var connectionString = b.Configuration.GetConnectionString("Default");
     if (string.IsNullOrWhiteSpace(connectionString))
       o.UseNpgsql();
     else
