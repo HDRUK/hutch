@@ -1,8 +1,13 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text
-from sqlalchemy.engine import URL
-from sqlalchemy.ext.declarative import declarative_base
 import datetime
 import argparse
+
+from logging import Handler, LogRecord
+
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, insert
+from sqlalchemy.engine import URL
+from sqlalchemy.ext.declarative import declarative_base
+
+from .db_manager import AsyncDBManager
 
 Base = declarative_base()
 
@@ -18,6 +23,30 @@ class Log(Base):
     )
     exception = Column("Exception", Text, nullable=True)
     properties = Column("Properties", Text, nullable=True)
+
+
+class LogDBHandler(Handler):
+    def __init__(self, level, db_manager: AsyncDBManager) -> None:
+        super().__init__(level)
+        self.db_manager = db_manager
+
+    async def emit(self, record: LogRecord) -> None:
+        # stack_info looks like `(type, value, traceback)` or `None`
+        # https://docs.python.org/3/library/logging.html#logrecord-attributes
+        if exc_info := record.stack_info:
+            exception = exc_info[0]
+        log_stmnt = insert(Log).values(
+            # `message` is the text given to the logger
+            message=record.message,
+            level=record.levelname,
+            exception=exception,
+            # `msg` is the template string
+            message_template=record.msg,
+        )
+        try:
+            await self.db_manager.execute(log_stmnt)
+        except:
+            print("Failed to emit record to DB")
 
 
 def create_log_table():
