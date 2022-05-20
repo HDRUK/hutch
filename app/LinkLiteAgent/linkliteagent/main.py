@@ -3,6 +3,7 @@ import os
 import logging
 import time
 import pika
+import linkliteagent.message_queue as mq
 from linkliteagent.db_manager import SyncDBManager
 from linkliteagent.db_logging import SyncLogDBHandler
 
@@ -42,6 +43,15 @@ def main():
     db_logger.addHandler(db_handler)
     db_logger.addHandler(backup_handler)
 
+    # Connect to RabbitMQ
+    try:
+        db_logger.info("Connecting to queue.")
+        channel = mq.connect("hello")
+        db_logger.info("Successfully connected to queue.")
+    except pika.exceptions.AMQPConnectionError:
+        db_logger.critical("Unable to connect to queue. Exiting...", exc_info=True)
+        exit(-1)
+
     running = True
     while running:
         try:
@@ -50,7 +60,7 @@ def main():
             time.sleep(2)
         except KeyboardInterrupt:
             # shut down on Ctrl+C
-            db_logger.warning(f"{os.linesep}Shut down @ {time.ctime()}")
+            db_logger.warning(f"Shut down @ {time.ctime()}")
             running = False
 
 
