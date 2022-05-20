@@ -79,7 +79,7 @@ class SyncDBManager(BaseDBManager):
         database: str,
         drivername: str,
     ) -> None:
-        url = URL(
+        url = URL.create(
             drivername=drivername,
             username=username,
             password=password,

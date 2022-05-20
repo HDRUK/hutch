@@ -50,7 +50,6 @@ def spoof_db():
         conn.execute(f"drop database {os.getenv('DB_NAME')}")
 
 
-@pytest.mark.usefixture("spoof_db")
 def test_syn_db_logger(spoof_db):
     # create the log table
     Log.metadata.create_all(spoof_db)
