@@ -9,7 +9,6 @@
     
     <!-- Append GitHash to Version if provided -->
     <Version Condition="'$(GitHash)' != ''">$(Version)+$(GitHash)</Version>
-    <UserSecretsId>b067dc88-f255-44dd-a3cd-4c5b078a2b48</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup>
