@@ -60,8 +60,14 @@ def main():
             time.sleep(2)
         except KeyboardInterrupt:
             # shut down on Ctrl+C
-            db_logger.warning(f"Shut down @ {time.ctime()}")
+            db_logger.info("Shutting down agent...")
+            db_logger.info("Disconnecting from queue...")
+            if channel.connection.is_open:
+                mq.disconnect(channel)
+
             running = False
+
+    db_handler.info("Successfully shut down :)")
 
 
 if __name__ == "__main__":
