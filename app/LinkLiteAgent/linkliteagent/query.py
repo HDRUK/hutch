@@ -56,7 +56,9 @@ class RQuestQueryGroup:
             rules (list, optional): _description_. Defaults to None.
             rules_oper (str, optional): _description_. Defaults to "".
         """
-        self.rules = list(rules) if rules is not None else list()
+        self.rules = (
+            [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
+        )
         self.rules_oper = rules_oper
 
 
@@ -71,9 +73,7 @@ class RQuestQueryCohort:
             groups_oper (str, optional): _description_. Defaults to "".
         """
         self.groups = (
-            list([RQuestQueryGroup(**g) for g in groups])
-            if groups is not None
-            else list()
+            [RQuestQueryGroup(**g) for g in groups] if groups is not None else list()
         )
         self.groups_oper = groups_oper
 
