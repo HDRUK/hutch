@@ -1,5 +1,29 @@
 from pika.channel import Channel
+from typing import NamedTuple
 from pika.spec import Basic, BasicProperties
+
+
+class RuleTypes(NamedTuple):
+    """`NamedTuple` containing RQuest rule types."""
+
+    ALTERNATIVE = "ALTERNATIVE"
+    BOOLEAN = "BOOLEAN"
+    NUMERIC = "NUMERIC"
+    TEXT = "TEXT"
+
+
+class RuleOperands(NamedTuple):
+    """`NamedTuple` containing RQuest rule operands."""
+
+    INCLUDE = "="
+    EXCLUDE = "!="
+
+
+class QueryCombinators(NamedTuple):
+    """`NamedTuple` containing the RQuest query combinators."""
+
+    AND = "AND"
+    OR = "OR"
 
 
 def query_callback(
