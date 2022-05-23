@@ -1,11 +1,10 @@
 import sys
-import os
 import logging
-import time
 import pika
 import linkliteagent.message_queue as mq
 from linkliteagent.db_manager import SyncDBManager
 from linkliteagent.db_logging import SyncLogDBHandler
+from linkliteagent.query import query_callback
 
 
 async def async_main():
@@ -14,6 +13,8 @@ async def async_main():
 
 
 def main():
+    QUEUE_NAME = "link-like-queue"
+
     """The main method"""
     format = logging.Formatter(
         "%(levelname)s - %(asctime)s - %(message)s",
@@ -46,27 +47,18 @@ def main():
     # Connect to RabbitMQ
     try:
         db_logger.info("Connecting to queue.")
-        channel = mq.connect("link-lite-queue")
-        channel.start_consuming()
-        db_logger.info("Successfully connected to queue.")
+        channel = mq.connect(QUEUE_NAME)
+        channel.basic_consume(QUEUE_NAME, on_message_callback=query_callback)
+        db_logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
+        channel.start_consuming()  # starts a `while True` loop.
     except pika.exceptions.AMQPConnectionError:
         db_logger.critical("Unable to connect to queue. Exiting...", exc_info=True)
         exit(-1)
-
-    running = True
-    while running:
-        try:
-            # hello world
-            db_logger.info(f"Hello World @ {time.ctime()}")
-            time.sleep(2)
-        except KeyboardInterrupt:
-            # shut down on Ctrl+C
-            db_logger.info("Shutting down agent...")
-            db_logger.info("Disconnecting from queue...")
-            if channel.connection.is_open:
-                mq.disconnect(channel)
-
-            running = False
+    except KeyboardInterrupt:
+        # shut down on Ctrl+C
+        db_logger.info("Disconnecting from queue...")
+        if channel.connection.is_open:
+            mq.disconnect(channel)
 
     db_logger.info("Successfully shut down :)")
 
