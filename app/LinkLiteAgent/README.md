@@ -24,7 +24,9 @@ poetry run linkliteagent
 and use `Ctrl+C` to shut it down.
 
 ### DB for logging
-To build the DB for logging, you will need a running db server (currently only postgresql is supported). At the root of the repo run:
+The agent writes logs to a database. It also writes to the standard output as a backup in case the connection fails. The creation of the logging database is handled by `LinkLiteManager` normally, but if you want to work with the agent without the manager for development purposes, perform the following steps:
+
+At the root of the repo run:
 ```shell
 docker-compose up -d
 ```
