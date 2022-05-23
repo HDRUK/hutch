@@ -46,7 +46,8 @@ def main():
     # Connect to RabbitMQ
     try:
         db_logger.info("Connecting to queue.")
-        channel = mq.connect("hello")
+        channel = mq.connect("link-lite-queue")
+        channel.start_consuming()
         db_logger.info("Successfully connected to queue.")
     except pika.exceptions.AMQPConnectionError:
         db_logger.critical("Unable to connect to queue. Exiting...", exc_info=True)
@@ -67,7 +68,7 @@ def main():
 
             running = False
 
-    db_handler.info("Successfully shut down :)")
+    db_logger.info("Successfully shut down :)")
 
 
 if __name__ == "__main__":
