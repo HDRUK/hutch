@@ -26,15 +26,31 @@ class QueryCombinators(NamedTuple):
     OR = "OR"
 
 
-class RQuestCohort:
+class RQuestQueryGroup:
+    """Represents and RQuest query group."""
+    def __init__(self, rules: list = None, rules_oper: str = "") -> None:
+        """Constructor for `RQuestQueryGroup`.
+
+        Args:
+            rules (list, optional): _description_. Defaults to None.
+            rules_oper (str, optional): _description_. Defaults to "".
+        """
+        self.rules = list(rules) if rules is not None else list()
+        self.rules_oper = rules_oper
+
+
+class RQuestQueryCohort:
+    """Represents and RQuest query cohort."""
     def __init__(self, groups: list = None, groups_oper: str = "") -> None:
-        """Constructor for `RQuestCohort`.
+        """Constructor for `RQuestQueryCohort`.
 
         Args:
             groups (list, optional): _description_. Defaults to None.
             groups_oper (str, optional): _description_. Defaults to "".
         """
-        self.groups = list(groups) if groups is not None else list()
+        self.groups = (
+            list([RQuestQueryGroup(**g) for g in groups]) if groups is not None else list()
+        )
         self.groups_oper = groups_oper
 
 
@@ -62,7 +78,7 @@ class RQuestQuery:
         """
         self.owner = owner
         self.cohort = cohort if cohort is not None else {}  # turn None to empty dict
-        self.cohort = RQuestCohort(**cohort)
+        self.cohort = RQuestQueryCohort(**cohort)
         self.collection = collection
         self.protocol_version = protocol_version
         self.char_salt = char_salt
