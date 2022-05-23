@@ -26,6 +26,34 @@ class QueryCombinators(NamedTuple):
     OR = "OR"
 
 
+class RQuestQuery:
+    def __init__(
+        self,
+        owner: str = "",
+        cohort: dict = None,  # mutable types shouldn't used as defaults
+        collection: str = "",
+        protocol_version: str = "",
+        char_salt: str = "",
+        uuid: str = "",
+    ) -> None:
+        """Construction for `RQuestQuery`. Represents
+
+        Args:
+            owner (str, optional): _description_. Defaults to "".
+            cohort (dict, optional): _description_. Defaults to None.
+            collection (str, optional): _description_. Defaults to "".
+            protocol_version (str, optional): _description_. Defaults to "".
+            char_salt (str, optional): _description_. Defaults to "".
+            uuid (str, optional): _description_. Defaults to "".
+        """
+        self.owner = owner
+        self.cohort = cohort if cohort is not None else {}  # turn None to empty dict
+        self.collection = collection
+        self.protocol_version = protocol_version
+        self.char_salt = char_salt
+        self.uuid = uuid
+
+
 def query_callback(
     channel: Channel, method: Basic.Deliver, properties: BasicProperties, body: bytes
 ):
