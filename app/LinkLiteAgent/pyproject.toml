@@ -14,8 +14,8 @@ authors = [
 python = ">=3.9,<3.11"
 celery = "^5.2.6"
 SQLAlchemy = "^1.4.36"
-psycopg2 = "^2.9.3"
 asyncpg = "^0.25.0"
+psycopg2-binary = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -24,6 +24,7 @@ tox = "^3.25.0"
 
 [tool.poetry.scripts]
 linkliteagent = "linkliteagent.main:main"
+build-log-db = "linkliteagent.db_logging:create_log_table"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

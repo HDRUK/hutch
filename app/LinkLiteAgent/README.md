@@ -23,6 +23,24 @@ poetry run linkliteagent
 ```
 and use `Ctrl+C` to shut it down.
 
+### DB for logging
+The agent writes logs to a database. It also writes to the standard output as a backup in case the connection fails. The creation of the logging database is handled by `LinkLiteManager` normally, but if you want to work with the agent without the manager for development purposes, perform the following steps:
+
+At the root of the repo run:
+```shell
+docker-compose up -d
+```
+and you will get a fresh postgresql db.
+
+Then in `app/LinkLiteAgent`, run:
+```shell
+poetry run build-log-db -u <username> -p <password> -d <database> --drivername <drivername>
+```
+Help can be found by running:
+```shell
+poetry run build-log-db --help
+```
+
 ### Testing and Building
 To run the tests and build `linkliteagent`'s `sdist` and `wheel`, run:
 ```shell
