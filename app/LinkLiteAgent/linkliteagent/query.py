@@ -26,8 +26,29 @@ class QueryCombinators(NamedTuple):
     OR = "OR"
 
 
+class RQuestQueryRule:
+    """Represents and RQuest query rule."""
+
+    def __init__(
+        self, varname: str = "", type: str = "", oper: str = "", value: str = ""
+    ) -> None:
+        """Constructor for `RQuestQueryRule`.
+
+        Args:
+            varname (str, optional): _description_. Defaults to "".
+            type (str, optional): _description_. Defaults to "".
+            oper (str, optional): _description_. Defaults to "".
+            value (str, optional): _description_. Defaults to "".
+        """
+        self.varname = varname
+        self.type = type
+        self.oper = oper
+        self.value = value
+
+
 class RQuestQueryGroup:
     """Represents and RQuest query group."""
+
     def __init__(self, rules: list = None, rules_oper: str = "") -> None:
         """Constructor for `RQuestQueryGroup`.
 
@@ -41,6 +62,7 @@ class RQuestQueryGroup:
 
 class RQuestQueryCohort:
     """Represents and RQuest query cohort."""
+
     def __init__(self, groups: list = None, groups_oper: str = "") -> None:
         """Constructor for `RQuestQueryCohort`.
 
@@ -49,7 +71,9 @@ class RQuestQueryCohort:
             groups_oper (str, optional): _description_. Defaults to "".
         """
         self.groups = (
-            list([RQuestQueryGroup(**g) for g in groups]) if groups is not None else list()
+            list([RQuestQueryGroup(**g) for g in groups])
+            if groups is not None
+            else list()
         )
         self.groups_oper = groups_oper
 
