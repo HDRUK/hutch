@@ -13,9 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
   public DbSet<RegistrationAllowlistEntry> RegistrationAllowlist => Set<RegistrationAllowlistEntry>();
 
   public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
-
-  public DbSet<SourceType> SourceTypes => Set<SourceType>();
-
+  
   public DbSet<ActivitySource> ActivitySources => Set<ActivitySource>();
   protected override void OnModelCreating(ModelBuilder builder)
   {

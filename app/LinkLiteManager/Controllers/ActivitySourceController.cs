@@ -1,4 +1,5 @@
 using LinkLiteManager.Data.Entities;
+using LinkLiteManager.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,17 +8,15 @@ namespace LinkLiteManager.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ActivitySourceController : Controller
+public class ActivitySourceController : ControllerBase
 {
+  private readonly ActivitySourceService _activitySources;
+  public ActivitySourceController(ActivitySourceService activitySources)
+  {
+    _activitySources = activitySources;
+  }
 
   [HttpGet]
-  public async Task<ActionResult<List<ActivitySource>>> List()
-    => await _departments.List();
-  /*
-  public ActionResult GetProduct(string id)
-  {
-    return ControllerContext.
-  }
-  */
-
+  public async Task<List<Models.ActivitySource>> List()
+    => await _activitySources.List();
 }
