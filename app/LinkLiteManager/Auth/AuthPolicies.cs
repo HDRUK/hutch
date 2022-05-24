@@ -21,6 +21,13 @@ public static class AuthPolicies
     {
       var request = ((DefaultHttpContext?)context.Resource)?.Request;
 
+      // We don't bother checking for same host in a dev environment
+      // to facilitate easier testing ;)
+      var env = request?.HttpContext.RequestServices
+        .GetRequiredService<IHostEnvironment>()
+        ?? throw new InvalidOperationException("No Http Request");
+      if (env.IsDevelopment()) return true;
+
       var referer = request?.Headers.Referer.FirstOrDefault();
       if (referer is null) return false;
 
