@@ -1,24 +1,21 @@
 import json
 import logging
 from pika.channel import Channel
-from typing import NamedTuple
+from typing import Any, NamedTuple
 from pika.spec import Basic, BasicProperties
 
 
-class RuleTypes(NamedTuple):
-    """`NamedTuple` containing RQuest rule types."""
+RULE_TYPES = {
+    "ALTERNATIVE": lambda x: x,
+    "BOOLEAN": lambda x: bool(x),
+    "NUMERIC": lambda x: int(x),
+    "TEXT": lambda x: str(x),
+}
 
-    ALTERNATIVE = "ALTERNATIVE"
-    BOOLEAN = "BOOLEAN"
-    NUMERIC = "NUMERIC"
-    TEXT = "TEXT"
-
-
-class RuleOperands(NamedTuple):
-    """`NamedTuple` containing RQuest rule operands."""
-
-    INCLUDE = "="
-    EXCLUDE = "!="
+OPERANDS = {
+    "=" : lambda left, right: left == right,
+    "!=": lambda left, right: left != right,
+}
 
 
 class QueryCombinators(NamedTuple):
@@ -45,7 +42,18 @@ class RQuestQueryRule:
         self.varname = varname
         self.type = type
         self.oper = oper
-        self.value = value
+        self.value = self._parse_value(value)
+
+    def _parse_value(self, value: str) -> Any:
+        """Parse string value into correct type.
+
+        Args:
+            value (str): The value to be parsed.
+
+        Returns:
+            Any: The value with the correct type.
+        """
+        return RULE_TYPES[self.type](value)
 
 
 class RQuestQueryGroup:
