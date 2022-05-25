@@ -48,7 +48,7 @@ def main():
     try:
         db_logger.info("Connecting to queue.")
         channel = mq.connect(QUEUE_NAME)
-        channel.basic_consume(QUEUE_NAME, on_message_callback=query_callback)
+        channel.basic_consume(QUEUE_NAME, on_message_callback=query_callback, auto_ack=True)
         db_logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
         channel.start_consuming()  # starts a `while True` loop.
     except pika.exceptions.AMQPConnectionError:
