@@ -13,7 +13,7 @@ async def async_main():
 
 
 def main():
-    QUEUE_NAME = "link-like-queue"
+    QUEUE_NAME = "jobs"
 
     """The main method"""
     format = logging.Formatter(
