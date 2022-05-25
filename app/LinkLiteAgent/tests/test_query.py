@@ -12,7 +12,7 @@ def request_dict():
                     "rules": [
                         {
                             "varname": "SEX",
-                            "type": "ALT",
+                            "type": "ALTERNATIVE",
                             "oper": "=",
                             "value": "1",
                         }
