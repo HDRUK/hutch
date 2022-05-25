@@ -71,5 +71,45 @@ def test_group_sql_clause():
         "rules_oper": "OR",
     }
     group = query.RQuestQueryGroup(**and_rule)
-    print(group.sql_clause)
     assert str(group.sql_clause) == '"SEX" = :SEX_1 OR "AGE" = :AGE_1'
+
+
+def test_cohort_sql_clause():
+    and_group = {
+        "groups": [
+            {
+                "rules": [
+                    {
+                        "varname": "SEX",
+                        "type": "ALTERNATIVE",
+                        "oper": "=",
+                        "value": "1",
+                    },
+                    {
+                        "varname": "AGE",
+                        "type": "ALTERNATIVE",
+                        "oper": "=",
+                        "value": "2",
+                    },
+                ],
+                "rules_oper": "OR",
+            },
+            {
+                "rules": [
+                    {
+                        "varname": "SEX",
+                        "type": "ALTERNATIVE",
+                        "oper": "=",
+                        "value": "1",
+                    }
+                ],
+                "rules_oper": "OR",
+            },
+        ],
+        "groups_oper": "AND",
+    }
+    cohort = query.RQuestQueryCohort(**and_group)
+    assert (
+        str(cohort.sql_clause)
+        == '("SEX" = :SEX_1 OR "AGE" = :AGE_1) AND "SEX" = :SEX_2'
+    )

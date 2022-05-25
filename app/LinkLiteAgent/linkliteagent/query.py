@@ -101,6 +101,10 @@ class RQuestQueryCohort:
         )
         self.groups_oper = groups_oper
 
+    @property
+    def sql_clause(self):
+        return OPERANDS[self.groups_oper](*[group.sql_clause for group in self.groups])
+
 
 class RQuestQuery:
     """Represents and RQuest query"""
