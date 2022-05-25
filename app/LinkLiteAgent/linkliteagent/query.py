@@ -1,7 +1,7 @@
 import json
 import logging
 from pika.channel import Channel
-from sqlalchemy import column
+from sqlalchemy import and_, column, or_
 from typing import Any, NamedTuple
 from pika.spec import Basic, BasicProperties
 
@@ -16,6 +16,8 @@ RULE_TYPES = {
 OPERANDS = {
     "=": lambda left, right: left == right,
     "!=": lambda left, right: left != right,
+    "AND": lambda *args: and_(*args),
+    "OR": lambda *args: or_(*args),
 }
 
 
@@ -78,6 +80,10 @@ class RQuestQueryGroup:
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
         )
         self.rules_oper = rules_oper
+
+    @property
+    def sql_clause(self):
+        return OPERANDS[self.rules_oper](*[rule.sql_clause for rule in self.rules])
 
 
 class RQuestQueryCohort:

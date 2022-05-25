@@ -37,7 +37,7 @@ def test_create_rquest_query(request_dict):
     assert isinstance(rquest_query.cohort.groups[0].rules[0], query.RQuestQueryRule)
 
 
-def test_rule_to_sql_clause():
+def test_rule_sql_clause():
     eq_rule = {
         "varname": "SEX",
         "type": "ALTERNATIVE",
@@ -46,11 +46,30 @@ def test_rule_to_sql_clause():
     }
     rule_obj = query.RQuestQueryRule(**eq_rule)
     assert str(rule_obj.sql_clause) == '"SEX" = :SEX_1'
-    ne_rule = {
-        "varname": "SEX",
-        "type": "ALTERNATIVE",
-        "oper": "!=",
-        "value": "1",
-    }
+    ne_rule = eq_rule.copy()
+    ne_rule.update(oper="!=")
     rule_obj = query.RQuestQueryRule(**ne_rule)
     assert str(rule_obj.sql_clause) == '"SEX" != :SEX_1'
+
+
+def test_group_sql_clause():
+    and_rule = {
+        "rules": [
+            {
+                "varname": "SEX",
+                "type": "ALTERNATIVE",
+                "oper": "=",
+                "value": "1",
+            },
+            {
+                "varname": "AGE",
+                "type": "ALTERNATIVE",
+                "oper": "=",
+                "value": "2",
+            },
+        ],
+        "rules_oper": "OR",
+    }
+    group = query.RQuestQueryGroup(**and_rule)
+    print(group.sql_clause)
+    assert str(group.sql_clause) == '"SEX" = :SEX_1 OR "AGE" = :AGE_1'
