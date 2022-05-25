@@ -55,8 +55,8 @@ b.Services
   .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
-  .AddTransient<FeatureFlagService>();
-
+  .AddTransient<FeatureFlagService>()
+  .AddTransient<ActivitySourceService>();
 #endregion
 
 var app = b.Build();

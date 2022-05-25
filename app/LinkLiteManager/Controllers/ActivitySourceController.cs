@@ -1,4 +1,4 @@
-using LinkLiteManager.Data.Entities;
+using LinkLiteManager.Models;
 using LinkLiteManager.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,4 +19,9 @@ public class ActivitySourceController : ControllerBase
   [HttpGet]
   public async Task<List<Models.ActivitySource>> List()
     => await _activitySources.List();
+  
+  [HttpPost("new")]
+  public async Task<ActivitySource> Create(CreateActivitySource activitySource)
+    => await _activitySources.Create(activitySource);
+
 }
