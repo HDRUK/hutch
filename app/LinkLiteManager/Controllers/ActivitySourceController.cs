@@ -20,7 +20,7 @@ public class ActivitySourceController : ControllerBase
   public async Task<List<Models.ActivitySource>> List()
     => await _activitySources.List();
   
-  [HttpPost("new")]
+  [HttpPost]
   public async Task<ActivitySource> Create(CreateActivitySource activitySource)
     => await _activitySources.Create(activitySource);
 
