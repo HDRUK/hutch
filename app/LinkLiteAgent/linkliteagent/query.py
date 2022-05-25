@@ -1,7 +1,7 @@
 import json
 import logging
 from pika.channel import Channel
-from sqlalchemy import and_, column, or_
+from sqlalchemy import and_, column, or_, select, table
 from typing import Any, NamedTuple
 from pika.spec import Basic, BasicProperties
 
@@ -82,6 +82,10 @@ class RQuestQueryGroup:
         self.rules_oper = rules_oper
 
     @property
+    def columns(self):
+        return [column(rule.varname) for rule in self.rules]
+
+    @property
     def sql_clause(self):
         return OPERANDS[self.rules_oper](*[rule.sql_clause for rule in self.rules])
 
@@ -135,6 +139,13 @@ class RQuestQuery:
         self.protocol_version = protocol_version
         self.char_salt = char_salt
         self.uuid = uuid
+
+    def to_sql(self):
+        columns = set()
+        for group in self.cohort.groups:
+            for col in group.columns:
+                columns.add(col)
+        return table("person", *columns).select(self.cohort.sql_clause)
 
 
 def query_callback(

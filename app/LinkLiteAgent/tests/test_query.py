@@ -113,3 +113,9 @@ def test_cohort_sql_clause():
         str(cohort.sql_clause)
         == '("SEX" = :SEX_1 OR "AGE" = :AGE_1) AND "SEX" = :SEX_2'
     )
+
+
+def test_query_to_sql(request_dict):
+    test_query = query.RQuestQuery(**request_dict)
+    print(test_query.to_sql())
+    assert False, "Made it to the end."
