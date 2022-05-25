@@ -35,3 +35,22 @@ def test_create_rquest_query(request_dict):
     # Assert query rules is a list of `RQuestQueryRule`
     assert isinstance(rquest_query.cohort.groups[0].rules, list)
     assert isinstance(rquest_query.cohort.groups[0].rules[0], query.RQuestQueryRule)
+
+
+def test_rule_to_sql_clause():
+    eq_rule = {
+        "varname": "SEX",
+        "type": "ALTERNATIVE",
+        "oper": "=",
+        "value": "1",
+    }
+    rule_obj = query.RQuestQueryRule(**eq_rule)
+    assert str(rule_obj.sql_clause) == '"SEX" = :SEX_1'
+    ne_rule = {
+        "varname": "SEX",
+        "type": "ALTERNATIVE",
+        "oper": "!=",
+        "value": "1",
+    }
+    rule_obj = query.RQuestQueryRule(**ne_rule)
+    assert str(rule_obj.sql_clause) == '"SEX" != :SEX_1'
