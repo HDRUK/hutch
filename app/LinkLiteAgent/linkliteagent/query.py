@@ -1,3 +1,5 @@
+import json
+import logging
 from pika.channel import Channel
 from typing import NamedTuple
 from pika.spec import Basic, BasicProperties
@@ -122,5 +124,11 @@ def query_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    # TODO: implement the behaviour in future PR.
-    pass
+    logger = logging.getLogger("db_logger")
+    logger.info("Received message from the Queue. Processing...")
+    try:
+        body_json = json.loads(body)
+        query = RQuestQuery(**body_json)
+        logger.info(f"Successfully unpacked message.")
+    except json.decoder.JSONDecodeError:
+        logger.error("Failed to decode the message from the the queue.")
