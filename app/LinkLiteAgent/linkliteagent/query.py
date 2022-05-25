@@ -1,6 +1,7 @@
 import json
 import logging
 from pika.channel import Channel
+from sqlalchemy import column
 from typing import Any, NamedTuple
 from pika.spec import Basic, BasicProperties
 
@@ -13,7 +14,7 @@ RULE_TYPES = {
 }
 
 OPERANDS = {
-    "=" : lambda left, right: left == right,
+    "=": lambda left, right: left == right,
     "!=": lambda left, right: left != right,
 }
 
@@ -54,6 +55,13 @@ class RQuestQueryRule:
             Any: The value with the correct type.
         """
         return RULE_TYPES[self.type](value)
+
+    @property
+    def sql_clause(self):
+        return OPERANDS[self.oper](
+            column(self.varname),
+            self.value,
+        )
 
 
 class RQuestQueryGroup:
