@@ -30,10 +30,11 @@ class RQuestQueryRule:
         """Constructor for `RQuestQueryRule`.
 
         Args:
-            varname (str, optional): _description_. Defaults to "".
-            type (str, optional): _description_. Defaults to "".
-            oper (str, optional): _description_. Defaults to "".
-            value (str, optional): _description_. Defaults to "".
+            varname (str, optional): The name of the value column. Defaults to "".
+            type (str, optional): The data type of the value. Defaults to "".
+            oper (str, optional): The comparison operator for the value. Defaults to "".
+            value (str, optional): The value. Defaults to "". Is converted from a string
+            to the type specified in `type`.
         """
         self.varname = varname
         self.type = type
@@ -66,8 +67,8 @@ class RQuestQueryGroup:
         """Constructor for `RQuestQueryGroup`.
 
         Args:
-            rules (list, optional): _description_. Defaults to None.
-            rules_oper (str, optional): _description_. Defaults to "".
+            rules (list, optional): A list of `RQuestQueryRule`s. Defaults to None.
+            rules_oper (str, optional): The operand for comparing the rules. Defaults to "".
         """
         self.rules = (
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
@@ -92,8 +93,8 @@ class RQuestQueryCohort:
         """Constructor for `RQuestQueryCohort`.
 
         Args:
-            groups (list, optional): _description_. Defaults to None.
-            groups_oper (str, optional): _description_. Defaults to "".
+            groups (list, optional): A list of `RQuestQueryGroup`s. Defaults to None.
+            groups_oper (str, optional): The operand for comparing the groups. Defaults to "".
         """
         self.groups = (
             [RQuestQueryGroup(**g) for g in groups] if groups is not None else list()
@@ -120,12 +121,12 @@ class RQuestQuery:
         """Construction for `RQuestQuery`.
 
         Args:
-            owner (str, optional): _description_. Defaults to "".
-            cohort (dict, optional): _description_. Defaults to None.
-            collection (str, optional): _description_. Defaults to "".
-            protocol_version (str, optional): _description_. Defaults to "".
-            char_salt (str, optional): _description_. Defaults to "".
-            uuid (str, optional): _description_. Defaults to "".
+            owner (str, optional): The owner of the query. Defaults to "".
+            cohort (dict, optional): The cohort of groups. Defaults to None.
+            collection (str, optional): The collection ID. Defaults to "".
+            protocol_version (str, optional): The protocol version. Defaults to "".
+            char_salt (str, optional): The char salt. Defaults to "".
+            uuid (str, optional): The UUID. Defaults to "".
         """
         self.owner = owner
         self.cohort = cohort if cohort is not None else {}  # turn None to empty dict
