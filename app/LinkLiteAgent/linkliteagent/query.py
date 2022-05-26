@@ -79,6 +79,8 @@ class RQuestQueryGroup:
         self.rules = (
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
         )
+        # Sort rules for more predictable behaviour in tests.
+        self.rules = sorted(self.rules, key=lambda x: x.varname)
         self.rules_oper = rules_oper
 
     @property
@@ -145,6 +147,8 @@ class RQuestQuery:
         for group in self.cohort.groups:
             for col in group.columns:
                 columns.add(col)
+        # Make columns appear in ascending order by name for tests.
+        columns = sorted(columns, key=lambda x: x.name)
         return table("person", *columns).select(self.cohort.sql_clause)
 
 

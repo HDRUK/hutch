@@ -73,7 +73,7 @@ def test_group_sql_clause():
     )
     group = query.RQuestQueryGroup(**and_rule)
     # Assert multiple rules in group build correctly
-    assert str(group.sql_clause) == '"SEX" = :SEX_1 OR "AGE" = :AGE_1'
+    assert str(group.sql_clause) == '"AGE" = :AGE_1 OR "SEX" = :SEX_1'
 
 
 def test_cohort_sql_clause():
@@ -106,7 +106,7 @@ def test_cohort_sql_clause():
     )
     cohort = query.RQuestQueryCohort(**and_group)
     # Assert multiple rules in single group build correctly
-    assert str(cohort.sql_clause) == '"SEX" = :SEX_1 OR "AGE" = :AGE_1'
+    assert str(cohort.sql_clause) == '"AGE" = :AGE_1 OR "SEX" = :SEX_1'
     and_group["groups"].append(
         {
             "rules": [
@@ -124,11 +124,72 @@ def test_cohort_sql_clause():
     cohort = query.RQuestQueryCohort(**and_group)
     assert (
         str(cohort.sql_clause)
-        == '("SEX" = :SEX_1 OR "AGE" = :AGE_1) AND "SEX" = :SEX_2'
+        == '("AGE" = :AGE_1 OR "SEX" = :SEX_1) AND "SEX" = :SEX_2'
     )
 
 
 def test_query_to_sql():
+    request_dict = {
+        "owner": "user1",
+        "cohort": {
+            "groups": [
+                {
+                    "rules": [
+                        {
+                            "varname": "SEX",
+                            "type": "ALTERNATIVE",
+                            "oper": "=",
+                            "value": "1",
+                        }
+                    ],
+                    "rules_oper": "OR",
+                },
+            ],
+            "groups_oper": "AND",
+        },
+    }
     test_query = query.RQuestQuery(**request_dict)
-    print(test_query.to_sql())
-    assert False, "Made it to the end."
+    test_query_sql = test_query.to_sql()
+    assert (
+        str(test_query_sql)
+        == """SELECT person."SEX" 
+FROM person 
+WHERE "SEX" = :SEX_1"""
+    )
+    request_dict["cohort"]["groups"][0]["rules"].append(
+        {
+            "varname": "AGE",
+            "type": "ALTERNATIVE",
+            "oper": "=",
+            "value": "2",
+        }
+    )
+    test_query = query.RQuestQuery(**request_dict)
+    test_query_sql = test_query.to_sql()
+    assert (
+        str(test_query_sql)
+        == """SELECT person."AGE", person."SEX" 
+FROM person 
+WHERE "AGE" = :AGE_1 OR "SEX" = :SEX_1"""
+    )
+    request_dict["cohort"]["groups"].append(
+        {
+            "rules": [
+                {
+                    "varname": "SEX",
+                    "type": "ALTERNATIVE",
+                    "oper": "=",
+                    "value": "1",
+                }
+            ],
+            "rules_oper": "OR",
+        }
+    )
+    test_query = query.RQuestQuery(**request_dict)
+    test_query_sql = test_query.to_sql()
+    assert (
+        str(test_query_sql)
+        == """SELECT person."AGE", person."SEX" 
+FROM person 
+WHERE ("AGE" = :AGE_1 OR "SEX" = :SEX_1) AND "SEX" = :SEX_2"""
+    )
