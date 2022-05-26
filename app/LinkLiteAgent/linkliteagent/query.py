@@ -1,7 +1,7 @@
 import json
 import logging
 from pika.channel import Channel
-from sqlalchemy import and_, column, or_, select, table
+from sqlalchemy import and_, column, create_engine, exc as sql_exc, or_, table
 from typing import Any, NamedTuple
 from pika.spec import Basic, BasicProperties
 
@@ -173,3 +173,16 @@ def query_callback(
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the the queue.")
+
+    engine = create_engine("postgresql://postgres:example@localhost:5432")
+    try:
+        with engine.begin() as conn:
+            res = conn.execute(query.to_sql())
+            rows = res.all()
+            # TODO: sending results to the manager.
+    except sql_exc.NoSuchTableError:
+        logger.error("Searched for a table that doesn't exist.")
+    except sql_exc.NoSuchColumnError:
+        logger.error("Searched for a column that doesn't exist.")
+    finally:
+        engine.dispose()
