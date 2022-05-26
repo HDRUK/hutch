@@ -2,9 +2,8 @@ import pytest
 import linkliteagent.query as query
 
 
-@pytest.fixture
-def request_dict():
-    return {
+def test_create_rquest_query():
+    request_dict = {
         "owner": "user1",
         "cohort": {
             "groups": [
@@ -23,9 +22,6 @@ def request_dict():
             "groups_oper": "AND",
         },
     }
-
-
-def test_create_rquest_query(request_dict):
     rquest_query = query.RQuestQuery(**request_dict)
     # Assert this created an instance of `RQuestQueryCohort`
     assert isinstance(rquest_query.cohort, query.RQuestQueryCohort)
@@ -61,39 +57,28 @@ def test_group_sql_clause():
                 "oper": "=",
                 "value": "1",
             },
-            {
-                "varname": "AGE",
-                "type": "ALTERNATIVE",
-                "oper": "=",
-                "value": "2",
-            },
         ],
         "rules_oper": "OR",
     }
     group = query.RQuestQueryGroup(**and_rule)
+    # Assert single rule in group builds correctly
+    assert str(group.sql_clause) == '"SEX" = :SEX_1'
+    and_rule["rules"].append(
+        {
+            "varname": "AGE",
+            "type": "ALTERNATIVE",
+            "oper": "=",
+            "value": "2",
+        },
+    )
+    group = query.RQuestQueryGroup(**and_rule)
+    # Assert multiple rules in group build correctly
     assert str(group.sql_clause) == '"SEX" = :SEX_1 OR "AGE" = :AGE_1'
 
 
 def test_cohort_sql_clause():
     and_group = {
         "groups": [
-            {
-                "rules": [
-                    {
-                        "varname": "SEX",
-                        "type": "ALTERNATIVE",
-                        "oper": "=",
-                        "value": "1",
-                    },
-                    {
-                        "varname": "AGE",
-                        "type": "ALTERNATIVE",
-                        "oper": "=",
-                        "value": "2",
-                    },
-                ],
-                "rules_oper": "OR",
-            },
             {
                 "rules": [
                     {
@@ -109,13 +94,41 @@ def test_cohort_sql_clause():
         "groups_oper": "AND",
     }
     cohort = query.RQuestQueryCohort(**and_group)
+    # Assert single rule in single group builds correctly
+    assert str(cohort.sql_clause) == '"SEX" = :SEX_1'
+    and_group["groups"][0]["rules"].append(
+        {
+            "varname": "AGE",
+            "type": "ALTERNATIVE",
+            "oper": "=",
+            "value": "2",
+        }
+    )
+    cohort = query.RQuestQueryCohort(**and_group)
+    # Assert multiple rules in single group build correctly
+    assert str(cohort.sql_clause) == '"SEX" = :SEX_1 OR "AGE" = :AGE_1'
+    and_group["groups"].append(
+        {
+            "rules": [
+                {
+                    "varname": "SEX",
+                    "type": "ALTERNATIVE",
+                    "oper": "=",
+                    "value": "1",
+                }
+            ],
+            "rules_oper": "OR",
+        }
+    )
+    # Assert multiple rules in multiple groups build correctly
+    cohort = query.RQuestQueryCohort(**and_group)
     assert (
         str(cohort.sql_clause)
         == '("SEX" = :SEX_1 OR "AGE" = :AGE_1) AND "SEX" = :SEX_2'
     )
 
 
-def test_query_to_sql(request_dict):
+def test_query_to_sql():
     test_query = query.RQuestQuery(**request_dict)
     print(test_query.to_sql())
     assert False, "Made it to the end."
