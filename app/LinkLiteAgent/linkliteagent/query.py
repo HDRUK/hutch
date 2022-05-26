@@ -21,13 +21,6 @@ OPERANDS = {
 }
 
 
-class QueryCombinators(NamedTuple):
-    """`NamedTuple` containing the RQuest query combinators."""
-
-    AND = "AND"
-    OR = "OR"
-
-
 class RQuestQueryRule:
     """Represents and RQuest query rule."""
 
