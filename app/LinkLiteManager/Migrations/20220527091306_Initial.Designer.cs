@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LinkLiteManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220524142106_Initial")]
+    [Migration("20220527091306_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,11 +40,12 @@ namespace LinkLiteManager.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
+                    b.Property<string>("TypeId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TypeId");
 
                     b.ToTable("ActivitySources");
                 });
@@ -142,6 +143,16 @@ namespace LinkLiteManager.Migrations
                     b.HasKey("EmailAddress");
 
                     b.ToTable("RegistrationAllowlist");
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.SourceType", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SourceTypes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -274,6 +285,15 @@ namespace LinkLiteManager.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.ActivitySource", b =>
+                {
+                    b.HasOne("LinkLiteManager.Data.Entities.SourceType", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeId");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

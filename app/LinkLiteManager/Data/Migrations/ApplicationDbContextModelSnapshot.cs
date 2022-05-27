@@ -38,11 +38,12 @@ namespace LinkLiteManager.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
+                    b.Property<string>("TypeId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TypeId");
 
                     b.ToTable("ActivitySources");
                 });
@@ -140,6 +141,16 @@ namespace LinkLiteManager.Migrations
                     b.HasKey("EmailAddress");
 
                     b.ToTable("RegistrationAllowlist");
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.SourceType", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SourceTypes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -272,6 +283,15 @@ namespace LinkLiteManager.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.ActivitySource", b =>
+                {
+                    b.HasOne("LinkLiteManager.Data.Entities.SourceType", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeId");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

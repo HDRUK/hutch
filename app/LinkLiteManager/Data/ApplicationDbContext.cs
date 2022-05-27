@@ -15,6 +15,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
   public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
   
   public DbSet<ActivitySource> ActivitySources => Set<ActivitySource>();
+  
+  public DbSet<SourceType> SourceTypes => Set<SourceType>();
   protected override void OnModelCreating(ModelBuilder builder)
   {
     base.OnModelCreating(builder);

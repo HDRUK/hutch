@@ -1,6 +1,4 @@
 using LinkLiteManager.Data;
-using LinkLiteManager.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LinkLiteManager.Services;
@@ -18,21 +16,19 @@ public class ActivitySourceService
   {
     var list = await _db.ActivitySources
       .AsNoTracking()
+      .Include(x=>x.Type)
       .ToListAsync();
-    return list.ConvertAll<Models.ActivitySource>(x => new(x.Id,x.Host,x.Type,x.ResourceId));
+    return list.ConvertAll<Models.ActivitySource>(x => new(x));
   }
-
-  /*public async Task<IActionResult> Create([FromBody] ActivitySource activitySource)
+  
+  public async Task<Models.ActivitySource> Create(Models.CreateActivitySource activitySource)
   {
-    await _db.ActivitySources.AddAsync(activitySource);
+    var types = await _db.SourceTypes.ToListAsync();
+    var entity = activitySource.ToEntity(types);
+    
+    await _db.ActivitySources.AddAsync(entity);
     await _db.SaveChangesAsync();
-  }*/
-  /*public async Task<Models.ActivitySource> Create(Models.ActivitySource activitySource)
-  {
-    var entity =activitySource.ToEntity()
-    
-    await _db.ActivitySources.AddAsync();
-    await _db.SaveChangesAsync()
-    
-  }*/
+    return new(entity);
+
+  }
 }

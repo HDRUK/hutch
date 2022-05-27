@@ -2,15 +2,24 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LinkLiteManager.Models;
 
-public record CreateActivitySource
-(
+public class CreateActivitySource
+{
   [Required]
-  int Id,
+  public string Host { get; set; } = string.Empty;
   [Required]
-  string Host, 
+  public string Type { get; set; } = string.Empty;
   [Required]
-  string Type, 
-  [Required]
-  string ResourceId
-);
+  public string ResourceId { get; set; } = string.Empty;
+
+  public Data.Entities.ActivitySource ToEntity(List<Data.Entities.SourceType> types)
+    => new()
+    {
+      Host = Host,
+      Type = types.FirstOrDefault(x=>x.Id==Type)??
+      throw new InvalidOperationException($"Type {Type} is not a valid SourceType"),
+      ResourceId = ResourceId
+    };
+
+}
+
 
