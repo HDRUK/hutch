@@ -9,6 +9,7 @@ using LinkLiteManager.Middleware;
 using LinkLiteManager.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using UoN.AspNetCore.VersionMiddleware;
 
 var b = WebApplication.CreateBuilder(args);
@@ -32,9 +33,9 @@ b.Services
     // all other cases will error when db access is attempted.
     var connectionString = b.Configuration.GetConnectionString("Default");
     if (string.IsNullOrWhiteSpace(connectionString))
-      o.UseSqlServer();
+      o.UseNpgsql();
     else
-      o.UseSqlServer(connectionString,
+      o.UseNpgsql(connectionString,
         o => o.EnableRetryOnFailure());
   });
 
@@ -51,13 +52,11 @@ b.Services
   .AddApplicationInsightsTelemetry()
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
-
   .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
-
   .AddEmailSender(b.Configuration)
-
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>();
+
 #endregion
 
 var app = b.Build();
@@ -76,6 +75,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseVersion();
 app.UseConfigCookieMiddleware();
+
 #endregion
 
 #region Endpoint Routing
