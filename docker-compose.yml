@@ -14,3 +14,10 @@ services:
       - 8080:8080
     environment:
       ADMINER_DESIGN: pepa-linha
+
+  rabbitmq:
+    image: rabbitmq:3.10.1-management
+    restart: always
+    ports:
+      - 5672:5672 # port for the queue
+      - 15672:15672 # port for the in-browser manager
