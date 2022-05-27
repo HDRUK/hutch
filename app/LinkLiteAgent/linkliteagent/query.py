@@ -13,7 +13,7 @@ RULE_TYPES = {
     "TEXT": lambda x: str(x),
 }
 
-OPERANDS = {
+OPERATORS = {
     "=": lambda left, right: left == right,
     "!=": lambda left, right: left != right,
     "AND": lambda *args: and_(*args),
@@ -54,7 +54,7 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
-        return OPERANDS[self.oper](
+        return OPERATORS[self.oper](
             column(self.varname),
             self.value,
         )
@@ -83,7 +83,7 @@ class RQuestQueryGroup:
 
     @property
     def sql_clause(self):
-        return OPERANDS[self.rules_oper](*[rule.sql_clause for rule in self.rules])
+        return OPERATORS[self.rules_oper](*[rule.sql_clause for rule in self.rules])
 
 
 class RQuestQueryCohort:
@@ -103,7 +103,7 @@ class RQuestQueryCohort:
 
     @property
     def sql_clause(self):
-        return OPERANDS[self.groups_oper](*[group.sql_clause for group in self.groups])
+        return OPERATORS[self.groups_oper](*[group.sql_clause for group in self.groups])
 
 
 class RQuestQuery:
