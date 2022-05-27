@@ -174,9 +174,9 @@ def query_callback(
             res = conn.execute(query.to_sql())
             rows = res.all()
             # TODO: sending results to the manager.
-    except sql_exc.NoSuchTableError:
-        logger.error("Searched for a table that doesn't exist.")
-    except sql_exc.NoSuchColumnError:
-        logger.error("Searched for a column that doesn't exist.")
+    except sql_exc.NoSuchTableError as table_error:
+        logger.error(table_error)
+    except sql_exc.NoSuchColumnError as column_error:
+        logger.error(column_error)
     finally:
         engine.dispose()
