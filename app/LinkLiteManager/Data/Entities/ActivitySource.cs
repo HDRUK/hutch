@@ -6,7 +6,7 @@ public class ActivitySource
 
   public string Host { get; set; } = string.Empty;
 
-  public SourceType Type { get; set; } = new SourceType();
+  public SourceType Type { get; set; } = null!;
   
   public string ResourceId { get; set; } = string.Empty;
   
