@@ -11,6 +11,7 @@ LOGS_AND_CONFIG_DB = {
 }
 MSG_FORMAT = "%(levelname)s - %(asctime)s - %(message)s"
 DATE_FORMAT = "%d-%b-%y %H:%M:%S"
+LOG_TABLE_NAME = "LinkLiteLog"
 
 # RabbitMQ configuration
 QUEUE_NAME = "jobs"
