@@ -2,8 +2,10 @@ import json
 import logging
 from pika.channel import Channel
 from sqlalchemy import and_, column, create_engine, exc as sql_exc, or_, table
-from typing import Any, NamedTuple
+from typing import Any
 from pika.spec import Basic, BasicProperties
+
+import linkliteagent.config as ll_config
 
 
 RULE_TYPES = {
@@ -159,7 +161,7 @@ def query_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    logger = logging.getLogger("db_logger")
+    logger = logging.getLogger(ll_config.DB_LOGGER_NAME)
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)
