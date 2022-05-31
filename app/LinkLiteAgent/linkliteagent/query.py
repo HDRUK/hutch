@@ -1,9 +1,10 @@
 import json
 import logging
+import re
 from pika.channel import Channel
+from pika.spec import Basic, BasicProperties
 from sqlalchemy import and_, column, create_engine, exc as sql_exc, or_, table
 from typing import Any, Union
-from pika.spec import Basic, BasicProperties
 
 import linkliteagent.config as ll_config
 
@@ -47,6 +48,7 @@ class RQuestQueryRule:
         self.type = type
         self.oper = oper
         self.value = self._parse_value(value)
+        self.concept_id = self._parse_concept_id(self.varname)
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -74,6 +76,20 @@ class RQuestQueryRule:
         lower_bound = float(lower_bound)
         upper_bound = float(upper_bound)
         return lower_bound, upper_bound
+
+    def _parse_concept_id(self, id_: str) -> int:
+        """Parses the concept ID from the rule body.
+
+        Args:
+            id_ (str): The field to resolve into a concept ID
+
+        Returns:
+            int: The parsed concept ID
+        """
+        pattern = re.compile(r"^OMOP=(\d+)$")
+        if hit := re.search(pattern, id_):
+            return int(hit.group(1))
+        return int(id_)
 
 
 class RQuestQueryGroup:
