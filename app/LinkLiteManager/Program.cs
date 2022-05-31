@@ -14,8 +14,9 @@ using UoN.AspNetCore.VersionMiddleware;
 
 var b = WebApplication.CreateBuilder(args);
 
-Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(b.Configuration).CreateLogger();
-b.Host.UseSerilog();
+b.Host.UseSerilog((context, services, loggerConfig) => loggerConfig
+  .ReadFrom.Configuration(context.Configuration)
+  .Enrich.FromLogContext());
 #region Configure Services
 
 // MVC
