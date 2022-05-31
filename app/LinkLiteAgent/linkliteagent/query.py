@@ -27,7 +27,12 @@ class RQuestQueryRule:
     """Represents and RQuest query rule."""
 
     def __init__(
-        self, varname: str = "", type: str = "", oper: str = "", value: str = ""
+        self,
+        varname: str = "",
+        type: str = "",
+        oper: str = "",
+        value: str = "",
+        **kwargs,
     ) -> None:
         """Constructor for `RQuestQueryRule`.
 
@@ -119,6 +124,7 @@ class RQuestQuery:
         protocol_version: str = "",
         char_salt: str = "",
         uuid: str = "",
+        **kwargs,  # ignored args
     ) -> None:
         """Construction for `RQuestQuery`.
 
