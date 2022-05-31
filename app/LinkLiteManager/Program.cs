@@ -9,11 +9,13 @@ using LinkLiteManager.Middleware;
 using LinkLiteManager.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
+using Serilog;
 using UoN.AspNetCore.VersionMiddleware;
 
 var b = WebApplication.CreateBuilder(args);
 
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(b.Configuration).CreateLogger();
+b.Host.UseSerilog();
 #region Configure Services
 
 // MVC
@@ -62,7 +64,7 @@ b.Services
 var app = b.Build();
 
 #region Configure Pipeline
-
+app.UseSerilogRequestLogging();
 app.GnuTerryPratchett();
 
 if (!app.Environment.IsDevelopment())
