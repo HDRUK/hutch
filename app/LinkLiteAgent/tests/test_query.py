@@ -49,33 +49,36 @@ def test_text_rule_sql_clause():
     assert str(rule_obj.sql_clause) == "race_concept_id != :race_concept_id_1"
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_group_sql_clause():
     and_rule = {
         "rules": [
             {
-                "varname": "SEX",
-                "type": "ALTERNATIVE",
+                "varname": "OMOP",
+                "type": "TEXT",
                 "oper": "=",
-                "value": "1",
+                "value": "8527",
             },
         ],
         "rules_oper": "OR",
     }
     group = query.RQuestQueryGroup(**and_rule)
     # Assert single rule in group builds correctly
-    assert str(group.sql_clause) == '"SEX" = :SEX_1'
+    assert str(group.sql_clause) == "race_concept_id = :race_concept_id_1"
     and_rule["rules"].append(
         {
-            "varname": "AGE",
-            "type": "ALTERNATIVE",
+            "varname": "OMOP",
+            "type": "TEXT",
             "oper": "=",
-            "value": "2",
+            "value": "8532",
         },
     )
     group = query.RQuestQueryGroup(**and_rule)
     # Assert multiple rules in group build correctly
-    assert str(group.sql_clause) == '"AGE" = :AGE_1 OR "SEX" = :SEX_1'
+    assert (
+        str(group.sql_clause)
+        == "race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1"
+    )
 
 
 @pytest.mark.skip

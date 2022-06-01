@@ -116,7 +116,7 @@ class RQuestQueryGroup:
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
         )
         # Sort rules for more predictable behaviour in tests.
-        self.rules = sorted(self.rules, key=lambda x: x.varname)
+        # self.rules = sorted(self.rules, key=lambda x: x.varname)
         self.rules_oper = rules_oper
 
     @property
@@ -125,7 +125,10 @@ class RQuestQueryGroup:
 
     @property
     def sql_clause(self):
-        return OPERATORS[self.rules_oper](*[rule.sql_clause for rule in self.rules])
+        if self.rules_oper == "AND":
+            return and_(*[rule.sql_clause for rule in self.rules])
+        else:
+            return or_(*[rule.sql_clause for rule in self.rules])
 
 
 class RQuestQueryCohort:
