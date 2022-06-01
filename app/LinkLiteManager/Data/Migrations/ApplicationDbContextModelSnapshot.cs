@@ -48,6 +48,30 @@ namespace LinkLiteManager.Migrations
                     b.ToTable("ActivitySources");
                 });
 
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.ConditionOccurrence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("condition_occurrence_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConceptId")
+                        .HasColumnType("integer")
+                        .HasColumnName("condition_concept_id");
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("integer")
+                        .HasColumnName("person_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
+
+                    b.ToTable("condition_occurrence");
+                });
+
             modelBuilder.Entity("LinkLiteManager.Data.Entities.FeatureFlag", b =>
                 {
                     b.Property<string>("Key")
@@ -131,6 +155,84 @@ namespace LinkLiteManager.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.Measurement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("measurement_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConceptId")
+                        .HasColumnType("integer")
+                        .HasColumnName("measurement_concept_id");
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("integer")
+                        .HasColumnName("person_id");
+
+                    b.Property<double?>("ValueAsNumber")
+                        .HasColumnType("double precision")
+                        .HasColumnName("value_as_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
+
+                    b.ToTable("measurement");
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.Observation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("observation_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConceptId")
+                        .HasColumnType("integer")
+                        .HasColumnName("observation_concept_id");
+
+                    b.Property<int>("PersonId")
+                        .HasColumnType("integer")
+                        .HasColumnName("person_id");
+
+                    b.Property<double?>("ValueAsNumber")
+                        .HasColumnType("double precision")
+                        .HasColumnName("value_as_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
+
+                    b.ToTable("observation");
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.Person", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("person_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("GenderConceptId")
+                        .HasColumnType("integer")
+                        .HasColumnName("gender_concept_id");
+
+                    b.Property<int>("RaceConceptId")
+                        .HasColumnType("integer")
+                        .HasColumnName("race_concept_id");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("person");
                 });
 
             modelBuilder.Entity("LinkLiteManager.Data.Entities.RegistrationAllowlistEntry", b =>
@@ -294,6 +396,39 @@ namespace LinkLiteManager.Migrations
                     b.Navigation("Type");
                 });
 
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.ConditionOccurrence", b =>
+                {
+                    b.HasOne("LinkLiteManager.Data.Entities.Person", "Person")
+                        .WithMany("ConditionOccurrences")
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.Measurement", b =>
+                {
+                    b.HasOne("LinkLiteManager.Data.Entities.Person", "Person")
+                        .WithMany("Measurements")
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.Observation", b =>
+                {
+                    b.HasOne("LinkLiteManager.Data.Entities.Person", "Person")
+                        .WithMany("Observations")
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -343,6 +478,15 @@ namespace LinkLiteManager.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LinkLiteManager.Data.Entities.Person", b =>
+                {
+                    b.Navigation("ConditionOccurrences");
+
+                    b.Navigation("Measurements");
+
+                    b.Navigation("Observations");
                 });
 #pragma warning restore 612, 618
         }

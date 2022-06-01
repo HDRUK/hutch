@@ -26,6 +26,7 @@
   <ItemGroup>
     <PackageReference Include="ClacksMiddlware" Version="2.1.0" />
     <PackageReference Include="Flurl" Version="3.0.4" />
+    <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="6.1.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.1" />
