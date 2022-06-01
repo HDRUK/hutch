@@ -23,6 +23,14 @@ OPERATORS = {
     "OR": lambda *args: or_(*args),
 }
 
+PERSON_LOOKUPS = {
+    "8532": "gender_concept_id",
+    "8507": "gender_concept_id",
+    "8515": "race_concept_id",
+    "8516": "race_concept_id",
+    "8527": "race_concept_id",
+}
+
 
 class RQuestQueryRule:
     """Represents and RQuest query rule."""
@@ -44,11 +52,11 @@ class RQuestQueryRule:
             value (str, optional): The value. Defaults to "". Is converted from a string
             to the type specified in `type`.
         """
+        self.concept_id = self._parse_concept_id(varname, value)
         self.varname = varname
         self.type = type
         self.oper = oper
         self.value = self._parse_value(value)
-        self.concept_id = self._parse_concept_id(self.varname)
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -66,10 +74,11 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
-        return OPERATORS[self.oper](
-            column(self.varname),
-            self.value,
-        )
+        if col := PERSON_LOOKUPS.get(self.concept_id):
+            if self.type == "TEXT" and self.oper == "=":
+                return column(col) == self.concept_id
+            elif self.type == "TEXT" and self.oper == "!=":
+                return column(col) != self.concept_id
 
     def _numeric_value(self, value: str) -> tuple[float, float]:
         lower_bound, upper_bound = value.split("..")
@@ -77,19 +86,20 @@ class RQuestQueryRule:
         upper_bound = float(upper_bound)
         return lower_bound, upper_bound
 
-    def _parse_concept_id(self, id_: str) -> int:
+    def _parse_concept_id(self, id_: str, alt_id: str) -> str:
         """Parses the concept ID from the rule body.
 
         Args:
-            id_ (str): The field to resolve into a concept ID
+            id_ (str): The field to resolve into a concept ID.
+            alt_id (str): The alternative value to be used as the concept ID.
 
         Returns:
-            int: The parsed concept ID
+            str: The parsed concept ID.
         """
         pattern = re.compile(r"^OMOP=(\d+)$")
         if hit := re.search(pattern, id_):
-            return int(hit.group(1))
-        return int(id_)
+            return hit.group(1)
+        return alt_id
 
 
 class RQuestQueryGroup:
