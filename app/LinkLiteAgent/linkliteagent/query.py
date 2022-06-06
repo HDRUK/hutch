@@ -33,7 +33,7 @@ PERSON_LOOKUPS = {
 
 
 class RQuestQueryRule:
-    """Represents and RQuest query rule."""
+    """Represents an RQuest query rule."""
 
     def __init__(
         self,
@@ -107,7 +107,7 @@ class RQuestQueryRule:
 
 
 class RQuestQueryGroup:
-    """Represents and RQuest query group."""
+    """Represents an RQuest query group."""
 
     def __init__(self, rules: list = None, rules_oper: str = "") -> None:
         """Constructor for `RQuestQueryGroup`.
@@ -136,7 +136,7 @@ class RQuestQueryGroup:
 
 
 class RQuestQueryCohort:
-    """Represents and RQuest query cohort."""
+    """Represents an RQuest query cohort."""
 
     def __init__(self, groups: list = None, groups_oper: str = "") -> None:
         """Constructor for `RQuestQueryCohort`.
@@ -152,11 +152,14 @@ class RQuestQueryCohort:
 
     @property
     def sql_clause(self):
-        return OPERATORS[self.groups_oper](*[group.sql_clause for group in self.groups])
+        if self.groups_oper == "AND":
+            return and_(*[group.sql_clause for group in self.groups])
+        else:
+            return or_(*[group.sql_clause for group in self.groups])
 
 
 class RQuestQuery:
-    """Represents and RQuest query"""
+    """Represents an RQuest query"""
 
     def __init__(
         self,

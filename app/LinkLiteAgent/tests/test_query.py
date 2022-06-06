@@ -103,17 +103,17 @@ def test_group_sql_clause():
     )
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_cohort_sql_clause():
     and_group = {
         "groups": [
             {
                 "rules": [
                     {
-                        "varname": "SEX",
-                        "type": "ALTERNATIVE",
+                        "varname": "OMOP",
+                        "type": "TEXT",
                         "oper": "=",
-                        "value": "1",
+                        "value": "8527",
                     }
                 ],
                 "rules_oper": "OR",
@@ -123,26 +123,29 @@ def test_cohort_sql_clause():
     }
     cohort = query.RQuestQueryCohort(**and_group)
     # Assert single rule in single group builds correctly
-    assert str(cohort.sql_clause) == '"SEX" = :SEX_1'
+    assert str(cohort.sql_clause) == "race_concept_id = :race_concept_id_1"
     and_group["groups"][0]["rules"].append(
         {
-            "varname": "AGE",
-            "type": "ALTERNATIVE",
+            "varname": "OMOP",
+            "type": "TEXT",
             "oper": "=",
-            "value": "2",
+            "value": "8532",
         }
     )
     cohort = query.RQuestQueryCohort(**and_group)
     # Assert multiple rules in single group build correctly
-    assert str(cohort.sql_clause) == '"AGE" = :AGE_1 OR "SEX" = :SEX_1'
+    assert (
+        str(cohort.sql_clause)
+        == "race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1"
+    )
     and_group["groups"].append(
         {
             "rules": [
                 {
-                    "varname": "SEX",
-                    "type": "ALTERNATIVE",
+                    "varname": "OMOP",
+                    "type": "TEXT",
                     "oper": "=",
-                    "value": "1",
+                    "value": "8532",
                 }
             ],
             "rules_oper": "OR",
@@ -152,7 +155,7 @@ def test_cohort_sql_clause():
     cohort = query.RQuestQueryCohort(**and_group)
     assert (
         str(cohort.sql_clause)
-        == '("AGE" = :AGE_1 OR "SEX" = :SEX_1) AND "SEX" = :SEX_2'
+        == "(race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1) AND gender_concept_id = :gender_concept_id_2"
     )
 
 
