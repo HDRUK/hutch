@@ -71,7 +71,6 @@ def test_text_rule_sql_clause():
     )
 
 
-# @pytest.mark.skip
 def test_group_sql_clause():
     and_rule = {
         "rules": [
@@ -103,7 +102,6 @@ def test_group_sql_clause():
     )
 
 
-# @pytest.mark.skip
 def test_cohort_sql_clause():
     and_group = {
         "groups": [
@@ -159,7 +157,6 @@ def test_cohort_sql_clause():
     )
 
 
-@pytest.mark.skip
 def test_query_to_sql():
     request_dict = {
         "owner": "user1",
@@ -168,10 +165,10 @@ def test_query_to_sql():
                 {
                     "rules": [
                         {
-                            "varname": "SEX",
-                            "type": "ALTERNATIVE",
+                            "varname": "OMOP",
+                            "type": "TEXT",
                             "oper": "=",
-                            "value": "1",
+                            "value": "8527",
                         }
                     ],
                     "rules_oper": "OR",
@@ -184,34 +181,34 @@ def test_query_to_sql():
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person."SEX" 
+        == """SELECT person.race_concept_id 
 FROM person 
-WHERE "SEX" = :SEX_1"""
+WHERE race_concept_id = :race_concept_id_1"""
     )
     request_dict["cohort"]["groups"][0]["rules"].append(
         {
-            "varname": "AGE",
-            "type": "ALTERNATIVE",
+            "varname": "OMOP",
+            "type": "TEXT",
             "oper": "=",
-            "value": "2",
+            "value": "8532",
         }
     )
     test_query = query.RQuestQuery(**request_dict)
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person."AGE", person."SEX" 
+        == """SELECT person.gender_concept_id, person.race_concept_id 
 FROM person 
-WHERE "AGE" = :AGE_1 OR "SEX" = :SEX_1"""
+WHERE race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1"""
     )
     request_dict["cohort"]["groups"].append(
         {
             "rules": [
                 {
-                    "varname": "SEX",
-                    "type": "ALTERNATIVE",
+                    "varname": "OMOP",
+                    "type": "TEXT",
                     "oper": "=",
-                    "value": "1",
+                    "value": "8532",
                 }
             ],
             "rules_oper": "OR",
@@ -221,7 +218,7 @@ WHERE "AGE" = :AGE_1 OR "SEX" = :SEX_1"""
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person."AGE", person."SEX" 
+        == """SELECT person.gender_concept_id, person.race_concept_id 
 FROM person 
-WHERE ("AGE" = :AGE_1 OR "SEX" = :SEX_1) AND "SEX" = :SEX_2"""
+WHERE (race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1) AND gender_concept_id = :gender_concept_id_2"""
     )

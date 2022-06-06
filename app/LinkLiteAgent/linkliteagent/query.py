@@ -125,7 +125,7 @@ class RQuestQueryGroup:
 
     @property
     def columns(self):
-        return [column(rule.varname) for rule in self.rules]
+        return [column(rule.column_name) for rule in self.rules]
 
     @property
     def sql_clause(self):
