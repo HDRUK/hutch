@@ -98,7 +98,7 @@ def test_group_sql_clause():
     # Assert multiple rules in group build correctly
     assert (
         str(group.sql_clause)
-        == "race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1"
+        == "gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"
     )
 
 
@@ -134,7 +134,7 @@ def test_cohort_sql_clause():
     # Assert multiple rules in single group build correctly
     assert (
         str(cohort.sql_clause)
-        == "race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1"
+        == "gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"
     )
     and_group["groups"].append(
         {
@@ -153,7 +153,7 @@ def test_cohort_sql_clause():
     cohort = query.RQuestQueryCohort(**and_group)
     assert (
         str(cohort.sql_clause)
-        == "(race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1) AND gender_concept_id = :gender_concept_id_2"
+        == "(gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AND gender_concept_id = :gender_concept_id_2"
     )
 
 
@@ -199,7 +199,7 @@ WHERE race_concept_id = :race_concept_id_1"""
         str(test_query_sql)
         == """SELECT person.gender_concept_id, person.race_concept_id 
 FROM person 
-WHERE race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1"""
+WHERE gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"""
     )
     request_dict["cohort"]["groups"].append(
         {
@@ -220,5 +220,5 @@ WHERE race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concep
         str(test_query_sql)
         == """SELECT person.gender_concept_id, person.race_concept_id 
 FROM person 
-WHERE (race_concept_id = :race_concept_id_1 OR gender_concept_id = :gender_concept_id_1) AND gender_concept_id = :gender_concept_id_2"""
+WHERE (gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AND gender_concept_id = :gender_concept_id_2"""
     )

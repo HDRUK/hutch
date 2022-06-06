@@ -120,7 +120,7 @@ class RQuestQueryGroup:
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
         )
         # Sort rules for more predictable behaviour in tests.
-        # self.rules = sorted(self.rules, key=lambda x: x.varname)
+        self.rules = sorted(self.rules, key=lambda x: x.column_name)
         self.rules_oper = rules_oper
 
     @property
@@ -226,6 +226,7 @@ def query_callback(
         with engine.begin() as conn:
             res = conn.execute(query.to_sql())
             rows = res.all()
+            logger.info(f"Found {len(rows)} rows.")
             # TODO: sending results to the manager.
     except sql_exc.NoSuchTableError as table_error:
         logger.error(table_error)
