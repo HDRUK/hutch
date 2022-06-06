@@ -49,6 +49,28 @@ def test_text_rule_sql_clause():
     assert str(rule_obj.sql_clause) == "race_concept_id != :race_concept_id_1"
 
 
+def test_text_rule_sql_clause():
+    eq_rule = {
+        "varname": "OMOP=8527",
+        "type": "NUM",
+        "oper": "=",
+        "value": "10..20",
+    }
+    rule_obj = query.RQuestQueryRule(**eq_rule)
+    assert rule_obj.concept_id == "8527"
+    assert (
+        str(rule_obj.sql_clause)
+        == "race_concept_id BETWEEN :race_concept_id_1 AND :race_concept_id_2"
+    )
+    ne_rule = eq_rule.copy()
+    ne_rule.update(oper="!=")
+    rule_obj = query.RQuestQueryRule(**ne_rule)
+    assert (
+        str(rule_obj.sql_clause)
+        == "race_concept_id NOT BETWEEN :race_concept_id_1 AND :race_concept_id_2"
+    )
+
+
 # @pytest.mark.skip
 def test_group_sql_clause():
     and_rule = {

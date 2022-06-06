@@ -3,7 +3,7 @@ import logging
 import re
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
-from sqlalchemy import and_, column, create_engine, exc as sql_exc, or_, table
+from sqlalchemy import and_, column, create_engine, exc as sql_exc, not_, or_, table
 from typing import Any, Union
 
 import linkliteagent.config as ll_config
@@ -57,6 +57,7 @@ class RQuestQueryRule:
         self.type = type
         self.oper = oper
         self.value = self._parse_value(value)
+        self.column_name = PERSON_LOOKUPS.get(self.concept_id)
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -74,11 +75,14 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
-        if col := PERSON_LOOKUPS.get(self.concept_id):
-            if self.type == "TEXT" and self.oper == "=":
-                return column(col) == self.concept_id
-            elif self.type == "TEXT" and self.oper == "!=":
-                return column(col) != self.concept_id
+        if self.type == "TEXT" and self.oper == "=":
+            return column(self.column_name) == self.concept_id
+        elif self.type == "TEXT" and self.oper == "!=":
+            return column(self.column_name) != self.concept_id
+        elif self.type == "NUM" and self.oper == "=":
+            return column(self.column_name).between(self.value[0], self.value[1])
+        elif self.type == "NUM" and self.oper == "!=":
+            return not_(column(self.column_name).between(self.value[0], self.value[1]))
 
     def _numeric_value(self, value: str) -> tuple[float, float]:
         lower_bound, upper_bound = value.split("..")
