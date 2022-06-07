@@ -288,25 +288,27 @@ def query_callback(
         response_data["collection_id"] = query.collection
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
-        logger.error("Failed to decode the message from the the queue.")
+        logger.error("Failed to decode the message from the queue.")
 
     engine = create_engine("postgresql://postgres:example@localhost:5432")
     try:
         with engine.begin() as conn:
             res = conn.execute(query.to_sql())
             rows = res.all()
-            logger.info(f"Found {len(rows)} rows.")
-            response_data["query_result"].update(count=len(rows))
+            response_data["query_result"].update(count=len(rows), status="ok")
+            logger.info(f"Collected {len(rows)} results from query {query.uuid}.")
     except sql_exc.NoSuchTableError as table_error:
         logger.error(table_error)
+        response_data["query_result"].update(count=0, status="error")
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(column_error)
+        response_data["query_result"].update(count=0, status="error")
     finally:
         engine.dispose()
 
     try:
-        print(response_data)
-        # requests.post(ll_config.MANAGER_URL, response_data)
+        requests.post(ll_config.MANAGER_URL, response_data)
+        logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(connection_error)
     except req_exc.Timeout as timeout_error:
