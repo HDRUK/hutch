@@ -2,10 +2,11 @@ import datetime as dt
 import json
 import logging
 import re
+import time
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 from sqlalchemy import and_, column, create_engine, exc as sql_exc, not_, or_, table
-from typing import Any, Union
+from typing import Any
 
 import linkliteagent.config as ll_config
 
@@ -60,7 +61,7 @@ class RQuestQueryRule:
         self.value = self._parse_value(value)
         self.column_name = PERSON_LOOKUPS.get(self.concept_id)
         # `time` is not always present so either get from `kwargs` or default to `None`
-        self.time = kwargs.get("time")
+        self.time_ = kwargs.get("time")
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -91,8 +92,8 @@ class RQuestQueryRule:
             )
 
         # If there is a time clause, combine with main clause.
-        if time := self.time:
-            clause = and_(clause, self._get_time_clause(time))
+        if self.time_ is not None:
+            clause = and_(clause, self._get_time_clause())
 
         return clause
 
@@ -117,50 +118,59 @@ class RQuestQueryRule:
             return hit.group(1)
         return alt_id
 
-    def _get_time_clause(self, time: str):
-        gt_pattern = re.compile(r"^\|(\d+):([a-zA-Z]+):(\w)$")
-        lt_pattern = re.compile(r"^(\d+)\|:([a-zA-Z]+):(\w)$")
+    def _get_time_clause(self):
+        """If an RQuest message has a "time" clause, this function is used
+        to parse it into an SQL clause.
+        """
+        # greater than pattern
+        gt_pattern = re.compile(r"^\|(\d+):[a-zA-Z]+:(\w)$")
+        # less than pattern
+        lt_pattern = re.compile(r"^(\d+)\|:[a-zA-Z]+:(\w)$")
 
-        if hit := re.search(gt_pattern, time):
+        # If the clause matches the "greater than" pattern
+        if hit := re.search(gt_pattern, self.time_):
             timespan = int(hit.group(1))
-            time_column = hit.group(2)
-            time_unit = hit.group(3)
-            if time_column == "AGE" and time_unit == "Y" and self.oper == "=":
+            time_unit = hit.group(2)
+            # older times are smaller, so use `>` for inclusive ("=") seaches
+            if time_unit == "Y" and self.oper == "=":
                 return column("birth_datetime") < (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_column == "AGE" and time_unit == "Y" and self.oper == "!=":
-                return column("birth_datetime") >= (
-                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
-                )
-            elif time_column == "TIME" and time_unit == "M" and self.oper == "=":
+            elif time_unit == "M" and self.oper == "=":
                 return column("birth_datetime") < (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
-            elif time_column == "TIME" and time_unit == "M" and self.oper == "!=":
+            # newer times are larger, so use `<=` for exclusive ("!=") seaches
+            elif time_unit == "Y" and self.oper == "!=":
+                return column("birth_datetime") >= (
+                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
+                )
+            elif time_unit == "M" and self.oper == "!=":
                 return column("birth_datetime") >= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             else:
                 return None
 
-        elif hit := re.search(lt_pattern, time):
+        # If the clause matches the "less than" pattern
+        elif hit := re.search(lt_pattern, self.time_):
             timespan = int(hit.group(1))
-            time_column = hit.group(2)
-            time_unit = hit.group(3)
-            if time_column == "AGE" and time_unit == "Y" and self.oper == "=":
+            time_unit = hit.group(2)
+            # newer times are larger, so use `>` for inclusive ("=") seaches
+            if time_unit == "Y" and self.oper == "=":
                 return column("birth_datetime") > (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_column == "AGE" and time_unit == "Y" and self.oper == "!=":
-                return column("birth_datetime") <= (
-                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
-                )
-            elif time_column == "TIME" and time_unit == "M" and self.oper == "=":
+            elif time_unit == "M" and self.oper == "=":
                 return column("birth_datetime") > (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
-            elif time_column == "TIME" and time_unit == "M" and self.oper == "!=":
+            # older times are smaller, so use `<=` for exclusive ("!=") seaches
+            elif time_unit == "Y" and self.oper == "!=":
+                return column("birth_datetime") <= (
+                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
+                )
+            elif time_unit == "M" and self.oper == "!=":
                 return column("birth_datetime") <= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
@@ -168,7 +178,9 @@ class RQuestQueryRule:
                 return None
 
         else:
-            raise ValueError(f"Could not parse the time value ({time}) in the rule.")
+            raise ValueError(
+                f"Could not parse the time value ({self.time_}) in the rule."
+            )
 
 
 class RQuestQueryGroup:
