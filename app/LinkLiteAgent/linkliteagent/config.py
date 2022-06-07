@@ -15,3 +15,6 @@ LOG_TABLE_NAME = "LinkLiteLog"
 
 # RabbitMQ configuration
 QUEUE_NAME = "jobs"
+
+# Manager related configuration
+MANAGER_URL = "/path/to/manager"

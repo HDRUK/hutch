@@ -1,7 +1,9 @@
 import datetime as dt
+from itertools import count
 import json
 import logging
 import re
+import requests, requests.exceptions as req_exc
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 from sqlalchemy import and_, column, create_engine, exc as sql_exc, not_, or_, table
@@ -275,10 +277,15 @@ def query_callback(
         body (bytes): The body of the message.
     """
     logger = logging.getLogger(ll_config.DB_LOGGER_NAME)
+    response_data = {
+        "protocol_version": "v2",
+        "query_result": dict(),
+    }
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)
         query = RQuestQuery(**body_json)
+        response_data["collection_id"] = query.collection
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the the queue.")
@@ -289,10 +296,18 @@ def query_callback(
             res = conn.execute(query.to_sql())
             rows = res.all()
             logger.info(f"Found {len(rows)} rows.")
-            # TODO: sending results to the manager.
+            response_data["query_result"].update(count=len(rows))
     except sql_exc.NoSuchTableError as table_error:
         logger.error(table_error)
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(column_error)
     finally:
         engine.dispose()
+
+    try:
+        print(response_data)
+        # requests.post(ll_config.MANAGER_URL, response_data)
+    except req_exc.ConnectionError as connection_error:
+        logger.error(connection_error)
+    except req_exc.Timeout as timeout_error:
+        logger.error(timeout_error)
