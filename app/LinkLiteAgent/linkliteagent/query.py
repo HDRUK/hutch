@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import logging
 import re
@@ -58,6 +59,8 @@ class RQuestQueryRule:
         self.oper = oper
         self.value = self._parse_value(value)
         self.column_name = PERSON_LOOKUPS.get(self.concept_id)
+        # `time` is not always present so either get from `kwargs` or default to `None`
+        self.time = kwargs.get("time")
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -75,14 +78,23 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
+        clause = None
         if self.type == "TEXT" and self.oper == "=":
-            return column(self.column_name) == self.concept_id
+            clause = column(self.column_name) == self.concept_id
         elif self.type == "TEXT" and self.oper == "!=":
-            return column(self.column_name) != self.concept_id
+            clause = column(self.column_name) != self.concept_id
         elif self.type == "NUM" and self.oper == "=":
-            return column(self.column_name).between(self.value[0], self.value[1])
+            clause = column(self.column_name).between(self.value[0], self.value[1])
         elif self.type == "NUM" and self.oper == "!=":
-            return not_(column(self.column_name).between(self.value[0], self.value[1]))
+            clause = not_(
+                column(self.column_name).between(self.value[0], self.value[1])
+            )
+
+        # If there is a time clause, combine with main clause.
+        if time := self.time:
+            clause = and_(clause, self._get_time_clause(time))
+
+        return clause
 
     def _numeric_value(self, value: str) -> tuple[float, float]:
         lower_bound, upper_bound = value.split("..")
@@ -104,6 +116,59 @@ class RQuestQueryRule:
         if hit := re.search(pattern, id_):
             return hit.group(1)
         return alt_id
+
+    def _get_time_clause(self, time: str):
+        gt_pattern = re.compile(r"^\|(\d+):([a-zA-Z]+):(\w)$")
+        lt_pattern = re.compile(r"^(\d+)\|:([a-zA-Z]+):(\w)$")
+
+        if hit := re.search(gt_pattern, time):
+            timespan = int(hit.group(1))
+            time_column = hit.group(2)
+            time_unit = hit.group(3)
+            if time_column == "AGE" and time_unit == "Y" and self.oper == "=":
+                return column("birth_datetime") < (
+                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
+                )
+            elif time_column == "AGE" and time_unit == "Y" and self.oper == "!=":
+                return column("birth_datetime") >= (
+                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
+                )
+            elif time_column == "TIME" and time_unit == "M" and self.oper == "=":
+                return column("birth_datetime") < (
+                    dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
+                )
+            elif time_column == "TIME" and time_unit == "M" and self.oper == "!=":
+                return column("birth_datetime") >= (
+                    dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
+                )
+            else:
+                return None
+
+        elif hit := re.search(lt_pattern, time):
+            timespan = int(hit.group(1))
+            time_column = hit.group(2)
+            time_unit = hit.group(3)
+            if time_column == "AGE" and time_unit == "Y" and self.oper == "=":
+                return column("birth_datetime") > (
+                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
+                )
+            elif time_column == "AGE" and time_unit == "Y" and self.oper == "!=":
+                return column("birth_datetime") <= (
+                    dt.datetime.now() - dt.timedelta(days=365 * timespan)
+                )
+            elif time_column == "TIME" and time_unit == "M" and self.oper == "=":
+                return column("birth_datetime") > (
+                    dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
+                )
+            elif time_column == "TIME" and time_unit == "M" and self.oper == "!=":
+                return column("birth_datetime") <= (
+                    dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
+                )
+            else:
+                return None
+
+        else:
+            raise ValueError(f"Could not parse the time value ({time}) in the rule.")
 
 
 class RQuestQueryGroup:

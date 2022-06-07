@@ -49,7 +49,7 @@ def test_text_rule_sql_clause():
     assert str(rule_obj.sql_clause) == "race_concept_id != :race_concept_id_1"
 
 
-def test_text_rule_sql_clause():
+def test_numeric_rule_sql_clause():
     eq_rule = {
         "varname": "OMOP=8527",
         "type": "NUM",
@@ -69,6 +69,39 @@ def test_text_rule_sql_clause():
         str(rule_obj.sql_clause)
         == "race_concept_id NOT BETWEEN :race_concept_id_1 AND :race_concept_id_2"
     )
+
+
+def test_time_rule_sql_clause():
+    eq_rule = {
+        "varname": "OMOP",
+        "type": "TEXT",
+        "oper": "=",
+        "value": "8527",
+        "time": "18|:AGE:Y",
+    }
+    rule_obj = query.RQuestQueryRule(**eq_rule)
+    assert rule_obj.concept_id == "8527"
+    assert (
+        str(rule_obj.sql_clause)
+        == "race_concept_id = :race_concept_id_1 AND birth_datetime > :birth_datetime_1"
+    )
+    ne_rule = eq_rule.copy()
+    ne_rule.update(oper="!=")
+    rule_obj = query.RQuestQueryRule(**ne_rule)
+    assert (
+        str(rule_obj.sql_clause)
+        == "race_concept_id != :race_concept_id_1 AND birth_datetime <= :birth_datetime_1"
+    )
+    ne_rule.update(time="|18:AGE:Y")
+    rule_obj = query.RQuestQueryRule(**ne_rule)
+    assert (
+        str(rule_obj.sql_clause)
+        == "race_concept_id != :race_concept_id_1 AND birth_datetime >= :birth_datetime_1"
+    )
+    ne_rule.update(time="|18|:AGE:Y")
+    rule_obj = query.RQuestQueryRule(**ne_rule)
+    with pytest.raises(ValueError):
+        print(rule_obj.sql_clause)
 
 
 def test_group_sql_clause():
