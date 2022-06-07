@@ -2,7 +2,6 @@ import datetime as dt
 import json
 import logging
 import re
-import time
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 from sqlalchemy import and_, column, create_engine, exc as sql_exc, not_, or_, table
@@ -10,20 +9,6 @@ from typing import Any
 
 import linkliteagent.config as ll_config
 
-
-RULE_TYPES = {
-    "ALTERNATIVE": lambda x: x,
-    "BOOLEAN": lambda x: bool(x),
-    "NUM": lambda x: int(x),
-    "TEXT": lambda x: str(x),
-}
-
-OPERATORS = {
-    "=": lambda left, right: left == right,
-    "!=": lambda left, right: left != right,
-    "AND": lambda *args: and_(*args),
-    "OR": lambda *args: or_(*args),
-}
 
 PERSON_LOOKUPS = {
     "8532": "gender_concept_id",
