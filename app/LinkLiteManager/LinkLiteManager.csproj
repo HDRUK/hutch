@@ -31,6 +31,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.1" />
     <PackageReference Include="Npgsql" Version="6.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.3.0" />
     <PackageReference Include="UoN.AspNetCore.VersionMiddleware" Version="1.1.1" />
     
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
