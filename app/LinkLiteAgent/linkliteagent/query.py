@@ -2,10 +2,21 @@ import datetime as dt
 import json
 import logging
 import re
+import time
 import requests, requests.exceptions as req_exc
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
-from sqlalchemy import and_, column, create_engine, exc as sql_exc, not_, or_, table
+from sqlalchemy import (
+    and_,
+    column,
+    create_engine,
+    exc as sql_exc,
+    func,
+    not_,
+    or_,
+    select,
+    table,
+)
 from typing import Any
 
 import linkliteagent.config as ll_config
@@ -259,7 +270,26 @@ class RQuestQuery:
                 columns.add(col)
         # Make columns appear in ascending order by name for tests.
         columns = sorted(columns, key=lambda x: x.name)
-        return table("person").select(self.cohort.sql_clause)
+        person_table = table("person", column("person_id"))
+        measurement_table = table("measurement", column("person_id"))
+        observation_table = table("observation", column("person_id"))
+        condition_table = table("condition", column("person_id"))
+        return (
+            person_table.join(
+                measurement_table,
+                person_table.c["person_id"] == measurement_table.c["person_id"],
+            )
+            .join(
+                observation_table,
+                person_table.c["person_id"] == observation_table.c["person_id"],
+            )
+            .join(
+                condition_table,
+                person_table.c["person_id"] == condition_table.c["person_id"],
+            )
+            .select(self.cohort.sql_clause)
+            .distinct()
+        )
 
 
 def query_callback(
@@ -292,10 +322,14 @@ def query_callback(
     engine = create_engine("postgresql://postgres:example@localhost:5432")
     try:
         with engine.begin() as conn:
+            start = time.process_time()
             res = conn.execute(query.to_sql())
-            rows = res.all()
-            response_data["query_result"].update(count=len(rows), status="ok")
-            logger.info(f"Collected {len(rows)} results from query {query.uuid}.")
+            end = time.process_time()
+            count_ = res.first()
+            response_data["query_result"].update(count=count_[0], status="ok")
+            logger.info(
+                f"Collected {count_[0]} results from query {query.uuid} in {(end - start):.3f}s."
+            )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
         response_data["query_result"].update(count=0, status="error")
