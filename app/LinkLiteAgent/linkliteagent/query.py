@@ -1,5 +1,4 @@
 import datetime as dt
-from itertools import count
 import json
 import logging
 import re
@@ -260,7 +259,7 @@ class RQuestQuery:
                 columns.add(col)
         # Make columns appear in ascending order by name for tests.
         columns = sorted(columns, key=lambda x: x.name)
-        return table("person", *columns).select(self.cohort.sql_clause)
+        return table("person").select(self.cohort.sql_clause)
 
 
 def query_callback(

@@ -212,9 +212,10 @@ def test_query_to_sql():
     }
     test_query = query.RQuestQuery(**request_dict)
     test_query_sql = test_query.to_sql()
+    print(test_query_sql)
     assert (
         str(test_query_sql)
-        == """SELECT person.race_concept_id 
+        == """SELECT  
 FROM person 
 WHERE race_concept_id = :race_concept_id_1"""
     )
@@ -230,7 +231,7 @@ WHERE race_concept_id = :race_concept_id_1"""
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person.gender_concept_id, person.race_concept_id 
+        == """SELECT  
 FROM person 
 WHERE gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"""
     )
@@ -251,7 +252,7 @@ WHERE gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concep
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person.gender_concept_id, person.race_concept_id 
+        == """SELECT  
 FROM person 
 WHERE (gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AND gender_concept_id = :gender_concept_id_2"""
     )
