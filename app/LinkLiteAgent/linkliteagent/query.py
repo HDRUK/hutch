@@ -297,10 +297,13 @@ def query_callback(
             response_data["query_result"].update(count=len(rows), status="ok")
             logger.info(f"Collected {len(rows)} results from query {query.uuid}.")
     except sql_exc.NoSuchTableError as table_error:
-        logger.error(table_error)
+        logger.error(str(table_error))
         response_data["query_result"].update(count=0, status="error")
     except sql_exc.NoSuchColumnError as column_error:
-        logger.error(column_error)
+        logger.error(str(column_error))
+        response_data["query_result"].update(count=0, status="error")
+    except sql_exc.ProgrammingError as programming_error:
+        logger.error(str(programming_error))
         response_data["query_result"].update(count=0, status="error")
     finally:
         engine.dispose()
@@ -309,6 +312,8 @@ def query_callback(
         requests.post(ll_config.MANAGER_URL, response_data)
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
-        logger.error(connection_error)
+        logger.error(str(connection_error))
     except req_exc.Timeout as timeout_error:
-        logger.error(timeout_error)
+        logger.error(str(timeout_error))
+    except req_exc.MissingSchema as missing_schema_error:
+        logger.error(str(missing_schema_error))
