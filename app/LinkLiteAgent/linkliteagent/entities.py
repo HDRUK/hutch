@@ -69,3 +69,28 @@ class ConditionOccurrence(Base):
     condition_source_value = Column(String(50), nullable=True)
     condition_source_concept_id = Column(Integer, nullable=True)
     condition_status_source_value = Column(String(50), nullable=True)
+
+
+class Observation(Base):
+    __tablename__ = "observation"
+    observation_id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey("person.person_id"), nullable=False)
+    observation_concept_id = Column(Integer, nullable=False)
+    observation_date = Column(Date, nullable=False)
+    observation_datetime = Column(DateTime, nullable=True)
+    observation_type_concept_id = Column(Integer, nullable=False)
+    value_as_number = Column(Numeric, nullable=True)
+    value_as_string = Column(String(60), nullable=True)
+    value_as_concept_id = Column(Integer, nullable=True)
+    qualifier_concept_id = Column(Integer, nullable=True)
+    unit_concept_id = Column(Integer, nullable=True)
+    provider_id = Column(Integer, nullable=True)
+    visit_occurrence_id = Column(Integer, nullable=True)
+    visit_detail_id = Column(Integer, nullable=True)
+    observation_source_value = Column(String(50), nullable=True)
+    observation_source_concept_id = Column(Integer, nullable=True)
+    unit_source_value = Column(String(50), nullable=True)
+    qualifier_source_value = Column(String(50), nullable=True)
+    value_source_value = Column(String(50), nullable=True)
+    observation_event_id = Column(BigInteger, nullable=True)
+    obs_event_field_concept_id = Column(Integer, nullable=True)
