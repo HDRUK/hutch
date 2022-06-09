@@ -49,3 +49,23 @@ class Measurement(Base):
     value_source_value = Column(String(50), nullable=True)
     measurement_event_id = Column(BigInteger, nullable=True)
     meas_event_field_concept_id = Column(Integer, nullable=True)
+
+
+class ConditionOccurrence(Base):
+    __tablename__ = "condition_occurrence"
+    condition_occurrence_id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey("person.person_id"), nullable=False)
+    condition_concept_id = Column(Integer, nullable=False)
+    condition_start_date = Column(Date, nullable=False)
+    condition_start_datetime = Column(DateTime, nullable=True)
+    condition_end_date = Column(Date, nullable=True)
+    condition_end_datetime = Column(DateTime, nullable=True)
+    condition_type_concept_id = Column(Integer, nullable=False)
+    condition_status_concept_id = Column(Integer, nullable=True)
+    stop_reason = Column(String(20), nullable=True)
+    provider_id = Column(Integer, nullable=True)
+    visit_occurrence_id = Column(Integer, nullable=True)
+    visit_detail_id = Column(Integer, nullable=True)
+    condition_source_value = Column(String(50), nullable=True)
+    condition_source_concept_id = Column(Integer, nullable=True)
+    condition_status_source_value = Column(String(50), nullable=True)
