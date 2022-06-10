@@ -20,6 +20,7 @@ from sqlalchemy import (
 from typing import Any
 
 import linkliteagent.config as ll_config
+from linkliteagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 
 PERSON_LOOKUPS = {
@@ -270,26 +271,26 @@ class RQuestQuery:
                 columns.add(col)
         # Make columns appear in ascending order by name for tests.
         columns = sorted(columns, key=lambda x: x.name)
-        person_table = table("person", column("person_id"))
-        measurement_table = table("measurement", column("person_id"))
-        observation_table = table("observation", column("person_id"))
-        condition_table = table("condition", column("person_id"))
-        return (
-            person_table.join(
-                measurement_table,
-                person_table.c["person_id"] == measurement_table.c["person_id"],
+
+        stmt = (
+            select(Person.person_id)
+            .join(
+                ConditionOccurrence,
+                Person.person_id == ConditionOccurrence.person_id,
             )
             .join(
-                observation_table,
-                person_table.c["person_id"] == observation_table.c["person_id"],
+                Measurement,
+                Person.person_id == Measurement.person_id,
             )
             .join(
-                condition_table,
-                person_table.c["person_id"] == condition_table.c["person_id"],
+                Observation,
+                Person.person_id == Observation.person_id,
             )
-            .select(self.cohort.sql_clause)
+            .where(self.cohort.sql_clause)
             .distinct()
+            .subquery()
         )
+        return select(func.count()).select_from(stmt)
 
 
 def query_callback(
@@ -322,13 +323,16 @@ def query_callback(
     engine = create_engine("postgresql://postgres:example@localhost:5432")
     try:
         with engine.begin() as conn:
-            start = time.process_time()
+            query_start = time.process_time()
             res = conn.execute(query.to_sql())
-            end = time.process_time()
-            count_ = res.first()
-            response_data["query_result"].update(count=count_[0], status="ok")
+            query_end = time.process_time()
+            unpack_start = time.process_time()
+            count_ = res.scalar_one()
+            unpack_end = time.process_time()
+            print(f"unpacked result in {(unpack_end - unpack_start):.3f}")
+            response_data["query_result"].update(count=count_, status="ok")
             logger.info(
-                f"Collected {count_[0]} results from query {query.uuid} in {(end - start):.3f}s."
+                f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
             )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))

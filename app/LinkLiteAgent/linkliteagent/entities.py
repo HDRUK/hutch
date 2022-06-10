@@ -1,7 +1,17 @@
-from sqlalchemy import BigInteger, Column, Date, ForeignKey, Integer, Numeric, String, DateTime, Text
+from sqlalchemy import (
+    BigInteger,
+    Column,
+    Date,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    DateTime,
+)
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
 
 class Person(Base):
     __tablename__ = "person"
@@ -23,6 +33,7 @@ class Person(Base):
     race_source_concept_id = Column(Integer, nullable=True)
     ethnicity_source_value = Column(String(50), nullable=True)
     ethnicity_source_concept_id = Column(Integer, nullable=True)
+
 
 class Measurement(Base):
     __tablename__ = "measurement"
