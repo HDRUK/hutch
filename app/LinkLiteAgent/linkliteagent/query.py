@@ -77,6 +77,19 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
+        if self.column_name is None and self.oper == "=":
+            return or_(
+                column("measurement_concept_id") == self.concept_id,
+                column("observation_concept_id") == self.concept_id,
+                column("condition_concept_id") == self.concept_id,
+            )
+        if self.column_name is None and self.oper == "!=":
+            return or_(
+                column("measurement_concept_id") != self.concept_id,
+                column("observation_concept_id") != self.concept_id,
+                column("condition_concept_id") != self.concept_id,
+            )
+        
         clause = None
         if self.type == "TEXT" and self.oper == "=":
             clause = column(self.column_name) == self.concept_id
@@ -323,13 +336,10 @@ def query_callback(
     engine = create_engine("postgresql://postgres:example@localhost:5432")
     try:
         with engine.begin() as conn:
-            query_start = time.process_time()
+            query_start = time.time()
             res = conn.execute(query.to_sql())
-            query_end = time.process_time()
-            unpack_start = time.process_time()
+            query_end = time.time()
             count_ = res.scalar_one()
-            unpack_end = time.process_time()
-            print(f"unpacked result in {(unpack_end - unpack_start):.3f}")
             response_data["query_result"].update(count=count_, status="ok")
             logger.info(
                 f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
