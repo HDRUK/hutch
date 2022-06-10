@@ -89,7 +89,7 @@ class RQuestQueryRule:
                 column("observation_concept_id") != self.concept_id,
                 column("condition_concept_id") != self.concept_id,
             )
-        
+
         clause = None
         if self.type == "TEXT" and self.oper == "=":
             clause = column(self.column_name) == self.concept_id
