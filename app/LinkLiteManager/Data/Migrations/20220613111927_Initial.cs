@@ -64,6 +64,24 @@ namespace LinkLiteManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "logs",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    exception = table.Column<string>(type: "text", nullable: true),
+                    level = table.Column<string>(type: "text", nullable: false),
+                    message = table.Column<string>(type: "text", nullable: false),
+                    messagetemplate = table.Column<string>(type: "text", nullable: false),
+                    properties = table.Column<string>(type: "text", nullable: false),
+                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_logs", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RegistrationAllowlist",
                 columns: table => new
                 {
@@ -276,6 +294,9 @@ namespace LinkLiteManager.Migrations
 
             migrationBuilder.DropTable(
                 name: "FeatureFlags");
+
+            migrationBuilder.DropTable(
+                name: "logs");
 
             migrationBuilder.DropTable(
                 name: "RegistrationAllowlist");
