@@ -63,8 +63,8 @@ class SyncLogDBHandler(Handler):
 
         try:
             self.db_manager.execute(log_stmnt)
-        except Exception:
-            self.backup_logger.error("Unable to save record to the Database.")
+        except Exception as e:
+            self.backup_logger.error(str(e))
 
 
 def create_log_table():
