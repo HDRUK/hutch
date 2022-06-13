@@ -2,6 +2,7 @@ import sys
 import logging
 import pika
 import linkliteagent.message_queue as mq
+import linkliteagent.config as ll_config
 from linkliteagent.db_manager import SyncDBManager
 from linkliteagent.db_logging import SyncLogDBHandler
 from linkliteagent.query import query_callback
@@ -13,33 +14,24 @@ async def async_main():
 
 
 def main():
-    QUEUE_NAME = "jobs"
-
     """The main method"""
     format = logging.Formatter(
-        "%(levelname)s - %(asctime)s - %(message)s",
-        datefmt="%d-%b-%y %H:%M:%S",
+        ll_config.MSG_FORMAT,
+        datefmt=ll_config.DATE_FORMAT,
     )
 
     # set up the backup logger
     backup_handler = logging.StreamHandler(sys.stdout)
     backup_handler.setFormatter(format)
-    backup_logger = logging.getLogger("backup_logger")
+    backup_logger = logging.getLogger(ll_config.BACKUP_LOGGER_NAME)
     backup_logger.setLevel(logging.INFO)
     backup_logger.addHandler(backup_handler)
 
     # set up the db logger
-    db_manager = SyncDBManager(
-        drivername="postgresql+psycopg2",
-        username="postgres",
-        password="example",
-        host="localhost",
-        port=5432,
-        database="postgres",
-    )
-    db_handler = SyncLogDBHandler(db_manager, "backup_logger")
+    db_manager = SyncDBManager(**ll_config.LOGS_AND_CONFIG_DB)
+    db_handler = SyncLogDBHandler(db_manager, ll_config.BACKUP_LOGGER_NAME)
     db_handler.setFormatter(format)
-    db_logger = logging.getLogger("db_logger")
+    db_logger = logging.getLogger(ll_config.DB_LOGGER_NAME)
     db_logger.setLevel(logging.INFO)
     db_logger.addHandler(db_handler)
     db_logger.addHandler(backup_handler)
@@ -47,8 +39,10 @@ def main():
     # Connect to RabbitMQ
     try:
         db_logger.info("Connecting to queue.")
-        channel = mq.connect(QUEUE_NAME)
-        channel.basic_consume(QUEUE_NAME, on_message_callback=query_callback)
+        channel = mq.connect(ll_config.QUEUE_NAME)
+        channel.basic_consume(
+            ll_config.QUEUE_NAME, on_message_callback=query_callback, auto_ack=True
+        )
         db_logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
         channel.start_consuming()  # starts a `while True` loop.
     except pika.exceptions.AMQPConnectionError:

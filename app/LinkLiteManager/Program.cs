@@ -56,10 +56,13 @@ b.Services
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
   .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
+  .Configure<QueryQueueOptions>(b.Configuration.GetSection("JobQueue"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()
-  .AddTransient<ActivitySourceService>();
+  .AddTransient<ActivitySourceService>()
+  .AddTransient<QueryQueueService>();
+  
 #endregion
 
 var app = b.Build();
