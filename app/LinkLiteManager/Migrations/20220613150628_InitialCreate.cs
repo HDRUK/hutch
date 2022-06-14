@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace LinkLiteManager.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -61,6 +61,24 @@ namespace LinkLiteManager.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FeatureFlags", x => x.Key);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "logs",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    exception = table.Column<string>(type: "text", nullable: true),
+                    level = table.Column<string>(type: "text", nullable: false),
+                    message = table.Column<string>(type: "text", nullable: false),
+                    messagetemplate = table.Column<string>(type: "text", nullable: false),
+                    properties = table.Column<string>(type: "text", nullable: false),
+                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_logs", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -370,6 +388,9 @@ namespace LinkLiteManager.Migrations
 
             migrationBuilder.DropTable(
                 name: "FeatureFlags");
+
+            migrationBuilder.DropTable(
+                name: "logs");
 
             migrationBuilder.DropTable(
                 name: "measurement");

@@ -13,11 +13,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
   public DbSet<RegistrationAllowlistEntry> RegistrationAllowlist => Set<RegistrationAllowlistEntry>();
 
   public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
-  
+
   public DbSet<ActivitySource> ActivitySources => Set<ActivitySource>();
-  
+
   public DbSet<SourceType> SourceTypes => Set<SourceType>();
-  
+
+  public DbSet<Logs> Logs => Set<Logs>();
+
   public DbSet<Person> Person => Set<Person>();
 
   public DbSet<ConditionOccurrence> ConditionOccurrence => Set<ConditionOccurrence>();
@@ -41,5 +43,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
       .HasForeignKey("PersonId");
 
   }
-  
+
 }
