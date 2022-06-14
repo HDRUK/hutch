@@ -1,15 +1,26 @@
 import datetime as dt
-from itertools import count
 import json
 import logging
 import re
+import time
 import requests, requests.exceptions as req_exc
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
-from sqlalchemy import and_, column, create_engine, exc as sql_exc, not_, or_, table
+from sqlalchemy import (
+    and_,
+    column,
+    create_engine,
+    exc as sql_exc,
+    func,
+    not_,
+    or_,
+    select,
+    table,
+)
 from typing import Any
 
 import linkliteagent.config as ll_config
+from linkliteagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 
 PERSON_LOOKUPS = {
@@ -66,6 +77,19 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
+        if self.column_name is None and self.oper == "=":
+            return or_(
+                column("measurement_concept_id") == self.concept_id,
+                column("observation_concept_id") == self.concept_id,
+                column("condition_concept_id") == self.concept_id,
+            )
+        if self.column_name is None and self.oper == "!=":
+            return or_(
+                column("measurement_concept_id") != self.concept_id,
+                column("observation_concept_id") != self.concept_id,
+                column("condition_concept_id") != self.concept_id,
+            )
+
         clause = None
         if self.type == "TEXT" and self.oper == "=":
             clause = column(self.column_name) == self.concept_id
@@ -260,7 +284,26 @@ class RQuestQuery:
                 columns.add(col)
         # Make columns appear in ascending order by name for tests.
         columns = sorted(columns, key=lambda x: x.name)
-        return table("person", *columns).select(self.cohort.sql_clause)
+
+        stmt = (
+            select(Person.person_id)
+            .join(
+                ConditionOccurrence,
+                Person.person_id == ConditionOccurrence.person_id,
+            )
+            .join(
+                Measurement,
+                Person.person_id == Measurement.person_id,
+            )
+            .join(
+                Observation,
+                Person.person_id == Observation.person_id,
+            )
+            .where(self.cohort.sql_clause)
+            .distinct()
+            .subquery()
+        )
+        return select(func.count()).select_from(stmt)
 
 
 def query_callback(
@@ -293,15 +336,22 @@ def query_callback(
     engine = create_engine("postgresql://postgres:example@localhost:5432")
     try:
         with engine.begin() as conn:
+            query_start = time.time()
             res = conn.execute(query.to_sql())
-            rows = res.all()
-            response_data["query_result"].update(count=len(rows), status="ok")
-            logger.info(f"Collected {len(rows)} results from query {query.uuid}.")
+            query_end = time.time()
+            count_ = res.scalar_one()
+            response_data["query_result"].update(count=count_, status="ok")
+            logger.info(
+                f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
+            )
     except sql_exc.NoSuchTableError as table_error:
-        logger.error(table_error)
+        logger.error(str(table_error))
         response_data["query_result"].update(count=0, status="error")
     except sql_exc.NoSuchColumnError as column_error:
-        logger.error(column_error)
+        logger.error(str(column_error))
+        response_data["query_result"].update(count=0, status="error")
+    except sql_exc.ProgrammingError as programming_error:
+        logger.error(str(programming_error))
         response_data["query_result"].update(count=0, status="error")
     finally:
         engine.dispose()
@@ -310,6 +360,8 @@ def query_callback(
         requests.post(ll_config.MANAGER_URL, response_data)
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
-        logger.error(connection_error)
+        logger.error(str(connection_error))
     except req_exc.Timeout as timeout_error:
-        logger.error(timeout_error)
+        logger.error(str(timeout_error))
+    except req_exc.MissingSchema as missing_schema_error:
+        logger.error(str(missing_schema_error))

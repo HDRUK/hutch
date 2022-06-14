@@ -214,9 +214,10 @@ def test_query_to_sql():
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person.race_concept_id 
-FROM person 
-WHERE race_concept_id = :race_concept_id_1"""
+        == """SELECT count(*) AS count_1 
+FROM (SELECT DISTINCT person.person_id AS person_id 
+FROM person JOIN condition_occurrence ON person.person_id = condition_occurrence.person_id JOIN measurement ON person.person_id = measurement.person_id JOIN observation ON person.person_id = observation.person_id 
+WHERE race_concept_id = :race_concept_id_1) AS anon_1"""
     )
     request_dict["cohort"]["groups"][0]["rules"].append(
         {
@@ -230,9 +231,10 @@ WHERE race_concept_id = :race_concept_id_1"""
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person.gender_concept_id, person.race_concept_id 
-FROM person 
-WHERE gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"""
+        == """SELECT count(*) AS count_1 
+FROM (SELECT DISTINCT person.person_id AS person_id 
+FROM person JOIN condition_occurrence ON person.person_id = condition_occurrence.person_id JOIN measurement ON person.person_id = measurement.person_id JOIN observation ON person.person_id = observation.person_id 
+WHERE gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AS anon_1"""
     )
     request_dict["cohort"]["groups"].append(
         {
@@ -251,7 +253,8 @@ WHERE gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concep
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
-        == """SELECT person.gender_concept_id, person.race_concept_id 
-FROM person 
-WHERE (gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AND gender_concept_id = :gender_concept_id_2"""
+        == """SELECT count(*) AS count_1 
+FROM (SELECT DISTINCT person.person_id AS person_id 
+FROM person JOIN condition_occurrence ON person.person_id = condition_occurrence.person_id JOIN measurement ON person.person_id = measurement.person_id JOIN observation ON person.person_id = observation.person_id 
+WHERE (gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AND gender_concept_id = :gender_concept_id_2) AS anon_1"""
     )
