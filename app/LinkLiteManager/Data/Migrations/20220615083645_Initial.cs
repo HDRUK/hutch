@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace LinkLiteManager.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -79,20 +79,6 @@ namespace LinkLiteManager.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_logs", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "person",
-                columns: table => new
-                {
-                    person_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    gender_concept_id = table.Column<int>(type: "integer", nullable: false),
-                    race_concept_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_person", x => x.person_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -224,68 +210,6 @@ namespace LinkLiteManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "condition_occurrence",
-                columns: table => new
-                {
-                    condition_occurrence_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    person_id = table.Column<int>(type: "integer", nullable: false),
-                    condition_concept_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_condition_occurrence", x => x.condition_occurrence_id);
-                    table.ForeignKey(
-                        name: "FK_condition_occurrence_person_person_id",
-                        column: x => x.person_id,
-                        principalTable: "person",
-                        principalColumn: "person_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "measurement",
-                columns: table => new
-                {
-                    measurement_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    person_id = table.Column<int>(type: "integer", nullable: false),
-                    measurement_concept_id = table.Column<int>(type: "integer", nullable: false),
-                    value_as_number = table.Column<double>(type: "double precision", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_measurement", x => x.measurement_id);
-                    table.ForeignKey(
-                        name: "FK_measurement_person_person_id",
-                        column: x => x.person_id,
-                        principalTable: "person",
-                        principalColumn: "person_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "observation",
-                columns: table => new
-                {
-                    observation_id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    person_id = table.Column<int>(type: "integer", nullable: false),
-                    observation_concept_id = table.Column<int>(type: "integer", nullable: false),
-                    value_as_number = table.Column<double>(type: "double precision", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_observation", x => x.observation_id);
-                    table.ForeignKey(
-                        name: "FK_observation_person_person_id",
-                        column: x => x.person_id,
-                        principalTable: "person",
-                        principalColumn: "person_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ActivitySources",
                 columns: table => new
                 {
@@ -346,21 +270,6 @@ namespace LinkLiteManager.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_condition_occurrence_person_id",
-                table: "condition_occurrence",
-                column: "person_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_measurement_person_id",
-                table: "measurement",
-                column: "person_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_observation_person_id",
-                table: "observation",
-                column: "person_id");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -384,19 +293,10 @@ namespace LinkLiteManager.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "condition_occurrence");
-
-            migrationBuilder.DropTable(
                 name: "FeatureFlags");
 
             migrationBuilder.DropTable(
                 name: "logs");
-
-            migrationBuilder.DropTable(
-                name: "measurement");
-
-            migrationBuilder.DropTable(
-                name: "observation");
 
             migrationBuilder.DropTable(
                 name: "RegistrationAllowlist");
@@ -409,9 +309,6 @@ namespace LinkLiteManager.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "person");
         }
     }
 }
