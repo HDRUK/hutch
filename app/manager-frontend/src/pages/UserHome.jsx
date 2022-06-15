@@ -1,10 +1,17 @@
-import { Heading, SimpleGrid, VStack } from "@chakra-ui/react";
+import { Heading, SimpleGrid, VStack, Text } from "@chakra-ui/react";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
+import { ActionCard } from "components/ActionCard";
+import { useSortingAndFiltering } from "helpers/hooks/useSortingAndFiltering";
+import { useActivitySourceList } from "api/activitysource";
+import { ActivitySourceSummary } from "components/ActivitySourceSummary";
+//import { useEffect } from "react";
 
 export const UserHome = () => {
   const { user } = useUser();
   const { t } = useTranslation();
+  const { data } = useActivitySourceList();
+
   return (
     <VStack align="stretch" px={8} w="100%" spacing={4} p={4}>
       <Heading as="h2" size="lg">
@@ -12,22 +19,16 @@ export const UserHome = () => {
       </Heading>
 
       <SimpleGrid minChildWidth="400px" spacing={4}>
-        {/* <ActionCard
-          href="process-overview"
-          icon={AiFillRead}
-          title="Proposals process overview"
-        >
-          <Text>
-            Review the process for submitting proposals using this system
-          </Text>
-        </ActionCard> */}
+        {data.map((item, index) => (
+          <ActivitySourceSummary
+            key={index}
+            href=""
+            title={item.DisplayName}
+            sourceURL={item.Host}
+            collectionId={item.ResourceId}
+          ></ActivitySourceSummary>
+        ))}
       </SimpleGrid>
-
-      <VStack w="100%" align="stretch">
-        <Heading as="h3" size="lg">
-          Collections
-        </Heading>
-      </VStack>
     </VStack>
   );
 };
