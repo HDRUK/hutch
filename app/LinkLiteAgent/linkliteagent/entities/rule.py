@@ -31,7 +31,7 @@ class Rule(Thing):
             .to_dict()
             .update(value=self.value, additionalProperty=self.operator.to_dict())
         )
-    
+
     @classmethod
     def from_dict(cls, dict_: dict) -> Self:
         """Create a `Rule` from RO-Crate JSON.
