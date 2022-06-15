@@ -24,6 +24,14 @@ class Thing:
 
     @classmethod
     def from_dict(cls, dict_: dict) -> Self:
+        """Create a `Thing` from RO-Crate JSON.
+
+        Args:
+            dict_ (dict): Mapping containing the `Thing`'s attributes.
+
+        Returns:
+            Self: `Thing` object.
+        """
         return cls(
             context=dict_.get("@context", ""),
             type_=dict_.get("@type", ""),
