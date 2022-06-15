@@ -9,11 +9,21 @@ class Thing:
         self.name = name
 
     def to_dict(self) -> dict:
+        """Convert `Thing` to `dict`.
+
+        Returns:
+            dict: `Thing` as a `dict`.
+        """
         return {
             "@context": self.context,
             "@type": self.name,
             "name": self.name,
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """`Thing` as a JSON string.
+
+        Returns:
+            str: JSON string.
+        """
         return json.dumps(self.to_dict(), indent=2)
