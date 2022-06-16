@@ -1,8 +1,8 @@
 import pytest
-from linkliteagent.entities.group import Group
-from linkliteagent.entities.operator import Operator
-from linkliteagent.entities.query import Query
-from linkliteagent.entities.rule import Rule
+from linkliteagent.ro_crates.group import Group
+from linkliteagent.ro_crates.operator import Operator
+from linkliteagent.ro_crates.query import Query
+from linkliteagent.ro_crates.rule import Rule
 
 
 def test_rule():
@@ -15,9 +15,9 @@ def test_rule():
         "additionalProperty": {
             "@context": "https://schema.org",
             "@type": "PropertyVale",
-            "name": "Operator",
-            "value": "BETWEEN"
-        }
+            "name": "operator",
+            "value": "BETWEEN",
+        },
     }
     rule = Rule.from_dict(rule_dict)
     print(rule)
