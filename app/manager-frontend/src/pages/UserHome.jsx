@@ -17,8 +17,10 @@ export const UserHome = () => {
       <Heading as="h2" size="lg">
         {t("home.heading", { name: user?.fullName })}
       </Heading>
-
-      <SimpleGrid minChildWidth="400px" spacing={4}>
+      <VStack w="100%" align="stretch">
+        <Heading as="h3" size="lg">
+          Activity Sources
+        </Heading>
         {data.map((item, index) => (
           <ActivitySourceSummary
             key={index}
@@ -28,7 +30,7 @@ export const UserHome = () => {
             collectionId={item.ResourceId}
           ></ActivitySourceSummary>
         ))}
-      </SimpleGrid>
+      </VStack>
     </VStack>
   );
 };
