@@ -27,14 +27,12 @@ class Group(Thing):
         Returns:
             dict: `Group` as a `dict`.
         """
-        return (
-            super()
-            .to_dict()
-            .update(
-                numberOfItems=self.number_of_items,
-                itemListElement=[rule.to_dict() for rule in self.item_list_element],
-            )
+        dict_ = super().to_dict()
+        dict_.update(
+            numberOfItems=self.number_of_items,
+            itemListElement=[rule.to_dict() for rule in self.item_list_element],
         )
+        return dict_
 
     @classmethod
     def from_dict(cls, dict_: dict) -> Self:

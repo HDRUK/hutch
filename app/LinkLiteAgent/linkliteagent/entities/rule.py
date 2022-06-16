@@ -1,4 +1,5 @@
 import json
+from typing import Any
 from typing_extensions import Self
 from linkliteagent.entities.operator import Operator
 from linkliteagent.entities.thing import Thing
@@ -10,15 +11,19 @@ class Rule(Thing):
     def __init__(
         self,
         context: str,
-        type: str,
-        name: str,
-        value: str,
+        type_: str,
         operator: Operator,
+        name: str = "",
+        value: Any = None,
+        min_value: Any = None,
+        max_value: Any = None,
         **kwargs
     ) -> None:
-        super().__init__(context, type, name)
-        self.value = value
+        super().__init__(context, type_, name)
         self.operator = operator
+        self.value = value
+        self.min_value = min_value
+        self.max_value = max_value
 
     def to_dict(self) -> dict:
         """Convert `Rule` to `dict`.
@@ -26,11 +31,13 @@ class Rule(Thing):
         Returns:
             dict: `Rule` as a `dict`.
         """
-        return (
-            super()
-            .to_dict()
-            .update(value=self.value, additionalProperty=self.operator.to_dict())
-        )
+        dict_ = super().to_dict()
+        dict_.update(additionalProperty=self.operator.to_dict())
+        if self.value is not None:
+            dict_.update(value=self.value)
+        elif (self.min_value is not None) and (self.max_value is not None):
+            dict_.update(minValue=self.min_value, maxValue=self.max_value)
+        return dict_
 
     @classmethod
     def from_dict(cls, dict_: dict) -> Self:

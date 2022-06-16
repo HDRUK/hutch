@@ -24,7 +24,7 @@ class Query:
         """
         return {
             "@context": self.context,
-            "@graph": [thing.to_dict() for thing in self.graph]
+            "@graph": [thing.to_dict() for thing in self.graph],
         }
 
     @classmethod

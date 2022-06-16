@@ -5,7 +5,7 @@ from typing_extensions import Self
 class Thing:
     """Python representation of [Thing](https://schema.org/Thing)."""
 
-    def __init__(self, context: str, type_: str, name: str, **kwargs) -> None:
+    def __init__(self, context: str, type_: str, name: str = "", **kwargs) -> None:
         self.context = context
         self.type_ = type_
         self.name = name
