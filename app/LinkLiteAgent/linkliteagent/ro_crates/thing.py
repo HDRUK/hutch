@@ -1,5 +1,4 @@
 import json
-from typing_extensions import Self
 
 
 class Thing:
@@ -23,7 +22,7 @@ class Thing:
         }
 
     @classmethod
-    def from_dict(cls, dict_: dict) -> Self:
+    def from_dict(cls, dict_: dict):
         """Create a `Thing` from RO-Crate JSON.
 
         Args:

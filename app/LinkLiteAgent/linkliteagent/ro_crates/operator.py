@@ -1,6 +1,6 @@
 import json
-from typing_extensions import Self
-from linkliteagent.entities.thing import Thing
+
+from linkliteagent.ro_crates.thing import Thing
 
 
 class Operator(Thing):
@@ -21,7 +21,7 @@ class Operator(Thing):
         return super().to_dict().update(value=self.value)
 
     @classmethod
-    def from_dict(cls, dict_: dict) -> Self:
+    def from_dict(cls, dict_: dict):
         """Create a `Operator` from RO-Crate JSON.
 
         Args:

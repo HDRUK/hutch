@@ -1,9 +1,9 @@
 import json
 from typing import List
-from typing_extensions import Self
-from linkliteagent.entities.operator import Operator
-from linkliteagent.entities.rule import Rule
-from linkliteagent.entities.thing import Thing
+
+from linkliteagent.ro_crates.operator import Operator
+from linkliteagent.ro_crates.rule import Rule
+from linkliteagent.ro_crates.thing import Thing
 
 
 class Group(Thing):
@@ -36,7 +36,7 @@ class Group(Thing):
         return dict_
 
     @classmethod
-    def from_dict(cls, dict_: dict) -> Self:
+    def from_dict(cls, dict_: dict):
         """Create a `Group` from RO-Crate JSON.
 
         Args:

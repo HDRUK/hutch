@@ -1,8 +1,8 @@
 import json
 from typing import List, Union
-from typing_extensions import Self
-from linkliteagent.entities.group import Group
-from linkliteagent.entities.operator import Operator
+
+from linkliteagent.ro_crates.group import Group
+from linkliteagent.ro_crates.operator import Operator
 
 
 class Query:
@@ -28,7 +28,7 @@ class Query:
         }
 
     @classmethod
-    def from_dict(cls, dict_: dict) -> Self:
+    def from_dict(cls, dict_: dict):
         """Create a `Query` from RO-Crate JSON.
 
         Args:

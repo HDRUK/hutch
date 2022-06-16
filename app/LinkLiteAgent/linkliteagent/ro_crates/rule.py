@@ -1,8 +1,8 @@
 import json
 from typing import Any
-from typing_extensions import Self
-from linkliteagent.entities.operator import Operator
-from linkliteagent.entities.thing import Thing
+
+from linkliteagent.ro_crates.operator import Operator
+from linkliteagent.ro_crates.thing import Thing
 
 
 class Rule(Thing):
@@ -40,7 +40,7 @@ class Rule(Thing):
         return dict_
 
     @classmethod
-    def from_dict(cls, dict_: dict) -> Self:
+    def from_dict(cls, dict_: dict):
         """Create a `Rule` from RO-Crate JSON.
 
         Args:
