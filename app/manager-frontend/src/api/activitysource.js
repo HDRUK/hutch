@@ -6,6 +6,17 @@ export const fetchKeys = {
   activitySourceList: "ActivitySource",
 };
 
+export const getActivitySourceApi = ({ api }) => ({
+  /**
+   * Create new activity source
+   * @param {*} body
+   */
+  create: (values) =>
+    api.post("ActivitySource", {
+      json: values,
+    }),
+});
+
 export const useActivitySourceList = () => {
   const { apiFetcher } = useBackendApi();
   return useSWR(

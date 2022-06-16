@@ -1,4 +1,11 @@
-import { Heading, SimpleGrid, VStack, Text } from "@chakra-ui/react";
+import {
+  Heading,
+  SimpleGrid,
+  VStack,
+  Text,
+  Link,
+  Button,
+} from "@chakra-ui/react";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
 import { ActionCard } from "components/ActionCard";
@@ -21,6 +28,9 @@ export const UserHome = () => {
         <Heading as="h3" size="lg">
           Activity Sources
         </Heading>
+        <Link href="/activitysources/new">
+          <Button>New Activity Source</Button>
+        </Link>
         {data.map((item, index) => (
           <ActivitySourceSummary
             key={index}
