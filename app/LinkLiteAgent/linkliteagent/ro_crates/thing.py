@@ -1,6 +1,3 @@
-import json
-
-
 class Thing:
     """Python representation of [Thing](https://schema.org/Thing)."""
 
@@ -15,11 +12,7 @@ class Thing:
         Returns:
             dict: `Thing` as a `dict`.
         """
-        return {
-            "@context": self.context,
-            "@type": self.type_,
-            "name": self.name,
-        }
+        raise NotImplementedError
 
     @classmethod
     def from_dict(cls, dict_: dict):
@@ -31,16 +24,4 @@ class Thing:
         Returns:
             Self: `Thing` object.
         """
-        return cls(
-            context=dict_.get("@context", ""),
-            type_=dict_.get("@type", ""),
-            name=dict_.get("name", ""),
-        )
-
-    def __str__(self) -> str:
-        """`Thing` as a JSON string.
-
-        Returns:
-            str: JSON string.
-        """
-        return json.dumps(self.to_dict(), indent=2)
+        raise NotImplementedError
