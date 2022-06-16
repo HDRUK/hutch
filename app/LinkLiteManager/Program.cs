@@ -20,8 +20,7 @@ var b = WebApplication.CreateBuilder(args);
 b.Host.UseSerilog((context, services, loggerConfig) => loggerConfig
   .ReadFrom.Configuration(context.Configuration)
   .Enrich.FromLogContext());
-b.Host.ConfigureServices(services =>
-  services.AddHostedService<RquestPollingService>());
+
 #region Configure Services
 
 // MVC
@@ -69,7 +68,8 @@ b.Services
   .AddTransient<FeatureFlagService>()
   .AddTransient<ActivitySourceService>()
   .AddTransient<QueryQueueService>()
-  .AddTransient<RquestOmopQueryService>();
+  .AddHostedService<RquestPollingHostedService>()
+  .AddScoped<IRquestPollingService, RquestPollingService>();
 b.Services
   .AddHttpClient<RquestConnectorApiClient>();
 #endregion

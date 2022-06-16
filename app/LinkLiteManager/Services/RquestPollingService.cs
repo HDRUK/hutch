@@ -1,51 +1,51 @@
-using LinkLiteManager.Data;
 using LinkLiteManager.Dto;
 using LinkLiteManager.OptionsModels;
-using LinkLiteManager.Services;
-using LinkLiteManager.Services.QueryServices;
-
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+namespace LinkLiteManager.Services;
 
-namespace LinkLiteManager.HostedServices
+internal interface IRquestPollingService
 {
-    public class RquestPollingService : IHostedService, IDisposable
+  Task PollRquest(CancellationToken stoppingToken);
+}
+public class RquestPollingService: IRquestPollingService
+{
+  private readonly RquestConnectorApiClient _rquestApi;
+  private readonly ILogger<RquestPollingService> _logger;
+  private readonly RquestPollingServiceOptions _config;
+  private Timer? _timer;
+  private int executionCount = 0;
+  
+  public RquestPollingService(
+    RquestConnectorApiClient rquestApi,
+    ILogger<RquestPollingService> logger,
+    IOptions<RquestPollingServiceOptions> config)
+  {
+    _logger = logger;
+    _rquestApi = rquestApi;
+    _config = config.Value;
+  }
+  public async Task PollRquest(CancellationToken stoppingToken)
+  {
+    while (!stoppingToken.IsCancellationRequested)
     {
-        private readonly ILogger<RquestPollingService> _logger;
-        private readonly RquestConnectorApiClient _rquestApi;
-        private readonly RquestPollingServiceOptions _config;
-        private Timer? _timer;
-        private readonly RquestOmopQueryService _queries;
+      executionCount++;
 
-        public RquestPollingService(
-            ILogger<RquestPollingService> logger,
-            RquestConnectorApiClient rquestApi,
-            RquestOmopQueryService queries,
-            IOptions<RquestPollingServiceOptions> config)
+      _logger.LogInformation(
+        "Scoped Processing Service is working. Count: {Count}", executionCount);
+      _timer = new Timer(PollRquest);
+      RunTimerOnce();
+      await Task.Delay(10000, stoppingToken);
+    }
+  }
+  private async void PollRquest(object? state)
         {
-            _logger = logger;
-            _rquestApi = rquestApi;
-            _config = config.Value;
-            _queries = queries;
-        }
-
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("RQUEST Polling Service started.");
-            _timer = new Timer(PollRquest);
-            RunTimerOnce();
-            return Task.CompletedTask;
-        }
-
-        private async void PollRquest(object? state)
-        {
+            var count = Interlocked.Increment(ref executionCount);
+          _logger.LogInformation(
+            "Timed Hosted Service is working. Count: {Count}", count);
+          _logger.LogInformation(
+            "Polling RQUEST for Queries on Collection: {_collectionId}",
+           _config.RquestCollectionId);
             // async void here is intentional to meet the TimerCallback signature
             // Stephen Cleary says it's ok:
             // https://stackoverflow.com/a/38918443
@@ -74,16 +74,12 @@ namespace LinkLiteManager.HostedServices
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
                 // threaded using Task.Run or similar.
-                //StopTimer();
+                StopTimer();
 
                 _logger.LogInformation("Processing Query: {taskId}", task.TaskId);
-
-                result = await _queries.Process(task.Query);
-                
+              
                 _logger.LogInformation(
                     "Query Result: {taskId}: {result}", task.TaskId, result);
-
-                await _rquestApi.SubmitQueryResult(task.TaskId, result.Value);
             }
             catch (Exception e)
             {
@@ -115,41 +111,24 @@ namespace LinkLiteManager.HostedServices
 
             RunTimerOnce();
         }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("RQUEST Polling Service stopping.");
-            StopTimer();
-            return Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-            _timer?.Dispose();
-        }
-
-        /// <summary>
-        /// Run the timer one time, to execute its callback when it expires
-        /// (after the configured polling interval time)
-        /// </summary>
         private void RunTimerOnce()
-            => _timer?.Change(
-                TimeSpan.FromSeconds(_config.QueryPollingInterval),
-                Timeout.InfiniteTimeSpan);
+          => _timer?.Change(
+            TimeSpan.FromSeconds(_config.QueryPollingInterval),
+            Timeout.InfiniteTimeSpan);
 
         /// <summary>
         /// Change the timer to execute its callback regularly
         /// at the configured polling interval
         /// </summary>
         private void StartTimer()
-            => _timer?.Change(
-                TimeSpan.Zero,
-                TimeSpan.FromSeconds(_config.QueryPollingInterval));
+          => _timer?.Change(
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(_config.QueryPollingInterval));
 
         /// <summary>
         /// Change the timer to stop regular callback execution
         /// </summary>
         private void StopTimer()
-            => _timer?.Change(Timeout.Infinite, 0);
-    }
+          => _timer?.Change(Timeout.Infinite, 0);
+
 }

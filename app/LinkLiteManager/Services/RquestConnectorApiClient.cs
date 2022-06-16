@@ -6,7 +6,8 @@ using LinkLiteManager.OptionsModels;
 using Microsoft.Extensions.Options;
 
 using System.Net;
-
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 
 
@@ -17,17 +18,27 @@ namespace LinkLiteManager.Services
         private readonly HttpClient _client;
         private readonly ILogger<RquestConnectorApiClient> _logger;
         private readonly RquestConnectorApiOptions _apiOptions;
+        private readonly IConfiguration _configuration;
 
         public RquestConnectorApiClient(
             HttpClient client,
             ILogger<RquestConnectorApiClient> logger,
-            IOptions<RquestConnectorApiOptions> apiOptions)
+            IOptions<RquestConnectorApiOptions> apiOptions,
+            IConfiguration configuration)
         {
+          
             _client = client;
             _logger = logger;
             _apiOptions = apiOptions.Value;
-
+            _configuration = configuration;
+            
+            string credentials = _configuration["RQUEST_USER"] + ":" + _configuration["RQUEST_PASSWORD"];
+            var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
+            
             _client.BaseAddress = new Uri(Url.Combine(_apiOptions.BaseUrl, "/"));
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authString);
+
+  
         }
 
         /// <summary>
@@ -43,15 +54,17 @@ namespace LinkLiteManager.Services
                     "application/json");
 
         /// <summary>
-        /// Try and get a job for a biobank
+        /// Try and get a job for a collection
         /// </summary>
         /// <param name="collectionId">RQUEST Collection Id (Biobank Id)</param>
         /// <returns>A Task DTO containing a Query to run, or null if none are waiting</returns>
         public async Task<RquestQueryTask?> FetchQuery(string collectionId)
         {
-            var result = await _client.PostAsync(
-                _apiOptions.FetchQueryEndpoint,
-                AsHttpJsonString(new { collection_id = collectionId }));
+          
+          string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", collectionId));
+          
+          var result = await _client.GetAsync(
+              requestUri);
 
             if (result.IsSuccessStatusCode)
             {
@@ -110,6 +123,7 @@ namespace LinkLiteManager.Services
         /// <param name="count">Optional Count for submitting results</param>
         private async Task ResultsEndpointPost(string taskId, int? count = null)
         {
+            
             var response = (await _client.PostAsync(
                     _apiOptions.SubmitResultEndpoint,
                     AsHttpJsonString(new RquestQueryTaskResult(taskId, count))))
