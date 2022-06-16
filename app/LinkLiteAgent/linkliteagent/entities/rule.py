@@ -50,7 +50,9 @@ class Rule(Thing):
             Self: `Rule` object.
         """
         rule = super().from_dict(dict_)
-        rule.value = dict_.get("value", "")
+        rule.value = dict_.get("value")
+        rule.min_value = dict_.get("minValue")
+        rule.max_value = dict_.get("maxValue")
         rule.operator = Operator.from_dict(dict_.get("additionalProper"))
         return rule
 

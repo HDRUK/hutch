@@ -1,6 +1,7 @@
 import json
 from typing import List
 from typing_extensions import Self
+from linkliteagent.entities.operator import Operator
 from linkliteagent.entities.rule import Rule
 from linkliteagent.entities.thing import Thing
 
@@ -46,7 +47,13 @@ class Group(Thing):
         """
         group = super().from_dict(dict_)
         group.number_of_items = dict_.get("numberOfItems")
-        group.item_list_element = dict_.get("itemListElement", [])
+        item_list = dict_.get("itemListElement", [])
+        group.item_list_element = []
+        for i in item_list:
+            if i.get("name") == "operator":
+                group.item_list_element.append(Operator.from_dict(i))
+            else:
+                group.item_list_element.append(Rule.from_dict(i))
         return group
 
     def __str__(self) -> str:
