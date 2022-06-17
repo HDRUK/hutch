@@ -27,7 +27,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
     ? "Create Activity Source"
     : "Save changes";
   const headingText = !activitySource
-    ? "Submit a new Activity Source"
+    ? "Create a new Activity Source"
     : "Edit Activity Source";
 
   const navigate = useNavigate();
