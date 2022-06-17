@@ -34,7 +34,7 @@ export const UserHome = () => {
         {data.map((item, index) => (
           <ActivitySourceSummary
             key={index}
-            href=""
+            href={`activitysources/${item.Id}`}
             title={item.DisplayName}
             sourceURL={item.Host}
             collectionId={item.ResourceId}

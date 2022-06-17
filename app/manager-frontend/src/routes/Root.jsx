@@ -9,7 +9,8 @@ import { useUser } from "contexts/User";
 import { useEffect } from "react";
 import { ContentPage } from "pages/ContentPage";
 import { useBackendConfig } from "contexts/Config";
-import { ActivitySource } from "pages/ActivitySource";
+import CreateActivitySource from "pages/ActivitySource/create";
+import EditActivitySource from "pages/ActivitySource/edit";
 
 const IndexRedirect = () => {
   const { user } = useUser();
@@ -32,7 +33,11 @@ export const Root = () => {
         <Route path="about" element={<ContentPage contentKey={"about"} />} />
         <Route path="/" element={<ProtectedRoutes />}>
           <Route path="home" element={<UserHome />} />
-          <Route path="activitysources/new" element={<ActivitySource />} />
+          <Route
+            path="activitysources/new"
+            element={<CreateActivitySource />}
+          />
+          <Route path="activitysources/:id" element={<EditActivitySource />} />
         </Route>
 
         <Route path="account/*" element={<Account />} />
