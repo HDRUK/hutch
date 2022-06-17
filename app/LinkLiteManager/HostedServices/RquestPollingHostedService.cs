@@ -3,7 +3,7 @@ using LinkLiteManager.Services;
 
 namespace LinkLiteManager.HostedServices
 {
-    public class RquestPollingHostedService : IHostedService
+    public class RquestPollingHostedService : BackgroundService
     {
         private readonly ILogger<RquestPollingHostedService> _logger;
         private readonly IServiceProvider _serviceProvider;
@@ -16,7 +16,7 @@ namespace LinkLiteManager.HostedServices
             _serviceProvider = serviceProvider;
         }
         
-        public async Task StartAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
           _logger.LogInformation("RQUEST Polling Service started.");
           await PollRquest(stoppingToken);
@@ -37,11 +37,11 @@ namespace LinkLiteManager.HostedServices
           }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("RQUEST Polling Service stopping.");
             
-            return Task.CompletedTask;
+            await base.StopAsync(stoppingToken);
         }
 
     }
