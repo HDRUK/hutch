@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
-  // I assume I should be getting this from the backend
+  // TODO: Get this from the backend
   const typeOptions = [{ value: "RQUEST", text: "RQUEST" }];
 
   const [feedback, setFeedback] = useState();
