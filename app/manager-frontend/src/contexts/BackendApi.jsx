@@ -1,5 +1,6 @@
 import { getAccountApi } from "api/account";
 import { getUserApi } from "api/user";
+import { getActivitySourceApi } from "api/activitysource";
 import ky from "ky";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -43,6 +44,7 @@ export const BackendApiProvider = ({ children }) => {
       ...baseContext,
       account: getAccountApi(baseContext),
       users: getUserApi(baseContext),
+      activitysource: getActivitySourceApi(baseContext),
     }),
     [baseContext]
   );
