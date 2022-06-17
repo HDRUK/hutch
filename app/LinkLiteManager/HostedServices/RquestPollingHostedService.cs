@@ -37,7 +37,7 @@ namespace LinkLiteManager.HostedServices
           }
         }
 
-        public async Task StopAsync(CancellationToken stoppingToken)
+        public override async Task StopAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("RQUEST Polling Service stopping.");
             

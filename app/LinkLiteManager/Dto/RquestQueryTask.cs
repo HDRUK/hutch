@@ -12,5 +12,7 @@ namespace LinkLiteManager.Dto
 
         [JsonPropertyName("cohort")]
         public RquestQuery Query { get; set; } = new();
+
+        [JsonPropertyName("collection_id")] public string CollectionId { get; set; } = string.Empty;
     }
 }

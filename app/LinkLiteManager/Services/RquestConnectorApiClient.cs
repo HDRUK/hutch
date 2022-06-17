@@ -83,6 +83,8 @@ namespace LinkLiteManager.Services
                     // a null task is impossible because the necessary JSON payload
                     // to achieve it would fail deserialization
                     _logger.LogInformation($"Found Query Task with Id: {task!.TaskId}");
+                    //Set Collection ID
+                    task.CollectionId = collectionId;
                     return task;
                 }
                 catch (JsonException e)

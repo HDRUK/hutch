@@ -1,6 +1,9 @@
+using System.Text;
 using LinkLiteManager.Dto;
 using LinkLiteManager.OptionsModels;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
 
 namespace LinkLiteManager.Services;
 
@@ -61,7 +64,6 @@ public class RquestPollingService: IRquestPollingService
             try
             {
                 task = await _rquestApi.FetchQuery(_config.RquestCollectionId);
-
                 if (task is null)
                 {
                     _logger.LogInformation(
@@ -70,16 +72,11 @@ public class RquestPollingService: IRquestPollingService
                     RunTimerOnce();
                     return;
                 }
-
+                SendToQueue(task);
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
                 // threaded using Task.Run or similar.
                 StopTimer();
-
-                _logger.LogInformation("Processing Query: {taskId}", task.TaskId);
-              
-                _logger.LogInformation(
-                    "Query Result: {taskId}: {result}", task.TaskId, result);
             }
             catch (Exception e)
             {
@@ -104,7 +101,6 @@ public class RquestPollingService: IRquestPollingService
                             result);
                     }
 
-                    await _rquestApi.CancelQueryTask(task.TaskId);
                     _logger.LogInformation("Cancelled failed task: {taskId}", task.TaskId);
                 }
             }
@@ -130,5 +126,30 @@ public class RquestPollingService: IRquestPollingService
         /// </summary>
         private void StopTimer()
           => _timer?.Change(Timeout.Infinite, 0);
+        
+        public void SendToQueue(RquestQueryTask taskPayload)
+        {
+          var factory = new ConnectionFactory() { HostName = "localhost" };
+          using(var connection = factory.CreateConnection())
+          using(var channel = connection.CreateModel())
+          {
+            channel.QueueDeclare(queue: "jobs",
+              durable: true,
+              exclusive: false,
+              autoDelete: false,
+              arguments: null);
+            
+            var properties = channel.CreateBasicProperties();
+            properties.Persistent = true;
+            
+            byte[] body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(taskPayload) );
+            channel.BasicPublish(exchange: "",
+              routingKey: "jobs",
+              basicProperties: null,
+              body: body);
+            
+            _logger.LogInformation("Sent to Queue {body}", body);
+          }
+        }
 
 }
