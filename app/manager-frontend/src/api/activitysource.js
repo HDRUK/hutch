@@ -38,14 +38,8 @@ export const useActivitySource = (id) => {
   return useSWR(
     fetchKeys.activitySourceList,
     async (url) => {
-      //const data = await apiFetcher(url+`/${id}`);
-      //return data;
-      return {
-        DisplayName: "test",
-        Host: "sa",
-        Type: "",
-        ResourceId: "2",
-      };
+      const data = await apiFetcher(url + `/${id}`);
+      return data;
     },
     { suspense: true }
   );
