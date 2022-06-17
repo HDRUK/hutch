@@ -25,7 +25,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   const [feedback, setFeedback] = useState();
   const submitText = !activitySource
     ? "Create Activity Source"
-    : "Update Activity Source";
+    : "Save changes";
   const headingText = !activitySource
     ? "Submit a new Activity Source"
     : "Edit Activity Source";
