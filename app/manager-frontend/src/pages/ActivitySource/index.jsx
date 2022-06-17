@@ -13,7 +13,6 @@ import {
 import React, { useState } from "react";
 import { Form, Formik, useField } from "formik";
 import { FaArrowRight } from "react-icons/fa";
-
 import { FormikInput } from "../../components/forms/FormikInput";
 import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
