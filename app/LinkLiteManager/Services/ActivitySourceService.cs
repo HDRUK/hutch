@@ -1,4 +1,5 @@
 using LinkLiteManager.Data;
+using LinkLiteManager.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LinkLiteManager.Services;
@@ -29,6 +30,21 @@ public class ActivitySourceService
     await _db.ActivitySources.AddAsync(entity);
     await _db.SaveChangesAsync();
     return new(entity);
+  }
+  
+  public async Task<ActivitySource> Set(int id, CreateActivitySource activitySource)
+  {
+    var entity = await _db.ActivitySources
+      .Include(x => x.Type)
+      .FirstOrDefaultAsync(x => x.Id == id);
 
+    if (entity is null)
+      throw new KeyNotFoundException(
+        $"No ActivitySource with ID: {id}");
+    entity.Host = activitySource.Host;
+    entity.DisplayName = activitySource.DisplayName;
+    entity.ResourceId = activitySource.ResourceId;
+    await _db.SaveChangesAsync();
+    return new (entity);
   }
 }
