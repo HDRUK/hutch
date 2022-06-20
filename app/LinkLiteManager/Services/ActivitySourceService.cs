@@ -1,5 +1,4 @@
 using LinkLiteManager.Data;
-using LinkLiteManager.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LinkLiteManager.Services;
@@ -32,7 +31,7 @@ public class ActivitySourceService
     return new(entity);
   }
   
-  public async Task<ActivitySource> Set(int id, CreateActivitySource activitySource)
+  public async Task<Models.ActivitySource> Set(int id, Models.CreateActivitySource activitySource)
   {
     var entity = await _db.ActivitySources
       .Include(x => x.Type)
