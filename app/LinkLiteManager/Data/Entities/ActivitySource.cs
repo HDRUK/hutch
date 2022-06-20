@@ -9,5 +9,7 @@ public class ActivitySource
   public SourceType Type { get; set; } = null!;
   
   public string ResourceId { get; set; } = string.Empty;
-  
+
+  public string DisplayName { get; set; } = string.Empty;
+
 }

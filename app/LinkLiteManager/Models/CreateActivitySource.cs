@@ -10,6 +10,8 @@ public class CreateActivitySource
   public string Type { get; set; } = string.Empty;
   [Required]
   public string ResourceId { get; set; } = string.Empty;
+  [Required]
+  public string DisplayName { get; set; } = string.Empty;
 
   public Data.Entities.ActivitySource ToEntity(List<Data.Entities.SourceType> types)
     => new()

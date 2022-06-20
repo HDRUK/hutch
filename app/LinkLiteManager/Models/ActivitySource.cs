@@ -7,6 +7,7 @@ public class ActivitySource
   public string Host { get; set; } = string.Empty;
   public string Type { get; set; } = string.Empty;
   public string ResourceId { get; set; } = string.Empty;
+  public string DisplayName { get; set; } = string.Empty;
 
   public ActivitySource(Data.Entities.ActivitySource entity)
   {
@@ -14,6 +15,7 @@ public class ActivitySource
     Host = entity.Host;
     Type = entity.Type.Id;
     ResourceId = entity.ResourceId;
+    DisplayName = entity.DisplayName;
   }
 
 }
