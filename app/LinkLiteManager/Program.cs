@@ -5,8 +5,11 @@ using LinkLiteManager.Constants;
 using LinkLiteManager.Data;
 using LinkLiteManager.Data.Entities.Identity;
 using LinkLiteManager.Extensions;
+using LinkLiteManager.HostedServices;
 using LinkLiteManager.Middleware;
+using LinkLiteManager.OptionsModels;
 using LinkLiteManager.Services;
+using LinkLiteManager.Services.QueryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -17,6 +20,7 @@ var b = WebApplication.CreateBuilder(args);
 b.Host.UseSerilog((context, services, loggerConfig) => loggerConfig
   .ReadFrom.Configuration(context.Configuration)
   .Enrich.FromLogContext());
+
 #region Configure Services
 
 // MVC
@@ -57,12 +61,17 @@ b.Services
   .AddAuthorization(AuthConfiguration.AuthOptions)
   .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
   .Configure<QueryQueueOptions>(b.Configuration.GetSection("JobQueue"))
+  .Configure<RquestConnectorApiOptions>(b.Configuration.GetSection("RquestConnectorApi"))
+  .Configure<RquestPollingServiceOptions>(b.Configuration)
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()
   .AddTransient<ActivitySourceService>()
-  .AddTransient<QueryQueueService>();
-  
+  .AddTransient<QueryQueueService>()
+  .AddHostedService<RquestPollingHostedService>()
+  .AddScoped<IRquestPollingService, RquestPollingService>();
+b.Services
+  .AddHttpClient<RquestConnectorApiClient>();
 #endregion
 
 var app = b.Build();
