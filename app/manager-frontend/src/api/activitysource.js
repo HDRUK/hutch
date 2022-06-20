@@ -11,8 +11,12 @@ export const getActivitySourceApi = ({ api }) => ({
    * Create new activity source
    * @param {*} body
    */
-  create: (values) =>
+  create: ({ values }) =>
     api.post("ActivitySource", {
+      json: values,
+    }),
+  update: ({ values, id }) =>
+    api.put(`ActivitySource/${id}`, {
       json: values,
     }),
 });
@@ -23,6 +27,18 @@ export const useActivitySourceList = () => {
     fetchKeys.activitySourceList,
     async (url) => {
       const data = await apiFetcher(url);
+      return data;
+    },
+    { suspense: true }
+  );
+};
+
+export const useActivitySource = (id) => {
+  const { apiFetcher } = useBackendApi();
+  return useSWR(
+    fetchKeys.activitySourceList,
+    async (url) => {
+      const data = await apiFetcher(url + `/${id}`);
       return data;
     },
     { suspense: true }

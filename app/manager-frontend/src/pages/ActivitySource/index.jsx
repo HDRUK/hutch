@@ -13,20 +13,23 @@ import {
 import React, { useState } from "react";
 import { Form, Formik, useField } from "formik";
 import { FaArrowRight } from "react-icons/fa";
-import { useBackendApi } from "contexts/BackendApi";
 import { FormikInput } from "../../components/forms/FormikInput";
 import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 
-export const ActivitySource = () => {
-  // I assume I should be getting this from the backend
+export const ActivitySource = ({ activitySource, action, id }) => {
+  // TODO: Get this from the backend
   const typeOptions = [{ value: "RQUEST", text: "RQUEST" }];
 
   const [feedback, setFeedback] = useState();
-  const {
-    activitysource: { create },
-  } = useBackendApi();
+  const submitText = !activitySource
+    ? "Create Activity Source"
+    : "Save changes";
+  const headingText = !activitySource
+    ? "Create a new Activity Source"
+    : "Edit Activity Source";
+
   const navigate = useNavigate();
 
   const handleSubmit = async (values, actions) => {
@@ -40,7 +43,7 @@ export const ActivitySource = () => {
         {}
       );
       // post to the api
-      await create(payload).json();
+      await action({ values: payload, id: id }).json();
 
       // redirect with a toast
       navigate("/", {
@@ -64,15 +67,24 @@ export const ActivitySource = () => {
   return (
     <Container>
       <VStack w="100%" align="stretch" p={4}>
-        <Heading>Submit a new Activity Source</Heading>
+        <Heading>{headingText}</Heading>
         <Formik
           onSubmit={handleSubmit}
-          initialValues={{
-            DisplayName: "",
-            Host: "",
-            Type: typeOptions[0].value,
-            ResourceId: "",
-          }}
+          initialValues={
+            activitySource
+              ? {
+                  DisplayName: activitySource.DisplayName,
+                  Host: activitySource.Host,
+                  Type: activitySource.Type,
+                  ResourceId: activitySource.ResourceId,
+                }
+              : {
+                  DisplayName: "",
+                  Host: "",
+                  Type: typeOptions[0].value,
+                  ResourceId: "",
+                }
+          }
           validationSchema={validationSchema()}
         >
           {({ isSubmitting, values }) => (
@@ -109,7 +121,7 @@ export const ActivitySource = () => {
                   disabled={isSubmitting}
                   isLoading={isSubmitting}
                 >
-                  Submit Activity Source
+                  {submitText}
                 </Button>
               </VStack>
             </Form>
