@@ -47,4 +47,15 @@ public class ActivitySourceService
     await _db.SaveChangesAsync();
     return new (entity);
   }
+  public async Task<Models.ActivitySource> Get(int activitySourceId)
+  {
+    var activitySource = await _db.ActivitySources
+                     .AsNoTracking()
+                     .Include(x=>x.Type)
+                     .Where(x => x.Id == activitySourceId)
+                     .SingleOrDefaultAsync()
+                   ?? throw new KeyNotFoundException();
+    return new(activitySource);
+  }
+  
 }

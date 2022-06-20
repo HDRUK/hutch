@@ -23,6 +23,10 @@ public class ActivitySourceController : ControllerBase
   [HttpPost]
   public async Task<ActivitySource> Create(CreateActivitySource activitySource)
     => await _activitySources.Create(activitySource);
+  
+  [HttpGet("{id}")]
+  public async Task<ActionResult<ActivitySource>> Get(int id)
+    =>await _activitySources.Get(id);
 
   [HttpPut("{id}")]
   public async Task<IActionResult> Set(int id, [FromBody] CreateActivitySource activitySource)
