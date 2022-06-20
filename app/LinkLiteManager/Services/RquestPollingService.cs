@@ -1,10 +1,11 @@
 using System.Text;
+using LinkLiteManager.Data;
 using LinkLiteManager.Dto;
+using LinkLiteManager.HostedServices;
 using LinkLiteManager.OptionsModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
-
 namespace LinkLiteManager.Services;
 
 internal interface IRquestPollingService
@@ -16,17 +17,20 @@ public class RquestPollingService: IRquestPollingService
   private readonly RquestConnectorApiClient _rquestApi;
   private readonly ILogger<RquestPollingService> _logger;
   private readonly RquestPollingServiceOptions _config;
+  private readonly ApplicationDbContext _db;
   private Timer? _timer;
   private int executionCount = 0;
   
   public RquestPollingService(
     RquestConnectorApiClient rquestApi,
     ILogger<RquestPollingService> logger,
-    IOptions<RquestPollingServiceOptions> config)
+    IOptions<RquestPollingServiceOptions> config,
+    ApplicationDbContext db)
   {
     _logger = logger;
     _rquestApi = rquestApi;
     _config = config.Value;
+    _db = db;
   }
   public async Task PollRquest(CancellationToken stoppingToken)
   {
@@ -34,8 +38,8 @@ public class RquestPollingService: IRquestPollingService
     {
       executionCount++;
 
-      _logger.LogInformation(
-        "Scoped Processing Service is working. Count: {Count}", executionCount);
+      _logger.LogDebug(
+        "{Service} is working.Count: {Count}",nameof(RquestPollingService) ,executionCount);
       _timer = new Timer(PollRquest);
       RunTimerOnce();
       await Task.Delay(10000, stoppingToken);
@@ -43,32 +47,28 @@ public class RquestPollingService: IRquestPollingService
   }
   private async void PollRquest(object? state)
         {
+          // async void here is intentional to meet the TimerCallback signature
+          // Stephen Cleary says it's ok:
+          // https://stackoverflow.com/a/38918443
             var count = Interlocked.Increment(ref executionCount);
-          _logger.LogInformation(
-            "Timed Hosted Service is working. Count: {Count}", count);
-          _logger.LogInformation(
-            "Polling RQUEST for Queries on Collection: {_collectionId}",
-           _config.RquestCollectionId);
-            // async void here is intentional to meet the TimerCallback signature
-            // Stephen Cleary says it's ok:
-            // https://stackoverflow.com/a/38918443
-
+            var collectionId = _db.ActivitySources.First();
             _logger.LogInformation(
-                "Polling RQUEST for Queries on Collection: {_collectionId}",
-                _config.RquestCollectionId);
+              "Timed {HostedService} is working. Count: {Count}", nameof(RquestPollingHostedService),count);
+            _logger.LogInformation(
+            "Polling RQUEST for Queries on Collection: {_collectionId}",
+           collectionId);
 
-
-            RquestQueryTask? task = null;
+          RquestQueryTask? task = null;
             int? result = null;
 
             try
             {
-                task = await _rquestApi.FetchQuery(_config.RquestCollectionId);
+              task = await _rquestApi.FetchQuery(collectionId.ResourceId);
                 if (task is null)
                 {
                     _logger.LogInformation(
                           "No Queries on Collection: {_collectionId}",
-                          _config.RquestCollectionId);
+                          collectionId.ResourceId);
                     RunTimerOnce();
                     return;
                 }

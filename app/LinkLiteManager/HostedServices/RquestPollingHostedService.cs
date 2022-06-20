@@ -24,8 +24,6 @@ namespace LinkLiteManager.HostedServices
         
         public async Task PollRquest(CancellationToken stoppingToken)
         {
-          _logger.LogInformation(
-            "Consume Scoped Service Hosted Service is working.");
 
           using (var scope = _serviceProvider.CreateScope())
           {

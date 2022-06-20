@@ -20,7 +20,7 @@
         /// <summary>
         /// Fetch Query Endpoint
         /// </summary>
-        public string FetchQueryEndpoint { get; set; } = "query";
+        public string FetchQueryEndpoint { get; set; } = "nextjob";
 
         /// <summary>
         /// Submit Result Endpoint
