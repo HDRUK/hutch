@@ -23,7 +23,7 @@ jobs:
   publish-sargassure:
     runs-on: ubuntu-latest
     env:
-      CI_dotnet-project: ./app/LinkLiteManager/LinkLiteManager.csproj
+      CI_dotnet-project: ./app/HutchManager/HutchManager.csproj
       CI_artifact-name: manager-dotnet-6
       CI_client-package: manager-frontend
     steps:
