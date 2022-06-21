@@ -33,8 +33,7 @@ public class ActivitySourceController : ControllerBase
   {
     try
     {
-      await _activitySources.Set(id, activitySource);
-      return NoContent();
+      return Ok(await _activitySources.Set(id, activitySource));
     }
     catch (KeyNotFoundException)
     {
