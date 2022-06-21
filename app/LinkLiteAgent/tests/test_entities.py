@@ -20,5 +20,6 @@ def test_rule():
         },
     }
     rule = Rule.from_dict(rule_dict)
-    print(rule)
-    assert False, "made it to the end :)"
+    assert rule.to_dict() == rule_dict
+    assert isinstance(rule.operator, Operator)
+    

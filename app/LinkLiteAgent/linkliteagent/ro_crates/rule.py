@@ -31,8 +31,12 @@ class Rule(Thing):
         Returns:
             dict: `Rule` as a `dict`.
         """
-        dict_ = super().to_dict()
-        dict_.update(additionalProperty=self.operator.to_dict())
+        dict_ = {
+            "@context": self.context,
+            "@type": self.type_,
+            "name": self.name,
+            "additionalProperty": self.operator.to_dict()
+        }
         if self.value is not None:
             dict_.update(value=self.value)
         elif (self.min_value is not None) and (self.max_value is not None):
@@ -52,10 +56,11 @@ class Rule(Thing):
         return cls(
             context=dict_.get("@context"),
             type_=dict_.get("@type"),
+            name=dict_.get("name"),
             value=dict_.get("value"),
             min_value=dict_.get("minValue"),
             max_value=dict_.get("maxValue"),
-            operator=Operator.from_dict(dict_.get("additionalProper"))
+            operator=Operator.from_dict(dict_.get("additionalProperty"))
         )
 
     def __str__(self) -> str:
