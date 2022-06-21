@@ -1,14 +1,12 @@
 import {
   VStack,
-  Input,
-  FormLabel,
-  Box,
-  Select,
+  Flex,
   Button,
   Heading,
   Container,
   Alert,
   AlertIcon,
+  useDisclosure,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { Form, Formik, useField } from "formik";
@@ -17,11 +15,14 @@ import { FormikInput } from "../../components/forms/FormikInput";
 import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
+import { useBackendApi } from "contexts/BackendApi";
+import { DeleteActivitySourceModal } from "components/DeleteActivitySourceModal";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
   const typeOptions = [{ value: "RQUEST", text: "RQUEST" }];
-
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
   const submitText = !activitySource
     ? "Create Activity Source"
@@ -31,7 +32,21 @@ export const ActivitySource = ({ activitySource, action, id }) => {
     : "Edit Activity Source";
 
   const navigate = useNavigate();
-
+  const onDeleteSource = async () => {
+    await activitysource.delete({ id: id });
+    onClose();
+    // redirect with a toast
+    navigate("/", {
+      state: {
+        toast: {
+          title: "Activity source successfully deleted!",
+          status: "success",
+          duration: 2500,
+          isClosable: true,
+        },
+      },
+    });
+  };
   const handleSubmit = async (values, actions) => {
     try {
       // convert all empty strings to null
@@ -113,21 +128,35 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   name={"ResourceId"}
                   type="ResourceId"
                 />
-                <Button
-                  w="full"
-                  leftIcon={<FaArrowRight />}
-                  colorScheme="blue"
-                  type="submit"
-                  disabled={isSubmitting}
-                  isLoading={isSubmitting}
-                >
-                  {submitText}
-                </Button>
+                <Flex>
+                  <Button
+                    w="full"
+                    leftIcon={<FaArrowRight />}
+                    colorScheme="blue"
+                    type="submit"
+                    disabled={isSubmitting}
+                    isLoading={isSubmitting}
+                    mx={id ? 4 : 0}
+                  >
+                    {submitText}
+                  </Button>
+                  {id && (
+                    <Button w="full" colorScheme="red" onClick={onOpen} mx={4}>
+                      Delete
+                    </Button>
+                  )}
+                </Flex>
               </VStack>
             </Form>
           )}
         </Formik>
       </VStack>
+      <DeleteActivitySourceModal
+        isOpen={isOpen}
+        onClose={onClose}
+        id={id}
+        onDeleteSource={onDeleteSource}
+      />
     </Container>
   );
 };

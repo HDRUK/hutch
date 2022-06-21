@@ -6,6 +6,8 @@ import {
   LinkOverlay,
   VStack,
   Box,
+  Button,
+  Flex,
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
@@ -15,6 +17,7 @@ export const ActivitySourceSummary = ({
   sourceURL,
   collectionId,
   children,
+  onDelete,
   ...p
 }) => (
   <LinkBox>
@@ -34,11 +37,16 @@ export const ActivitySourceSummary = ({
       {...p}
     >
       <HStack>
-        <Heading as="h3" size="md">
-          <LinkOverlay w="100%" as={Link} to={href}>
-            {title}
-          </LinkOverlay>
-        </Heading>
+        <Flex w="full">
+          <Heading as="h3" size="md">
+            <LinkOverlay w="100%" as={Link} to={`${href}`}>
+              {title}
+            </LinkOverlay>
+          </Heading>
+          <Button colorScheme="red" ml={"auto"} onClick={onDelete}>
+            Delete
+          </Button>
+        </Flex>
       </HStack>
       {children}
       {sourceURL && <Text>Source: {sourceURL}</Text>}

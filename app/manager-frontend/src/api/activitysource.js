@@ -19,6 +19,10 @@ export const getActivitySourceApi = ({ api }) => ({
     api.put(`ActivitySource/${id}`, {
       json: values,
     }),
+  delete: ({ values, id }) =>
+    api.delete(`ActivitySource/${id}`, {
+      json: values,
+    }),
 });
 
 export const useActivitySourceList = () => {
