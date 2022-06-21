@@ -28,4 +28,16 @@ public class ActivitySourceController : ControllerBase
   public async Task<ActionResult<ActivitySource>> Get(int id)
     =>await _activitySources.Get(id);
 
+  [HttpPut("{id}")]
+  public async Task<IActionResult> Set(int id, [FromBody] CreateActivitySource activitySource)
+  {
+    try
+    {
+      return Ok(await _activitySources.Set(id, activitySource));
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
 }
