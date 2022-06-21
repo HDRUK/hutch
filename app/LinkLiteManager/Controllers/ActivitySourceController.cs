@@ -27,5 +27,16 @@ public class ActivitySourceController : ControllerBase
   [HttpGet("{id}")]
   public async Task<ActionResult<ActivitySource>> Get(int id)
     =>await _activitySources.Get(id);
+  
+  [HttpDelete("{id}")]
+  public async Task<IActionResult> Delete(int id)
+  {
+    try
+    {
+      await _activitySources.Delete(id);
+    }
+    catch (KeyNotFoundException) { }
+    return NoContent();
+  }
 
 }

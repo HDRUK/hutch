@@ -41,5 +41,18 @@ public class ActivitySourceService
                    ?? throw new KeyNotFoundException();
     return new(activitySource);
   }
-  
+
+  public async Task Delete(int activitySourceId)
+  {
+    var entity = await _db.ActivitySources
+      .AsNoTracking()
+      .Include(x=>x.Type)
+      .FirstOrDefaultAsync(x => x.Id == activitySourceId);
+    if (entity is null)
+      throw new KeyNotFoundException(
+        $"No ActivitySource with ID: {activitySourceId}");
+    _db.ActivitySources.Remove(entity);
+    await _db.SaveChangesAsync();
+
+  }
 }
