@@ -4,7 +4,7 @@
 "Area: Manager Frontend":
   - app/manager-frontend/**/*
 "Area: Manager Backend API":
-  - app/LinkLiteManager/**/*
+  - app/HutchManager/**/*
 "Area: Agent":
   - app/LinkLiteAgent/**/*
 
