@@ -15,15 +15,15 @@ Base = declarative_base()
 
 class Log(Base):
     __tablename__ = ll_config.LOG_TABLE_NAME
-    id = Column("Id", Integer, primary_key=True, autoincrement=True)
-    message = Column("Message", Text, nullable=True)
-    message_template = Column("MessageTemplate", Text, nullable=True)
-    level = Column("Level", String(128), nullable=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    message = Column(Text, nullable=True)
+    message_template = Column(Text, nullable=True)
+    level = Column(String(128), nullable=True)
     timestamp = Column(
-        "TimeStamp", DateTime, nullable=False, default=datetime.datetime.now
+        DateTime, nullable=False, default=datetime.datetime.now
     )
-    exception = Column("Exception", Text, nullable=True)
-    properties = Column("Properties", Text, nullable=True)
+    exception = Column(Text, nullable=True)
+    properties = Column(Text, nullable=True)
 
 
 class SyncLogDBHandler(Handler):
@@ -53,12 +53,10 @@ class SyncLogDBHandler(Handler):
             exception = None
 
         log_stmnt = insert(Log).values(
-            # Use pascal case, as those are the names in the DB.
-            # see `Log` definition above.
-            Message=record.msg,
-            Level=record.levelname,
-            Exception=exception,
-            MessageTemplate=self.formatter._fmt,
+            message=record.msg,
+            level=record.levelname,
+            exception=exception,
+            message_template=self.formatter._fmt,
         )
 
         try:
