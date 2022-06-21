@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, Union
 
 from linkliteagent.ro_crates.operator import Operator
 from linkliteagent.ro_crates.thing import Thing
@@ -15,8 +15,8 @@ class Rule(Thing):
         operator: Operator,
         name: str = "",
         value: Any = None,
-        min_value: Any = None,
-        max_value: Any = None,
+        min_value: Union[int, float, None] = None,
+        max_value: Union[int, float, None] = None,
         **kwargs
     ) -> None:
         super().__init__(context, type_, name)
@@ -49,12 +49,14 @@ class Rule(Thing):
         Returns:
             Self: `Rule` object.
         """
-        rule = super().from_dict(dict_)
-        rule.value = dict_.get("value")
-        rule.min_value = dict_.get("minValue")
-        rule.max_value = dict_.get("maxValue")
-        rule.operator = Operator.from_dict(dict_.get("additionalProper"))
-        return rule
+        return cls(
+            context=dict_.get("@context"),
+            type_=dict_.get("@type"),
+            value=dict_.get("value"),
+            min_value=dict_.get("minValue"),
+            max_value=dict_.get("maxValue"),
+            operator=Operator.from_dict(dict_.get("additionalProper"))
+        )
 
     def __str__(self) -> str:
         """`Rule` as a JSON string.
