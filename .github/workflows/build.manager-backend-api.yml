@@ -5,14 +5,14 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - app/LinkLiteManager/**
+      - app/HutchManager/**
       - .github/workflows/build.manager-backend-api.yml
 
 env:
   # Configure these
   CI_build-config: release
   CI_dotnet-version: 6.0.x
-  CI_project: ./app/LinkLiteManager/LinkLiteManager.csproj
+  CI_project: ./app/HutchManager/HutchManager.csproj
 
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
