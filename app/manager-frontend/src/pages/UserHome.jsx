@@ -1,19 +1,4 @@
-import {
-  Heading,
-  SimpleGrid,
-  VStack,
-  Text,
-  Link,
-  Button,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Heading, VStack, Link, Button, useDisclosure } from "@chakra-ui/react";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
 import { ActionCard } from "components/ActionCard";
@@ -22,6 +7,7 @@ import { useActivitySourceList } from "api/activitysource";
 import { ActivitySourceSummary } from "components/ActivitySourceSummary";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
+import { ActivitySourceModal } from "components/ActivitySourceModal";
 
 export const UserHome = () => {
   const { user } = useUser();
@@ -31,8 +17,9 @@ export const UserHome = () => {
   const { activitysource } = useBackendApi();
   const { data } = useActivitySourceList();
 
-  const onDeleteSource = () => {
-    activitysource.delete({ id: selectedId });
+  const onDeleteSource = async () => {
+    await activitysource.delete({ id: selectedId });
+    onClose();
   };
   const onClickDelete = (id) => {
     setSelectedId(id);
@@ -62,26 +49,12 @@ export const UserHome = () => {
           ></ActivitySourceSummary>
         ))}
       </VStack>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Delete Activity Source {selectedId}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            Are you sure you want to delete this activity source? You will not
-            be able to reverse this
-          </ModalBody>
-
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button colorScheme="red" onClick={onDeleteSource}>
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <ActivitySourceModal
+        isOpen={isOpen}
+        onClose={onClose}
+        id={selectedId}
+        onDeleteSource={onDeleteSource}
+      />
     </VStack>
   );
 };

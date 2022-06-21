@@ -1,21 +1,11 @@
 import {
   VStack,
   Flex,
-  FormLabel,
-  Box,
-  Select,
   Button,
   Heading,
   Container,
   Alert,
   AlertIcon,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   useDisclosure,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
@@ -26,6 +16,7 @@ import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
+import { ActivitySourceModal } from "components/ActivitySourceModal";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
@@ -41,8 +32,20 @@ export const ActivitySource = ({ activitySource, action, id }) => {
     : "Edit Activity Source";
 
   const navigate = useNavigate();
-  const onDeleteSource = () => {
-    activitysource.delete({ id: id });
+  const onDeleteSource = async () => {
+    await activitysource.delete({ id: id });
+    onClose();
+    // redirect with a toast
+    navigate("/", {
+      state: {
+        toast: {
+          title: "Activity source successfully deleted!",
+          status: "success",
+          duration: 2500,
+          isClosable: true,
+        },
+      },
+    });
   };
   const handleSubmit = async (values, actions) => {
     try {
@@ -148,26 +151,12 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           )}
         </Formik>
       </VStack>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Delete Activity Source {id}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            Are you sure you want to delete this activity source? You will not
-            be able to reverse this
-          </ModalBody>
-
-          <ModalFooter>
-            <Button colorScheme="blue" mr={3} onClick={onClose}>
-              Close
-            </Button>
-            <Button colorScheme="red" onClick={onDeleteSource}>
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      <ActivitySourceModal
+        isOpen={isOpen}
+        onClose={onClose}
+        id={id}
+        onDeleteSource={onDeleteSource}
+      />
     </Container>
   );
 };
