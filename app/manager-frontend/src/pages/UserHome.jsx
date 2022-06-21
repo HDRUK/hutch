@@ -1,23 +1,30 @@
-import {
-  Heading,
-  SimpleGrid,
-  VStack,
-  Text,
-  Link,
-  Button,
-} from "@chakra-ui/react";
+import { Heading, VStack, Link, Button, useDisclosure } from "@chakra-ui/react";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
 import { ActionCard } from "components/ActionCard";
 import { useSortingAndFiltering } from "helpers/hooks/useSortingAndFiltering";
 import { useActivitySourceList } from "api/activitysource";
 import { ActivitySourceSummary } from "components/ActivitySourceSummary";
-//import { useEffect } from "react";
+import { useState } from "react";
+import { useBackendApi } from "contexts/BackendApi";
+import { DeleteActivitySourceModal } from "components/DeleteActivitySourceModal";
 
 export const UserHome = () => {
   const { user } = useUser();
   const { t } = useTranslation();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedId, setSelectedId] = useState();
+  const { activitysource } = useBackendApi();
   const { data } = useActivitySourceList();
+
+  const onDeleteSource = async () => {
+    await activitysource.delete({ id: selectedId });
+    onClose();
+  };
+  const onClickDelete = (id) => {
+    setSelectedId(id);
+    onOpen();
+  };
 
   return (
     <VStack align="stretch" px={8} w="100%" spacing={4} p={4}>
@@ -35,12 +42,19 @@ export const UserHome = () => {
           <ActivitySourceSummary
             key={index}
             href={`activitysources/${item.Id}`}
+            onDelete={() => onClickDelete(item.Id)}
             title={item.DisplayName}
             sourceURL={item.Host}
             collectionId={item.ResourceId}
           ></ActivitySourceSummary>
         ))}
       </VStack>
+      <DeleteActivitySourceModal
+        isOpen={isOpen}
+        onClose={onClose}
+        id={selectedId}
+        onDeleteSource={onDeleteSource}
+      />
     </VStack>
   );
 };
