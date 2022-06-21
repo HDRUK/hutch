@@ -1,0 +1,24 @@
+@inject IOptions<BaseEmailSenderOptions> _config
+@using HutchManager.Config
+@using HutchManager.Models.Emails
+@model HutchManager.Models.Emails.TokenEmailModel
+
+@{
+    ViewBag.Subject = $"{@_config.Value.ServiceName} Account Confirmation";
+    ViewBag.Heading = "Welcome!";
+
+    var actionButton = "Confirm";
+    var resendLink = "Send me a new confirmation email.";
+}
+
+<p>@Model!.RecipientName,</p>
+
+<p>Thank you for registering a @_config.Value.ServiceName User Account.</p>
+
+<p>Please click below to confirm your email address and complete your registration.</p>
+
+@await Html.PartialAsync("_EmailButton", new EmailButtonModel(actionButton, Model.ActionLink))
+
+<p>The confirmation link is only valid for a limited time; click below if you need to request a fresh link.</p>
+
+<a href="@Model.ResendLink">@resendLink</a>
