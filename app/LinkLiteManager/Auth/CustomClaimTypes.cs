@@ -1,7 +1,0 @@
-namespace LinkLiteManager.Auth;
-
-public static class CustomClaimTypes
-{
-  public const string FullName = "FullName";
-  public const string UICulture = "UICulture";
-}
