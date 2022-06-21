@@ -7,7 +7,7 @@ import { useActivitySourceList } from "api/activitysource";
 import { ActivitySourceSummary } from "components/ActivitySourceSummary";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
-import { ActivitySourceModal } from "components/ActivitySourceModal";
+import { DeleteActivitySourceModal } from "components/DeleteActivitySourceModal";
 
 export const UserHome = () => {
   const { user } = useUser();
@@ -49,7 +49,7 @@ export const UserHome = () => {
           ></ActivitySourceSummary>
         ))}
       </VStack>
-      <ActivitySourceModal
+      <DeleteActivitySourceModal
         isOpen={isOpen}
         onClose={onClose}
         id={selectedId}

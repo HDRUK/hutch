@@ -16,7 +16,7 @@ import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
-import { ActivitySourceModal } from "components/ActivitySourceModal";
+import { DeleteActivitySourceModal } from "components/DeleteActivitySourceModal";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
@@ -151,7 +151,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           )}
         </Formik>
       </VStack>
-      <ActivitySourceModal
+      <DeleteActivitySourceModal
         isOpen={isOpen}
         onClose={onClose}
         id={id}

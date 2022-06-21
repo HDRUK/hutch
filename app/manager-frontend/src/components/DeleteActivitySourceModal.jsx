@@ -9,7 +9,7 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 
-export const ActivitySourceModal = ({
+export const DeleteActivitySourceModal = ({
   isOpen,
   onClose,
   id,
