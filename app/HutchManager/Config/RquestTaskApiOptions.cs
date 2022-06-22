@@ -1,12 +1,12 @@
 ﻿namespace HutchManager.OptionsModels
 {
     /// <summary>
-    /// Options for the RQUEST Connector Api
+    /// Options for the RQUEST Task Api
     /// </summary>
-    public class RquestConnectorApiOptions
+    public class RquestTaskApiOptions
     {
         /// <summary>
-        /// The Base Url of the Connector API, not just RQUEST.
+        /// The Base Url of the Task API, not just RQUEST.
         /// 
         /// Expected to be something like `[rquest-domain]/task/capi/`
         /// </summary>
@@ -26,5 +26,9 @@
         /// Submit Result Endpoint
         /// </summary>
         public string SubmitResultEndpoint { get; set; } = "result";
+
+        public string Username { get; set; } = string.Empty;
+
+        public string Password { get; set; } = string.Empty;
     }
 }

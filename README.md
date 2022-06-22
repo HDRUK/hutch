@@ -61,6 +61,7 @@ Areas within this repo include:
   - Python agent
 - GitHub Actions
   - workflows for building and deploying the applications
+
 # 💡 pnpm cheatsheet
 
 Most pnpm commands can be done recursively against all workspaces with `-r`
@@ -114,6 +115,14 @@ OutboundEmail:
 
   # If Provider == "sendgrid"
   SendGridApiKey: ""
+
+RquestTaskApi:
+  BaseUrl: ""
+  QueueStatusEndpoint: "queue"
+  FetchQueryEndpoint: "nextjob"
+  SubmitResultEndpoint: "result"
+  Username: ""
+  Password: ""
 
 JobQueue:
   HostName: "localhost"

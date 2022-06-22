@@ -3,7 +3,7 @@
 namespace HutchManager.Dto
 {
     /// <summary>
-    /// Task payload returned from RQUEST Connector API /query endpoint
+    /// Task payload returned from RQUEST Task API /query endpoint
     /// </summary>
     public class RquestQueryTask
     {

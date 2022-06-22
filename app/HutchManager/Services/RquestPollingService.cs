@@ -14,7 +14,7 @@ internal interface IRquestPollingService
 }
 public class RquestPollingService: IRquestPollingService
 {
-  private readonly RquestConnectorApiClient _rquestApi;
+  private readonly RquestTaskApiClient _rquestApi;
   private readonly ILogger<RquestPollingService> _logger;
   private readonly RquestPollingServiceOptions _config;
   private readonly ApplicationDbContext _db;
@@ -22,7 +22,7 @@ public class RquestPollingService: IRquestPollingService
   private int executionCount = 0;
   
   public RquestPollingService(
-    RquestConnectorApiClient rquestApi,
+    RquestTaskApiClient rquestApi,
     ILogger<RquestPollingService> logger,
     IOptions<RquestPollingServiceOptions> config,
     ApplicationDbContext db)

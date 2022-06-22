@@ -11,26 +11,24 @@ using HutchManager.OptionsModels;
 
 namespace HutchManager.Services
 {
-    public class RquestConnectorApiClient
+    public class RquestTaskApiClient
     {
         private readonly HttpClient _client;
-        private readonly ILogger<RquestConnectorApiClient> _logger;
-        private readonly RquestConnectorApiOptions _apiOptions;
-        private readonly IConfiguration _configuration;
+        private readonly ILogger<RquestTaskApiClient> _logger;
+        private readonly RquestTaskApiOptions _apiOptions;
 
-        public RquestConnectorApiClient(
+        public RquestTaskApiClient(
             HttpClient client,
-            ILogger<RquestConnectorApiClient> logger,
-            IOptions<RquestConnectorApiOptions> apiOptions,
+            ILogger<RquestTaskApiClient> logger,
+            IOptions<RquestTaskApiOptions> apiOptions,
             IConfiguration configuration)
         {
           
             _client = client;
             _logger = logger;
             _apiOptions = apiOptions.Value;
-            _configuration = configuration;
             
-            string credentials = _configuration["RQUEST_USER"] + ":" + _configuration["RQUEST_PASSWORD"];
+            string credentials = _apiOptions.Username + ":" + _apiOptions.Password;
             var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
             
             _client.BaseAddress = new Uri(Url.Combine(_apiOptions.BaseUrl, "/"));
@@ -60,7 +58,6 @@ namespace HutchManager.Services
         {
           
           string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", collectionId));
-          
           var result = await _client.GetAsync(
               requestUri);
 
