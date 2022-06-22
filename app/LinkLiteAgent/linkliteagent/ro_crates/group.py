@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Union
 
 from linkliteagent.ro_crates.operator import Operator
 from linkliteagent.ro_crates.rule import Rule
@@ -15,7 +15,7 @@ class Group(Thing):
         type_: str,
         name: str,
         number_of_items: int,
-        item_list_element: List[Rule],
+        item_list_element: List[Union[Rule, Operator]],
         **kwargs
     ) -> None:
         super().__init__(context, type_, name)
@@ -28,12 +28,15 @@ class Group(Thing):
         Returns:
             dict: `Group` as a `dict`.
         """
-        dict_ = super().to_dict()
-        dict_.update(
-            numberOfItems=self.number_of_items,
-            itemListElement=[rule.to_dict() for rule in self.item_list_element],
-        )
-        return dict_
+        return {
+            "@context": self.context,
+            "@type": self.type_,
+            "name": self.name,
+            "numberOfItems": self.number_of_items,
+            "itemListElement": [
+                element.to_dict() for element in self.item_list_element
+            ],
+        }
 
     @classmethod
     def from_dict(cls, dict_: dict):
@@ -45,16 +48,20 @@ class Group(Thing):
         Returns:
             Self: `Group` object.
         """
-        group = super().from_dict(dict_)
-        group.number_of_items = dict_.get("numberOfItems")
-        item_list = dict_.get("itemListElement", [])
-        group.item_list_element = []
-        for i in item_list:
-            if i.get("name") == "operator":
-                group.item_list_element.append(Operator.from_dict(i))
+
+        item_list_element = []
+        for i in dict_.get("itemListElement", []):
+            if i.get("name") == "ruleOperator":
+                item_list_element.append(Operator.from_dict(i))
             else:
-                group.item_list_element.append(Rule.from_dict(i))
-        return group
+                item_list_element.append(Rule.from_dict(i))
+        return cls(
+            context=dict_.get("@context"),
+            type_=dict_.get("@type"),
+            name=dict_.get("name"),
+            number_of_items=dict_.get("numberOfItems"),
+            item_list_element=item_list_element,
+        )
 
     def __str__(self) -> str:
         """`Group` as a JSON string.

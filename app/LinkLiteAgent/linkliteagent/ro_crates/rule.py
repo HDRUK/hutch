@@ -35,7 +35,7 @@ class Rule(Thing):
             "@context": self.context,
             "@type": self.type_,
             "name": self.name,
-            "additionalProperty": self.operator.to_dict()
+            "additionalProperty": self.operator.to_dict(),
         }
         if self.value is not None:
             dict_.update(value=self.value)
@@ -60,7 +60,7 @@ class Rule(Thing):
             value=dict_.get("value"),
             min_value=dict_.get("minValue"),
             max_value=dict_.get("maxValue"),
-            operator=Operator.from_dict(dict_.get("additionalProperty"))
+            operator=Operator.from_dict(dict_.get("additionalProperty")),
         )
 
     def __str__(self) -> str:
