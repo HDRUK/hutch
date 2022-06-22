@@ -4,6 +4,7 @@ import useSWR from "swr";
 
 export const fetchKeys = {
   activitySourceList: "ActivitySource",
+  activitySource: (id) => `ActivitySource/${id}`,
 };
 
 export const getActivitySourceApi = ({ api }) => ({
@@ -40,9 +41,9 @@ export const useActivitySourceList = () => {
 export const useActivitySource = (id) => {
   const { apiFetcher } = useBackendApi();
   return useSWR(
-    fetchKeys.activitySourceList,
+    fetchKeys.activitySource(id),
     async (url) => {
-      const data = await apiFetcher(url + `/${id}`);
+      const data = await apiFetcher(url);
       return data;
     },
     { suspense: true }
