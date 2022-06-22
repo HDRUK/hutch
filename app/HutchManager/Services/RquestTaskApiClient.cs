@@ -20,8 +20,7 @@ namespace HutchManager.Services
         public RquestTaskApiClient(
             HttpClient client,
             ILogger<RquestTaskApiClient> logger,
-            IOptions<RquestTaskApiOptions> apiOptions,
-            IConfiguration configuration)
+            IOptions<RquestTaskApiOptions> apiOptions)
         {
           
             _client = client;

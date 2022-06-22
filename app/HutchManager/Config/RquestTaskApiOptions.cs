@@ -7,8 +7,6 @@
     {
         /// <summary>
         /// The Base Url of the Task API, not just RQUEST.
-        /// 
-        /// Expected to be something like `[rquest-domain]/task/capi/`
         /// </summary>
         public string BaseUrl { get; set; } = string.Empty;
 
@@ -26,9 +24,15 @@
         /// Submit Result Endpoint
         /// </summary>
         public string SubmitResultEndpoint { get; set; } = "result";
-
+        
+        /// <summary>
+        /// Username for the RQuest API. To be used in the Basic Auth header.
+        /// </summary>
         public string Username { get; set; } = string.Empty;
-
+        
+        /// <summary>
+        /// Password for the RQuest API. To be used in the Basic Auth header.
+        /// </summary>
         public string Password { get; set; } = string.Empty;
     }
 }
