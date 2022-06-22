@@ -5,81 +5,68 @@ from linkliteagent.ro_crates.query import Query
 from linkliteagent.ro_crates.rule import Rule
 
 
-def test_rule():
-    rule_dict = {
+RULE_DICT = {
+    "@context": "https://schema.org",
+    "@type": "QuantitativeValue",
+    "name": "1000",
+    "minValue": 10,
+    "maxValue": 20,
+    "additionalProperty": {
         "@context": "https://schema.org",
-        "@type": "QuantitativeValue",
-        "name": "1000",
-        "minValue": 10,
-        "maxValue": 20,
-        "additionalProperty": {
+        "@type": "PropertyVale",
+        "name": "operator",
+        "value": "BETWEEN",
+    },
+}
+
+
+GROUP_DICT = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "group",
+    "numberOfItems": 3,
+    "itemListElement": [
+        {
             "@context": "https://schema.org",
             "@type": "PropertyVale",
-            "name": "operator",
-            "value": "BETWEEN",
+            "name": "ruleOperator",
+            "value": "AND",
         },
-    }
-    rule = Rule.from_dict(rule_dict)
-    assert rule.to_dict() == rule_dict
+        *[RULE_DICT] * 3,
+    ],
+}
+
+
+QUERY_DICT = {
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@context": "https://schema.org",
+            "@type": "PropertyVale",
+            "name": "groupOperator",
+            "value": "AND",
+        },
+        GROUP_DICT,
+    ],
+}
+
+
+def test_rule():
+    rule = Rule.from_dict(RULE_DICT)
+    assert rule.to_dict() == RULE_DICT
     assert isinstance(rule.operator, Operator)
 
 
 def test_group():
-    group_dict = {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        "name": "group",
-        "numberOfItems": 3,
-        "itemListElement": [
-            {
-                "@context": "https://schema.org",
-                "@type": "PropertyVale",
-                "name": "ruleOperator",
-                "value": "AND",
-            },
-            {
-                "@context": "https://schema.org",
-                "@type": "QuantitativeValue",
-                "name": "1000",
-                "minValue": 10,
-                "maxValue": 20,
-                "additionalProperty": {
-                    "@context": "https://schema.org",
-                    "@type": "PropertyVale",
-                    "name": "operator",
-                    "value": "BETWEEN",
-                },
-            },
-            {
-                "@context": "https://schema.org",
-                "@type": "QuantitativeValue",
-                "name": "1000",
-                "minValue": 10,
-                "maxValue": 20,
-                "additionalProperty": {
-                    "@context": "https://schema.org",
-                    "@type": "PropertyVale",
-                    "name": "operator",
-                    "value": "BETWEEN",
-                },
-            },
-            {
-                "@context": "https://schema.org",
-                "@type": "QuantitativeValue",
-                "name": "1000",
-                "minValue": 10,
-                "maxValue": 20,
-                "additionalProperty": {
-                    "@context": "https://schema.org",
-                    "@type": "PropertyVale",
-                    "name": "operator",
-                    "value": "BETWEEN",
-                },
-            },
-        ],
-    }
-    group = Group.from_dict(group_dict)
-    assert len(group.item_list_element) == group_dict["numberOfItems"] + 1
+    group = Group.from_dict(GROUP_DICT)
+    assert len(group.item_list_element) == GROUP_DICT["numberOfItems"] + 1
     for element in group.item_list_element:
         assert isinstance(element, Rule) or isinstance(element, Operator)
-    assert group.to_dict() == group_dict
+    assert group.to_dict() == GROUP_DICT
+
+
+def test_query():
+    query = Query.from_dict(QUERY_DICT)
+    assert isinstance(query.graph[0], Operator)
+    assert isinstance(query.graph[1], Group)
+    assert query.to_dict() == QUERY_DICT

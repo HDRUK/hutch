@@ -38,7 +38,7 @@ class Query:
             Self: `Query` object.
         """
         actions = {
-            "operator": Operator.from_dict,
+            "groupOperator": Operator.from_dict,
             "group": Group.from_dict,
         }
 
