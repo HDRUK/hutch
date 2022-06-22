@@ -68,6 +68,7 @@ def test_group():
 
 def test_query():
     query = Query.from_dict(QUERY_DICT)
-    assert isinstance(query.graph[0], Operator)
-    assert isinstance(query.graph[1], Group)
+    for g in query.graph:
+        assert isinstance(g, Group)
+    assert isinstance(query.group_operator, Operator)
     assert query.to_dict() == QUERY_DICT

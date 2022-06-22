@@ -39,7 +39,8 @@ class Group(Thing):
             "@type": self.type_,
             "name": self.name,
             "numberOfItems": self.number_of_items,
-            "itemListElement": item_list_element,
+            "itemListElement": [self.rule_operator.to_dict()]
+            + [element.to_dict() for element in self.item_list_element],
         }
 
     @classmethod

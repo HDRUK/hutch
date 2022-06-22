@@ -10,11 +10,13 @@ class Query:
 
     def __init__(
         self,
+        graph: List[Union[Group, Operator]],
+        group_operator: Operator,
         context: str = "https://w3id.org/ro/crate/1.1/context",
-        graph: List[Union[Group, Operator]] = None,
     ) -> None:
         self.context = context
         self.graph = [] if graph is None else graph
+        self.group_operator = group_operator
 
     def to_dict(self) -> dict:
         """Convert `Query` to `dict`.
@@ -24,7 +26,8 @@ class Query:
         """
         return {
             "@context": self.context,
-            "@graph": [thing.to_dict() for thing in self.graph],
+            "@graph": [self.group_operator.to_dict()]
+            + [thing.to_dict() for thing in self.graph],
         }
 
     @classmethod
@@ -37,18 +40,16 @@ class Query:
         Returns:
             Self: `Query` object.
         """
-        actions = {
-            "groupOperator": Operator.from_dict,
-            "group": Group.from_dict,
-        }
-
         graph_list = dict_.get("@graph", [])
         graph = []
+        group_operator = None
         for g in graph_list:
-            if action := actions.get(g.get("name")):
-                graph.append(action(g))
+            if g.get("name") == "groupOperator":
+                group_operator = Operator.from_dict(g)
+            else:
+                graph.append(Group.from_dict(g))
 
-        return cls(graph=graph)
+        return cls(graph=graph, group_operator=group_operator)
 
     def __str__(self) -> str:
         return json.dumps(self.to_dict(), indent=2)
