@@ -115,6 +115,14 @@ OutboundEmail:
   # If Provider == "sendgrid"
   SendGridApiKey: ""
 
+RquestTaskApi:
+  BaseUrl: ""
+  QueueStatusEndpoint: "queue"
+  FetchQueryEndpoint: "nextjob"
+  SubmitResultEndpoint: "result"
+  Username: ""
+  Password: ""
+
 JobQueue:
   HostName: "localhost"
   Port: 5672

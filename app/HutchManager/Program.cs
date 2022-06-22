@@ -61,7 +61,7 @@ b.Services
   .AddAuthorization(AuthConfiguration.AuthOptions)
   .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
   .Configure<QueryQueueOptions>(b.Configuration.GetSection("JobQueue"))
-  .Configure<RquestConnectorApiOptions>(b.Configuration.GetSection("RquestConnectorApi"))
+  .Configure<RquestTaskApiOptions>(b.Configuration.GetSection("RquestTaskApi"))
   .Configure<RquestPollingServiceOptions>(b.Configuration)
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
@@ -71,7 +71,7 @@ b.Services
   .AddHostedService<RquestPollingHostedService>()
   .AddScoped<IRquestPollingService, RquestPollingService>();
 b.Services
-  .AddHttpClient<RquestConnectorApiClient>();
+  .AddHttpClient<RquestTaskApiClient>();
 #endregion
 
 var app = b.Build();
