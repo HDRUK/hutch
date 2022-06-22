@@ -61,7 +61,6 @@ Areas within this repo include:
   - Python agent
 - GitHub Actions
   - workflows for building and deploying the applications
-
 # 💡 pnpm cheatsheet
 
 Most pnpm commands can be done recursively against all workspaces with `-r`
