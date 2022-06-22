@@ -16,11 +16,13 @@ class Group(Thing):
         name: str,
         number_of_items: int,
         item_list_element: List[Union[Rule, Operator]],
+        rule_operator: Operator,
         **kwargs
     ) -> None:
         super().__init__(context, type_, name)
         self.number_of_items = number_of_items
         self.item_list_element = item_list_element
+        self.rule_operator = rule_operator
 
     def to_dict(self) -> dict:
         """Convert `Group` to `dict`.
@@ -28,14 +30,16 @@ class Group(Thing):
         Returns:
             dict: `Group` as a `dict`.
         """
+        item_list_element = [self.rule_operator.to_dict()]
+        item_list_element.extend(
+            [element.to_dict() for element in self.item_list_element]
+        )
         return {
             "@context": self.context,
             "@type": self.type_,
             "name": self.name,
             "numberOfItems": self.number_of_items,
-            "itemListElement": [
-                element.to_dict() for element in self.item_list_element
-            ],
+            "itemListElement": item_list_element,
         }
 
     @classmethod
@@ -50,9 +54,10 @@ class Group(Thing):
         """
 
         item_list_element = []
+        operator = None
         for i in dict_.get("itemListElement", []):
             if i.get("name") == "ruleOperator":
-                item_list_element.append(Operator.from_dict(i))
+                operator = Operator.from_dict(i)
             else:
                 item_list_element.append(Rule.from_dict(i))
         return cls(
@@ -61,6 +66,7 @@ class Group(Thing):
             name=dict_.get("name"),
             number_of_items=dict_.get("numberOfItems"),
             item_list_element=item_list_element,
+            rule_operator=operator,
         )
 
     def __str__(self) -> str:
