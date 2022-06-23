@@ -34,7 +34,7 @@ The easiest way is using the dotnet cli:
 
 - Anywhere in the repo: `dotnet tool restore`
 
-1. Navigate to the same directory as `LinkLiteManager.csproj`
+1. Navigate to the same directory as `HutchManager.csproj`
 1. Run migrations:
 
 - `dotnet ef database update`
@@ -83,7 +83,7 @@ To install current dependencies for the whole repo: `pnpm i`
 
 To add a new dependency `pnpm add <package-name>` with `-D` if you want it to be a dev dependency
 
-For information on dependency management in the Python agent, please read the README, [here](app/LinkLiteAgent/README.md).
+For information on dependency management in the Python agent, please read the README, [here](app/HutchAgent/README.md).
 
 ## Script running
 
