@@ -19,8 +19,8 @@ from sqlalchemy import (
 )
 from typing import Any
 
-import linkliteagent.config as ll_config
-from linkliteagent.entities import ConditionOccurrence, Measurement, Observation, Person
+import hutchagent.config as hutch_config
+from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 
 PERSON_LOOKUPS = {
@@ -319,7 +319,7 @@ def query_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    logger = logging.getLogger(ll_config.DB_LOGGER_NAME)
+    logger = logging.getLogger(hutch_config.DB_LOGGER_NAME)
     response_data = {
         "protocol_version": "v2",
         "query_result": dict(),
@@ -357,7 +357,7 @@ def query_callback(
         engine.dispose()
 
     try:
-        requests.post(ll_config.MANAGER_URL, response_data)
+        requests.post(hutch_config.MANAGER_URL, response_data)
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))

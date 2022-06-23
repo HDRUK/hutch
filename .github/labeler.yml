@@ -6,7 +6,7 @@
 "Area: Manager Backend API":
   - app/HutchManager/**/*
 "Area: Agent":
-  - app/LinkLiteAgent/**/*
+  - app/HutchAgent/**/*
 
 # label types of changes contained in a PR
 "Contains: Migrations":
