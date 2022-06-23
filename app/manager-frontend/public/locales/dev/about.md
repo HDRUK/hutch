@@ -1,3 +1,3 @@
-## About Link Lite
+## About Hutch
 
 `// TODO`
