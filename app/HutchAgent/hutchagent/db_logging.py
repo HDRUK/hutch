@@ -7,14 +7,14 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, i
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.declarative import declarative_base
 
-import linkliteagent.config as ll_config
+import hutchagent.config as hutch_config
 from .db_manager import SyncDBManager
 
 Base = declarative_base()
 
 
 class Log(Base):
-    __tablename__ = ll_config.LOG_TABLE_NAME
+    __tablename__ = hutch_config.LOG_TABLE_NAME
     id = Column(Integer, primary_key=True, autoincrement=True)
     message = Column(Text, nullable=True)
     message_template = Column(Text, nullable=True)

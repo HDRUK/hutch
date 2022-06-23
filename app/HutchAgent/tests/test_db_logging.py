@@ -6,8 +6,8 @@ import logging
 from sqlalchemy import create_engine, select
 from sqlalchemy.engine import URL
 
-from linkliteagent.db_logging import Log, SyncLogDBHandler
-from linkliteagent.db_manager import SyncDBManager
+from hutchagent.db_logging import Log, SyncLogDBHandler
+from hutchagent.db_manager import SyncDBManager
 
 
 @pytest.fixture
