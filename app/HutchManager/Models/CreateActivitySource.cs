@@ -19,7 +19,8 @@ public class CreateActivitySource
       Host = Host,
       Type = types.FirstOrDefault(x=>x.Id==Type)??
       throw new InvalidOperationException($"Type {Type} is not a valid SourceType"),
-      ResourceId = ResourceId
+      ResourceId = ResourceId,
+      DisplayName = DisplayName,
     };
 
 }

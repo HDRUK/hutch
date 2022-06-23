@@ -1,4 +1,11 @@
-import { Heading, VStack, Link, Button, useDisclosure } from "@chakra-ui/react";
+import {
+  Heading,
+  VStack,
+  Link,
+  Button,
+  useDisclosure,
+  Input,
+} from "@chakra-ui/react";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
 import { ActionCard } from "components/ActionCard";
@@ -15,10 +22,23 @@ export const UserHome = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedId, setSelectedId] = useState();
   const { activitysource } = useBackendApi();
-  const { data } = useActivitySourceList();
+  const { data, mutate } = useActivitySourceList();
+  const {
+    sorting,
+    setSorting,
+    onSort: handleSort,
+    filter,
+    setFilter,
+    outputList,
+  } = useSortingAndFiltering(data, "displayName", {
+    initialSort: {
+      key: "displayName",
+    },
+  });
 
   const onDeleteSource = async () => {
     await activitysource.delete({ id: selectedId });
+    await mutate();
     onClose();
   };
   const onClickDelete = (id) => {
@@ -38,16 +58,21 @@ export const UserHome = () => {
         <Link href="/activitysources/new">
           <Button>New Activity Source</Button>
         </Link>
-        {data.map((item, index) => (
-          <ActivitySourceSummary
-            key={index}
-            href={`activitysources/${item.Id}`}
-            onDelete={() => onClickDelete(item.Id)}
-            title={item.DisplayName}
-            sourceURL={item.Host}
-            collectionId={item.ResourceId}
-          ></ActivitySourceSummary>
-        ))}
+        <Input
+          placeholder="Search Activity Sources"
+          onChange={(e) => setFilter(e.target.value)}
+        />
+        {outputList &&
+          outputList.map((item, index) => (
+            <ActivitySourceSummary
+              key={index}
+              href={`/activitysources/${item.id}`}
+              onDelete={() => onClickDelete(item.id)}
+              title={item.displayName}
+              sourceURL={item.host}
+              collectionId={item.resourceId}
+            ></ActivitySourceSummary>
+          ))}
       </VStack>
       <DeleteActivitySourceModal
         isOpen={isOpen}
