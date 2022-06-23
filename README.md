@@ -9,23 +9,17 @@ It consists of a Web application (React frontend, .NET backend API, SQL DB) for 
 ## Prerequisites
 
 1. **.NET SDK** `6.x`
-
-- The backend API is .NET6 (LTS)
-
+  - The backend API is .NET6 (LTS)
 1. **Node.js** `>=16.9`
-
-- `16.9` and newer include **Corepack**
-- `16.x` is LTS at time of writing
-
+  - `16.9` and newer include **Corepack**
+  - `16.x` is LTS at time of writing
 1. **Enable [Corepack](https://nodejs.org/api/corepack.html)**
-
-- Simply run `corepack enable` in your cli
-
+  - Simply run `corepack enable` in your cli
 1. PostgreSQL DB
 1. RabbitMQ instance
 
 > ℹ️
->
+> 
 > The provided `docker-compose.yml` provides suitable Postgres and RabbitMQ development instances.
 
 ## Database setup
@@ -67,7 +61,6 @@ Areas within this repo include:
   - Python agent
 - GitHub Actions
   - workflows for building and deploying the applications
-
 # 💡 pnpm cheatsheet
 
 Most pnpm commands can be done recursively against all workspaces with `-r`
