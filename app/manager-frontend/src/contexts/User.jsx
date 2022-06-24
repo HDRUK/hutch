@@ -8,7 +8,7 @@ const UserContext = createContext({});
 export const useUser = () => useContext(UserContext);
 
 const getCookieProfile = () => {
-  const yum = Cookies.get(".LinkLiteManager.Profile");
+  const yum = Cookies.get(".HutchManager.Profile");
   return yum ? JSON.parse(yum) : null;
 };
 

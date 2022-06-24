@@ -119,7 +119,7 @@ const FlagIcon = ({ countryIso2 }) => (
   <Icon boxSize={6} as={hasFlag(countryIso2) ? Flags[countryIso2] : Flags.US} />
 );
 
-// TODO: LinkLite doesn't use this today, but it might one day
+// TODO: Hutch doesn't use this today, but it might one day
 // eslint-disable-next-line
 const LanguageMenu = () => {
   const { t, i18n } = useTranslation();

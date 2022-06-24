@@ -86,7 +86,7 @@ export const Footer = ({ isSmall }) => {
 
   const footerLinks = [
     {
-      "About LinkLite": "/about",
+      "About Hutch": "/about",
     },
   ];
 

@@ -7,7 +7,7 @@ import { initReactI18next } from "react-i18next";
 // we should preload all real langs
 // as sometimes we want a string from NOT the current language
 // e.g. for the language select UI
-const preload = []; // TODO: LinkLite doesn't use language select UI at this time
+const preload = []; // TODO: Hutch doesn't use language select UI at this time
 
 i18n
   .use(Backend)
