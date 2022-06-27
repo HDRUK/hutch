@@ -38,7 +38,7 @@
     "passwordconfirm_match": "Both Password entries must match."
   },
   "buttons": {
-    "brand": "LinkLite",
+    "brand": "Hutch",
     "register": "Register",
     "login": "Login",
     "logout": "Logout",

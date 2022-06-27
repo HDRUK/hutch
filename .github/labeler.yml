@@ -4,9 +4,9 @@
 "Area: Manager Frontend":
   - app/manager-frontend/**/*
 "Area: Manager Backend API":
-  - app/LinkLiteManager/**/*
+  - app/HutchManager/**/*
 "Area: Agent":
-  - app/LinkLiteAgent/**/*
+  - app/HutchAgent/**/*
 
 # label types of changes contained in a PR
 "Contains: Migrations":
