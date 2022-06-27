@@ -1,8 +1,8 @@
 import json
 from typing import Any, Union
 
-from linkliteagent.ro_crates.operator import Operator
-from linkliteagent.ro_crates.thing import Thing
+from hutchagent.ro_crates.operator import Operator
+from hutchagent.ro_crates.thing import Thing
 
 
 class Rule(Thing):

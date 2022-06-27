@@ -1,9 +1,9 @@
 import json
 from typing import List, Union
 
-from linkliteagent.ro_crates.operator import Operator
-from linkliteagent.ro_crates.rule import Rule
-from linkliteagent.ro_crates.thing import Thing
+from hutchagent.ro_crates.operator import Operator
+from hutchagent.ro_crates.rule import Rule
+from hutchagent.ro_crates.thing import Thing
 
 
 class Group(Thing):

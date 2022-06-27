@@ -1,8 +1,8 @@
 import json
 from typing import List, Union
 
-from linkliteagent.ro_crates.group import Group
-from linkliteagent.ro_crates.operator import Operator
+from hutchagent.ro_crates.group import Group
+from hutchagent.ro_crates.operator import Operator
 
 
 class Query:

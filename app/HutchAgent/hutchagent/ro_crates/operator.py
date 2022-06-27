@@ -1,6 +1,6 @@
 import json
 
-from linkliteagent.ro_crates.thing import Thing
+from hutchagent.ro_crates.thing import Thing
 
 
 class Operator(Thing):

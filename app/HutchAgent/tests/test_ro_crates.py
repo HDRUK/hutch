@@ -1,8 +1,8 @@
 import pytest
-from linkliteagent.ro_crates.group import Group
-from linkliteagent.ro_crates.operator import Operator
-from linkliteagent.ro_crates.query import Query
-from linkliteagent.ro_crates.rule import Rule
+from hutchagent.ro_crates.group import Group
+from hutchagent.ro_crates.operator import Operator
+from hutchagent.ro_crates.query import Query
+from hutchagent.ro_crates.rule import Rule
 
 
 RULE_DICT = {
