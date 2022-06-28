@@ -16,6 +16,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
   public DbSet<ActivitySource> ActivitySources => Set<ActivitySource>();
 
+  public DbSet<DataSource> DataSources => Set<DataSource>();
+
   public DbSet<SourceType> SourceTypes => Set<SourceType>();
 
   public DbSet<Logs> Logs => Set<Logs>();
