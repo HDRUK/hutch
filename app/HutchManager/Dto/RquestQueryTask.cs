@@ -7,12 +7,13 @@ namespace HutchManager.Dto
     /// </summary>
     public class RquestQueryTask
     {
-        [JsonPropertyName("task_id")]
-        public string TaskId { get; set; } = string.Empty;
+        [JsonPropertyName("uuid")]
+        public string JobId { get; set; } = string.Empty;
 
         [JsonPropertyName("cohort")]
         public RquestQuery Query { get; set; } = new();
-
-        [JsonPropertyName("collection_id")] public string CollectionId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("activity_source_id")] 
+        public int ActivitySourceId { get; set; }
     }
 }
