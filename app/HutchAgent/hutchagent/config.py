@@ -20,4 +20,4 @@ QUEUE_NAME = "jobs"
 MANAGER_URL = "/path/to/manager"
 
 # cron string
-CRON_STRING = "* */1 * * *"  # once every hour
+CRON_STRING = "0 */1 * * *"  # once every hour
