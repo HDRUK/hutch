@@ -30,7 +30,7 @@ class CheckIn(threading.Thread):
             ValueError: raised when `target` is not `None`.
         """
         if target is not None:
-            raise ValueError("`target` much be `None`.")
+            raise ValueError("`target` must be `None`.")
         super().__init__(group, target, name, args, kwargs, daemon=daemon)
         self.running = False
         self.cron = croniter(cron, dt.datetime.now())
