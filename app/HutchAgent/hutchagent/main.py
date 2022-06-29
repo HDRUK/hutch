@@ -38,7 +38,7 @@ def main():
     db_logger.addHandler(backup_handler)
 
     # set up check-in thread
-    check_in_thread = CheckIn(cron="*/1 * * * *") # run once an hour
+    check_in_thread = CheckIn(cron=hutch_config.CRON_STRING)
 
     # Connect to RabbitMQ
     try:

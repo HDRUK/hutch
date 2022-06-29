@@ -8,8 +8,17 @@ from hutchagent.config import MANAGER_URL
 
 
 class CheckIn(threading.Thread):
-
-    def __init__(self, cron: str, group=None, target=None, name = None, args=None, kwargs=None, *, daemon=None) -> None:
+    def __init__(
+        self,
+        cron: str,
+        group=None,
+        target=None,
+        name=None,
+        args=None,
+        kwargs=None,
+        *,
+        daemon=None,
+    ) -> None:
         """Constructor for the `CheckIn` thread. The thread contains its own logic,
         so don't specify a `target`.
 
@@ -51,10 +60,11 @@ class CheckIn(threading.Thread):
                     f"{MANAGER_URL}/api/agents/checkin",
                     json={"dataSources": "<name>"},
                 )
-                self.current_time, self.next_time = self.next_time, self.cron.get_next(dt.datetime)
+                self.current_time, self.next_time = self.next_time, self.cron.get_next(
+                    dt.datetime
+                )
 
     def join(self, timeout: Union[float, None] = None) -> None:
-        """Call this method to end the check-in thread.
-        """
+        """Call this method to end the check-in thread."""
         self.running = False
         return super().join(timeout)
