@@ -5,6 +5,7 @@ import hutchagent.message_queue as mq
 import hutchagent.config as hutch_config
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.db_logging import SyncLogDBHandler
+from hutchagent.checkin import CheckIn
 from hutchagent.query import query_callback
 
 
@@ -36,8 +37,12 @@ def main():
     db_logger.addHandler(db_handler)
     db_logger.addHandler(backup_handler)
 
+    # set up check-in thread
+    check_in_thread = CheckIn(hours=1.0) # run once an hour
+
     # Connect to RabbitMQ
     try:
+        check_in_thread.start()
         db_logger.info("Connecting to queue.")
         channel = mq.connect(hutch_config.QUEUE_NAME)
         channel.basic_consume(
@@ -47,12 +52,15 @@ def main():
         channel.start_consuming()  # starts a `while True` loop.
     except pika.exceptions.AMQPConnectionError:
         db_logger.critical("Unable to connect to queue. Exiting...", exc_info=True)
-        exit(-1)
     except KeyboardInterrupt:
         # shut down on Ctrl+C
         db_logger.info("Disconnecting from queue...")
         if channel.connection.is_open:
             mq.disconnect(channel)
+
+    if check_in_thread.is_alive():
+        # stop check-in thred
+        check_in_thread.join()
 
     db_logger.info("Successfully shut down :)")
 
