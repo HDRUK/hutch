@@ -1,6 +1,5 @@
 import datetime as dt
 import threading
-import time
 import requests
 from typing import Union
 from croniter import croniter
