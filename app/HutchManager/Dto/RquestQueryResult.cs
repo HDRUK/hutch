@@ -8,16 +8,16 @@ namespace HutchManager.Dto
     /// </summary>
     public class RquestQueryTaskResult
     {
-        public RquestQueryTaskResult(string taskId, int? count = null)
+        public RquestQueryTaskResult(string jobId, int? count = null)
         {
-            TaskId = taskId;
+            JobId = jobId;
 
             if(count.HasValue)
                 QueryResult = new() { Count = count.Value };
         }
 
-        [JsonPropertyName("task_id")]
-        public string TaskId { get; set; }
+        [JsonPropertyName("uuid")]
+        public string JobId { get; set; }
 
         [JsonPropertyName("query_result")]
         public RquestQueryResult? QueryResult { get; set; }
