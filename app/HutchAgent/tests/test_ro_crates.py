@@ -130,3 +130,4 @@ def test_result():
             },
         ],
     }
+    assert result.to_dict() == result_dict
