@@ -1,20 +1,20 @@
 import datetime as dt
 import threading
+import time
 import requests
 from typing import Union
+from croniter import croniter
 from hutchagent.config import MANAGER_URL
 
 
 class CheckIn(threading.Thread):
 
-    def __init__(self, hours: float = 0.0, mins: float = 0.0, secs: float = 0.0, group=None, target=None, name = None, args=None, kwargs=None, *, daemon=None) -> None:
+    def __init__(self, cron: str, group=None, target=None, name = None, args=None, kwargs=None, *, daemon=None) -> None:
         """Constructor for the `CheckIn` thread. The thread contains its own logic,
         so don't specify a `target`.
 
         Args:
-            hours (float, optional): The number of hours to wait. Defaults to 0.0.
-            mins (float, optional): The number of minutes to wait. Defaults to 0.0.
-            secs (float, optional): The number of seconds to wait. Defaults to 0.0.
+            cron (str): The cron string specifying when to perform the check-in.
 
         [Other arguments](https://docs.python.org/3/library/threading.html#threading.Thread)
         should be ignored.
@@ -26,7 +26,9 @@ class CheckIn(threading.Thread):
             raise ValueError("`target` much be `None`.")
         super().__init__(group, target, name, args, kwargs, daemon=daemon)
         self.running = False
-        self.interval = dt.timedelta(hours=hours, minutes=mins, seconds=secs)
+        self.cron = croniter(cron, dt.datetime.now())
+        self.current_time = self.cron.get_current(dt.datetime)
+        self.next_time = self.cron.get_next(dt.datetime)
 
     def start(self) -> None:
         """Start the check-in thread. Call this method, not `run`,
@@ -42,14 +44,14 @@ class CheckIn(threading.Thread):
         When the current time is greater than or equal to the previous
         time plus the specified interval, POST a check-in to the manager.
         """
-        previous_time = dt.datetime.now()
         while self.running:
-            if dt.datetime.now() >= previous_time + self.interval:
+            now = dt.datetime.now()
+            if self.next_time > now > self.current_time:
                 requests.post(
                     f"{MANAGER_URL}/api/agents/checkin",
                     json={"dataSources": "<name>"},
                 )
-            previous_time = dt.datetime.now()
+                self.current_time, self.next_time = self.next_time, self.cron.get_next(dt.datetime)
 
     def join(self, timeout: Union[float, None] = None) -> None:
         """Call this method to end the check-in thread.
