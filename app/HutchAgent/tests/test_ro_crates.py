@@ -2,6 +2,7 @@ import pytest
 from hutchagent.ro_crates.group import Group
 from hutchagent.ro_crates.operator import Operator
 from hutchagent.ro_crates.query import Query
+from hutchagent.ro_crates.result import Result
 from hutchagent.ro_crates.rule import Rule
 
 ACTIVITY_SOURCE_ID_DICT = {
@@ -91,3 +92,42 @@ def test_query():
     assert query.activity_source_id == ACTIVITY_SOURCE_ID_DICT.get("value")
     assert query.job_id == JOB_ID_DICT.get("value")
     assert query.to_dict() == QUERY_DICT
+
+
+def test_result():
+    result = Result(
+        activity_source_id="fake_activity_source",
+        job_id="fake_job_id",
+        status="ok",
+        count=100,
+    )
+    result_dict = {
+        "@context": "https://w3id.org/ro/crate/1.1/context",
+        "@graph": [
+            {
+                "@context": "https://schema.org",
+                "@type": "PropertyValue",
+                "name": "activity_source_id",
+                "value": "fake_activity_source",
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "PropertyValue",
+                "name": "job_id",
+                "value": "fake_job_id",
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "PropertyValue",
+                "name": "status",
+                "value": "ok",
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "PropertyValue",
+                "name": "count",
+                "value": 100,
+            },
+        ],
+    }
+    assert result.to_dict() == result_dict
