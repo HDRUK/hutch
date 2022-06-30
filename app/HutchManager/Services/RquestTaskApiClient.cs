@@ -102,14 +102,14 @@ namespace HutchManager.Services
                 throw new ApplicationException(message);
             }
         }
-        
+
         /// <summary>
         /// Post to the Results endpoint, and handle the response correctly
         /// </summary>
         /// <param name="activitySourceId">activitySourceId ID</param>
         /// <param name="jobId">Job ID</param>
         /// <param name="count">Optional Count for submitting results</param>
-        private async Task ResultsEndpointPost(int activitySourceId,string jobId, int? count = null)
+        public async Task ResultsEndpointPost(int activitySourceId, string jobId, int? count = null)
         {
           var activitySource = await _db.ActivitySources
             .FirstOrDefaultAsync(x => x.Id == activitySourceId);
@@ -117,41 +117,44 @@ namespace HutchManager.Services
           if (activitySource is null)
             throw new KeyNotFoundException(
               $"No ActivitySource with ID: {activitySourceId}");
-          _logger.LogInformation("START results posting");
+         
           string resourceId = activitySource.ResourceId.Remove(activitySource.ResourceId.Length - 2);
       
           string requestUri = (Url.Combine(_apiOptions.SubmitResultEndpoint, "/", jobId, "/", resourceId));
-
-            var response = (await _client.PostAsync(
-                requestUri,
-                    AsHttpJsonString(new RquestQueryTaskResult(jobId, count))))
-                .EnsureSuccessStatusCode();
-            
+          var response = (await _client.PostAsync(
+            requestUri,
+            AsHttpJsonString(new RquestQueryTaskResult(jobId, count))));
+          
+          if (response.IsSuccessStatusCode)
+          {
             // however, even if 2xx we need to check the body for sucess status
             string body = string.Empty;
             try
             {
-                body = await response.Content.ReadAsStringAsync();
-                var json = JsonSerializer.Deserialize<RquestResultResponse>(body);
+              body = await response.Content.ReadAsStringAsync();
+              var json = JsonSerializer.Deserialize<RquestResultResponse>(body);
 
-                if (json?.Status != "OK")
-                {
-                    var message = "Unsuccessful Response from Submit Results Endpoint";
-                    _logger.LogError(message);
-                    _logger.LogDebug("Response Body: {body}", body);
+              if (json?.Status != "OK")
+              {
+                var message = "Unsuccessful Response from Submit Results Endpoint";
+                _logger.LogError(message);
+                _logger.LogDebug("Response Body: {body}", body);
 
-                    throw new ApplicationException(message);
-                }
+                throw new ApplicationException(message);
+              }
 
-                return;
+              return;
             }
             catch (JsonException e)
             {
-                _logger.LogError(e, "Invalid Response Format from Submit Results Endpoint");
-                _logger.LogDebug("Invalid Response Body: {body}", body);
+              _logger.LogError(e, "Invalid Response Format from Submit Results Endpoint");
+              _logger.LogDebug("Invalid Response Body: {body}", body);
 
-                throw;
+              throw;
             }
+          }else{
+            _logger.LogInformation(response.StatusCode.ToString());
+          }
         }
     }
 }

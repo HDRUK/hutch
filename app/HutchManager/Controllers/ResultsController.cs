@@ -1,3 +1,4 @@
+using HutchManager.Dto;
 using HutchManager.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,10 +18,10 @@ public class ResultsController: ControllerBase
     _logger = logger;
     _apiClient = apiClient;
   }
-  [HttpPost("{jobId}")]
-  public async Task<IActionResult> Post([FromBody] int activitySourceId,string jobId, int? count = null)
+  [HttpPost]
+  public async Task<IActionResult> Post([FromBody] QueryResult result, int? count = null)
   {
-    await _apiClient.ResultsEndpointPost(activitySourceId, jobId, count);
+    await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Result.Count);
     return NoContent();
   }
 
