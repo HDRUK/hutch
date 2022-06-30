@@ -1,155 +1,173 @@
 using Flurl;
 using Microsoft.Extensions.Options;
-
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using HutchManager.Data;
 using HutchManager.Dto;
 using HutchManager.OptionsModels;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace HutchManager.Services
 {
-    public class RquestTaskApiClient
+  public class RquestTaskApiClient
+  {
+    private readonly HttpClient _client;
+    private readonly ILogger<RquestTaskApiClient> _logger;
+    private readonly RquestTaskApiOptions _apiOptions;
+    private readonly ApplicationDbContext _db;
+
+    public RquestTaskApiClient(
+      HttpClient client,
+      ILogger<RquestTaskApiClient> logger,
+      IOptions<RquestTaskApiOptions> apiOptions,
+      ApplicationDbContext db)
     {
-        private readonly HttpClient _client;
-        private readonly ILogger<RquestTaskApiClient> _logger;
-        private readonly RquestTaskApiOptions _apiOptions;
+      _client = client;
+      _logger = logger;
+      _apiOptions = apiOptions.Value;
+      _db = db;
 
-        public RquestTaskApiClient(
-            HttpClient client,
-            ILogger<RquestTaskApiClient> logger,
-            IOptions<RquestTaskApiOptions> apiOptions)
-        {
-          
-            _client = client;
-            _logger = logger;
-            _apiOptions = apiOptions.Value;
-            
-            string credentials = _apiOptions.Username + ":" + _apiOptions.Password;
-            var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
-            
-            _client.BaseAddress = new Uri(Url.Combine(_apiOptions.BaseUrl, "/"));
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authString);
+      string credentials = _apiOptions.Username + ":" + _apiOptions.Password;
+      var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
 
-  
-        }
-
-        /// <summary>
-        /// Serialize a value to a JSON string, and provide HTTP StringContent
-        /// for it with a media type of "application/json"
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns>HTTP StringContent with the value serialized to JSON and a media type of "application/json"</returns>
-        private StringContent AsHttpJsonString<T>(T value)
-            => new StringContent(
-                    JsonSerializer.Serialize(value),
-                    System.Text.Encoding.UTF8,
-                    "application/json");
-
-        /// <summary>
-        /// Try and get a job for a collection
-        /// </summary>
-        /// <param name="collectionId">RQUEST Collection Id (Biobank Id)</param>
-        /// <returns>A Task DTO containing a Query to run, or null if none are waiting</returns>
-        public async Task<RquestQueryTask?> FetchQuery(string collectionId)
-        {
-          
-          string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", collectionId));
-          var result = await _client.GetAsync(
-              requestUri);
-
-            if (result.IsSuccessStatusCode)
-            {
-                if (result.StatusCode == HttpStatusCode.NoContent)
-                {
-                    _logger.LogInformation(
-                        "No Query Tasks waiting for {collectionId}",
-                        collectionId);
-                    return null;
-                }
-
-                try
-                {
-                    var task = await result.Content.ReadFromJsonAsync<RquestQueryTask>();
-
-                    // a null task is impossible because the necessary JSON payload
-                    // to achieve it would fail deserialization
-                    _logger.LogInformation($"Found Query Task with Id: {task!.TaskId}");
-                    //Set Collection ID
-                    task.CollectionId = collectionId;
-                    return task;
-                }
-                catch (JsonException e)
-                {
-                    _logger.LogError(e, "Invalid Response Format from Fetch Query Endpoint");
-
-                    var body = await result.Content.ReadAsStringAsync();
-                    _logger.LogDebug("Invalid Response Body: {body}", body);
-
-                    throw;
-                }
-            }
-            else
-            {
-                var message = $"Fetch Query Endpoint Request failed: {result.StatusCode}";
-                _logger.LogError(message);
-                throw new ApplicationException(message);
-            }
-        }
-
-        /// <summary>
-        /// Submit the result of a query
-        /// </summary>
-        /// <param name="taskId">ID of the query task</param>
-        /// <param name="count">The result</param>
-        public async Task SubmitQueryResult(string taskId, int count) => await ResultsEndpointPost(taskId, count);
-
-        /// <summary>
-        /// Cancel a query task
-        /// </summary>
-        /// <param name="taskId">ID of the query task</param>
-        public async Task CancelQueryTask(string taskId) => await ResultsEndpointPost(taskId);
-
-        /// <summary>
-        /// Post to the Results endpoint, and handle the response correctly
-        /// </summary>
-        /// <param name="taskId">Task ID</param>
-        /// <param name="count">Optional Count for submitting results</param>
-        private async Task ResultsEndpointPost(string taskId, int? count = null)
-        {
-            
-            var response = (await _client.PostAsync(
-                    _apiOptions.SubmitResultEndpoint,
-                    AsHttpJsonString(new RquestQueryTaskResult(taskId, count))))
-                .EnsureSuccessStatusCode();
-            
-            // however, even if 2xx we need to check the body for sucess status
-            string body = string.Empty;
-            try
-            {
-                body = await response.Content.ReadAsStringAsync();
-                var json = JsonSerializer.Deserialize<RquestResultResponse>(body);
-
-                if (json?.Status != "OK")
-                {
-                    var message = "Unsuccessful Response from Submit Results Endpoint";
-                    _logger.LogError(message);
-                    _logger.LogDebug("Response Body: {body}", body);
-
-                    throw new ApplicationException(message);
-                }
-
-                return;
-            }
-            catch (JsonException e)
-            {
-                _logger.LogError(e, "Invalid Response Format from Submit Results Endpoint");
-                _logger.LogDebug("Invalid Response Body: {body}", body);
-
-                throw;
-            }
-        }
+      _client.BaseAddress = new Uri(Url.Combine(_apiOptions.BaseUrl, "/"));
+      _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authString);
     }
+
+    /// <summary>
+    /// Serialize a value to a JSON string, and provide HTTP StringContent
+    /// for it with a media type of "application/json"
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns>HTTP StringContent with the value serialized to JSON and a media type of "application/json"</returns>
+    private StringContent AsHttpJsonString<T>(T value)
+      => new StringContent(
+        JsonSerializer.Serialize(value),
+        System.Text.Encoding.UTF8,
+        "application/json");
+
+    /// <summary>
+    /// Try and get a job for a collection
+    /// </summary>
+    /// <param name="collectionId">RQUEST Collection Id (Biobank Id)</param>
+    /// <returns>A Task DTO containing a Query to run, or null if none are waiting</returns>
+    public async Task<RquestQueryTask?> FetchQuery(string collectionId)
+    {
+      string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", collectionId));
+      var result = await _client.GetAsync(
+        requestUri);
+
+      if (result.IsSuccessStatusCode)
+      {
+        if (result.StatusCode == HttpStatusCode.NoContent)
+        {
+          _logger.LogInformation(
+            "No Query Tasks waiting for {collectionId}",
+            collectionId);
+          return null;
+        }
+
+        try
+        {
+          var task = await result.Content.ReadFromJsonAsync<RquestQueryTask>();
+
+          // a null task is impossible because the necessary JSON payload
+          // to achieve it would fail deserialization
+          _logger.LogInformation($"Found Query Task with Id: {task!.TaskId}");
+          //Set Collection ID
+          task.CollectionId = collectionId;
+          return task;
+        }
+        catch (JsonException e)
+        {
+          _logger.LogError(e, "Invalid Response Format from Fetch Query Endpoint");
+
+          var body = await result.Content.ReadAsStringAsync();
+          _logger.LogDebug("Invalid Response Body: {body}", body);
+
+          throw;
+        }
+      }
+      else
+      {
+        var message = $"Fetch Query Endpoint Request failed: {result.StatusCode}";
+        _logger.LogError(message);
+        throw new ApplicationException(message);
+      }
+    }
+
+    /// <summary>
+    /// Submit the result of a query
+    /// </summary>
+    /// <param name="activitySourceId">ID of the query task</param>
+    /// <param name="count">The result</param>
+    public async Task SubmitQueryResult(int activitySourceId, string jobId, int count) =>
+      await ResultsEndpointPost(activitySourceId, jobId, count);
+
+    // /// <summary>
+    // /// Cancel a query task
+    // /// </summary>
+    // /// <param name="taskId">ID of the query task</param>
+    // public async Task CancelQueryTask(string taskId) => await ResultsEndpointPost();
+
+    /// <summary>
+    /// Post to the Results endpoint, and handle the response correctly
+    /// </summary>
+    /// /// <param name="activitySourceId">ActivitySourceId ID</param>
+    /// <param name="jobId">Job ID</param>
+    /// <param name="count">Optional Count for submitting results</param>
+    public async Task ResultsEndpointPost(int activitySourceId, string jobId, int? count = null)
+    {
+      _logger.LogInformation("in post method");
+      var activitySource = await _db.ActivitySources
+        .FirstOrDefaultAsync(x => x.Id == activitySourceId);
+      
+      if (activitySource is null)
+        throw new KeyNotFoundException(
+          $"No ActivitySource with ID: {activitySourceId}");
+      _logger.LogInformation("START results posting");
+      string resourceId = activitySource.ResourceId.Remove(activitySource.ResourceId.Length - 2);
+      
+      string requestUri = (Url.Combine(_apiOptions.SubmitResultEndpoint, "/", jobId, "/", resourceId));
+      _logger.LogInformation(requestUri);
+      var response = (await _client.PostAsync(
+        requestUri,
+        AsHttpJsonString(new RquestQueryTaskResult(jobId, count))));
+      if (response.IsSuccessStatusCode)
+      {
+        // however, even if 2xx we need to check the body for sucess status
+        string body = string.Empty;
+        try
+        {
+          body = await response.Content.ReadAsStringAsync();
+          var json = JsonSerializer.Deserialize<RquestResultResponse>(body);
+
+          if (json?.Status != "OK")
+          {
+            var message = "Unsuccessful Response from Submit Results Endpoint";
+            _logger.LogError(message);
+            _logger.LogDebug("Response Body: {body}", body);
+
+            throw new ApplicationException(message);
+          }
+
+          return;
+        }
+        catch (JsonException e)
+        {
+          _logger.LogError(e, "Invalid Response Format from Submit Results Endpoint");
+          _logger.LogDebug("Invalid Response Body: {body}", body);
+
+          throw;
+        }
+      }
+      else
+      {
+        _logger.LogInformation(response.StatusCode.ToString());
+      }
+    }
+  }
 }
