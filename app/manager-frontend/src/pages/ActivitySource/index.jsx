@@ -16,7 +16,7 @@ import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
-import { DeleteActivitySourceModal } from "components/DeleteActivitySourceModal";
+import { DeleteModal } from "components/DeleteModal";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
@@ -151,11 +151,12 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           )}
         </Formik>
       </VStack>
-      <DeleteActivitySourceModal
+      <DeleteModal
+        title={`Delete Activity Source ${id}`}
+        body="Are you sure you want to delete this activity source? You will not be able to reverse this"
         isOpen={isOpen}
         onClose={onClose}
-        id={id}
-        onDeleteSource={onDeleteSource}
+        onDelete={onDeleteSource}
       />
     </Container>
   );
