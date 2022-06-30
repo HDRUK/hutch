@@ -17,10 +17,7 @@ export const useDataSourceList = () => {
   const { apiFetcher } = useBackendApi();
   return useSWR(
     fetchKeys.dataSourceList,
-    async (url) => {
-      const data = await apiFetcher(url);
-      return data;
-    },
+    apiFetcher,
     { suspense: true }
   );
 };
