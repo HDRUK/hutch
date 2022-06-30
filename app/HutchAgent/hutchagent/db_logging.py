@@ -19,9 +19,7 @@ class Log(Base):
     message = Column(Text, nullable=True)
     message_template = Column(Text, nullable=True)
     level = Column(String(128), nullable=True)
-    timestamp = Column(
-        DateTime, nullable=False, default=datetime.datetime.now
-    )
+    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
     exception = Column(Text, nullable=True)
     properties = Column(Text, nullable=True)
 

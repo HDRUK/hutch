@@ -18,3 +18,6 @@ QUEUE_NAME = "jobs"
 
 # Manager related configuration
 MANAGER_URL = "/path/to/manager"
+
+# cron string
+CRON_STRING = "0 */1 * * *"  # once every hour
