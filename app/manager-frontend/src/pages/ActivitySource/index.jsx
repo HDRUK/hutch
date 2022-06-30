@@ -88,10 +88,10 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           initialValues={
             activitySource
               ? {
-                  DisplayName: activitySource.DisplayName,
-                  Host: activitySource.Host,
-                  Type: activitySource.Type,
-                  ResourceId: activitySource.ResourceId,
+                  DisplayName: activitySource.displayName,
+                  Host: activitySource.host,
+                  Type: activitySource.type,
+                  ResourceId: activitySource.resourceId,
                 }
               : {
                   DisplayName: "",

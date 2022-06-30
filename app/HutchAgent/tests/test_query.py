@@ -1,5 +1,5 @@
 import pytest
-import linkliteagent.query as query
+import hutchagent.query as query
 
 
 def test_create_rquest_query():

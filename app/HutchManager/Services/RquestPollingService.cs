@@ -51,28 +51,28 @@ public class RquestPollingService: IRquestPollingService
           // Stephen Cleary says it's ok:
           // https://stackoverflow.com/a/38918443
             var count = Interlocked.Increment(ref executionCount);
-            var collectionId = _db.ActivitySources.First();
+            var activitySource = _db.ActivitySources.First();
             _logger.LogInformation(
               "Timed {HostedService} is working. Count: {Count}", nameof(RquestPollingHostedService),count);
             _logger.LogInformation(
-            "Polling RQUEST for Queries on Collection: {_collectionId}",
-           collectionId);
+            "Polling RQUEST for Queries on Collection: {_resourceId}",
+           activitySource.ResourceId);
 
-          RquestQueryTask? task = null;
+          RquestQueryTask? job = null;
             int? result = null;
 
             try
             {
-              task = await _rquestApi.FetchQuery(collectionId.ResourceId);
-                if (task is null)
+              job = await _rquestApi.FetchQuery(activitySource);
+                if (job is null)
                 {
                     _logger.LogInformation(
-                          "No Queries on Collection: {_collectionId}",
-                          collectionId.ResourceId);
+                          "No Queries on Collection: {_resourceId}",
+                          activitySource.ResourceId);
                     RunTimerOnce();
                     return;
                 }
-                SendToQueue(task);
+                SendToQueue(job);
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
                 // threaded using Task.Run or similar.
@@ -80,7 +80,7 @@ public class RquestPollingService: IRquestPollingService
             }
             catch (Exception e)
             {
-                if (task is null)
+                if (job is null)
                 {
                     _logger.LogError(e, "Task fetching failed");
                 }
@@ -90,18 +90,18 @@ public class RquestPollingService: IRquestPollingService
                     if (result is null)
                     {
                         _logger.LogError(e,
-                            "Query execution failed for task: {taskId}",
-                            task.TaskId);
+                            "Query execution failed for job: {jobId}",
+                            job.JobId);
                     }
                     else
                     {
                         _logger.LogError(e,
-                            "Results Submission failed for task: {taskId}, result: {result}",
-                            task.TaskId,
+                            "Results Submission failed for job: {jobId}, result: {result}",
+                            job.JobId,
                             result);
                     }
 
-                    _logger.LogInformation("Cancelled failed task: {taskId}", task.TaskId);
+                    _logger.LogInformation("Cancelled failed job: {jobId}", job.JobId);
                 }
             }
 
@@ -127,7 +127,7 @@ public class RquestPollingService: IRquestPollingService
         private void StopTimer()
           => _timer?.Change(Timeout.Infinite, 0);
         
-        public void SendToQueue(RquestQueryTask taskPayload)
+        public void SendToQueue(RquestQueryTask jobPayload)
         {
           var factory = new ConnectionFactory() { HostName = "localhost" };
           using(var connection = factory.CreateConnection())
@@ -142,13 +142,13 @@ public class RquestPollingService: IRquestPollingService
             var properties = channel.CreateBasicProperties();
             properties.Persistent = true;
             
-            byte[] body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(taskPayload) );
+            byte[] body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload) );
             channel.BasicPublish(exchange: "",
               routingKey: "jobs",
               basicProperties: null,
               body: body);
             
-            _logger.LogInformation("Sent to Queue {body}", body);
+            _logger.LogInformation("Sent to Queue {body}", jobPayload);
           }
         }
 

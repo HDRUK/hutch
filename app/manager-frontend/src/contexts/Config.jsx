@@ -6,7 +6,7 @@ const BackendConfigContext = createContext({});
 export const useBackendConfig = () => useContext(BackendConfigContext);
 
 const getCookieConfig = () => {
-  const yum = Cookies.get(".LinkLiteManager.Config");
+  const yum = Cookies.get(".HutchManager.Config");
   return yum ? JSON.parse(yum) : null;
 };
 

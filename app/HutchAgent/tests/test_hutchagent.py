@@ -1,4 +1,4 @@
-from linkliteagent import __version__
+from hutchagent import __version__
 
 
 def test_version():
