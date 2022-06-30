@@ -36,7 +36,7 @@ public class ActivitySourceController : ControllerBase
       await _activitySources.Delete(id);
     }
     catch (KeyNotFoundException) {
-      Console.WriteLine("Could not delete Activity Source");
+      Console.WriteLine("Could not delete Data Source");
     }
     return NoContent();
   }
