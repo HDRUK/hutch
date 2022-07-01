@@ -11,6 +11,7 @@ import { ContentPage } from "pages/ContentPage";
 import { useBackendConfig } from "contexts/Config";
 import CreateActivitySource from "pages/ActivitySource/create";
 import EditActivitySource from "pages/ActivitySource/edit";
+import { DataSourcesList } from "pages/DataSource/list";
 
 const IndexRedirect = () => {
   const { user } = useUser();
@@ -37,6 +38,7 @@ export const Root = () => {
             path="activitysources/new"
             element={<CreateActivitySource />}
           />
+          <Route path="datasources" element={<DataSourcesList />} />
           <Route path="activitysources/:id" element={<EditActivitySource />} />
         </Route>
 
