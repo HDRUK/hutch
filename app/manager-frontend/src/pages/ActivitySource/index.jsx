@@ -134,6 +134,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   label="Target DataSource Name"
                   name={"TargetDataSourceName"}
                   type="TargetDataSourceName"
+                  tooltip={"Warning, some datasources are inactive"}
                 />
                 <Flex>
                   <Button
