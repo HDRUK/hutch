@@ -43,7 +43,9 @@ export const FormikInput = ({
         {tooltip && (
           <Flex ml={"auto"} alignItems="center">
             <Tooltip label={tooltip}>
-              <Icon as={AiFillInfoCircle} />
+              <span>
+                <Icon as={AiFillInfoCircle} />
+              </span>
             </Tooltip>
           </Flex>
         )}
