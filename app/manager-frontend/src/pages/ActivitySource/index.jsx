@@ -92,12 +92,14 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   Host: activitySource.host,
                   Type: activitySource.type,
                   ResourceId: activitySource.resourceId,
+                  TargetDataSourceName: activitySource.targetDataSourceName,
                 }
               : {
                   DisplayName: "",
                   Host: "",
                   Type: typeOptions[0].value,
                   ResourceId: "",
+                  TargetDataSourceName: "",
                 }
           }
           validationSchema={validationSchema()}
@@ -127,6 +129,11 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   label="Resource Id"
                   name={"ResourceId"}
                   type="ResourceId"
+                />
+                <FormikInput
+                  label="Target DataSource Name"
+                  name={"TargetDataSourceName"}
+                  type="TargetDataSourceName"
                 />
                 <Flex>
                   <Button
