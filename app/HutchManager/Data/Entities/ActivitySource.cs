@@ -11,5 +11,6 @@ public class ActivitySource
   public string ResourceId { get; set; } = string.Empty;
 
   public string DisplayName { get; set; } = string.Empty;
+  public string TargetDataSourceName { get; set; } = string.Empty;
 
 }
