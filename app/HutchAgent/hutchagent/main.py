@@ -48,7 +48,7 @@ def main():
     db_logger.addHandler(backup_handler)
 
     # set up check-in thread
-    check_in_thread = CheckIn(cron=os.getenv("CRON_STRING"))
+    check_in_thread = CheckIn(cron=os.getenv("CRON_STRING"), url=f"{os.getenv('MANAGER_URL')}/api/agents/checkin")
 
     # Connect to RabbitMQ
     try:
