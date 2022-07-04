@@ -19,7 +19,7 @@ from sqlalchemy import (
     select,
 )
 from typing import Any
-
+from hutchagent.db_manager import SyncDBManager
 from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 dotenv.load_dotenv()
@@ -334,17 +334,23 @@ def query_callback(
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
 
-    engine = create_engine("postgresql://postgres:example@localhost:5432")
+    db_manager = SyncDBManager(
+        username=os.getenv("DATASOURCE_DB_USERNAME"),
+        password=os.getenv("DATASOURCE_DB_PASSWORD"),
+        host=os.getenv("DATASOURCE_DB_HOST"),
+        port=int(os.getenv("DATASOURCE_DB_PORT")),
+        database=os.getenv("DATASOURCE_DB_DATABASE"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME"),
+    )
     try:
-        with engine.begin() as conn:
-            query_start = time.time()
-            res = conn.execute(query.to_sql())
-            query_end = time.time()
-            count_ = res.scalar_one()
-            response_data["query_result"].update(count=count_, status="ok")
-            logger.info(
-                f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
-            )
+        query_start = time.time()
+        res = db_manager.execute_and_fetch(query.to_sql())
+        query_end = time.time()
+        count_ = res[0][0]
+        response_data["query_result"].update(count=count_, status="ok")
+        logger.info(
+            f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
+        )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
         response_data["query_result"].update(count=0, status="error")
@@ -354,8 +360,6 @@ def query_callback(
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
         response_data["query_result"].update(count=0, status="error")
-    finally:
-        engine.dispose()
 
     try:
         requests.post(os.getenv("MANAGER_URL"), response_data)
