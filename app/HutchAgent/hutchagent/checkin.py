@@ -1,9 +1,9 @@
 import datetime as dt
+import os
 import threading
 import requests
 from typing import Union
 from croniter import croniter
-from hutchagent.config import MANAGER_URL
 
 
 class CheckIn(threading.Thread):
@@ -55,7 +55,7 @@ class CheckIn(threading.Thread):
             now = dt.datetime.now()
             if self.next_time > now > self.current_time:
                 requests.post(
-                    f"{MANAGER_URL}/api/agents/checkin",
+                    f"{os.getenv('MANAGER_URL')}/api/agents/checkin",
                     json={"dataSources": ["<name>"]},
                 )
                 self.current_time, self.next_time = self.next_time, self.cron.get_next(
