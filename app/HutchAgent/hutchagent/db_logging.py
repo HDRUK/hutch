@@ -3,12 +3,15 @@ import argparse
 
 from logging import getLogger, Handler, LogRecord
 import os
+import dotenv
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, insert
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.declarative import declarative_base
 
 from .db_manager import SyncDBManager
+
+dotenv.load_dotenv()
 
 Base = declarative_base()
 

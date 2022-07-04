@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import time
+import dotenv
 import requests, requests.exceptions as req_exc
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
@@ -16,12 +17,12 @@ from sqlalchemy import (
     not_,
     or_,
     select,
-    table,
 )
 from typing import Any
 
 from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
+dotenv.load_dotenv()
 
 PERSON_LOOKUPS = {
     "8532": "gender_concept_id",
