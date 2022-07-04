@@ -3,13 +3,13 @@ import threading
 import requests
 from typing import Union
 from croniter import croniter
-from hutchagent.config import MANAGER_URL
 
 
 class CheckIn(threading.Thread):
     def __init__(
         self,
         cron: str,
+        url: str,
         group=None,
         target=None,
         name=None,
@@ -22,6 +22,7 @@ class CheckIn(threading.Thread):
 
         Args:
             cron (str): The cron string specifying when to perform the check-in.
+            url (str): POST the check-in to this URL.
 
         [Other arguments](https://docs.python.org/3/library/threading.html#threading.Thread)
         should be ignored.
@@ -36,6 +37,7 @@ class CheckIn(threading.Thread):
         self.cron = croniter(cron, dt.datetime.now())
         self.current_time = self.cron.get_current(dt.datetime)
         self.next_time = self.cron.get_next(dt.datetime)
+        self.url = url
 
     def start(self) -> None:
         """Start the check-in thread. Call this method, not `run`,
@@ -55,7 +57,7 @@ class CheckIn(threading.Thread):
             now = dt.datetime.now()
             if self.next_time > now > self.current_time:
                 requests.post(
-                    f"{MANAGER_URL}/api/agents/checkin",
+                    self.url,
                     json={"dataSources": ["<name>"]},
                 )
                 self.current_time, self.next_time = self.next_time, self.cron.get_next(

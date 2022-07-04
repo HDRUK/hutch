@@ -1,8 +1,10 @@
 import datetime as dt
 import json
 import logging
+import os
 import re
 import time
+import dotenv
 import requests, requests.exceptions as req_exc
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
@@ -15,13 +17,12 @@ from sqlalchemy import (
     not_,
     or_,
     select,
-    table,
 )
 from typing import Any
-
-import hutchagent.config as hutch_config
+from hutchagent.db_manager import SyncDBManager
 from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
+dotenv.load_dotenv()
 
 PERSON_LOOKUPS = {
     "8532": "gender_concept_id",
@@ -319,7 +320,7 @@ def query_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    logger = logging.getLogger(hutch_config.DB_LOGGER_NAME)
+    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
     response_data = {
         "protocol_version": "v2",
         "query_result": dict(),
@@ -333,17 +334,23 @@ def query_callback(
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
 
-    engine = create_engine("postgresql://postgres:example@localhost:5432")
+    db_manager = SyncDBManager(
+        username=os.getenv("DATASOURCE_DB_USERNAME"),
+        password=os.getenv("DATASOURCE_DB_PASSWORD"),
+        host=os.getenv("DATASOURCE_DB_HOST"),
+        port=int(os.getenv("DATASOURCE_DB_PORT")),
+        database=os.getenv("DATASOURCE_DB_DATABASE"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME"),
+    )
     try:
-        with engine.begin() as conn:
-            query_start = time.time()
-            res = conn.execute(query.to_sql())
-            query_end = time.time()
-            count_ = res.scalar_one()
-            response_data["query_result"].update(count=count_, status="ok")
-            logger.info(
-                f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
-            )
+        query_start = time.time()
+        res = db_manager.execute_and_fetch(query.to_sql())
+        query_end = time.time()
+        count_ = res[0][0]
+        response_data["query_result"].update(count=count_, status="ok")
+        logger.info(
+            f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
+        )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
         response_data["query_result"].update(count=0, status="error")
@@ -353,11 +360,9 @@ def query_callback(
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
         response_data["query_result"].update(count=0, status="error")
-    finally:
-        engine.dispose()
 
     try:
-        requests.post(hutch_config.MANAGER_URL, response_data)
+        requests.post(os.getenv("MANAGER_URL"), response_data)
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
