@@ -15,6 +15,7 @@ dotenv.load_dotenv()
 
 Base = declarative_base()
 
+
 class Log(Base):
     __tablename__ = os.getenv("LOG_TABLE_NAME")
     id = Column(Integer, primary_key=True, autoincrement=True)
