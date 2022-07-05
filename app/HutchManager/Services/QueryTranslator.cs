@@ -15,14 +15,15 @@ public class QueryTranslator
       
       ROCratesQuery roCratesQuery = new();
       var Graph = new ROCratesQuery().Graphs;
-      Graph.Add(new ROCratesQuery.ROCratesGraph());
       //Add ActivitySourceID
+      Graph.Add(new ROCratesQuery.ROCratesGraph());
       Graph[0].Context = "https://schema.org";
       Graph[0].Type = "PropertyValue";
       Graph[0].Name = "activity_source_id";
-      Graph[0].Value = job.ActivitySourceId;
+      Graph[0].Value = job.ActivitySourceId.ToString();
       
       // Add Job ID
+      Graph.Add(new ROCratesQuery.ROCratesGraph());
       Graph[1].Context = "https://schema.org";
       Graph[1].Type = "PropertyValue";
       Graph[1].Name = "activity_source_id";
