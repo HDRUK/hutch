@@ -14,7 +14,7 @@ import { useActivitySourceList } from "api/activitysource";
 import { ActivitySourceSummary } from "components/ActivitySourceSummary";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
-import { DeleteActivitySourceModal } from "components/DeleteActivitySourceModal";
+import { DeleteModal } from "components/DeleteModal";
 
 export const UserHome = () => {
   const { user } = useUser();
@@ -74,11 +74,12 @@ export const UserHome = () => {
             ></ActivitySourceSummary>
           ))}
       </VStack>
-      <DeleteActivitySourceModal
+      <DeleteModal
+        title={`Delete Activity Source ${selectedId}`}
+        body="Are you sure you want to delete this activity source? You will not be able to reverse this"
         isOpen={isOpen}
         onClose={onClose}
-        id={selectedId}
-        onDeleteSource={onDeleteSource}
+        onDelete={onDeleteSource}
       />
     </VStack>
   );

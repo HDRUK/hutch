@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using HutchManager.Data.Entities;
 using HutchManager.Dto;
 using HutchManager.OptionsModels;
 
@@ -51,12 +52,12 @@ namespace HutchManager.Services
         /// <summary>
         /// Try and get a job for a collection
         /// </summary>
-        /// <param name="collectionId">RQUEST Collection Id (Biobank Id)</param>
+        /// <param name="activitySource"> ActivitySource</param>
         /// <returns>A Task DTO containing a Query to run, or null if none are waiting</returns>
-        public async Task<RquestQueryTask?> FetchQuery(string collectionId)
+        public async Task<RquestQueryTask?> FetchQuery(ActivitySource activitySource)
         {
           
-          string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", collectionId));
+          string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", activitySource.ResourceId));
           var result = await _client.GetAsync(
               requestUri);
 
@@ -65,21 +66,21 @@ namespace HutchManager.Services
                 if (result.StatusCode == HttpStatusCode.NoContent)
                 {
                     _logger.LogInformation(
-                        "No Query Tasks waiting for {collectionId}",
-                        collectionId);
+                        "No Query Jobs waiting for {_resourceId}",
+                        activitySource.ResourceId);
                     return null;
                 }
 
                 try
                 {
-                    var task = await result.Content.ReadFromJsonAsync<RquestQueryTask>();
+                    var job = await result.Content.ReadFromJsonAsync<RquestQueryTask>();
 
-                    // a null task is impossible because the necessary JSON payload
+                    // a null job is impossible because the necessary JSON payload
                     // to achieve it would fail deserialization
-                    _logger.LogInformation($"Found Query Task with Id: {task!.TaskId}");
-                    //Set Collection ID
-                    task.CollectionId = collectionId;
-                    return task;
+                    _logger.LogInformation($"Found Query with Id: {job!.JobId}");
+                    //Set ActivitySource ID
+                    job.ActivitySourceId = activitySource.Id;
+                    return job;
                 }
                 catch (JsonException e)
                 {
@@ -102,27 +103,27 @@ namespace HutchManager.Services
         /// <summary>
         /// Submit the result of a query
         /// </summary>
-        /// <param name="taskId">ID of the query task</param>
+        /// <param name="jobId">ID of the query task</param>
         /// <param name="count">The result</param>
-        public async Task SubmitQueryResult(string taskId, int count) => await ResultsEndpointPost(taskId, count);
+        public async Task SubmitQueryResult(string jobId, int count) => await ResultsEndpointPost(jobId, count);
 
         /// <summary>
         /// Cancel a query task
         /// </summary>
-        /// <param name="taskId">ID of the query task</param>
-        public async Task CancelQueryTask(string taskId) => await ResultsEndpointPost(taskId);
+        /// <param name="jobId">ID of the query task</param>
+        public async Task CancelQueryTask(string jobId) => await ResultsEndpointPost(jobId);
 
         /// <summary>
         /// Post to the Results endpoint, and handle the response correctly
         /// </summary>
-        /// <param name="taskId">Task ID</param>
+        /// <param name="jobId">Job ID</param>
         /// <param name="count">Optional Count for submitting results</param>
-        private async Task ResultsEndpointPost(string taskId, int? count = null)
+        private async Task ResultsEndpointPost(string jobId, int? count = null)
         {
             
             var response = (await _client.PostAsync(
                     _apiOptions.SubmitResultEndpoint,
-                    AsHttpJsonString(new RquestQueryTaskResult(taskId, count))))
+                    AsHttpJsonString(new RquestQueryTaskResult(jobId, count))))
                 .EnsureSuccessStatusCode();
             
             // however, even if 2xx we need to check the body for sucess status
