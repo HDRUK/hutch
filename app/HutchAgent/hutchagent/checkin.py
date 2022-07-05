@@ -1,7 +1,8 @@
 import datetime as dt
+import logging
 import os
 import threading
-import requests
+import requests, requests.exceptions as req_exc
 import dotenv
 from typing import Union
 from croniter import croniter
@@ -60,25 +61,35 @@ class CheckIn(threading.Thread):
         When the current time is greater than or equal to the previous
         time plus the specified interval, POST a check-in to the manager.
         """
+        logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
         while self.running:
             now = dt.datetime.now()
             if self.next_time > now > self.current_time:
-                requests.post(
-                    self.url,
-                    json={
-                        "dataSources": [
-                            {
-                                "Id": self.data_source_id,
-                                "LastCheckin": dt.datetime.now().strftime(
-                                    os.getenv("DATE_FORMAT")
-                                ),
-                            }
-                        ]
-                    },
-                )
-                self.current_time, self.next_time = self.next_time, self.cron.get_next(
-                    dt.datetime
-                )
+                try:
+                    requests.post(
+                        self.url,
+                        json={
+                            "dataSources": [
+                                {
+                                    "Id": self.data_source_id,
+                                    "LastCheckin": dt.datetime.now().strftime(
+                                        os.getenv("DATE_FORMAT")
+                                    ),
+                                }
+                            ]
+                        },
+                    )
+                except req_exc.ConnectionError as connection_error:
+                    logger.error(str(connection_error))
+                except req_exc.Timeout as timeout_error:
+                    logger.error(str(timeout_error))
+                except req_exc.MissingSchema as missing_schema_error:
+                    logger.error(str(missing_schema_error))
+                finally:
+                    (
+                        self.current_time,
+                        self.next_time,
+                    ) = self.next_time, self.cron.get_next(dt.datetime)
 
     def join(self, timeout: Union[float, None] = None) -> None:
         """Call this method to end the check-in thread."""
