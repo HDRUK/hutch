@@ -30,7 +30,7 @@ public class DataSourceService
       // create new Datasource with LastCheckin set as now
       var datasourceEntity = new DataSource{
         Id = dataSource.Id,
-        LastCheckin = dataSource.LastCheckin,
+        LastCheckin = DateTimeOffset.UtcNow,
       };
       await _db.DataSources.AddAsync(datasourceEntity);
       await _db.SaveChangesAsync();
@@ -39,7 +39,7 @@ public class DataSourceService
     else
     {
       // update Datasource LastCheckin to now
-      entity.LastCheckin = dataSource.LastCheckin;
+      entity.LastCheckin = DateTimeOffset.UtcNow;
       await _db.SaveChangesAsync();
       return new(entity);
     }

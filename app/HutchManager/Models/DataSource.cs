@@ -12,4 +12,7 @@ public class DataSource
    
   }
 
+  public DataSource()
+  {
+  }
 }
