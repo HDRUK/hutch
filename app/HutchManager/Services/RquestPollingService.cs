@@ -1,4 +1,5 @@
 using System.Text;
+using Flurl.Util;
 using HutchManager.Data;
 using HutchManager.Dto;
 using HutchManager.HostedServices;
@@ -72,6 +73,10 @@ public class RquestPollingService: IRquestPollingService
                     RunTimerOnce();
                     return;
                 }
+                
+                _logger.LogInformation("Query {task}",task.Query.ToKeyValuePairs());
+                ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(task.Query);
+                _logger.LogInformation("RO-CRATES object{rocrates}",roCratesQuery.Graphs);
                 SendToQueue(task);
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
