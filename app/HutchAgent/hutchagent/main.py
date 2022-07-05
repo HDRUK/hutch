@@ -50,7 +50,8 @@ def main():
     # set up check-in thread
     check_in_thread = CheckIn(
         cron=os.getenv("CRON_STRING"),
-        url=f"{os.getenv('MANAGER_URL')}/api/agents/checkin",
+        url=f"{os.getenv('MANAGER_URL')}/api/Agents",
+        data_source_id=os.getenv("DATASOURCE_NAME"),
     )
 
     # Connect to RabbitMQ
@@ -59,7 +60,9 @@ def main():
         db_logger.info("Connecting to queue.")
         channel = mq.connect(os.getenv("DATASOURCE_QUEUE_NAME"))
         channel.basic_consume(
-            os.getenv("DATASOURCE_QUEUE_NAME"), on_message_callback=query_callback, auto_ack=True
+            os.getenv("DATASOURCE_QUEUE_NAME"),
+            on_message_callback=query_callback,
+            auto_ack=True,
         )
         db_logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
         channel.start_consuming()  # starts a `while True` loop.
