@@ -17,8 +17,9 @@ public class AgentsController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<List<DataSource>> CheckIn(List<DataSource> dataSource)
+  public async Task<List<DataSource>> CheckIn(AgentCheckInModel payload)
   {
+    List<DataSource> dataSource = payload.DataSources.Select(x => new DataSource { Id = x }).ToList();
     List<DataSource> dataSourceList = new List<DataSource>();
     for (int i = 0; i < dataSource.Count; i++)
     {
