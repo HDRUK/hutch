@@ -10,6 +10,7 @@ class CheckIn(threading.Thread):
         self,
         cron: str,
         url: str,
+        data_source_id: str,
         group=None,
         target=None,
         name=None,
@@ -38,6 +39,7 @@ class CheckIn(threading.Thread):
         self.current_time = self.cron.get_current(dt.datetime)
         self.next_time = self.cron.get_next(dt.datetime)
         self.url = url
+        self.data_source_id = data_source_id
 
     def start(self) -> None:
         """Start the check-in thread. Call this method, not `run`,
@@ -58,7 +60,7 @@ class CheckIn(threading.Thread):
             if self.next_time > now > self.current_time:
                 requests.post(
                     self.url,
-                    json={"dataSources": ["<name>"]},
+                    json={"dataSources": [self.data_source_id]},
                 )
                 self.current_time, self.next_time = self.next_time, self.cron.get_next(
                     dt.datetime
