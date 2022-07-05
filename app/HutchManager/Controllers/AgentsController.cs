@@ -7,7 +7,7 @@ namespace HutchManager.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class AgentsController : ControllerBase
 {
   private readonly DataSourceService _dataSources;
