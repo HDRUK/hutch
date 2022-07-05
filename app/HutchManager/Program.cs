@@ -69,7 +69,8 @@ b.Services
   .AddTransient<ActivitySourceService>()
   .AddTransient<QueryQueueService>()
   .AddHostedService<RquestPollingHostedService>()
-  .AddScoped<IRquestPollingService, RquestPollingService>();
+  .AddScoped<IRquestPollingService, RquestPollingService>()
+  .AddTransient<DataSourceService>();
 b.Services
   .AddHttpClient<RquestTaskApiClient>();
 #endregion
