@@ -41,7 +41,7 @@ public class QueryTranslator
           properties.Name = "operator";
           properties.Value = rule.Operand;
           
-          roCratesQuery.Graphs= initialGraph;
+          roCratesQuery.Graphs[i]= initialGraph;
           roCratesQuery.Graphs[i].ItemListElements[j] = item;
           roCratesQuery.Graphs[i].ItemListElements[j].AdditionalProperties[j] = properties;
         }
