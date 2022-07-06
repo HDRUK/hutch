@@ -38,27 +38,29 @@ public class QueryTranslator
       var item = new List<ROCratesQuery.Item>();
       foreach (var group in job.Query.Groups)
       {
-       
+
         var graph = new ROCratesQuery.ROCratesGraph()
         {
           Context = "https://schema.org",
-          Type ="ItemList",
+          Type = "ItemList",
           Name = "group",
-          NumberOfItems= group.Rules.Count, 
-          ItemListElements = group.Rules.Select(rule=>
+          NumberOfItems = group.Rules.Count,
+          ItemListElements = (List<ROCratesQuery.Item>)group.Rules.Select(rule =>
             new ROCratesQuery.Item()
             {
               Context = "https://schema.org",
               Type = rule.Type,
               Value = rule.Value,
-              AdditionalProperties = new ROCratesQuery.Property()
+              AdditionalProperties = new List<ROCratesQuery.Property>()
               {
-                Context = "https://schema.org",
-                Type = rule.Type,
-                Name = "operator",
-                Value = rule.Operand
+                new ROCratesQuery.Property()
+                {
+                  Context = "https://schema.org",
+                  Type = rule.Type,
+                  Name = "operator",
+                  Value = rule.Operand,
+                }
               }
-
             }
           )
         };
