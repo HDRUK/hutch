@@ -7,7 +7,6 @@ import hutchagent.message_queue as mq
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.db_logging import SyncLogDBHandler
 from hutchagent.checkin import CheckIn
-from hutchagent.query import query_callback
 
 
 async def async_main():
@@ -61,7 +60,7 @@ def main():
         channel = mq.connect(os.getenv("DATASOURCE_QUEUE_NAME"))
         channel.basic_consume(
             os.getenv("DATASOURCE_QUEUE_NAME"),
-            on_message_callback=query_callback,
+            on_message_callback=mq.query_callback,
             auto_ack=True,
         )
         db_logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
