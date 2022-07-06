@@ -51,6 +51,7 @@ def main():
     check_in_thread = CheckIn(
         cron=os.getenv("CRON_STRING"),
         url=f"{os.getenv('MANAGER_URL')}/api/agents/checkin",
+        data_source_id=os.getenv("DATASOURCE_ID")
     )
 
     # Connect to RabbitMQ

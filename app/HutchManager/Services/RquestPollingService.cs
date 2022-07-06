@@ -4,17 +4,18 @@ using HutchManager.Data;
 using HutchManager.Dto;
 using HutchManager.HostedServices;
 using HutchManager.OptionsModels;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
-using Microsoft.FeatureManagement;
 namespace HutchManager.Services;
 
 internal interface IRquestPollingService
 {
   Task PollRquest(CancellationToken stoppingToken);
 }
-public class RquestPollingService : IRquestPollingService
+public class RquestPollingService: IRquestPollingService
 {
   private readonly RquestTaskApiClient _rquestApi;
   private readonly ILogger<RquestPollingService> _logger;
@@ -23,7 +24,7 @@ public class RquestPollingService : IRquestPollingService
   private readonly IFeatureManager _featureManager;
   private Timer? _timer;
   private int executionCount = 0;
-
+  
   public RquestPollingService(
     RquestTaskApiClient rquestApi,
     ILogger<RquestPollingService> logger,
@@ -44,128 +45,135 @@ public class RquestPollingService : IRquestPollingService
       executionCount++;
 
       _logger.LogDebug(
-        "{Service} is working.Count: {Count}", nameof(RquestPollingService), executionCount);
+        "{Service} is working.Count: {Count}",nameof(RquestPollingService) ,executionCount);
       _timer = new Timer(PollRquest);
       RunTimerOnce();
       await Task.Delay(10000, stoppingToken);
     }
   }
   private async void PollRquest(object? state)
-  {
-    // async void here is intentional to meet the TimerCallback signature
-    // Stephen Cleary says it's ok:
-    // https://stackoverflow.com/a/38918443
-    var count = Interlocked.Increment(ref executionCount);
-    var activitySource = _db.ActivitySources.First();
-    _logger.LogInformation(
-      "Timed {HostedService} is working. Count: {Count}", nameof(RquestPollingHostedService), count);
-    _logger.LogInformation(
-    "Polling RQUEST for Queries on Collection: {_resourceId}",
-   activitySource.ResourceId);
-
-    RquestQueryTask? job = null;
-    int? result = null;
-
-    try
-    {
-      job = await _rquestApi.FetchQuery(activitySource);
-      if (job is null)
-      {
-        _logger.LogInformation(
-              "No Queries on Collection: {_resourceId}",
-              activitySource.ResourceId);
-        RunTimerOnce();
-        return;
-      }
-
-      SendToQueue(job);
-      // TODO: Threading / Parallel query handling?
-      // affects timer usage, the process logic will need to be
-      // threaded using Task.Run or similar.
-      StopTimer();
-    }
-    catch (Exception e)
-    {
-      if (job is null)
-      {
-        _logger.LogError(e, "Task fetching failed");
-      }
-      else
-      {
-
-        if (result is null)
         {
-          _logger.LogError(e,
-              "Query execution failed for job: {jobId}",
-              job.JobId);
+          // async void here is intentional to meet the TimerCallback signature
+          // Stephen Cleary says it's ok:
+          // https://stackoverflow.com/a/38918443
+            var count = Interlocked.Increment(ref executionCount);
+            var activitySource = _db.ActivitySources.FirstOrDefault();
+            if (activitySource is null) return;
+              _logger.LogInformation(
+              "Timed {HostedService} is working. Count: {Count}", nameof(RquestPollingHostedService),count);
+            _logger.LogInformation(
+            "Polling RQUEST for Queries on Collection: {_resourceId}",
+           activitySource.ResourceId);
+
+          RquestQueryTask? job = null;
+            int? result = null;
+
+            try
+            {
+              job = await _rquestApi.FetchQuery(activitySource);
+                if (job is null)
+                {
+                    _logger.LogInformation(
+                          "No Queries on Collection: {_resourceId}",
+                          activitySource.ResourceId);
+                    RunTimerOnce();
+                    return;
+                }
+      var aSource = await _db.ActivitySources
+            .AsNoTracking()
+            .Include(x => x.Type)
+            .Where(x => x.Id == job.ActivitySourceId)
+            .SingleOrDefaultAsync()
+          ?? throw new KeyNotFoundException();
+      SendToQueue(job,aSource.TargetDataSourceName);
+                // TODO: Threading / Parallel query handling?
+                // affects timer usage, the process logic will need to be
+                // threaded using Task.Run or similar.
+                StopTimer();
+            }
+            catch (Exception e)
+            {
+                if (job is null)
+                {
+                    _logger.LogError(e, "Task fetching failed");
+                }
+                else
+                {
+
+                    if (result is null)
+                    {
+                        _logger.LogError(e,
+                            "Query execution failed for job: {jobId}",
+                            job.JobId);
+                    }
+                    else
+                    {
+                        _logger.LogError(e,
+                            "Results Submission failed for job: {jobId}, result: {result}",
+                            job.JobId,
+                            result);
+                    }
+
+                    _logger.LogInformation("Cancelled failed job: {jobId}", job.JobId);
+                }
+            }
+
+            RunTimerOnce();
         }
-        else
+        private void RunTimerOnce()
+          => _timer?.Change(
+            TimeSpan.FromSeconds(_config.QueryPollingInterval),
+            Timeout.InfiniteTimeSpan);
+
+        /// <summary>
+        /// Change the timer to execute its callback regularly
+        /// at the configured polling interval
+        /// </summary>
+        private void StartTimer()
+          => _timer?.Change(
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(_config.QueryPollingInterval));
+
+        /// <summary>
+        /// Change the timer to stop regular callback execution
+        /// </summary>
+        private void StopTimer()
+          => _timer?.Change(Timeout.Infinite, 0);
+        
+        public async void SendToQueue(RquestQueryTask jobPayload,string queueName)
         {
-          _logger.LogError(e,
-              "Results Submission failed for job: {jobId}, result: {result}",
-              job.JobId,
-              result);
+          byte[] body = new Byte[64];
+          var factory = new ConnectionFactory() { HostName = "localhost" };
+          using(var connection = factory.CreateConnection())
+          using(var channel = connection.CreateModel())
+          
+          {
+            channel.QueueDeclare(queue: queueName,
+              durable: true,
+              exclusive: false,
+              autoDelete: false,
+              arguments: null);
+            
+            var properties = channel.CreateBasicProperties();
+            properties.Persistent = true;
+            
+            if (await _featureManager.IsEnabledAsync(FeatureFlags.UseROCrates))
+            {
+              ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
+              body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(roCratesQuery));
+            }
+            else
+            {
+              body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload));
+
+            }
+            channel.BasicPublish(exchange: "",
+              routingKey: queueName,
+              basicProperties: null,
+              body: body);
+            
+            _logger.LogInformation("Sent to Queue {body}", jobPayload);
+          }
         }
-
-        _logger.LogInformation("Cancelled failed job: {jobId}", job.JobId);
-      }
-    }
-
-    RunTimerOnce();
-  }
-  private void RunTimerOnce()
-    => _timer?.Change(
-      TimeSpan.FromSeconds(_config.QueryPollingInterval),
-      Timeout.InfiniteTimeSpan);
-
-  /// <summary>
-  /// Change the timer to execute its callback regularly
-  /// at the configured polling interval
-  /// </summary>
-  private void StartTimer()
-    => _timer?.Change(
-      TimeSpan.Zero,
-      TimeSpan.FromSeconds(_config.QueryPollingInterval));
-
-  /// <summary>
-  /// Change the timer to stop regular callback execution
-  /// </summary>
-  private void StopTimer()
-    => _timer?.Change(Timeout.Infinite, 0);
-
-  public async void SendToQueue(RquestQueryTask jobPayload)
-  {
-    byte[] body = new Byte[64];
-    var factory = new ConnectionFactory() { HostName = "localhost" };
-    using (var connection = factory.CreateConnection())
-    using (var channel = connection.CreateModel())
-    {
-      channel.QueueDeclare(queue: "jobs",
-        durable: true,
-        exclusive: false,
-        autoDelete: false,
-        arguments: null);
-
-      var properties = channel.CreateBasicProperties();
-      properties.Persistent = true;
-      
-      if (await _featureManager.IsEnabledAsync(FeatureFlags.UseROCrates))
-      {
-        ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
-        body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(roCratesQuery));
-      }
-      else
-      {
-        body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload));
-
-      }
-      channel.BasicPublish(exchange: "",
-        routingKey: "jobs",
-        basicProperties: null,
-        body: body);
-
-      _logger.LogInformation("Sent to Queue {body}", jobPayload);
-    }
-  }
 
 }

@@ -1,8 +1,14 @@
 import datetime as dt
+import logging
+import os
 import threading
-import requests
+import dotenv
+import requests, requests.exceptions as req_exc
 from typing import Union
 from croniter import croniter
+
+
+dotenv.load_dotenv()
 
 
 class CheckIn(threading.Thread):
@@ -10,6 +16,7 @@ class CheckIn(threading.Thread):
         self,
         cron: str,
         url: str,
+        data_source_id: str,
         group=None,
         target=None,
         name=None,
@@ -38,6 +45,7 @@ class CheckIn(threading.Thread):
         self.current_time = self.cron.get_current(dt.datetime)
         self.next_time = self.cron.get_next(dt.datetime)
         self.url = url
+        self.data_source_id = data_source_id
 
     def start(self) -> None:
         """Start the check-in thread. Call this method, not `run`,
@@ -53,16 +61,34 @@ class CheckIn(threading.Thread):
         When the current time is greater than or equal to the previous
         time plus the specified interval, POST a check-in to the manager.
         """
+        logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
         while self.running:
             now = dt.datetime.now()
             if self.next_time > now > self.current_time:
-                requests.post(
-                    self.url,
-                    json={"dataSources": ["<name>"]},
-                )
-                self.current_time, self.next_time = self.next_time, self.cron.get_next(
-                    dt.datetime
-                )
+                try:
+                    logger.info(f"Attempting checkin @ {now}.")
+                    res = requests.post(
+                        self.url,
+                        json={"dataSources": [self.data_source_id]},
+                        verify=os.getenv("MANAGER_CERT"),
+                    )
+                    if res.status_code == 200:
+                        logger.info("Checkin successful.")
+                    else:
+                        logger.warning(
+                            f"Checkin unsuccessful. Code: {res.status_code}{os.linesep}"
+                            + f"Reason: {res.reason}"
+                        )
+                except req_exc.ConnectionError as connection_error:
+                    logger.error(str(connection_error))
+                except req_exc.Timeout as timeout_error:
+                    logger.error(str(timeout_error))
+                except req_exc.MissingSchema as missing_schema_error:
+                    logger.error(str(missing_schema_error))
+                finally:
+                    self.current_time, self.next_time = self.next_time, self.cron.get_next(
+                        dt.datetime
+                    )
 
     def join(self, timeout: Union[float, None] = None) -> None:
         """Call this method to end the check-in thread."""
