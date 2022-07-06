@@ -1,67 +1,68 @@
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 
 namespace HutchManager.Dto;
 
 public class ROCratesQuery
 {
-  [JsonPropertyName("@context")]
+  [JsonProperty(PropertyName="@context")]
   public string Context { get; set; } = string.Empty;
   
-  [JsonPropertyName("@graph")]
+  [JsonProperty(PropertyName="@graph")]
   public List<ROCratesGraph> Graphs { get; set; } = new ();
 
   public class ROCratesGraph
   {
-    [JsonPropertyName("@context")]
+    [JsonProperty(PropertyName="@context")]
     public string Context { get; set; } = string.Empty;
     
-    [JsonPropertyName("@type")]
+    [JsonProperty(PropertyName="@type")]
     public string Type { get; set; } = string.Empty;
     
-    [JsonPropertyName("name")]
+    [JsonProperty(PropertyName="name")]
     public string Name { get; set; } = string.Empty;
     
-    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName="value")]
     public string Value { get; set; } = string.Empty;
     
-    [JsonPropertyName(("numberOfItems"))]
+    [JsonProperty(PropertyName="numberOfItems")]
     public int NumberOfItems { get; set;}
     
-    [JsonPropertyName("itemListElement")] 
+    [JsonProperty(PropertyName="itemListElement")] 
     public IEnumerable<Item> ItemListElements { get; set;} = null!;
   }
   
   public class Item
   {
-    [JsonPropertyName("@context")]
+    [JsonProperty(PropertyName = "@context")]
     public string Context { get; set; } = string.Empty;
     
-    [JsonPropertyName("@type")]
+    [JsonProperty(PropertyName ="@type")]
     public string Type { get; set; } = string.Empty;
     
-    [JsonPropertyName("name")]
+    [JsonProperty(PropertyName="name")]
     public string Name { get; set; } = string.Empty;
     
-    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName="value")]
     public string Value { get; set; } = string.Empty;
 
-    [JsonPropertyName("additionalProperty")]
+    [JsonProperty(PropertyName="additionalProperty")]
     public List<Property> AdditionalProperties { get; set; } = new();
   }
 
   public class Property
   {
-    [JsonPropertyName("@context")]
+    [JsonProperty(PropertyName="@context")]
     public string Context { get; set; } = string.Empty;
     
-    [JsonPropertyName("@type")]
+    [JsonProperty(PropertyName="@type")]
     public string Type { get; set; } = string.Empty;
     
-    [JsonPropertyName("name")]
+    [JsonProperty(PropertyName="name")]
     public string Name { get; set; } = string.Empty;
     
-    [JsonPropertyName("value")]
+    [JsonProperty(PropertyName="value")]
     public string Value { get; set; } = string.Empty;
   }
 }
