@@ -67,6 +67,7 @@ b.Services
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()
   .AddTransient<ActivitySourceService>()
+  .AddTransient<DataSourceService>()
   .AddTransient<QueryQueueService>()
   .AddHostedService<RquestPollingHostedService>()
   .AddScoped<IRquestPollingService, RquestPollingService>()
