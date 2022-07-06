@@ -13,12 +13,12 @@ class Rule(Thing):
         self,
         context: str,
         type_: str,
-        operator: Operator,
         name: str = "",
         value: Any = None,
         min_value: Union[int, float, None] = None,
         max_value: Union[int, float, None] = None,
-        **kwargs
+        operator: Union[Operator, None] = None,
+        **kwargs,
     ) -> None:
         super().__init__(context, type_, name)
         self.operator = operator
@@ -35,9 +35,11 @@ class Rule(Thing):
         dict_ = {
             "@context": self.context,
             "@type": self.type_,
-            "name": self.name,
-            "additionalProperty": self.operator.to_dict(),
         }
+        if self.name is not None:
+            dict_.update(name=self.name)
+        if self.operator is not None:
+            dict_.update(additionalProperty=self.operator.to_dict())
         if self.value is not None:
             dict_.update(value=self.value)
         elif (self.min_value is not None) and (self.max_value is not None):
@@ -54,6 +56,9 @@ class Rule(Thing):
         Returns:
             Self: `Rule` object.
         """
+        operator = None
+        if op := dict_.get("additionalProperty"):
+            operator = Operator.from_dict(op)
         return cls(
             context=dict_.get("@context"),
             type_=dict_.get("@type"),
@@ -61,7 +66,7 @@ class Rule(Thing):
             value=dict_.get("value"),
             min_value=dict_.get("minValue"),
             max_value=dict_.get("maxValue"),
-            operator=Operator.from_dict(dict_.get("additionalProperty")),
+            operator=operator,
         )
 
     def _get_column_name(self, concept_id: Any) -> Union[str, None]:
