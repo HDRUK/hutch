@@ -74,7 +74,7 @@ public class RquestPollingService : IRquestPollingService
         return;
       }
 
-      _logger.LogInformation("Query {task}", job.Query.ToKeyValuePairs());
+      _logger.LogInformation("Query {task}", job.Query);
       ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(job);
       _logger.LogInformation("RO-CRATES object{rocrates}", roCratesQuery.Graphs);
       SendToQueue(job);

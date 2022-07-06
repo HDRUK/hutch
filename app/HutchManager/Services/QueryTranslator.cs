@@ -45,7 +45,7 @@ public class QueryTranslator
           Type = "ItemList",
           Name = "group",
           NumberOfItems = group.Rules.Count,
-          ItemListElements = (List<ROCratesQuery.Item>)group.Rules.Select(rule =>
+          ItemListElements = group.Rules.Select(rule =>
             new ROCratesQuery.Item()
             {
               Context = "https://schema.org",
