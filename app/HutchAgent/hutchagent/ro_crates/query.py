@@ -1,7 +1,12 @@
 import json
 from typing import List
 from sqlalchemy import and_, or_, func, select
-from HutchAgent.hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
+from hutchagent.entities import (
+    ConditionOccurrence,
+    Measurement,
+    Observation,
+    Person,
+)
 from hutchagent.ro_crates.group import Group
 from hutchagent.ro_crates.operator import Operator
 
