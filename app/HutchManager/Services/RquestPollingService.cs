@@ -1,5 +1,5 @@
 using System.Text;
-using Flurl.Util;
+using HutchManager.Config;
 using HutchManager.Data;
 using HutchManager.Dto;
 using HutchManager.HostedServices;
@@ -7,6 +7,7 @@ using HutchManager.OptionsModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
+using Microsoft.FeatureManagement;
 namespace HutchManager.Services;
 
 internal interface IRquestPollingService
@@ -19,6 +20,7 @@ public class RquestPollingService : IRquestPollingService
   private readonly ILogger<RquestPollingService> _logger;
   private readonly RquestPollingServiceOptions _config;
   private readonly ApplicationDbContext _db;
+  private readonly IFeatureManager _featureManager;
   private Timer? _timer;
   private int executionCount = 0;
 
@@ -26,12 +28,14 @@ public class RquestPollingService : IRquestPollingService
     RquestTaskApiClient rquestApi,
     ILogger<RquestPollingService> logger,
     IOptions<RquestPollingServiceOptions> config,
-    ApplicationDbContext db)
+    ApplicationDbContext db,
+    IFeatureManager featureManager)
   {
     _logger = logger;
     _rquestApi = rquestApi;
     _config = config.Value;
     _db = db;
+    _featureManager = featureManager;
   }
   public async Task PollRquest(CancellationToken stoppingToken)
   {
@@ -75,8 +79,12 @@ public class RquestPollingService : IRquestPollingService
       }
 
       _logger.LogInformation("Query {task}", job.Query);
-      ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(job);
-      _logger.LogInformation("RO-CRATES object{rocrates}", roCratesQuery.Graphs);
+      if (await _featureManager.IsEnabledAsync(FeatureFlags.ROCratesTranslation))
+      {
+        ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(job);
+        
+      }
+      
       SendToQueue(job);
       // TODO: Threading / Parallel query handling?
       // affects timer usage, the process logic will need to be

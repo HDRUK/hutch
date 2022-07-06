@@ -12,6 +12,7 @@ using HutchManager.Services;
 using HutchManager.Services.QueryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 using Serilog;
 using UoN.AspNetCore.VersionMiddleware;
 
@@ -69,7 +70,8 @@ b.Services
   .AddTransient<ActivitySourceService>()
   .AddTransient<QueryQueueService>()
   .AddHostedService<RquestPollingHostedService>()
-  .AddScoped<IRquestPollingService, RquestPollingService>();
+  .AddScoped<IRquestPollingService, RquestPollingService>()
+  .AddFeatureManagement();
 b.Services
   .AddHttpClient<RquestTaskApiClient>();
 #endregion
