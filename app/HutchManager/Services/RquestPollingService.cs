@@ -52,8 +52,9 @@ public class RquestPollingService: IRquestPollingService
           // Stephen Cleary says it's ok:
           // https://stackoverflow.com/a/38918443
             var count = Interlocked.Increment(ref executionCount);
-            var activitySource = _db.ActivitySources.First();
-            _logger.LogInformation(
+            var activitySource = _db.ActivitySources.FirstOrDefault();
+            if (activitySource is null) return;
+              _logger.LogInformation(
               "Timed {HostedService} is working. Count: {Count}", nameof(RquestPollingHostedService),count);
             _logger.LogInformation(
             "Polling RQUEST for Queries on Collection: {_resourceId}",

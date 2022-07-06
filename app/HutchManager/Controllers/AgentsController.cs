@@ -7,7 +7,7 @@ namespace HutchManager.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class AgentsController : ControllerBase
 {
   private readonly DataSourceService _dataSources;
@@ -16,7 +16,7 @@ public class AgentsController : ControllerBase
     _dataSources = dataSources;
   }
 
-  [HttpPost]
+  [HttpPost("checkin")]
   public async Task<List<DataSource>> CheckIn(AgentCheckInModel payload)
   {
     List<DataSource> dataSource = payload.DataSources.Select(x => new DataSource { Id = x }).ToList();
