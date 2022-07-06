@@ -1,5 +1,5 @@
 using HutchManager.Dto;
-using Microsoft.AspNetCore.Authentication;
+
 
 namespace HutchManager.Services;
 
@@ -31,11 +31,9 @@ public class QueryTranslator
       {
         Context = "https://schema.org",
         Type = "PropertyValue",
-        Name = "activity_source_id",
+        Name = "job_id",
         Value = job.JobId
       });
-
-      var item = new List<ROCratesQuery.Item>();
       foreach (var group in job.Query.Groups)
       {
 
@@ -64,9 +62,16 @@ public class QueryTranslator
             }
           )
         };
+        var ruleOperator=new ROCratesQuery.Item()
+        {
+          Context = "https://schema.org",
+          Type = "PropertyValue",
+          Name = "ruleOperator",
+          Value = group.Combinator
+        };
+        graph.ItemListElements=graph.ItemListElements.Append(ruleOperator);
         graphs.Add(graph);
       }
-
       roCratesQuery.Graphs = graphs;
       return roCratesQuery;
     }

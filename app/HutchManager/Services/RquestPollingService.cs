@@ -78,13 +78,6 @@ public class RquestPollingService : IRquestPollingService
         return;
       }
 
-      _logger.LogInformation("Query {task}", job.Query);
-      if (await _featureManager.IsEnabledAsync(FeatureFlags.ROCratesTranslation))
-      {
-        ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(job);
-        
-      }
-      
       SendToQueue(job);
       // TODO: Threading / Parallel query handling?
       // affects timer usage, the process logic will need to be
@@ -140,8 +133,9 @@ public class RquestPollingService : IRquestPollingService
   private void StopTimer()
     => _timer?.Change(Timeout.Infinite, 0);
 
-  public void SendToQueue(RquestQueryTask jobPayload)
+  public async void SendToQueue(RquestQueryTask jobPayload)
   {
+    byte[] body = new Byte[64];
     var factory = new ConnectionFactory() { HostName = "localhost" };
     using (var connection = factory.CreateConnection())
     using (var channel = connection.CreateModel())
@@ -154,8 +148,17 @@ public class RquestPollingService : IRquestPollingService
 
       var properties = channel.CreateBasicProperties();
       properties.Persistent = true;
+      
+      if (await _featureManager.IsEnabledAsync(FeatureFlags.UseROCrates))
+      {
+        ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
+        body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(roCratesQuery));
+      }
+      else
+      {
+        body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload));
 
-      byte[] body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload));
+      }
       channel.BasicPublish(exchange: "",
         routingKey: "jobs",
         basicProperties: null,

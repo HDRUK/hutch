@@ -2,5 +2,5 @@ namespace HutchManager.Config;
 
 public class FeatureFlags
 {
-  public const string ROCratesTranslation = "ROCratesTranslation";
+  public const string UseROCrates = "UseROCrates";
 }
