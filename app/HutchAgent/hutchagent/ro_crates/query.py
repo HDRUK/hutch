@@ -1,6 +1,7 @@
 import json
 from typing import List
-
+from sqlalchemy import and_, or_, func, select
+from HutchAgent.hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 from hutchagent.ro_crates.group import Group
 from hutchagent.ro_crates.operator import Operator
 
@@ -79,6 +80,31 @@ class Query:
             job_id=job_id,
             activity_source_id=activity_source_id,
         )
+
+    def to_sql(self):
+        if self.group_operator.value == "AND":
+            groups_clause = and_(*[group.sql_clause for group in self.groups])
+        else:
+            groups_clause = or_(*[group.sql_clause for group in self.groups])
+        stmt = (
+            select(Person.person_id)
+            .join(
+                ConditionOccurrence,
+                Person.person_id == ConditionOccurrence.person_id,
+            )
+            .join(
+                Measurement,
+                Person.person_id == Measurement.person_id,
+            )
+            .join(
+                Observation,
+                Person.person_id == Observation.person_id,
+            )
+            .where(groups_clause)
+            .distinct()
+            .subquery()
+        )
+        return select(func.count()).select_from(stmt)
 
     def __str__(self) -> str:
         return json.dumps(self.to_dict(), indent=2)
