@@ -14,9 +14,6 @@ from hutchagent.query import RQuestQuery
 from hutchagent.ro_crates.query import Query
 
 
-dotenv.load_dotenv()
-
-
 def connect(queue: str, host="localhost", **kwargs) -> BlockingChannel:
     """Connect to a RabbitMQ instance.
 
@@ -45,7 +42,7 @@ def disconnect(channel: BlockingChannel) -> None:
     channel.connection.close()
 
 
-def query_callback(
+def rquest_callback(
     channel: Channel, method: Basic.Deliver, properties: BasicProperties, body: bytes
 ):
     """The callback to be used when consuming messages from the queue.
@@ -66,10 +63,7 @@ def query_callback(
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)
-        if int(os.getenv("USE_RO_CRATES", 0)):
-            query = Query.from_dict(body_json)
-        else:
-            query = RQuestQuery(**body_json)
+        query = RQuestQuery(**body_json)
         response_data["collection_id"] = query.collection
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
