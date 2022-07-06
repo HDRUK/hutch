@@ -1,4 +1,5 @@
 using HutchManager.Dto;
+using Microsoft.AspNetCore.Authentication;
 
 namespace HutchManager.Services;
 
@@ -37,6 +38,7 @@ public class QueryTranslator
       var item = new List<ROCratesQuery.Item>();
       foreach (var group in job.Query.Groups)
       {
+       
         var graph = new ROCratesQuery.ROCratesGraph()
         {
           Context = "https://schema.org",
@@ -49,15 +51,16 @@ public class QueryTranslator
               Context = "https://schema.org",
               Type = rule.Type,
               Value = rule.Value,
-              AdditionalProperties = new List<ROCratesQuery.Property>()
+              AdditionalProperties = new ROCratesQuery.Property()
               {
                 Context = "https://schema.org",
                 Type = rule.Type,
                 Name = "operator",
                 Value = rule.Operand
               }
-                
-            })
+
+            }
+          )
         };
         graphs.Add(graph);
       }
