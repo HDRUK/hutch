@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import time
-import dotenv
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.channel import Channel
@@ -11,7 +10,6 @@ import requests, requests.exceptions as req_exc
 from sqlalchemy import exc as sql_exc
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query import RQuestQuery
-from hutchagent.ro_crates.query import Query
 
 
 def connect(queue: str, host="localhost", **kwargs) -> BlockingChannel:
