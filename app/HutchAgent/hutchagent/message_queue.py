@@ -8,6 +8,8 @@ from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 import requests, requests.exceptions as req_exc
 from sqlalchemy import exc as sql_exc
+from hutchagent.ro_crates.result import Result
+from hutchagent.ro_crates.query import Query
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query import RQuestQuery
 
@@ -119,15 +121,10 @@ def ro_crates_callback(
         body (bytes): The body of the message.
     """
     logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
-    response_data = {
-        "protocol_version": "v2",
-        "query_result": dict(),
-    }
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)
-        query = RQuestQuery(**body_json)
-        response_data["collection_id"] = query.collection
+        query = Query.from_dict(body_json)
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
@@ -145,22 +142,42 @@ def ro_crates_callback(
         res = db_manager.execute_and_fetch(query.to_sql())
         query_end = time.time()
         count_ = res[0][0]
-        response_data["query_result"].update(count=count_, status="ok")
         logger.info(
-            f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
+            f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
+        )
+        result = Result(
+            activity_source_id="<activity_source_id>",
+            job_id="<job_id>",
+            status="ok",
+            count=count_,
         )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
-        response_data["query_result"].update(count=0, status="error")
+        result = Result(
+            activity_source_id="<activity_source_id>",
+            job_id="<job_id>",
+            status="error",
+            count=0,
+        )
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(str(column_error))
-        response_data["query_result"].update(count=0, status="error")
+        result = Result(
+            activity_source_id="<activity_source_id>",
+            job_id="<job_id>",
+            status="error",
+            count=0,
+        )
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
-        response_data["query_result"].update(count=0, status="error")
+        result = Result(
+            activity_source_id="<activity_source_id>",
+            job_id="<job_id>",
+            status="error",
+            count=0,
+        )
 
     try:
-        requests.post(os.getenv("MANAGER_URL"), response_data)
+        requests.post(os.getenv("MANAGER_URL"), result.to_dict())
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
