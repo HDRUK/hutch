@@ -14,8 +14,6 @@ public class QueryTranslator
     {
       
       ROCratesQuery roCratesQuery = new();
-      roCratesQuery.Context = "https://w3id.org/ro/crate/1.1/context";
-
       var graphs = new ROCratesQuery().Graphs;
       //Add ActivitySourceID
       graphs.Add(new ROCratesQuery.ROCratesGraph
@@ -29,7 +27,6 @@ public class QueryTranslator
       // Add Job ID
       graphs.Add(new ROCratesQuery.ROCratesGraph
       {
-        Context = "https://schema.org",
         Type = "PropertyValue",
         Name = "job_id",
         Value = job.JobId
@@ -39,21 +36,18 @@ public class QueryTranslator
 
         var graph = new ROCratesQuery.ROCratesGraph()
         {
-          Context = "https://schema.org",
           Type = "ItemList",
           Name = "group",
           NumberOfItems = group.Rules.Count,
           ItemListElements = group.Rules.Select(rule =>
             new ROCratesQuery.Item()
             {
-              Context = "https://schema.org",
               Type = rule.Type,
               Value = rule.Value,
               AdditionalProperties = new List<ROCratesQuery.Property>()
               {
                 new ROCratesQuery.Property()
                 {
-                  Context = "https://schema.org",
                   Type = rule.Type,
                   Name = "operator",
                   Value = rule.Operand,

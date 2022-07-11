@@ -79,13 +79,14 @@ public class RquestPollingService: IRquestPollingService
                     RunTimerOnce();
                     return;
                 }
-      var aSource = await _db.ActivitySources
-            .AsNoTracking()
-            .Include(x => x.Type)
-            .Where(x => x.Id == job.ActivitySourceId)
-            .SingleOrDefaultAsync()
-          ?? throw new KeyNotFoundException();
-      SendToQueue(job,aSource.TargetDataSourceName);
+                
+                var aSource = await _db.ActivitySources
+                                  .AsNoTracking()
+                                  .Include(x => x.Type)
+                                  .Where(x => x.Id == job.ActivitySourceId)
+                                  .SingleOrDefaultAsync()
+                                ?? throw new KeyNotFoundException();
+                SendToQueue(job,aSource.TargetDataSourceName);
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
                 // threaded using Task.Run or similar.
@@ -148,7 +149,7 @@ public class RquestPollingService: IRquestPollingService
           using(var channel = connection.CreateModel())
           
           {
-            channel.QueueDeclare(queue: queueName,
+            channel.QueueDeclare(queue: "jobs",
               durable: true,
               exclusive: false,
               autoDelete: false,
@@ -168,7 +169,7 @@ public class RquestPollingService: IRquestPollingService
 
             }
             channel.BasicPublish(exchange: "",
-              routingKey: queueName,
+              routingKey: "jobs",
               basicProperties: null,
               body: body);
             

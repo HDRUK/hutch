@@ -7,7 +7,7 @@ namespace HutchManager.Dto;
 public class ROCratesQuery
 {
   [JsonProperty(PropertyName="@context")]
-  public string Context { get; set; } = string.Empty;
+  public string Context { get; set; } = "https://w3id.org/ro/crate/1.1/context";
   
   [JsonProperty(PropertyName="@graph")]
   public List<ROCratesGraph> Graphs { get; set; } = new ();
@@ -15,7 +15,7 @@ public class ROCratesQuery
   public class ROCratesGraph
   {
     [JsonProperty(PropertyName="@context")]
-    public string Context { get; set; } = string.Empty;
+    public string Context { get; set; } = "https://schema.org";
     
     [JsonProperty(PropertyName="@type")]
     public string Type { get; set; } = string.Empty;
@@ -36,7 +36,7 @@ public class ROCratesQuery
   public class Item
   {
     [JsonProperty(PropertyName = "@context")]
-    public string Context { get; set; } = string.Empty;
+    public string Context { get; set; } = "https://schema.org";
     
     [JsonProperty(PropertyName ="@type")]
     public string Type { get; set; } = string.Empty;
@@ -54,7 +54,7 @@ public class ROCratesQuery
   public class Property
   {
     [JsonProperty(PropertyName="@context")]
-    public string Context { get; set; } = string.Empty;
+    public string Context { get; set; } = "https://schema.org";
     
     [JsonProperty(PropertyName="@type")]
     public string Type { get; set; } = string.Empty;
