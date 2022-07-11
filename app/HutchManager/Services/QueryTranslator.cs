@@ -56,14 +56,14 @@ public class QueryTranslator
             }
           )
         };
-        var ruleOperator=new ROCratesQuery.Item()
+        var ruleOperator = new ROCratesQuery.Item()
         {
           Context = "https://schema.org",
           Type = "PropertyValue",
           Name = "ruleOperator",
           Value = group.Combinator
         };
-        graph.ItemListElements=graph.ItemListElements.Append(ruleOperator);
+        graph.ItemListElements = graph.ItemListElements.Append(ruleOperator);
         graphs.Add(graph);
       }
       roCratesQuery.Graphs = graphs;
