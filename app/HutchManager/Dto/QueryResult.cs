@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using Org.BouncyCastle.Utilities.Collections;
+using Newtonsoft.Json;
 
 namespace HutchManager.Dto
 {
@@ -8,30 +8,35 @@ namespace HutchManager.Dto
   /// </summary>
   public class QueryResult
   {
-    public QueryResult(string jobId, int? count = null)
+    public QueryResult(int activity_source_id, string job_id, int? count=null)
     {
-      JobId = jobId;
-
+      ActivitySourceId = activity_source_id;
+      JobId = job_id;
+      
       if(count.HasValue)
-        Result = new() { Count = count.Value };
+        Results = new() { Count = count.Value };
     }
-    [JsonPropertyName("status")] public string Status { get; set; } = string.Empty;
 
-    [JsonPropertyName("protocol_version")] public string ProtocolVersion { get; set; } = string.Empty;
+    [JsonProperty(PropertyName = "status")]
+    public string Status { get; set; } = "OK";
 
-    [JsonPropertyName("activity_source_id")]
+    [JsonProperty(PropertyName = "protocolVersion")]
+    public string ProtocolVersion { get; set; } = "2";
+
+    [JsonProperty(PropertyName="activity_source_id")]
     public int ActivitySourceId { get; set; }
 
-    [JsonPropertyName("job_id")] public string JobId { get; set; }
+    [JsonProperty(PropertyName="job_id")] public string JobId { get; set; }
     
-    [JsonPropertyName("query_result")]
-    public QueryResultCount? Result { get; set; }
+    [JsonProperty(PropertyName="query_result")]
+    public QueryResultCount Results { get; set; }
     
   }
   
   public class QueryResultCount
   {
-    [JsonPropertyName("count")]
+    [JsonProperty(PropertyName="count")]
     public int Count { get; set; }
+
   }
 }
