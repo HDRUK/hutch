@@ -110,7 +110,11 @@ export const ConfigureResultsModifierModal = ({
                       <Form noValidate>
                         <ModalBody>Are you sure you want to do this?</ModalBody>
                         <ModalFooter>
-                          <Button variant="ghost" mr={3} onClick={onClose}>
+                          <Button
+                            variant="ghost"
+                            mr={3}
+                            onClick={onConfirmClose}
+                          >
                             Close
                           </Button>
                           <Button colorScheme="blue" type="submit">

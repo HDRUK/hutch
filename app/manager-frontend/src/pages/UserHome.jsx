@@ -15,7 +15,6 @@ import { ActivitySourceSummary } from "components/ActivitySourceSummary";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
-import ResultsModifierList from "components/ResultsModifierList";
 
 export const UserHome = () => {
   const { user } = useUser();
@@ -82,7 +81,6 @@ export const UserHome = () => {
         onClose={onClose}
         onDelete={onDeleteSource}
       />
-      <ResultsModifierList />
     </VStack>
   );
 };
