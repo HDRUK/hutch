@@ -19,6 +19,7 @@ import { FaArrowRight } from "react-icons/fa";
 import { FormikInput } from "./forms/FormikInput";
 import { FormikSelect } from "./forms/FormikSelect";
 import LowNumberSuppressionParameters from "./LowNumberSuppressionParameters";
+import { validationSchema } from "pages/ResultsModifier/validation";
 
 export const ConfigureResultsModifierModal = ({
   initialData,
@@ -32,6 +33,12 @@ export const ConfigureResultsModifierModal = ({
     onClose: onConfirmClose,
   } = useDisclosure();
   const [feedback, setFeedback] = useState();
+
+  // Todo: Get this from backend
+  const typeOptions = [
+    { value: "Type1", text: "Type1" },
+    { value: "Type2", text: "Type2" },
+  ];
 
   const handleSubmit = async (values, actions) => {
     try {
@@ -48,6 +55,7 @@ export const ConfigureResultsModifierModal = ({
       onClose();
     } catch (e) {
       console.error(e);
+      onConfirmClose();
       setFeedback("Something went wrong!");
       window.scrollTo(0, 0);
     }
@@ -69,11 +77,22 @@ export const ConfigureResultsModifierModal = ({
               initialData
                 ? {
                     Order: initialData.order,
+                    Type: initialData.type,
+                    // capitalise the object keys in the parameters object
+                    Parameters: Object.fromEntries(
+                      Object.entries(initialData.parameters).map(([k, v]) => [
+                        k.charAt(0).toUpperCase() + k.slice(1),
+                        v,
+                      ])
+                    ),
                   }
                 : {
                     Order: "",
+                    Type: typeOptions[0].value,
+                    Parameters: {},
                   }
             }
+            validationSchema={validationSchema()}
           >
             {({ isSubmitting, values }) => (
               <Form noValidate>
@@ -85,7 +104,13 @@ export const ConfigureResultsModifierModal = ({
                     </Alert>
                   )}
                   <FormikInput label="Order" name={"Order"} type="Order" />
-                  <LowNumberSuppressionParameters type={values.type} />
+                  <FormikSelect
+                    label="Type"
+                    name={"Type"}
+                    type="Type"
+                    options={typeOptions}
+                  />
+                  <LowNumberSuppressionParameters type={values.Type} />
                   <Button
                     w="full"
                     leftIcon={<FaArrowRight />}

@@ -12,19 +12,39 @@ import {
   AlertIcon,
 } from "@chakra-ui/react";
 
-import React, { useState } from "react";
-import { Form, Formik, useField } from "formik";
+import React, { useState, useEffect } from "react";
+import { Form, Formik, useFormikContext } from "formik";
 import { FaArrowRight } from "react-icons/fa";
 import { FormikInput } from "./forms/FormikInput";
 import { FormikSelect } from "./forms/FormikSelect";
 
 function LowNumberSuppressionParameters({ type }) {
-  // Todo
+  const formikProps = useFormikContext();
+  useEffect(() => {
+    formikProps.setFieldValue("Parameters", { Threshold: null });
+  }, [type]);
+  // Todo: get the value of the inputs to update when the formik values update
   switch (type) {
-    case "1":
-      return <div>LowNumberSuppressionParameters</div>;
+    case "Type1":
+      return (
+        <Form noValidate>
+          <FormikInput
+            label="Threshold"
+            name={"Parameters.Threshold"}
+            type="number"
+          />
+        </Form>
+      );
     default:
-      return <div>LowNumberSuppressionParameters</div>;
+      return (
+        <Form noValidate>
+          <FormikInput
+            label="Threshold"
+            name={"Parameters.Threshold"}
+            type="number"
+          />
+        </Form>
+      );
   }
 }
 

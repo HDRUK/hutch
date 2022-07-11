@@ -48,8 +48,7 @@ export const ResultsModifier = ({
         </Flex>
       </HStack>
       {children}
-      {sourceURL && <Text>Source: {sourceURL}</Text>}
-      <Button colorScheme="red" ml={"auto"} onClick={onUpdate}>
+      <Button ml={"auto"} onClick={onUpdate}>
         Update
       </Button>
     </VStack>
