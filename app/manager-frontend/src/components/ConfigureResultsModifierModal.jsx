@@ -36,8 +36,8 @@ export const ConfigureResultsModifierModal = ({
 
   // Todo: Get this from backend
   const typeOptions = [
-    { value: "Type1", text: "Type1" },
-    { value: "Type2", text: "Type2" },
+    { value: { Id: "Type1", Limit: "Limit1" }, text: "Type1" },
+    { value: { Id: "Type2", Limit: "Limit2" }, text: "Type2" },
   ];
 
   const handleSubmit = async (values, actions) => {
@@ -103,7 +103,7 @@ export const ConfigureResultsModifierModal = ({
                       {feedback}
                     </Alert>
                   )}
-                  <FormikInput label="Order" name={"Order"} type="Order" />
+                  <FormikInput label="Order" name={"Order"} type="number" />
                   <FormikSelect
                     label="Type"
                     name={"Type"}
