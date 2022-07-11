@@ -146,32 +146,32 @@ def ro_crates_callback(
             f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
         )
         result = Result(
-            activity_source_id="<activity_source_id>",
-            job_id="<job_id>",
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
             status="ok",
             count=count_,
         )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
         result = Result(
-            activity_source_id="<activity_source_id>",
-            job_id="<job_id>",
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
             status="error",
             count=0,
         )
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(str(column_error))
         result = Result(
-            activity_source_id="<activity_source_id>",
-            job_id="<job_id>",
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
             status="error",
             count=0,
         )
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
         result = Result(
-            activity_source_id="<activity_source_id>",
-            job_id="<job_id>",
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
             status="error",
             count=0,
         )
