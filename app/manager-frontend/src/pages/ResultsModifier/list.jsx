@@ -8,14 +8,14 @@ import {
 } from "@chakra-ui/react";
 
 import { useDataSourceList } from "api/datasource";
-import { DataSourceSummary } from "./DataSourceSummary";
+import { DataSourceSummary } from "components/DataSourceSummary";
 import { useState } from "react";
-import { useBackendApi } from "../contexts/BackendApi";
-import { DeleteModal } from "./DeleteModal";
-import { ConfigureResultsModifierModal } from "./ConfigureResultsModifierModal";
-import { ResultsModifier } from "./ResultsModifier";
+import { useBackendApi } from "contexts/BackendApi";
+import { DeleteModal } from "components/DeleteModal";
+import { ConfigureResultsModifierModal } from "components/ConfigureResultsModifierModal";
+import { ResultsModifier } from "components/ResultsModifier";
 
-function ResultsModifierList() {
+export const ResultsModifiersList = () => {
   const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
@@ -85,6 +85,4 @@ function ResultsModifierList() {
       />
     </VStack>
   );
-}
-
-export default ResultsModifierList;
+};
