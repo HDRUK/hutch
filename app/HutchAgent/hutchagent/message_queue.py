@@ -97,7 +97,7 @@ def rquest_callback(
         response_data["query_result"].update(count=0, status="error")
 
     try:
-        requests.post(os.getenv("MANAGER_URL"), response_data)
+        requests.post(f"{os.getenv('MANAGER_URL')}/api/results", response_data)
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
@@ -177,7 +177,7 @@ def ro_crates_callback(
         )
 
     try:
-        requests.post(os.getenv("MANAGER_URL"), result.to_dict())
+        requests.post(f"{os.getenv('MANAGER_URL')}/api/results", result.to_dict())
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
