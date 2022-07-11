@@ -1,5 +1,6 @@
 import json
 from typing import Any, Union
+from sqlalchemy import column
 
 from hutchagent.ro_crates.operator import Operator
 from hutchagent.ro_crates.thing import Thing
@@ -12,12 +13,12 @@ class Rule(Thing):
         self,
         context: str,
         type_: str,
-        operator: Operator,
         name: str = "",
         value: Any = None,
         min_value: Union[int, float, None] = None,
         max_value: Union[int, float, None] = None,
-        **kwargs
+        operator: Union[Operator, None] = None,
+        **kwargs,
     ) -> None:
         super().__init__(context, type_, name)
         self.operator = operator
@@ -34,9 +35,11 @@ class Rule(Thing):
         dict_ = {
             "@context": self.context,
             "@type": self.type_,
-            "name": self.name,
-            "additionalProperty": self.operator.to_dict(),
         }
+        if self.name is not None:
+            dict_.update(name=self.name)
+        if self.operator is not None:
+            dict_.update(additionalProperty=self.operator.to_dict())
         if self.value is not None:
             dict_.update(value=self.value)
         elif (self.min_value is not None) and (self.max_value is not None):
@@ -53,6 +56,9 @@ class Rule(Thing):
         Returns:
             Self: `Rule` object.
         """
+        operator = None
+        if op := dict_.get("additionalProperty"):
+            operator = Operator.from_dict(op)
         return cls(
             context=dict_.get("@context"),
             type_=dict_.get("@type"),
@@ -60,8 +66,46 @@ class Rule(Thing):
             value=dict_.get("value"),
             min_value=dict_.get("minValue"),
             max_value=dict_.get("maxValue"),
-            operator=Operator.from_dict(dict_.get("additionalProperty")),
+            operator=operator,
         )
+
+    def _get_column_name(self, concept_id: Any) -> Union[str, None]:
+        """Get a column name associated with a concept ID.
+
+        Args:
+            concept_id (Any): The concept ID to turn into a column name.
+
+        Returns:
+            Union[str, None]: The column name associated with the given concept ID.
+        """
+        PERSON_LOOKUPS = {
+            "8532": "gender_concept_id",
+            "8507": "gender_concept_id",
+            "8515": "race_concept_id",
+            "8516": "race_concept_id",
+            "8527": "race_concept_id",
+        }
+        return PERSON_LOOKUPS.get(concept_id)
+
+    @property
+    def sql_clause(self):
+        """Return the SQL clause for the rule.
+
+        Raises:
+            ValueError: Raised when unable to parse SQL from rule.
+
+        Returns:
+            _type_: The SQL clause for the rule.
+        """
+        if (self.min_value is not None) and (self.max_value is not None):
+            return column(self._get_column_name(self.name)).between(
+                self.min_value, self.max_value
+            )
+        if self.value is not None:
+            if self.operator.value == "!=":
+                return column(self._get_column_name(self.value)) != self.value
+            return column(self._get_column_name(self.value)) == self.value
+        raise ValueError("Unable able to parse rule into SQL clause.")
 
     def __str__(self) -> str:
         """`Rule` as a JSON string.
