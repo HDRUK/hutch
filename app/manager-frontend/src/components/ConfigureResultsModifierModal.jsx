@@ -51,7 +51,7 @@ export const ConfigureResultsModifierModal = ({
         {}
       );
       // post to the api
-      await action({ values: payload, id: id }).json();
+      await action({ values: payload }).json();
       onClose();
     } catch (e) {
       console.error(e);
