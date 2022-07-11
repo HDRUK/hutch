@@ -149,7 +149,7 @@ public class RquestPollingService: IRquestPollingService
           using(var channel = connection.CreateModel())
           
           {
-            channel.QueueDeclare(queue: "jobs",
+            channel.QueueDeclare(queue: queueName,
               durable: true,
               exclusive: false,
               autoDelete: false,
@@ -169,7 +169,7 @@ public class RquestPollingService: IRquestPollingService
 
             }
             channel.BasicPublish(exchange: "",
-              routingKey: "jobs",
+              routingKey: queueName,
               basicProperties: null,
               body: body);
             
