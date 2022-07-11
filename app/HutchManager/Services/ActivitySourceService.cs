@@ -12,16 +12,16 @@ public class ActivitySourceService
     _db = db;
   }
   
-  public async Task<List<Models.ActivitySource>> List()
+  public async Task<List<Models.ActivitySourceModel>> List()
   {
     var list = await _db.ActivitySources
       .AsNoTracking()
       .Include(x=>x.Type)
       .ToListAsync();
-    return list.ConvertAll<Models.ActivitySource>(x => new(x));
+    return list.ConvertAll<Models.ActivitySourceModel>(x => new(x));
   }
   
-  public async Task<Models.ActivitySource> Create(Models.CreateActivitySource activitySource)
+  public async Task<Models.ActivitySourceModel> Create(Models.CreateActivitySource activitySource)
   {
     var types = await _db.SourceTypes.ToListAsync();
     var entity = activitySource.ToEntity(types);
@@ -31,7 +31,7 @@ public class ActivitySourceService
     return new(entity);
   }
   
-  public async Task<Models.ActivitySource> Set(int id, Models.CreateActivitySource activitySource)
+  public async Task<Models.ActivitySourceModel> Set(int id, Models.CreateActivitySource activitySource)
   {
     var entity = await _db.ActivitySources
       .Include(x => x.Type)
@@ -46,7 +46,7 @@ public class ActivitySourceService
     await _db.SaveChangesAsync();
     return new (entity);
   }
-  public async Task<Models.ActivitySource> Get(int activitySourceId)
+  public async Task<Models.ActivitySourceModel> Get(int activitySourceId)
   {
     var activitySource = await _db.ActivitySources
                      .AsNoTracking()
