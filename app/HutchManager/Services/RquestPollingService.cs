@@ -3,6 +3,7 @@ using HutchManager.Data;
 using HutchManager.Dto;
 using HutchManager.HostedServices;
 using HutchManager.OptionsModels;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
@@ -51,8 +52,9 @@ public class RquestPollingService: IRquestPollingService
           // Stephen Cleary says it's ok:
           // https://stackoverflow.com/a/38918443
             var count = Interlocked.Increment(ref executionCount);
-            var activitySource = _db.ActivitySources.First();
-            _logger.LogInformation(
+            var activitySource = _db.ActivitySources.FirstOrDefault();
+            if (activitySource is null) return;
+              _logger.LogInformation(
               "Timed {HostedService} is working. Count: {Count}", nameof(RquestPollingHostedService),count);
             _logger.LogInformation(
             "Polling RQUEST for Queries on Collection: {_resourceId}",
@@ -72,7 +74,13 @@ public class RquestPollingService: IRquestPollingService
                     RunTimerOnce();
                     return;
                 }
-                SendToQueue(job);
+      var aSource = await _db.ActivitySources
+            .AsNoTracking()
+            .Include(x => x.Type)
+            .Where(x => x.Id == job.ActivitySourceId)
+            .SingleOrDefaultAsync()
+          ?? throw new KeyNotFoundException();
+      SendToQueue(job,aSource.TargetDataSourceName);
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
                 // threaded using Task.Run or similar.
@@ -127,13 +135,14 @@ public class RquestPollingService: IRquestPollingService
         private void StopTimer()
           => _timer?.Change(Timeout.Infinite, 0);
         
-        public void SendToQueue(RquestQueryTask jobPayload)
+        public void SendToQueue(RquestQueryTask jobPayload,string queueName)
         {
           var factory = new ConnectionFactory() { HostName = "localhost" };
           using(var connection = factory.CreateConnection())
           using(var channel = connection.CreateModel())
+          
           {
-            channel.QueueDeclare(queue: "jobs",
+            channel.QueueDeclare(queue: queueName,
               durable: true,
               exclusive: false,
               autoDelete: false,
@@ -144,7 +153,7 @@ public class RquestPollingService: IRquestPollingService
             
             byte[] body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload) );
             channel.BasicPublish(exchange: "",
-              routingKey: "jobs",
+              routingKey: queueName,
               basicProperties: null,
               body: body);
             

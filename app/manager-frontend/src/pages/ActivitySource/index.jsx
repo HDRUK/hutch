@@ -16,7 +16,7 @@ import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
-import { DeleteActivitySourceModal } from "components/DeleteActivitySourceModal";
+import { DeleteModal } from "components/DeleteModal";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
@@ -92,12 +92,14 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   Host: activitySource.host,
                   Type: activitySource.type,
                   ResourceId: activitySource.resourceId,
+                  TargetDataSourceName: activitySource.targetDataSourceName,
                 }
               : {
                   DisplayName: "",
                   Host: "",
                   Type: typeOptions[0].value,
                   ResourceId: "",
+                  TargetDataSourceName: "",
                 }
           }
           validationSchema={validationSchema()}
@@ -128,6 +130,12 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   name={"ResourceId"}
                   type="ResourceId"
                 />
+                <FormikInput
+                  label="Target DataSource Name"
+                  name={"TargetDataSourceName"}
+                  type="TargetDataSourceName"
+                  tooltip={"Warning, some datasources are inactive"}
+                />
                 <Flex>
                   <Button
                     w="full"
@@ -151,11 +159,12 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           )}
         </Formik>
       </VStack>
-      <DeleteActivitySourceModal
+      <DeleteModal
+        title={`Delete Activity Source ${id}`}
+        body="Are you sure you want to delete this activity source? You will not be able to reverse this"
         isOpen={isOpen}
         onClose={onClose}
-        id={id}
-        onDeleteSource={onDeleteSource}
+        onDelete={onDeleteSource}
       />
     </Container>
   );

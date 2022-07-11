@@ -1,6 +1,6 @@
 namespace HutchManager.Models;
 
-public class ActivitySource
+public class ActivitySourceModel
 {
 
   public int Id { get; set; }
@@ -9,14 +9,20 @@ public class ActivitySource
   public string ResourceId { get; set; } = string.Empty;
   public string DisplayName { get; set; } = string.Empty;
 
-  public ActivitySource(Data.Entities.ActivitySource entity)
+  public string TargetDataSourceName { get; set; } = string.Empty;
+
+  public ActivitySourceModel(Data.Entities.ActivitySource entity)
   {
     Id = entity.Id;
     Host = entity.Host;
     Type = entity.Type.Id;
     ResourceId = entity.ResourceId;
     DisplayName = entity.DisplayName;
+    TargetDataSourceName = entity.TargetDataSourceName;
   }
 
+  public ActivitySourceModel()
+  {
+  }
 }
 

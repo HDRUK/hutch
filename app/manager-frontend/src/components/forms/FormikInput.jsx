@@ -1,8 +1,10 @@
-import { FormControl, FormLabel, Input } from "@chakra-ui/react";
+import { FormControl, FormLabel, Input, Flex, Tooltip } from "@chakra-ui/react";
 import { useField } from "formik";
 import { useDebounce } from "helpers/hooks/useDebounce";
 import { useEffect, useState } from "react";
 import { FormHelpError } from "./FormHelpError";
+import { Icon } from "@chakra-ui/react";
+import { AiFillInfoCircle } from "react-icons/ai";
 
 export const FormikInput = ({
   name,
@@ -13,6 +15,7 @@ export const FormikInput = ({
   fieldTip,
   fieldHelp,
   collapseError,
+  tooltip,
   ...p
 }) => {
   const [field, meta, helpers] = useField({ name, type });
@@ -34,7 +37,19 @@ export const FormikInput = ({
       isRequired={isRequired}
       isInvalid={meta.error && meta.touched}
     >
-      {label && <FormLabel>{label}</FormLabel>}
+      <Flex w={"full"}>
+        {label && <FormLabel>{label}</FormLabel>}
+
+        {tooltip && (
+          <Flex ml={"auto"} alignItems="center">
+            <Tooltip label={tooltip}>
+              <span>
+                <Icon as={AiFillInfoCircle} />
+              </span>
+            </Tooltip>
+          </Flex>
+        )}
+      </Flex>
       <Input
         type={type}
         placeholder={placeholder}

@@ -17,15 +17,15 @@ public class ActivitySourceController : ControllerBase
   }
 
   [HttpGet]
-  public async Task<List<Models.ActivitySource>> List()
+  public async Task<List<Models.ActivitySourceModel>> List()
     => await _activitySources.List();
   
   [HttpPost]
-  public async Task<ActivitySource> Create(CreateActivitySource activitySource)
+  public async Task<ActivitySourceModel> Create(CreateActivitySource activitySource)
     => await _activitySources.Create(activitySource);
   
   [HttpGet("{id}")]
-  public async Task<ActionResult<ActivitySource>> Get(int id)
+  public async Task<ActionResult<ActivitySourceModel>> Get(int id)
     =>await _activitySources.Get(id);
   
   [HttpDelete("{id}")]
@@ -35,7 +35,9 @@ public class ActivitySourceController : ControllerBase
     {
       await _activitySources.Delete(id);
     }
-    catch (KeyNotFoundException) { }
+    catch (KeyNotFoundException) {
+      
+    }
     return NoContent();
   }
 
