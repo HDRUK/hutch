@@ -86,9 +86,10 @@ class CheckIn(threading.Thread):
                 except req_exc.MissingSchema as missing_schema_error:
                     logger.error(str(missing_schema_error))
                 finally:
-                    self.current_time, self.next_time = self.next_time, self.cron.get_next(
-                        dt.datetime
-                    )
+                    (
+                        self.current_time,
+                        self.next_time,
+                    ) = self.next_time, self.cron.get_next(dt.datetime)
 
     def join(self, timeout: Union[float, None] = None) -> None:
         """Call this method to end the check-in thread."""
