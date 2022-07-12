@@ -18,7 +18,6 @@ public class QueryTranslator
       //Add ActivitySourceID
       graphs.Add(new ROCratesQuery.ROCratesGraph
       {
-        Context = "https://schema.org",
         Type = "PropertyValue",
         Name = "activity_source_id",
         Value = job.ActivitySourceId.ToString()
@@ -58,7 +57,6 @@ public class QueryTranslator
         };
         var ruleOperator = new ROCratesQuery.Item()
         {
-          Context = "https://schema.org",
           Type = "PropertyValue",
           Name = "ruleOperator",
           Value = group.Combinator
