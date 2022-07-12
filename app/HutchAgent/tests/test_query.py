@@ -45,20 +45,22 @@ def test_create_rquest_query():
     assert isinstance(rquest_query.groups[0].rules[0], query.RQuestQueryRule)
 
 
-@pytest.mark.skip
 def test_text_rule_sql_clause():
     eq_rule = {
-        "varname": "OMOP",
-        "type": "TEXT",
-        "oper": "=",
-        "value": "8527",
+        "Type": "TEXT",
+        "VariableName": "OMOP",
+        "Operand": "=",
+        "Value": "8527",
+        "ExternalAttribute": "",
+        "Unit": "",
+        "RegEx": "",
     }
-    rule_obj = query.RQuestQueryRule(**eq_rule)
+    rule_obj = query.RQuestQueryRule.from_dict(eq_rule)
     assert rule_obj.concept_id == "8527"
     assert str(rule_obj.sql_clause) == "race_concept_id = :race_concept_id_1"
     ne_rule = eq_rule.copy()
-    ne_rule.update(oper="!=")
-    rule_obj = query.RQuestQueryRule(**ne_rule)
+    ne_rule.update({"Operand": "!="})
+    rule_obj = query.RQuestQueryRule.from_dict(ne_rule)
     assert str(rule_obj.sql_clause) == "race_concept_id != :race_concept_id_1"
 
 
