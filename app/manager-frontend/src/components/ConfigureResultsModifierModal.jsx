@@ -41,7 +41,7 @@ export const ConfirmationModal = ({
   // transform data from the backend so that Type maps to the type id
   // rather than the whole object
   const transformedInitialData = Object.fromEntries(
-    Object.entries(initialData).map(([k, v]) => [k, k == "type" ? v.id : v])
+    Object.entries(initialData).map(([k, v]) => [k, k === "type" ? v.id : v])
   );
   // convert the objects to arrays to be compared and displayed
   const initialDataArray = Object.entries(
