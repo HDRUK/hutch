@@ -1,4 +1,4 @@
-﻿namespace HutchManager.OptionsModels
+﻿namespace HutchManager.Config
 {
     /// <summary>
     /// Options for the RQUEST Task Api

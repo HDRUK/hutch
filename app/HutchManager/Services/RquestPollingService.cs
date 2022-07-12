@@ -1,11 +1,14 @@
 using System.Text;
+using System.Text.Json;
+using HutchManager.Config;
+using HutchManager.Constants;
 using HutchManager.Data;
 using HutchManager.Dto;
 using HutchManager.HostedServices;
 using HutchManager.OptionsModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using Microsoft.FeatureManagement;
 using RabbitMQ.Client;
 namespace HutchManager.Services;
 
@@ -19,6 +22,7 @@ public class RquestPollingService: IRquestPollingService
   private readonly ILogger<RquestPollingService> _logger;
   private readonly RquestPollingServiceOptions _config;
   private readonly ApplicationDbContext _db;
+  private readonly IFeatureManager _featureManager;
   private Timer? _timer;
   private int executionCount = 0;
   
@@ -26,12 +30,14 @@ public class RquestPollingService: IRquestPollingService
     RquestTaskApiClient rquestApi,
     ILogger<RquestPollingService> logger,
     IOptions<RquestPollingServiceOptions> config,
-    ApplicationDbContext db)
+    ApplicationDbContext db,
+    IFeatureManager featureManager)
   {
     _logger = logger;
     _rquestApi = rquestApi;
     _config = config.Value;
     _db = db;
+    _featureManager = featureManager;
   }
   public async Task PollRquest(CancellationToken stoppingToken)
   {
@@ -74,13 +80,14 @@ public class RquestPollingService: IRquestPollingService
                     RunTimerOnce();
                     return;
                 }
-      var aSource = await _db.ActivitySources
-            .AsNoTracking()
-            .Include(x => x.Type)
-            .Where(x => x.Id == job.ActivitySourceId)
-            .SingleOrDefaultAsync()
-          ?? throw new KeyNotFoundException();
-      SendToQueue(job,aSource.TargetDataSourceName);
+                
+                var aSource = await _db.ActivitySources
+                                  .AsNoTracking()
+                                  .Include(x => x.Type)
+                                  .Where(x => x.Id == job.ActivitySourceId)
+                                  .SingleOrDefaultAsync()
+                                ?? throw new KeyNotFoundException();
+                await SendToQueue(job,aSource.TargetDataSourceName);
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
                 // threaded using Task.Run or similar.
@@ -135,8 +142,9 @@ public class RquestPollingService: IRquestPollingService
         private void StopTimer()
           => _timer?.Change(Timeout.Infinite, 0);
         
-        public void SendToQueue(RquestQueryTask jobPayload,string queueName)
+        public async Task SendToQueue(RquestQueryTask jobPayload,string queueName)
         {
+          byte[] body = new Byte[64];
           var factory = new ConnectionFactory() { HostName = "localhost" };
           using(var connection = factory.CreateConnection())
           using(var channel = connection.CreateModel())
@@ -151,7 +159,16 @@ public class RquestPollingService: IRquestPollingService
             var properties = channel.CreateBasicProperties();
             properties.Persistent = true;
             
-            byte[] body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload) );
+            if (await _featureManager.IsEnabledAsync(FeatureFlags.UseROCrates))
+            {
+              ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
+              body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(roCratesQuery,DefaultJsonOptions.Serializer));
+            }
+            else
+            {
+              body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(jobPayload));
+
+            }
             channel.BasicPublish(exchange: "",
               routingKey: queueName,
               basicProperties: null,
