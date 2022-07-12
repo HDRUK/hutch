@@ -213,7 +213,9 @@ class RQuestQueryRule:
 class RQuestQueryGroup:
     """Represents an RQuest query group."""
 
-    def __init__(self, rules: list = None, combinator: str = "", exclude: bool = False) -> None:
+    def __init__(
+        self, rules: list = None, combinator: str = "", exclude: bool = False
+    ) -> None:
         """Constructor for `RQuestQueryGroup`.
 
         Args:
@@ -292,14 +294,16 @@ class RQuestQuery:
         self.activity_source_id = activity_source_id
         self.groups = groups if groups is not None else list()
         self.combinator = combinator
-    
+
     @classmethod
     def from_dict(cls, dict_: dict):
         job_id = dict_.get("JobId", "")
         activity_source_id = dict_.get("ActivitySourceId", "")
         query = dict_.get("Query", dict())
         combinator = query.get("Combinator", "")
-        groups = [RQuestQueryGroup.from_dict(group) for group in query.get("Groups", dict())]
+        groups = [
+            RQuestQueryGroup.from_dict(group) for group in query.get("Groups", dict())
+        ]
         return cls(
             job_id=job_id,
             activity_source_id=activity_source_id,
