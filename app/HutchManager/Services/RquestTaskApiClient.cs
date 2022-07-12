@@ -7,7 +7,7 @@ using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+using Newtonsoft.Json;
 using HutchManager.Config;
 
 
@@ -19,11 +19,12 @@ namespace HutchManager.Services
     private readonly ILogger<RquestTaskApiClient> _logger;
     private readonly RquestTaskApiOptions _apiOptions;
     private readonly ApplicationDbContext _db;
+
     public RquestTaskApiClient(
-        HttpClient client,
-        ILogger<RquestTaskApiClient> logger,
-        IOptions<RquestTaskApiOptions> apiOptions,
-        ApplicationDbContext db)
+      HttpClient client,
+      ILogger<RquestTaskApiClient> logger,
+      IOptions<RquestTaskApiOptions> apiOptions,
+      ApplicationDbContext db)
     {
 
       _client = client;
@@ -47,10 +48,10 @@ namespace HutchManager.Services
     /// <param name="value"></param>
     /// <returns>HTTP StringContent with the value serialized to JSON and a media type of "application/json"</returns>
     private StringContent AsHttpJsonString<T>(T value)
-        => new StringContent(
-                JsonSerializer.Serialize(value),
-                System.Text.Encoding.UTF8,
-                "application/json");
+      => new StringContent(
+        JsonConvert.SerializeObject(value),
+        Encoding.UTF8,
+        "application/json");
 
     /// <summary>
     /// Try and get a job for a collection
@@ -62,15 +63,15 @@ namespace HutchManager.Services
 
       string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", activitySource.ResourceId));
       var result = await _client.GetAsync(
-          requestUri);
+        requestUri);
 
       if (result.IsSuccessStatusCode)
       {
         if (result.StatusCode == HttpStatusCode.NoContent)
         {
           _logger.LogInformation(
-              "No Query Jobs waiting for {_resourceId}",
-              activitySource.ResourceId);
+            "No Query Jobs waiting for {_resourceId}",
+            activitySource.ResourceId);
           return null;
         }
 
@@ -121,37 +122,22 @@ namespace HutchManager.Services
       string resourceId = activitySource.ResourceId.Remove(activitySource.ResourceId.Length - 2);
 
       string requestUri = (Url.Combine(_apiOptions.SubmitResultEndpoint, "/", jobId, "/", resourceId));
-      _logger.LogInformation("Arguments {resourceId} {jobId}", resourceId, jobId);
-      var payload = new RquestQueryTaskResult(resourceId, jobId, result.Count);
       var response = (await _client.PostAsync(
-        requestUri, AsHttpJsonString(payload))).EnsureSuccessStatusCode();
-
-
-      // however, even if 2xx we need to check the body for success status
+        requestUri, AsHttpJsonString(new RquestQueryTaskResult(resourceId, jobId, result.Count)))).EnsureSuccessStatusCode();
+      
       string body = string.Empty;
-      try
+
+      body = await response.Content.ReadAsStringAsync();
+      if (body != "Job saved")
       {
-        body = await response.Content.ReadAsStringAsync();
-        var json = JsonSerializer.Deserialize<RquestResultResponse>(body);
+        var message = "Unsuccessful Response from Submit Results Endpoint";
+        _logger.LogError(message);
+        _logger.LogDebug("Response Body: {body}", body);
 
-        if (json?.Status != "OK")
-        {
-          var message = "Unsuccessful Response from Submit Results Endpoint";
-          _logger.LogError(message);
-          _logger.LogDebug("Response Body: {body}", body);
-
-          throw new ApplicationException(message);
-        }
-
-        return;
+        throw new ApplicationException(message);
       }
-      catch (JsonException e)
-      {
-        _logger.LogError(e, "Invalid Response Format from Submit Results Endpoint");
-        _logger.LogDebug("Invalid Response Body: {body}", body);
 
-        throw;
-      }
+      return;
 
     }
   }

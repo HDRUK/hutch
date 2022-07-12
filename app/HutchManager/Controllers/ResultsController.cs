@@ -22,7 +22,7 @@ public class ResultsController: ControllerBase
   public async Task<IActionResult> Post([FromBody] QueryResult result)
   {
     await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Results);
-    return NoContent();
+    return Ok(_apiClient);
   }
 
 }
