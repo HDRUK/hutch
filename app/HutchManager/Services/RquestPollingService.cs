@@ -1,5 +1,7 @@
 using System.Text;
+using System.Text.Json;
 using HutchManager.Config;
+using HutchManager.Constants;
 using HutchManager.Data;
 using HutchManager.Dto;
 using HutchManager.HostedServices;
@@ -7,7 +9,6 @@ using HutchManager.OptionsModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
-using Newtonsoft.Json;
 using RabbitMQ.Client;
 namespace HutchManager.Services;
 
@@ -161,11 +162,11 @@ public class RquestPollingService: IRquestPollingService
             if (await _featureManager.IsEnabledAsync(FeatureFlags.UseROCrates))
             {
               ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
-              body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(roCratesQuery));
+              body = Encoding.Default.GetBytes(JsonSerializer.Serialize(roCratesQuery,DefaultJsonOptions.Serializer));
             }
             else
             {
-              body = Encoding.Default.GetBytes(JsonConvert.SerializeObject(jobPayload));
+              body = Encoding.Default.GetBytes(JsonSerializer.Serialize(jobPayload));
 
             }
             channel.BasicPublish(exchange: "",

@@ -27,7 +27,7 @@ public class ROCratesQuery
     public string Value { get; set; } = string.Empty;
     
     [JsonProperty(PropertyName="numberOfItems")]
-    public int NumberOfItems { get; set;}
+    public int? NumberOfItems { get; set;}
     
     [JsonProperty(PropertyName="itemListElement")] 
     public IEnumerable<Item> ItemListElements { get; set;} = null!;
@@ -42,13 +42,13 @@ public class ROCratesQuery
     public string Type { get; set; } = string.Empty;
     
     [JsonProperty(PropertyName="name")]
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
     
     [JsonProperty(PropertyName="value")]
     public string Value { get; set; } = string.Empty;
 
     [JsonProperty(PropertyName="additionalProperty")]
-    public List<Property> AdditionalProperties { get; set; } = new();
+    public List<Property>? AdditionalProperties { get; set; }
   }
 
   public class Property
