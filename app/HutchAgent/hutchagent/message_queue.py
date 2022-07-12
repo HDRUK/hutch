@@ -8,6 +8,8 @@ from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 import requests, requests.exceptions as req_exc
 from sqlalchemy import exc as sql_exc
+from hutchagent.ro_crates.result import Result
+from hutchagent.ro_crates.query import Query
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query import RQuestQuery
 
@@ -96,6 +98,86 @@ def rquest_callback(
 
     try:
         requests.post(os.getenv("MANAGER_URL"), response_data)
+        logger.info("Sent results to manager.")
+    except req_exc.ConnectionError as connection_error:
+        logger.error(str(connection_error))
+    except req_exc.Timeout as timeout_error:
+        logger.error(str(timeout_error))
+    except req_exc.MissingSchema as missing_schema_error:
+        logger.error(str(missing_schema_error))
+
+
+def ro_crates_callback(
+    channel: Channel, method: Basic.Deliver, properties: BasicProperties, body: bytes
+):
+    """The callback to be used when consuming messages from the queue.
+    The arguments to this function will be passed by the channel when a
+    message is consumed.
+
+    Args:
+        channel (Channel): The channel object.
+        method (Deliver): The delivery object.
+        properties (BasicProperties): The message properties.
+        body (bytes): The body of the message.
+    """
+    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    logger.info("Received message from the Queue. Processing...")
+    try:
+        body_json = json.loads(body)
+        query = Query.from_dict(body_json)
+        logger.info(f"Successfully unpacked message.")
+    except json.decoder.JSONDecodeError:
+        logger.error("Failed to decode the message from the queue.")
+
+    db_manager = SyncDBManager(
+        username=os.getenv("DATASOURCE_DB_USERNAME"),
+        password=os.getenv("DATASOURCE_DB_PASSWORD"),
+        host=os.getenv("DATASOURCE_DB_HOST"),
+        port=int(os.getenv("DATASOURCE_DB_PORT")),
+        database=os.getenv("DATASOURCE_DB_DATABASE"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME"),
+    )
+    try:
+        query_start = time.time()
+        res = db_manager.execute_and_fetch(query.to_sql())
+        query_end = time.time()
+        count_ = res[0][0]
+        logger.info(
+            f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
+        )
+        result = Result(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="ok",
+            count=count_,
+        )
+    except sql_exc.NoSuchTableError as table_error:
+        logger.error(str(table_error))
+        result = Result(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+    except sql_exc.NoSuchColumnError as column_error:
+        logger.error(str(column_error))
+        result = Result(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+    except sql_exc.ProgrammingError as programming_error:
+        logger.error(str(programming_error))
+        result = Result(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+
+    try:
+        requests.post(os.getenv("MANAGER_URL"), result.to_dict())
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))

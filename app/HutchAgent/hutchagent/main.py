@@ -60,7 +60,11 @@ def main():
         channel = mq.connect(os.getenv("DATASOURCE_QUEUE_NAME"))
         channel.basic_consume(
             os.getenv("DATASOURCE_QUEUE_NAME"),
-            on_message_callback=mq.rquest_callback,
+            on_message_callback=(
+                mq.ro_crates_callback
+                if int(os.getenv("USE_RO_CRATES", 0))
+                else mq.rquest_callback
+            ),
             auto_ack=True,
         )
         db_logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
