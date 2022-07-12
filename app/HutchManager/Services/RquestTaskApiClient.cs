@@ -3,12 +3,14 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
 using HutchManager.OptionsModels;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using JsonException = System.Text.Json.JsonException;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 
 namespace HutchManager.Services
@@ -48,7 +50,7 @@ namespace HutchManager.Services
         /// <returns>HTTP StringContent with the value serialized to JSON and a media type of "application/json"</returns>
         private StringContent AsHttpJsonString<T>(T value)
             => new StringContent(
-                    JsonSerializer.Serialize(value),
+                    JsonConvert.SerializeObject(value),
                     System.Text.Encoding.UTF8,
                     "application/json");
 
@@ -109,7 +111,7 @@ namespace HutchManager.Services
         /// <param name="activitySourceId">activitySourceId ID</param>
         /// <param name="jobId">Job ID</param>
         /// <param name="count">Optional Count for submitting results</param>
-        public async Task ResultsEndpointPost(int activitySourceId, string jobId, int? count = null)
+        public async Task ResultsEndpointPost(int activitySourceId, string jobId, QueryResultCount result)
         {
           var activitySource = await _db.ActivitySources
             .FirstOrDefaultAsync(x => x.Id == activitySourceId);
@@ -119,15 +121,16 @@ namespace HutchManager.Services
               $"No ActivitySource with ID: {activitySourceId}");
          
           string resourceId = activitySource.ResourceId.Remove(activitySource.ResourceId.Length - 2);
-      
+         
           string requestUri = (Url.Combine(_apiOptions.SubmitResultEndpoint, "/", jobId, "/", resourceId));
+          _logger.LogInformation("Arguements {resourceId} {jobId}",resourceId,jobId);
+          var payload = new RquestQueryTaskResult(resourceId, jobId, result.Count);
           var response = (await _client.PostAsync(
-            requestUri,
-            AsHttpJsonString(new RquestQueryTaskResult(jobId, count))));
+            requestUri,AsHttpJsonString(payload)));
           
           if (response.IsSuccessStatusCode)
           {
-            // however, even if 2xx we need to check the body for sucess status
+            // however, even if 2xx we need to check the body for success status
             string body = string.Empty;
             try
             {

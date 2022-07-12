@@ -19,9 +19,9 @@ public class ResultsController: ControllerBase
     _apiClient = apiClient;
   }
   [HttpPost]
-  public async Task<IActionResult> Post([FromBody] QueryResult result, int? count = null)
+  public async Task<IActionResult> Post([FromBody] QueryResult result)
   {
-    await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Result.Count);
+    await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Results);
     return NoContent();
   }
 
