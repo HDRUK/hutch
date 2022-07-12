@@ -84,3 +84,8 @@ export const objectStringsToNull = (obj) => {
     {}
   );
 };
+
+// checks if 2 objects are equal or not
+export const objectsAreEqual = (one, two) => {
+  return JSON.stringify(one) === JSON.stringify(two);
+};
