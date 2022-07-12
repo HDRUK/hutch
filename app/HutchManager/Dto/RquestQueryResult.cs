@@ -9,13 +9,13 @@ namespace HutchManager.Dto
     /// </summary>
     public class RquestQueryTaskResult
     {
-        public RquestQueryTaskResult(string collectionId,string jobId, int? count = null)
+        public RquestQueryTaskResult(string collectionId, string jobId, int? count = null)
         {
           CollectionId = collectionId;  
           JobId = jobId;
           
             if(count.HasValue)
-                QueryResult = new() { Count = count.Value,Files =new List<string>() };
+                QueryResult = new() { Count = count.Value, Files = new List<string>() };
         }
 
         [JsonProperty(PropertyName="collection_id")]
