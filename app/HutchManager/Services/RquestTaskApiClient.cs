@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
-using HutchManager.OptionsModels;
+using HutchManager.Config;
 
 
 namespace HutchManager.Services
