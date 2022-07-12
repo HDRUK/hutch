@@ -221,13 +221,19 @@ class RQuestQueryGroup:
             combinator (str, optional): The operand for comparing the rules. Defaults to "".
             exclude (bool, optional): Exclude results matching `rules`. Defaults to False.
         """
-        self.rules = (
-            [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
-        )
+        self.rules = rules
         # Sort rules for more predictable behaviour in tests.
         self.rules = sorted(self.rules, key=lambda x: x.column_name)
         self.combinator = combinator
         self.exclude = exclude
+
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        return cls(
+            rules=[RQuestQueryRule.from_dict(rule) for rule in dict_.get("Rules", [])],
+            combinator=dict_.get("Combinator", ""),
+            exclude=dict_.get("Exclude", False),
+        )
 
     @property
     def columns(self):
