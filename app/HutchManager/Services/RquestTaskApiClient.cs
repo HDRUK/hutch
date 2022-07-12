@@ -6,11 +6,8 @@ using System.Text;
 using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
-using HutchManager.OptionsModels;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using JsonException = System.Text.Json.JsonException;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.Text.Json;
 using HutchManager.Config;
 
 
@@ -51,7 +48,7 @@ namespace HutchManager.Services
     /// <returns>HTTP StringContent with the value serialized to JSON and a media type of "application/json"</returns>
     private StringContent AsHttpJsonString<T>(T value)
         => new StringContent(
-                JsonConvert.SerializeObject(value),
+                JsonSerializer.Serialize(value),
                 System.Text.Encoding.UTF8,
                 "application/json");
 
@@ -124,7 +121,7 @@ namespace HutchManager.Services
       string resourceId = activitySource.ResourceId.Remove(activitySource.ResourceId.Length - 2);
 
       string requestUri = (Url.Combine(_apiOptions.SubmitResultEndpoint, "/", jobId, "/", resourceId));
-      _logger.LogInformation("Arguements {resourceId} {jobId}", resourceId, jobId);
+      _logger.LogInformation("Arguments {resourceId} {jobId}", resourceId, jobId);
       var payload = new RquestQueryTaskResult(resourceId, jobId, result.Count);
       var response = (await _client.PostAsync(
         requestUri, AsHttpJsonString(payload))).EnsureSuccessStatusCode();
