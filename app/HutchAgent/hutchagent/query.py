@@ -13,7 +13,7 @@ from sqlalchemy import (
     or_,
     select,
 )
-from typing import Any, Union
+from typing import Any, Union, List
 from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 dotenv.load_dotenv()
@@ -275,31 +275,24 @@ class RQuestQuery:
 
     def __init__(
         self,
-        owner: str = "",
-        cohort: dict = None,  # mutable types shouldn't used as defaults
-        collection: str = "",
-        protocol_version: str = "",
-        char_salt: str = "",
-        uuid: str = "",
-        **kwargs,  # ignored args
+        job_id: str = "",
+        activity_source_id: str = "",
+        groups: List[RQuestQueryGroup] = None,
+        combinator: str = "",
     ) -> None:
         """Construction for `RQuestQuery`.
 
         Args:
-            owner (str, optional): The owner of the query. Defaults to "".
-            cohort (dict, optional): The cohort of groups. Defaults to None.
-            collection (str, optional): The collection ID. Defaults to "".
-            protocol_version (str, optional): The protocol version. Defaults to "".
-            char_salt (str, optional): The char salt. Defaults to "".
-            uuid (str, optional): The UUID. Defaults to "".
+            job_id (str, optional): _description_. Defaults to "".
+            activity_source_id (str, optional): _description_. Defaults to "".
+            groups (List[RQuestQueryGroup], optional): _description_. Defaults to None.
+            combinator (str, optional): _description_. Defaults to "".
         """
-        self.owner = owner
-        self.cohort = cohort if cohort is not None else {}  # turn None to empty dict
-        self.cohort = RQuestQueryCohort(**cohort)
-        self.collection = collection
-        self.protocol_version = protocol_version
-        self.char_salt = char_salt
-        self.uuid = uuid
+        self.job_id = job_id
+        self.activity_source_id = activity_source_id
+        self.groups = groups if groups is not None else []
+        self.combinator = combinator
+        
 
     def to_sql(self):
         columns = set()
