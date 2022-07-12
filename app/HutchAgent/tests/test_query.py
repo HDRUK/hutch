@@ -121,31 +121,36 @@ def test_time_rule_sql_clause():
         print(rule_obj.sql_clause)
 
 
-@pytest.mark.skip
 def test_group_sql_clause():
-    and_rule = {
-        "rules": [
+    or_rule = {
+        "Rules": [
             {
-                "varname": "OMOP",
-                "type": "TEXT",
-                "oper": "=",
-                "value": "8527",
+                "Type": "TEXT",
+                "VariableName": "OMOP",
+                "Operand": "=",
+                "Value": "8527",
+                "ExternalAttribute": "",
+                "Unit": "",
+                "RegEx": "",
             },
         ],
-        "rules_oper": "OR",
+        "Combinator": "OR",
     }
-    group = query.RQuestQueryGroup(**and_rule)
+    group = query.RQuestQueryGroup.from_dict(or_rule)
     # Assert single rule in group builds correctly
     assert str(group.sql_clause) == "race_concept_id = :race_concept_id_1"
-    and_rule["rules"].append(
+    or_rule["Rules"].append(
         {
-            "varname": "OMOP",
-            "type": "TEXT",
-            "oper": "=",
-            "value": "8532",
+            "Type": "TEXT",
+            "VariableName": "OMOP",
+            "Operand": "=",
+            "Value": "8532",
+            "ExternalAttribute": "",
+            "Unit": "",
+            "RegEx": "",
         },
     )
-    group = query.RQuestQueryGroup(**and_rule)
+    group = query.RQuestQueryGroup.from_dict(or_rule)
     # Assert multiple rules in group build correctly
     assert (
         str(group.sql_clause)
