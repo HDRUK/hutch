@@ -214,28 +214,32 @@ def test_cohort_sql_clause():
     )
 
 
-@pytest.mark.skip
 def test_query_to_sql():
     request_dict = {
-        "owner": "user1",
-        "cohort": {
-            "groups": [
+        "JobId": "88ca2cd8-0438-48ad-be14-dc9326b63234",
+        "Query": {
+            "Combinator": "AND",
+            "Groups": [
                 {
-                    "rules": [
+                    "Combinator": "OR",
+                    "Rules": [
                         {
-                            "varname": "OMOP",
-                            "type": "TEXT",
-                            "oper": "=",
-                            "value": "8527",
-                        }
+                            "Type": "TEXT",
+                            "VariableName": "OMOP",
+                            "Operand": "=",
+                            "Value": "8527",
+                            "ExternalAttribute": "",
+                            "Unit": "",
+                            "RegEx": "",
+                        },
                     ],
-                    "rules_oper": "OR",
-                },
+                    "Exclude": False,
+                }
             ],
-            "groups_oper": "AND",
         },
+        "ActivitySourceId": 1,
     }
-    test_query = query.RQuestQuery(**request_dict)
+    test_query = query.RQuestQuery.from_dict(request_dict)
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
@@ -244,15 +248,18 @@ FROM (SELECT DISTINCT person.person_id AS person_id
 FROM person JOIN condition_occurrence ON person.person_id = condition_occurrence.person_id JOIN measurement ON person.person_id = measurement.person_id JOIN observation ON person.person_id = observation.person_id 
 WHERE race_concept_id = :race_concept_id_1) AS anon_1"""
     )
-    request_dict["cohort"]["groups"][0]["rules"].append(
+    request_dict["Query"]["Groups"][0]["Rules"].append(
         {
-            "varname": "OMOP",
-            "type": "TEXT",
-            "oper": "=",
-            "value": "8532",
+            "Type": "TEXT",
+            "VariableName": "OMOP",
+            "Operand": "=",
+            "Value": "8532",
+            "ExternalAttribute": "",
+            "Unit": "",
+            "RegEx": "",
         }
     )
-    test_query = query.RQuestQuery(**request_dict)
+    test_query = query.RQuestQuery.from_dict(request_dict)
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)
@@ -261,20 +268,23 @@ FROM (SELECT DISTINCT person.person_id AS person_id
 FROM person JOIN condition_occurrence ON person.person_id = condition_occurrence.person_id JOIN measurement ON person.person_id = measurement.person_id JOIN observation ON person.person_id = observation.person_id 
 WHERE gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AS anon_1"""
     )
-    request_dict["cohort"]["groups"].append(
+    request_dict["Query"]["Groups"].append(
         {
-            "rules": [
+            "Rules": [
                 {
-                    "varname": "OMOP",
-                    "type": "TEXT",
-                    "oper": "=",
-                    "value": "8532",
-                }
+                    "Type": "TEXT",
+                    "VariableName": "OMOP",
+                    "Operand": "=",
+                    "Value": "8532",
+                    "ExternalAttribute": "",
+                    "Unit": "",
+                    "RegEx": "",
+                },
             ],
-            "rules_oper": "OR",
+            "Combinator": "OR",
         }
     )
-    test_query = query.RQuestQuery(**request_dict)
+    test_query = query.RQuestQuery.from_dict(request_dict)
     test_query_sql = test_query.to_sql()
     assert (
         str(test_query_sql)

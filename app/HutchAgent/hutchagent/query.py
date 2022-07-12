@@ -1,9 +1,5 @@
 import datetime as dt
-import json
-import logging
-import os
 import re
-import time
 import dotenv
 from sqlalchemy import (
     and_,
@@ -311,6 +307,13 @@ class RQuestQuery:
             groups=groups,
         )
 
+    @property
+    def sql_clause(self):
+        if self.combinator == "AND":
+            return and_(*[group.sql_clause for group in self.groups])
+        else:
+            return or_(*[group.sql_clause for group in self.groups])
+
     def to_sql(self):
         columns = set()
         for group in self.groups:
@@ -333,7 +336,7 @@ class RQuestQuery:
                 Observation,
                 Person.person_id == Observation.person_id,
             )
-            .where(self.cohort.sql_clause)
+            .where(self.sql_clause)
             .distinct()
             .subquery()
         )
