@@ -27,23 +27,23 @@ function LowNumberSuppressionParameters({ type }) {
   switch (type) {
     case "Type1":
       return (
-        <Form noValidate>
+        <>
           <FormikInput
             label="Threshold"
             name={"Parameters.Threshold"}
             type="number"
           />
-        </Form>
+        </>
       );
     default:
       return (
-        <Form noValidate>
+        <>
           <FormikInput
             label="Threshold"
             name={"Parameters.Threshold"}
             type="number"
           />
-        </Form>
+        </>
       );
   }
 }
