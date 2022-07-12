@@ -87,7 +87,7 @@ public class RquestPollingService: IRquestPollingService
                                   .Where(x => x.Id == job.ActivitySourceId)
                                   .SingleOrDefaultAsync()
                                 ?? throw new KeyNotFoundException();
-                SendToQueue(job,aSource.TargetDataSourceName);
+                await SendToQueue(job,aSource.TargetDataSourceName);
                 // TODO: Threading / Parallel query handling?
                 // affects timer usage, the process logic will need to be
                 // threaded using Task.Run or similar.
@@ -142,7 +142,7 @@ public class RquestPollingService: IRquestPollingService
         private void StopTimer()
           => _timer?.Change(Timeout.Infinite, 0);
         
-        public async void SendToQueue(RquestQueryTask jobPayload,string queueName)
+        public async Task SendToQueue(RquestQueryTask jobPayload,string queueName)
         {
           byte[] body = new Byte[64];
           var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -162,11 +162,11 @@ public class RquestPollingService: IRquestPollingService
             if (await _featureManager.IsEnabledAsync(FeatureFlags.UseROCrates))
             {
               ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
-              body = Encoding.Default.GetBytes(JsonSerializer.Serialize(roCratesQuery,DefaultJsonOptions.Serializer));
+              body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(roCratesQuery,DefaultJsonOptions.Serializer));
             }
             else
             {
-              body = Encoding.Default.GetBytes(JsonSerializer.Serialize(jobPayload));
+              body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(jobPayload));
 
             }
             channel.BasicPublish(exchange: "",
