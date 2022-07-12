@@ -5,21 +5,15 @@ import os
 import re
 import time
 import dotenv
-import requests, requests.exceptions as req_exc
-from pika.channel import Channel
-from pika.spec import Basic, BasicProperties
 from sqlalchemy import (
     and_,
     column,
-    create_engine,
-    exc as sql_exc,
     func,
     not_,
     or_,
     select,
 )
-from typing import Any
-from hutchagent.db_manager import SyncDBManager
+from typing import Any, Union
 from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 dotenv.load_dotenv()
@@ -38,29 +32,37 @@ class RQuestQueryRule:
 
     def __init__(
         self,
-        varname: str = "",
+        variable_name: str = "",
         type: str = "",
-        oper: str = "",
+        operand: str = "",
         value: str = "",
-        **kwargs,
+        external_attribute: str = "",
+        unit: str = "",
+        regex: str = "",
+        time_: Union[str, None] = None,
     ) -> None:
         """Constructor for `RQuestQueryRule`.
 
         Args:
-            varname (str, optional): The name of the value column. Defaults to "".
+            variable_name (str, optional): The name of the value column. Defaults to "".
             type (str, optional): The data type of the value. Defaults to "".
-            oper (str, optional): The comparison operator for the value. Defaults to "".
-            value (str, optional): The value. Defaults to "". Is converted from a string
-            to the type specified in `type`.
+            operand (str, optional): The comparison operator for the value. Defaults to "".
+            value (str, optional): The value. Defaults to "".
+            external_attribute (str, optional): An additional attribute. Defaults to "".
+            unit (str, optional): The units of the rule. Defaults to "".
+            regex (str, optional): The regex to match. Defaults to "".
+            time_ (Union[str, None], optional): The time boundry for the rule. Defaults to None.
         """
-        self.concept_id = self._parse_concept_id(varname, value)
-        self.varname = varname
+        self.concept_id = self._parse_concept_id(variable_name, value)
+        self.variable_name = variable_name
         self.type = type
-        self.oper = oper
+        self.operand = operand
         self.value = self._parse_value(value)
+        self.external_attribute = external_attribute
+        self.unit = unit
+        self.regex = regex
         self.column_name = PERSON_LOOKUPS.get(self.concept_id)
-        # `time` is not always present so either get from `kwargs` or default to `None`
-        self.time_ = kwargs.get("time")
+        self.time_ = time_
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -78,13 +80,13 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
-        if self.column_name is None and self.oper == "=":
+        if self.column_name is None and self.operand == "=":
             return or_(
                 column("measurement_concept_id") == self.concept_id,
                 column("observation_concept_id") == self.concept_id,
                 column("condition_concept_id") == self.concept_id,
             )
-        if self.column_name is None and self.oper == "!=":
+        if self.column_name is None and self.operand == "!=":
             return or_(
                 column("measurement_concept_id") != self.concept_id,
                 column("observation_concept_id") != self.concept_id,
@@ -92,13 +94,13 @@ class RQuestQueryRule:
             )
 
         clause = None
-        if self.type == "TEXT" and self.oper == "=":
+        if self.type == "TEXT" and self.operand == "=":
             clause = column(self.column_name) == self.concept_id
-        elif self.type == "TEXT" and self.oper == "!=":
+        elif self.type == "TEXT" and self.operand == "!=":
             clause = column(self.column_name) != self.concept_id
-        elif self.type == "NUM" and self.oper == "=":
+        elif self.type == "NUM" and self.operand == "=":
             clause = column(self.column_name).between(self.value[0], self.value[1])
-        elif self.type == "NUM" and self.oper == "!=":
+        elif self.type == "NUM" and self.operand == "!=":
             clause = not_(
                 column(self.column_name).between(self.value[0], self.value[1])
             )
@@ -144,20 +146,20 @@ class RQuestQueryRule:
             timespan = int(hit.group(1))
             time_unit = hit.group(2)
             # older times are smaller, so use `>` for inclusive ("=") seaches
-            if time_unit == "Y" and self.oper == "=":
+            if time_unit == "Y" and self.operand == "=":
                 return column("birth_datetime") < (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "=":
+            elif time_unit == "M" and self.operand == "=":
                 return column("birth_datetime") < (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # newer times are larger, so use `<=` for exclusive ("!=") seaches
-            elif time_unit == "Y" and self.oper == "!=":
+            elif time_unit == "Y" and self.operand == "!=":
                 return column("birth_datetime") >= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "!=":
+            elif time_unit == "M" and self.operand == "!=":
                 return column("birth_datetime") >= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
@@ -169,20 +171,20 @@ class RQuestQueryRule:
             timespan = int(hit.group(1))
             time_unit = hit.group(2)
             # newer times are larger, so use `>` for inclusive ("=") seaches
-            if time_unit == "Y" and self.oper == "=":
+            if time_unit == "Y" and self.operand == "=":
                 return column("birth_datetime") > (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "=":
+            elif time_unit == "M" and self.operand == "=":
                 return column("birth_datetime") > (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # older times are smaller, so use `<=` for exclusive ("!=") seaches
-            elif time_unit == "Y" and self.oper == "!=":
+            elif time_unit == "Y" and self.operand == "!=":
                 return column("birth_datetime") <= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "!=":
+            elif time_unit == "M" and self.operand == "!=":
                 return column("birth_datetime") <= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
