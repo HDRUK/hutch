@@ -21,6 +21,7 @@ import { FormikSelect } from "./forms/FormikSelect";
 import { LowNumberSuppressionParameters } from "./LowNumberSuppressionParameters";
 import { validationSchema } from "pages/ResultsModifier/validation";
 import { capitaliseObjectKeys } from "helpers/data-structures";
+import { objectStringsToNull } from "helpers/data-structures";
 
 export const ConfigureResultsModifierModal = ({
   initialData,
@@ -44,13 +45,7 @@ export const ConfigureResultsModifierModal = ({
   const handleSubmit = async (values, actions) => {
     try {
       // convert all empty strings to null
-      const payload = Object.entries(values).reduce(
-        (a, [k, v]) => ({
-          ...a,
-          [k]: v !== "" ? v : null,
-        }),
-        {}
-      );
+      const payload = objectStringsToNull(values);
       // post to the api
       await action({ values: payload }).json();
       onClose();
@@ -133,7 +128,7 @@ export const ConfigureResultsModifierModal = ({
                     type="Type"
                     options={typeOptions.map((item) => ({
                       value: item,
-                      text: item.id,
+                      label: item.id,
                     }))}
                   />
                   <LowNumberSuppressionParameters type={values.Type} />

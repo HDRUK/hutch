@@ -67,8 +67,20 @@ export const getFormattedDate = (isoDateString, culture) => {
   });
 };
 
+// capitalise keys in an object
 export const capitaliseObjectKeys = (obj) => {
   return Object.fromEntries(
     Object.entries(obj).map(([k, v]) => [capitalise(k), v])
+  );
+};
+
+// convert all empty strings to null
+export const objectStringsToNull = (obj) => {
+  return Object.entries(obj).reduce(
+    (a, [k, v]) => ({
+      ...a,
+      [k]: v !== "" ? v : null,
+    }),
+    {}
   );
 };

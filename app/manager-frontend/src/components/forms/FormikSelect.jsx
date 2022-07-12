@@ -39,7 +39,7 @@ export const FormikSelect = ({
       <Select value={value} type={type} onChange={handleChange}>
         {options.map((item, index) => (
           <option key={index} value={item.value}>
-            {item.text}
+            {item.label}
           </option>
         ))}
       </Select>
