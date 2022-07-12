@@ -126,38 +126,35 @@ namespace HutchManager.Services
           _logger.LogInformation("Arguements {resourceId} {jobId}",resourceId,jobId);
           var payload = new RquestQueryTaskResult(resourceId, jobId, result.Count);
           var response = (await _client.PostAsync(
-            requestUri,AsHttpJsonString(payload)));
+            requestUri,AsHttpJsonString(payload))).EnsureSuccessStatusCode();
           
-          if (response.IsSuccessStatusCode)
+         
+          // however, even if 2xx we need to check the body for success status
+          string body = string.Empty;
+          try
           {
-            // however, even if 2xx we need to check the body for success status
-            string body = string.Empty;
-            try
+            body = await response.Content.ReadAsStringAsync();
+            var json = JsonSerializer.Deserialize<RquestResultResponse>(body);
+
+            if (json?.Status != "OK")
             {
-              body = await response.Content.ReadAsStringAsync();
-              var json = JsonSerializer.Deserialize<RquestResultResponse>(body);
+              var message = "Unsuccessful Response from Submit Results Endpoint";
+              _logger.LogError(message);
+              _logger.LogDebug("Response Body: {body}", body);
 
-              if (json?.Status != "OK")
-              {
-                var message = "Unsuccessful Response from Submit Results Endpoint";
-                _logger.LogError(message);
-                _logger.LogDebug("Response Body: {body}", body);
-
-                throw new ApplicationException(message);
-              }
-
-              return;
+              throw new ApplicationException(message);
             }
-            catch (JsonException e)
-            {
-              _logger.LogError(e, "Invalid Response Format from Submit Results Endpoint");
-              _logger.LogDebug("Invalid Response Body: {body}", body);
 
-              throw;
-            }
-          }else{
-            _logger.LogInformation(response.StatusCode.ToString());
+            return;
           }
+          catch (JsonException e)
+          {
+            _logger.LogError(e, "Invalid Response Format from Submit Results Endpoint");
+            _logger.LogDebug("Invalid Response Body: {body}", body);
+
+            throw;
+          }
+          
         }
     }
 }
