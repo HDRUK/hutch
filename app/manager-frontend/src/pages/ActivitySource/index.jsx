@@ -20,7 +20,7 @@ import { DeleteModal } from "components/DeleteModal";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
-  const typeOptions = [{ value: "RQUEST", text: "RQUEST" }];
+  const typeOptions = [{ id: "RQUEST" }];
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
@@ -97,7 +97,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
               : {
                   DisplayName: "",
                   Host: "",
-                  Type: typeOptions[0].value,
+                  Type: typeOptions[0].id,
                   ResourceId: "",
                   TargetDataSourceName: "",
                 }
@@ -123,7 +123,10 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   label="Type"
                   name={"Type"}
                   type="Type"
-                  options={typeOptions}
+                  options={typeOptions.map((item) => ({
+                    value: item.id,
+                    label: item.id,
+                  }))}
                 />
                 <FormikInput
                   label="Resource Id"

@@ -24,13 +24,18 @@ public class ResultsModifierService
 
   public async Task<Models.ResultsModifierModel> Create(Models.CreateResultsModifier resultsModifier)
   {
-    
+    // Todo: Get this type from the database?
+    /*
+     var type = await _db.ModifierType.ToListAsync().FirstOrDefault(x => x.Id == resultsModifier.Type) ??
+        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType")
+     */
+    var type = new ModifierTypeModel { Id = resultsModifier.Type };
+
     var entity = new ResultsModifier
     {
-      Id = resultsModifier.Id,
       Order = resultsModifier.Order,
       ActivitySource = resultsModifier.ActivitySource,
-      Type = resultsModifier.Type,
+      Type = type,
       Parameters = resultsModifier.Parameters
     };
 
@@ -48,9 +53,15 @@ public class ResultsModifierService
     if (entity is null)
       throw new KeyNotFoundException(
         $"No ResultsModifier with ID: {id}");
+    // Todo: Get this type from the database?
+    /*
+     var type = await _db.ModifierType.ToListAsync().FirstOrDefault(x => x.Id == resultsModifier.Type) ??
+        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType")
+     */
+    var type = new ModifierTypeModel { Id = resultsModifier.Type };
     entity.Order = resultsModifier.Order;
     entity.ActivitySource = resultsModifier.ActivitySource;
-    entity.Type = resultsModifier.Type;
+    entity.Type = type;
     entity.Parameters = resultsModifier.Parameters;
     await _db.SaveChangesAsync();
     return new(entity);

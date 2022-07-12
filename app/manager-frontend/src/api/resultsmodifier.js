@@ -21,7 +21,7 @@ export const getResultsModifierApi = ({ api }) => ({
     }),
 });
 
-export const useResultsModifier = () => {
+export const useResultsModifierList = () => {
   const { apiFetcher } = useBackendApi();
   return useSWR(fetchKeys.resultsModifierList, apiFetcher, { suspense: true });
 };
