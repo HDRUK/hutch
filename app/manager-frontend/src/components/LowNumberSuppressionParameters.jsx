@@ -18,10 +18,10 @@ import { FaArrowRight } from "react-icons/fa";
 import { FormikInput } from "./forms/FormikInput";
 import { FormikSelect } from "./forms/FormikSelect";
 
-function LowNumberSuppressionParameters({ type }) {
+export const LowNumberSuppressionParameters = ({ type }) => {
   const formikProps = useFormikContext();
   useEffect(() => {
-    formikProps.setFieldValue("Parameters", { Threshold: null });
+    formikProps.setFieldValue("Parameters", { Threshold: "" });
   }, [type]);
   // Todo: get the value of the inputs to update when the formik values update
   switch (type) {
@@ -46,6 +46,4 @@ function LowNumberSuppressionParameters({ type }) {
         </>
       );
   }
-}
-
-export default LowNumberSuppressionParameters;
+};

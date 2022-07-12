@@ -2,6 +2,7 @@ import { getDateLocale } from "config/i18n";
 import { parseISO } from "date-fns";
 import { format, utcToZonedTime } from "date-fns-tz";
 import { Base64 } from "js-base64";
+import { capitalise } from "./strings";
 
 /**
  * Try to get the value from an object,
@@ -64,4 +65,10 @@ export const getFormattedDate = (isoDateString, culture) => {
     locale: getDateLocale(culture),
     timeZone: "UTC",
   });
+};
+
+export const capitaliseObjectKeys = (obj) => {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [capitalise(k), v])
+  );
 };
