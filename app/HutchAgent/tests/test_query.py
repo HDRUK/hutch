@@ -158,62 +158,6 @@ def test_group_sql_clause():
     )
 
 
-@pytest.mark.skip
-def test_cohort_sql_clause():
-    and_group = {
-        "groups": [
-            {
-                "rules": [
-                    {
-                        "varname": "OMOP",
-                        "type": "TEXT",
-                        "oper": "=",
-                        "value": "8527",
-                    }
-                ],
-                "rules_oper": "OR",
-            },
-        ],
-        "groups_oper": "AND",
-    }
-    cohort = query.RQuestQueryCohort(**and_group)
-    # Assert single rule in single group builds correctly
-    assert str(cohort.sql_clause) == "race_concept_id = :race_concept_id_1"
-    and_group["groups"][0]["rules"].append(
-        {
-            "varname": "OMOP",
-            "type": "TEXT",
-            "oper": "=",
-            "value": "8532",
-        }
-    )
-    cohort = query.RQuestQueryCohort(**and_group)
-    # Assert multiple rules in single group build correctly
-    assert (
-        str(cohort.sql_clause)
-        == "gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"
-    )
-    and_group["groups"].append(
-        {
-            "rules": [
-                {
-                    "varname": "OMOP",
-                    "type": "TEXT",
-                    "oper": "=",
-                    "value": "8532",
-                }
-            ],
-            "rules_oper": "OR",
-        }
-    )
-    # Assert multiple rules in multiple groups build correctly
-    cohort = query.RQuestQueryCohort(**and_group)
-    assert (
-        str(cohort.sql_clause)
-        == "(gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AND gender_concept_id = :gender_concept_id_2"
-    )
-
-
 def test_query_to_sql():
     request_dict = {
         "JobId": "88ca2cd8-0438-48ad-be14-dc9326b63234",

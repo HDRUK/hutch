@@ -245,29 +245,6 @@ class RQuestQueryGroup:
             return or_(*[rule.sql_clause for rule in self.rules])
 
 
-class RQuestQueryCohort:
-    """Represents an RQuest query cohort."""
-
-    def __init__(self, groups: list = None, groups_oper: str = "") -> None:
-        """Constructor for `RQuestQueryCohort`.
-
-        Args:
-            groups (list, optional): A list of `RQuestQueryGroup`s. Defaults to None.
-            groups_oper (str, optional): The operand for comparing the groups. Defaults to "".
-        """
-        self.groups = (
-            [RQuestQueryGroup(**g) for g in groups] if groups is not None else list()
-        )
-        self.groups_oper = groups_oper
-
-    @property
-    def sql_clause(self):
-        if self.groups_oper == "AND":
-            return and_(*[group.sql_clause for group in self.groups])
-        else:
-            return or_(*[group.sql_clause for group in self.groups])
-
-
 class RQuestQuery:
     """Represents an RQuest query"""
 
