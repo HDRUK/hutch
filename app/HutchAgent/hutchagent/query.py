@@ -290,13 +290,26 @@ class RQuestQuery:
         """
         self.job_id = job_id
         self.activity_source_id = activity_source_id
-        self.groups = groups if groups is not None else []
+        self.groups = groups if groups is not None else list()
         self.combinator = combinator
-        
+    
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        job_id = dict_.get("JobId", "")
+        activity_source_id = dict_.get("ActivitySourceId", "")
+        query = dict_.get("Query", dict())
+        combinator = query.get("Combinator", "")
+        groups = [RQuestQueryGroup.from_dict(group) for group in query.get("Groups", dict())]
+        return cls(
+            job_id=job_id,
+            activity_source_id=activity_source_id,
+            combinator=combinator,
+            groups=groups,
+        )
 
     def to_sql(self):
         columns = set()
-        for group in self.cohort.groups:
+        for group in self.groups:
             for col in group.columns:
                 columns.add(col)
         # Make columns appear in ascending order by name for tests.
