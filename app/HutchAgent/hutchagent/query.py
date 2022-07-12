@@ -200,19 +200,21 @@ class RQuestQueryRule:
 class RQuestQueryGroup:
     """Represents an RQuest query group."""
 
-    def __init__(self, rules: list = None, rules_oper: str = "") -> None:
+    def __init__(self, rules: list = None, combinator: str = "", exclude: bool = False) -> None:
         """Constructor for `RQuestQueryGroup`.
 
         Args:
             rules (list, optional): A list of `RQuestQueryRule`s. Defaults to None.
-            rules_oper (str, optional): The operand for comparing the rules. Defaults to "".
+            combinator (str, optional): The operand for comparing the rules. Defaults to "".
+            exclude (bool, optional): Exclude results matching `rules`. Defaults to False.
         """
         self.rules = (
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
         )
         # Sort rules for more predictable behaviour in tests.
         self.rules = sorted(self.rules, key=lambda x: x.column_name)
-        self.rules_oper = rules_oper
+        self.combinator = combinator
+        self.exclude = exclude
 
     @property
     def columns(self):
@@ -220,7 +222,7 @@ class RQuestQueryGroup:
 
     @property
     def sql_clause(self):
-        if self.rules_oper == "AND":
+        if self.combinator == "AND":
             return and_(*[rule.sql_clause for rule in self.rules])
         else:
             return or_(*[rule.sql_clause for rule in self.rules])
