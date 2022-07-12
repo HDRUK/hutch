@@ -33,7 +33,7 @@ class RQuestQueryRule:
     def __init__(
         self,
         variable_name: str = "",
-        type: str = "",
+        type_: str = "",
         operand: str = "",
         value: str = "",
         external_attribute: str = "",
@@ -55,7 +55,7 @@ class RQuestQueryRule:
         """
         self.concept_id = self._parse_concept_id(variable_name, value)
         self.variable_name = variable_name
-        self.type = type
+        self.type_ = type_
         self.operand = operand
         self.value = self._parse_value(value)
         self.external_attribute = external_attribute
@@ -63,6 +63,19 @@ class RQuestQueryRule:
         self.regex = regex
         self.column_name = PERSON_LOOKUPS.get(self.concept_id)
         self.time_ = time_
+
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        return cls(
+            variable_name=dict_.get("VariableName", ""),
+            type_=dict_.get("Type", ""),
+            operand=dict_.get("Operand", ""),
+            value=dict_.get("Value", ""),
+            external_attribute=dict_.get("ExternalAttribute", ""),
+            unit=dict_.get("Unit", ""),
+            regex=dict_.get("RegEx", ""),
+            time_=dict_.get("Time"),  # time_ defaults to None.
+        )
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -73,7 +86,7 @@ class RQuestQueryRule:
         Returns:
             Any: The value with the correct type.
         """
-        if self.type == "NUM":
+        if self.type_ == "NUM":
             return self._numeric_value(value)
         else:
             return value
@@ -94,13 +107,13 @@ class RQuestQueryRule:
             )
 
         clause = None
-        if self.type == "TEXT" and self.operand == "=":
+        if self.type_ == "TEXT" and self.operand == "=":
             clause = column(self.column_name) == self.concept_id
-        elif self.type == "TEXT" and self.operand == "!=":
+        elif self.type_ == "TEXT" and self.operand == "!=":
             clause = column(self.column_name) != self.concept_id
-        elif self.type == "NUM" and self.operand == "=":
+        elif self.type_ == "NUM" and self.operand == "=":
             clause = column(self.column_name).between(self.value[0], self.value[1])
-        elif self.type == "NUM" and self.operand == "!=":
+        elif self.type_ == "NUM" and self.operand == "!=":
             clause = not_(
                 column(self.column_name).between(self.value[0], self.value[1])
             )
