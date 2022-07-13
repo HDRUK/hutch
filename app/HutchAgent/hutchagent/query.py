@@ -1,18 +1,9 @@
 import datetime as dt
-import json
-import logging
-import os
 import re
-import time
 import dotenv
-import requests, requests.exceptions as req_exc
-from pika.channel import Channel
-from pika.spec import Basic, BasicProperties
 from sqlalchemy import (
     and_,
     column,
-    create_engine,
-    exc as sql_exc,
     func,
     not_,
     or_,
