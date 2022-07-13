@@ -16,6 +16,7 @@ export const ResultsModifier = ({
   children,
   onDelete,
   onUpdate,
+  item,
   ...p
 }) => (
   <VStack
@@ -35,15 +36,34 @@ export const ResultsModifier = ({
   >
     <HStack>
       <Flex w="full">
-        <Heading as="h3" size="md">
-          {title}
-        </Heading>
+        <Box>
+          <Flex>
+            <Text fontWeight={"bold"} pr={4}>
+              Activity Source:
+            </Text>
+            <Text fontWeight={"normal"}>{item.activitySource.displayName}</Text>
+          </Flex>
+          <Flex>
+            <Text fontWeight={"bold"} pr={4}>
+              Order:
+            </Text>
+            <Text fontWeight={"normal"}>{item.order}</Text>
+          </Flex>
+          <Flex>
+            <Text fontWeight={"bold"} pr={4}>
+              Type:
+            </Text>
+            <Text fontWeight={"normal"}>{item.type.id}</Text>
+          </Flex>
+        </Box>
+
         <Button colorScheme="red" ml={"auto"} onClick={onDelete}>
           Delete
         </Button>
       </Flex>
     </HStack>
     {children}
+
     <Button ml={"auto"} onClick={onUpdate}>
       Update
     </Button>

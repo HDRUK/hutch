@@ -32,6 +32,7 @@ import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
 import { useModifierTypeList } from "api/resultsmodifier";
+import { useActivitySourceList } from "api/activitysource";
 
 export const ConfirmationModal = ({
   isOpen,
@@ -42,8 +43,18 @@ export const ConfirmationModal = ({
   if (!initialData) return null;
   // transform data from the backend so that Type maps to the type id
   // rather than the whole object
+  const getParam = (k, v) => {
+    switch (k) {
+      case "type":
+        return v.id;
+      case "activitySource":
+        return v.id;
+      default:
+        return v;
+    }
+  };
   const transformedInitialData = Object.fromEntries(
-    Object.entries(initialData).map(([k, v]) => [k, k === "type" ? v.id : v])
+    Object.entries(initialData).map(([k, v]) => [k, getParam(k, v)])
   );
   // convert the objects to arrays to be compared and displayed
   const initialDataArray = Object.entries(
@@ -176,6 +187,8 @@ export const ConfigureResultsModifierModal = ({
   } = useDisclosure();
   const [feedback, setFeedback] = useState();
   const { data: typeOptions } = useModifierTypeList();
+  const { data: activitySourceOptions } = useActivitySourceList();
+  console.log(activitySourceOptions);
 
   const onCloseHandler = () => {
     onClose();
@@ -220,11 +233,13 @@ export const ConfigureResultsModifierModal = ({
                     Type: initialData.type.id,
                     // capitalise the object keys in the parameters object
                     Parameters: capitaliseObjectKeys(initialData.parameters),
+                    ActivitySource: initialData.activitySource.id,
                   }
                 : {
                     Order: "0",
                     Type: typeOptions[0].id,
                     Parameters: {},
+                    ActivitySource: activitySourceOptions[0].id,
                   }
             }
             validationSchema={validationSchema()}
@@ -246,6 +261,15 @@ export const ConfigureResultsModifierModal = ({
                     options={typeOptions.map((item) => ({
                       value: item.id,
                       label: item.id,
+                    }))}
+                  />
+                  <FormikSelect
+                    label="Activity Source"
+                    name={"ActivitySource"}
+                    type="ActivitySource"
+                    options={activitySourceOptions.map((item) => ({
+                      value: item.id,
+                      label: item.displayName,
                     }))}
                   />
                   <LowNumberSuppressionParameters type={values.Type} />
