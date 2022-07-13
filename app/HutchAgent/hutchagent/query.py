@@ -198,12 +198,13 @@ class RQuestQueryRule:
 class RQuestQueryGroup:
     """Represents an RQuest query group."""
 
-    def __init__(self, rules: list = None, rules_oper: str = "") -> None:
+    def __init__(self, rules: list = None, rules_oper: str = "", exclude: bool = False) -> None:
         """Constructor for `RQuestQueryGroup`.
 
         Args:
             rules (list, optional): A list of `RQuestQueryRule`s. Defaults to None.
             rules_oper (str, optional): The operand for comparing the rules. Defaults to "".
+            exclude (bool, optional): Exclude results match the group rules. Defaults to False.
         """
         self.rules = (
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
@@ -211,6 +212,7 @@ class RQuestQueryGroup:
         # Sort rules for more predictable behaviour in tests.
         self.rules = sorted(self.rules, key=lambda x: x.column_name)
         self.rules_oper = rules_oper
+        self.exclude = exclude
 
     @property
     def columns(self):
