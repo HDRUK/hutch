@@ -10,7 +10,6 @@ from sqlalchemy import (
     select,
 )
 from typing import Any
-from hutchagent.db_manager import SyncDBManager
 from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 dotenv.load_dotenv()
