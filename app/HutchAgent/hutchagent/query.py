@@ -1,25 +1,15 @@
 import datetime as dt
-import json
-import logging
-import os
 import re
-import time
 import dotenv
-import requests, requests.exceptions as req_exc
-from pika.channel import Channel
-from pika.spec import Basic, BasicProperties
 from sqlalchemy import (
     and_,
     column,
-    create_engine,
-    exc as sql_exc,
     func,
     not_,
     or_,
     select,
 )
-from typing import Any
-from hutchagent.db_manager import SyncDBManager
+from typing import Any, Union, List
 from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
 
 dotenv.load_dotenv()
@@ -38,29 +28,50 @@ class RQuestQueryRule:
 
     def __init__(
         self,
-        varname: str = "",
-        type: str = "",
-        oper: str = "",
+        variable_name: str = "",
+        type_: str = "",
+        operand: str = "",
         value: str = "",
-        **kwargs,
+        external_attribute: str = "",
+        unit: str = "",
+        regex: str = "",
+        time_: Union[str, None] = None,
     ) -> None:
         """Constructor for `RQuestQueryRule`.
 
         Args:
-            varname (str, optional): The name of the value column. Defaults to "".
+            variable_name (str, optional): The name of the value column. Defaults to "".
             type (str, optional): The data type of the value. Defaults to "".
-            oper (str, optional): The comparison operator for the value. Defaults to "".
-            value (str, optional): The value. Defaults to "". Is converted from a string
-            to the type specified in `type`.
+            operand (str, optional): The comparison operator for the value. Defaults to "".
+            value (str, optional): The value. Defaults to "".
+            external_attribute (str, optional): An additional attribute. Defaults to "".
+            unit (str, optional): The units of the rule. Defaults to "".
+            regex (str, optional): The regex to match. Defaults to "".
+            time_ (Union[str, None], optional): The time boundry for the rule. Defaults to None.
         """
-        self.concept_id = self._parse_concept_id(varname, value)
-        self.varname = varname
-        self.type = type
-        self.oper = oper
+        self.concept_id = self._parse_concept_id(variable_name, value)
+        self.variable_name = variable_name
+        self.type_ = type_
+        self.operand = operand
         self.value = self._parse_value(value)
+        self.external_attribute = external_attribute
+        self.unit = unit
+        self.regex = regex
         self.column_name = PERSON_LOOKUPS.get(self.concept_id)
-        # `time` is not always present so either get from `kwargs` or default to `None`
-        self.time_ = kwargs.get("time")
+        self.time_ = time_
+
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        return cls(
+            variable_name=dict_.get("VariableName", ""),
+            type_=dict_.get("Type", ""),
+            operand=dict_.get("Operand", ""),
+            value=dict_.get("Value", ""),
+            external_attribute=dict_.get("ExternalAttribute", ""),
+            unit=dict_.get("Unit", ""),
+            regex=dict_.get("RegEx", ""),
+            time_=dict_.get("Time"),  # time_ defaults to None.
+        )
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -71,20 +82,20 @@ class RQuestQueryRule:
         Returns:
             Any: The value with the correct type.
         """
-        if self.type == "NUM":
+        if self.type_ == "NUM":
             return self._numeric_value(value)
         else:
             return value
 
     @property
     def sql_clause(self):
-        if self.column_name is None and self.oper == "=":
+        if self.column_name is None and self.operand == "=":
             return or_(
                 column("measurement_concept_id") == self.concept_id,
                 column("observation_concept_id") == self.concept_id,
                 column("condition_concept_id") == self.concept_id,
             )
-        if self.column_name is None and self.oper == "!=":
+        if self.column_name is None and self.operand == "!=":
             return or_(
                 column("measurement_concept_id") != self.concept_id,
                 column("observation_concept_id") != self.concept_id,
@@ -92,13 +103,13 @@ class RQuestQueryRule:
             )
 
         clause = None
-        if self.type == "TEXT" and self.oper == "=":
+        if self.type_ == "TEXT" and self.operand == "=":
             clause = column(self.column_name) == self.concept_id
-        elif self.type == "TEXT" and self.oper == "!=":
+        elif self.type_ == "TEXT" and self.operand == "!=":
             clause = column(self.column_name) != self.concept_id
-        elif self.type == "NUM" and self.oper == "=":
+        elif self.type_ == "NUM" and self.operand == "=":
             clause = column(self.column_name).between(self.value[0], self.value[1])
-        elif self.type == "NUM" and self.oper == "!=":
+        elif self.type_ == "NUM" and self.operand == "!=":
             clause = not_(
                 column(self.column_name).between(self.value[0], self.value[1])
             )
@@ -144,20 +155,20 @@ class RQuestQueryRule:
             timespan = int(hit.group(1))
             time_unit = hit.group(2)
             # older times are smaller, so use `>` for inclusive ("=") seaches
-            if time_unit == "Y" and self.oper == "=":
+            if time_unit == "Y" and self.operand == "=":
                 return column("birth_datetime") < (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "=":
+            elif time_unit == "M" and self.operand == "=":
                 return column("birth_datetime") < (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # newer times are larger, so use `<=` for exclusive ("!=") seaches
-            elif time_unit == "Y" and self.oper == "!=":
+            elif time_unit == "Y" and self.operand == "!=":
                 return column("birth_datetime") >= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "!=":
+            elif time_unit == "M" and self.operand == "!=":
                 return column("birth_datetime") >= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
@@ -169,20 +180,20 @@ class RQuestQueryRule:
             timespan = int(hit.group(1))
             time_unit = hit.group(2)
             # newer times are larger, so use `>` for inclusive ("=") seaches
-            if time_unit == "Y" and self.oper == "=":
+            if time_unit == "Y" and self.operand == "=":
                 return column("birth_datetime") > (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "=":
+            elif time_unit == "M" and self.operand == "=":
                 return column("birth_datetime") > (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # older times are smaller, so use `<=` for exclusive ("!=") seaches
-            elif time_unit == "Y" and self.oper == "!=":
+            elif time_unit == "Y" and self.operand == "!=":
                 return column("birth_datetime") <= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
-            elif time_unit == "M" and self.oper == "!=":
+            elif time_unit == "M" and self.operand == "!=":
                 return column("birth_datetime") <= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
@@ -198,19 +209,29 @@ class RQuestQueryRule:
 class RQuestQueryGroup:
     """Represents an RQuest query group."""
 
-    def __init__(self, rules: list = None, rules_oper: str = "") -> None:
+    def __init__(
+        self, rules: list = None, combinator: str = "", exclude: bool = False
+    ) -> None:
         """Constructor for `RQuestQueryGroup`.
 
         Args:
             rules (list, optional): A list of `RQuestQueryRule`s. Defaults to None.
-            rules_oper (str, optional): The operand for comparing the rules. Defaults to "".
+            combinator (str, optional): The operand for comparing the rules. Defaults to "".
+            exclude (bool, optional): Exclude results matching `rules`. Defaults to False.
         """
-        self.rules = (
-            [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
-        )
+        self.rules = rules
         # Sort rules for more predictable behaviour in tests.
         self.rules = sorted(self.rules, key=lambda x: x.column_name)
-        self.rules_oper = rules_oper
+        self.combinator = combinator
+        self.exclude = exclude
+
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        return cls(
+            rules=[RQuestQueryRule.from_dict(rule) for rule in dict_.get("Rules", [])],
+            combinator=dict_.get("Combinator", ""),
+            exclude=dict_.get("Exclude", False),
+        )
 
     @property
     def columns(self):
@@ -218,33 +239,10 @@ class RQuestQueryGroup:
 
     @property
     def sql_clause(self):
-        if self.rules_oper == "AND":
+        if self.combinator == "AND":
             return and_(*[rule.sql_clause for rule in self.rules])
         else:
             return or_(*[rule.sql_clause for rule in self.rules])
-
-
-class RQuestQueryCohort:
-    """Represents an RQuest query cohort."""
-
-    def __init__(self, groups: list = None, groups_oper: str = "") -> None:
-        """Constructor for `RQuestQueryCohort`.
-
-        Args:
-            groups (list, optional): A list of `RQuestQueryGroup`s. Defaults to None.
-            groups_oper (str, optional): The operand for comparing the groups. Defaults to "".
-        """
-        self.groups = (
-            [RQuestQueryGroup(**g) for g in groups] if groups is not None else list()
-        )
-        self.groups_oper = groups_oper
-
-    @property
-    def sql_clause(self):
-        if self.groups_oper == "AND":
-            return and_(*[group.sql_clause for group in self.groups])
-        else:
-            return or_(*[group.sql_clause for group in self.groups])
 
 
 class RQuestQuery:
@@ -252,35 +250,50 @@ class RQuestQuery:
 
     def __init__(
         self,
-        owner: str = "",
-        cohort: dict = None,  # mutable types shouldn't used as defaults
-        collection: str = "",
-        protocol_version: str = "",
-        char_salt: str = "",
-        uuid: str = "",
-        **kwargs,  # ignored args
+        job_id: str = "",
+        activity_source_id: str = "",
+        groups: List[RQuestQueryGroup] = None,
+        combinator: str = "",
     ) -> None:
         """Construction for `RQuestQuery`.
 
         Args:
-            owner (str, optional): The owner of the query. Defaults to "".
-            cohort (dict, optional): The cohort of groups. Defaults to None.
-            collection (str, optional): The collection ID. Defaults to "".
-            protocol_version (str, optional): The protocol version. Defaults to "".
-            char_salt (str, optional): The char salt. Defaults to "".
-            uuid (str, optional): The UUID. Defaults to "".
+            job_id (str, optional): _description_. Defaults to "".
+            activity_source_id (str, optional): _description_. Defaults to "".
+            groups (List[RQuestQueryGroup], optional): _description_. Defaults to None.
+            combinator (str, optional): _description_. Defaults to "".
         """
-        self.owner = owner
-        self.cohort = cohort if cohort is not None else {}  # turn None to empty dict
-        self.cohort = RQuestQueryCohort(**cohort)
-        self.collection = collection
-        self.protocol_version = protocol_version
-        self.char_salt = char_salt
-        self.uuid = uuid
+        self.job_id = job_id
+        self.activity_source_id = activity_source_id
+        self.groups = groups if groups is not None else list()
+        self.combinator = combinator
+
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        job_id = dict_.get("JobId", "")
+        activity_source_id = dict_.get("ActivitySourceId", "")
+        query = dict_.get("Query", dict())
+        combinator = query.get("Combinator", "")
+        groups = [
+            RQuestQueryGroup.from_dict(group) for group in query.get("Groups", dict())
+        ]
+        return cls(
+            job_id=job_id,
+            activity_source_id=activity_source_id,
+            combinator=combinator,
+            groups=groups,
+        )
+
+    @property
+    def sql_clause(self):
+        if self.combinator == "AND":
+            return and_(*[group.sql_clause for group in self.groups])
+        else:
+            return or_(*[group.sql_clause for group in self.groups])
 
     def to_sql(self):
         columns = set()
-        for group in self.cohort.groups:
+        for group in self.groups:
             for col in group.columns:
                 columns.add(col)
         # Make columns appear in ascending order by name for tests.
@@ -300,7 +313,7 @@ class RQuestQuery:
                 Observation,
                 Person.person_id == Observation.person_id,
             )
-            .where(self.cohort.sql_clause)
+            .where(self.sql_clause)
             .distinct()
             .subquery()
         )
