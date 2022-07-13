@@ -1,44 +1,6 @@
 import pytest
 import hutchagent.query as query
 
-"""
-{
-    "job_id":"d21599d5-2514-4f63-9183-62ddc47f8e0d",
-    "cohort":{
-        "groups_oper":"OR",
-        "groups":[
-            {
-                "rules_oper":"AND",
-                "rules":[
-                    {
-                        "type":"TEXT",
-                        "varname":"OMOP",
-                        "oper":"=",
-                        "value":"8532",
-                        "time":"|6:TIME:M",
-                        "ext":"",
-                        "unit":"",
-                        "regex":""
-                    },
-                    {
-                        "type":"TEXT",
-                        "varname":"OMOP",
-                        "oper":"=",
-                        "value":"4139681",
-                        "time":"|18:AGE:Y",
-                        "ext":"",
-                        "unit":"",
-                        "regex":""
-                    }
-                ],
-                "exclude":false
-            }
-        ]
-    },
-    "activity_source_id":1
-}
-"""
-
 
 def test_create_rquest_query():
     request_dict = {
@@ -77,16 +39,12 @@ def test_create_rquest_query():
     assert isinstance(rquest_query.cohort.groups[0].rules[0], query.RQuestQueryRule)
 
 
-
 def test_text_rule_sql_clause():
     eq_rule = {
         "varname": "OMOP",
         "type": "TEXT",
         "oper": "=",
         "value": "8527",
-        "ext": "",
-        "unit": "",
-        "regex": "",
     }
     rule_obj = query.RQuestQueryRule(**eq_rule)
     assert rule_obj.concept_id == "8527"
@@ -97,7 +55,6 @@ def test_text_rule_sql_clause():
     assert str(rule_obj.sql_clause) == "race_concept_id != :race_concept_id_1"
 
 
-@pytest.mark.skip
 def test_numeric_rule_sql_clause():
     eq_rule = {
         "varname": "OMOP=8527",
@@ -120,7 +77,7 @@ def test_numeric_rule_sql_clause():
     )
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_time_rule_sql_clause():
     eq_rule = {
         "varname": "OMOP",
@@ -154,7 +111,6 @@ def test_time_rule_sql_clause():
         print(rule_obj.sql_clause)
 
 
-@pytest.mark.skip
 def test_group_sql_clause():
     and_rule = {
         "rules": [
@@ -186,7 +142,6 @@ def test_group_sql_clause():
     )
 
 
-@pytest.mark.skip
 def test_cohort_sql_clause():
     and_group = {
         "groups": [
@@ -242,7 +197,6 @@ def test_cohort_sql_clause():
     )
 
 
-@pytest.mark.skip
 def test_query_to_sql():
     request_dict = {
         "owner": "user1",

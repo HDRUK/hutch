@@ -203,7 +203,9 @@ class RQuestQueryRule:
 class RQuestQueryGroup:
     """Represents an RQuest query group."""
 
-    def __init__(self, rules: list = None, rules_oper: str = "", exclude: bool = False) -> None:
+    def __init__(
+        self, rules: list = None, rules_oper: str = "", exclude: bool = False
+    ) -> None:
         """Constructor for `RQuestQueryGroup`.
 
         Args:
