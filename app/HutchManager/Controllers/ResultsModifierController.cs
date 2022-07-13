@@ -28,6 +28,10 @@ public class ResultsModifierController : ControllerBase
   public async Task<ActionResult<ResultsModifierModel>> Get(int id)
     => await _resultsModifier.Get(id);
 
+  [HttpGet("Types")]
+  public async Task<List<ModifierTypeModel>> GetTypes()
+    => await _resultsModifier.GetTypes();
+
   [HttpDelete("{id}")]
   public async Task<IActionResult> Delete(int id)
   {

@@ -15,7 +15,7 @@ public class ActivitySourceModel
   {
     Id = entity.Id;
     Host = entity.Host;
-    Type = entity.Type.Id;
+    Type = entity.Type !=null ? entity.Type.Id : "";
     ResourceId = entity.ResourceId;
     DisplayName = entity.DisplayName;
     TargetDataSourceName = entity.TargetDataSourceName;

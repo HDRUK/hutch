@@ -4,6 +4,7 @@ import useSWR from "swr";
 
 export const fetchKeys = {
   resultsModifierList: "ResultsModifier",
+  modifierTypeList: "ResultsModifier/Types",
 };
 
 export const getResultsModifierApi = ({ api }) => ({
@@ -21,7 +22,12 @@ export const getResultsModifierApi = ({ api }) => ({
     }),
 });
 
-export const useResultsModifier = () => {
+export const useResultsModifierList = () => {
   const { apiFetcher } = useBackendApi();
   return useSWR(fetchKeys.resultsModifierList, apiFetcher, { suspense: true });
+};
+
+export const useModifierTypeList = () => {
+  const { apiFetcher } = useBackendApi();
+  return useSWR(fetchKeys.modifierTypeList, apiFetcher, { suspense: true });
 };

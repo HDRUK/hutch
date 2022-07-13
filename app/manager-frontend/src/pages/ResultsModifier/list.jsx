@@ -7,8 +7,7 @@ import {
   Input,
 } from "@chakra-ui/react";
 
-import { useDataSourceList } from "api/datasource";
-import { DataSourceSummary } from "components/DataSourceSummary";
+import { useResultsModifierList } from "api/resultsmodifier";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
@@ -28,11 +27,12 @@ export const ResultsModifiersList = () => {
   } = useDisclosure();
   const [selected, setSelected] = useState();
   const { resultsmodifier } = useBackendApi();
-  const { data, mutate } = useDataSourceList();
+  const { data, mutate } = useResultsModifierList();
 
   const onDelete = async () => {
     await resultsmodifier.delete({ id: selected.id });
     await mutate();
+    setSelected(undefined);
     onDeleteClose();
   };
   const onClickDelete = (item) => {
@@ -82,6 +82,7 @@ export const ResultsModifiersList = () => {
         onClose={closeUpdate}
         action={selected ? resultsmodifier.update : resultsmodifier.create}
         initialData={selected}
+        mutate={mutate}
       />
     </VStack>
   );

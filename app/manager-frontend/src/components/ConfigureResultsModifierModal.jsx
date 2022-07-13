@@ -31,6 +31,7 @@ import { validationSchema } from "pages/ResultsModifier/validation";
 import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
+import { useModifierTypeList } from "api/resultsmodifier";
 
 export const ConfirmationModal = ({
   isOpen,
@@ -38,6 +39,7 @@ export const ConfirmationModal = ({
   initialData,
   newData,
 }) => {
+  if (!initialData) return null;
   // transform data from the backend so that Type maps to the type id
   // rather than the whole object
   const transformedInitialData = Object.fromEntries(
@@ -165,6 +167,7 @@ export const ConfigureResultsModifierModal = ({
   isOpen,
   onClose,
   action,
+  mutate,
 }) => {
   const {
     isOpen: isConfirmOpen,
@@ -172,20 +175,24 @@ export const ConfigureResultsModifierModal = ({
     onClose: onConfirmClose,
   } = useDisclosure();
   const [feedback, setFeedback] = useState();
+  const { data: typeOptions } = useModifierTypeList();
 
-  // Todo: Get this from backend
-  const typeOptions = [
-    { id: "Type1", limit: "1" },
-    { id: "Type2", limit: "2" },
-  ];
-
+  const onCloseHandler = () => {
+    onClose();
+    setFeedback(null);
+  };
   const handleSubmit = async (values, actions) => {
     try {
       // convert all empty strings to null
       const payload = objectStringsToNull(values);
       // post to the api
-      await action({ values: payload }).json();
-      onClose();
+      await action({
+        values: payload,
+        id: initialData ? initialData.id : undefined,
+      }).json();
+      mutate();
+      onConfirmClose();
+      onCloseHandler();
     } catch (e) {
       console.error(e);
       onConfirmClose();
@@ -196,7 +203,7 @@ export const ConfigureResultsModifierModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onCloseHandler}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -215,7 +222,7 @@ export const ConfigureResultsModifierModal = ({
                     Parameters: capitaliseObjectKeys(initialData.parameters),
                   }
                 : {
-                    Order: "",
+                    Order: "0",
                     Type: typeOptions[0].id,
                     Parameters: {},
                   }
