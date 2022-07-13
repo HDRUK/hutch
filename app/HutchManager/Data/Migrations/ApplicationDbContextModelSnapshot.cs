@@ -202,9 +202,8 @@ namespace HutchManager.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("Limit")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Limit")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

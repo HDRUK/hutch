@@ -38,7 +38,7 @@ namespace HutchManager.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    Limit = table.Column<string>(type: "text", nullable: false)
+                    Limit = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HutchManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220713093910_ModifierType")]
+    [Migration("20220713151856_ModifierType")]
     partial class ModifierType
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -204,9 +204,8 @@ namespace HutchManager.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("Limit")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Limit")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
