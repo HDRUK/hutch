@@ -179,7 +179,7 @@ def ro_crates_callback(
         )
 
     try:
-        requests.post(os.getenv("MANAGER_URL"), result.to_dict())
+        requests.post(f"{os.getenv('MANAGER_URL')}/api/results", result.to_dict())
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
