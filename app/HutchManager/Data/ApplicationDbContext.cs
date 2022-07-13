@@ -20,6 +20,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
   public DbSet<SourceType> SourceTypes => Set<SourceType>();
 
+  public DbSet<ModifierType> ModifierTypes => Set<ModifierType>();
+
   public DbSet<ResultsModifier> ResultsModifier => Set<ResultsModifier>();
 
   public DbSet<Logs> Logs => Set<Logs>();

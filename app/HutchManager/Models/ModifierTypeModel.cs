@@ -11,6 +11,12 @@ public class ModifierTypeModel
     Limit = entity.Limit;
   }
 
+  public ModifierTypeModel(Data.Entities.ModifierType entity)
+  {
+    Id = entity.Id;
+    Limit = entity.Limit;
+  }
+
   public ModifierTypeModel()
   {
   }

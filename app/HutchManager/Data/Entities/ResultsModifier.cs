@@ -7,8 +7,8 @@ public class ResultsModifier
 {
   public int Id { get; set; }
   public int Order { get; set; }
-  public ActivitySourceModel ActivitySource { get; set; } = new();
-  public ModifierTypeModel Type { get; set; } = new();
+  public ActivitySource ActivitySource { get; set; } = new();
+  public ModifierType Type { get; set; } = new();
 
   public JsonDocument? Parameters { get; set; }
 

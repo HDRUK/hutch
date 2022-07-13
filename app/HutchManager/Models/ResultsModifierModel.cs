@@ -14,8 +14,19 @@ public class ResultsModifierModel
   {
     Id = entity.Id;
     Order = entity.Order;
-    ActivitySource = entity.ActivitySource;
-    Type = entity.Type;
+    ActivitySource = new ActivitySourceModel 
+    {
+    Id = entity.ActivitySource.Id,
+    Host = entity.ActivitySource.Host,
+    ResourceId = entity.ActivitySource.ResourceId,
+    DisplayName = entity.ActivitySource.DisplayName,
+    TargetDataSourceName = entity.ActivitySource.TargetDataSourceName,
+    };
+    Type = new ModifierTypeModel 
+    { 
+      Id = entity.Type.Id, 
+      Limit = entity.Type.Limit
+    };
     Parameters = entity.Parameters;
   }
 }

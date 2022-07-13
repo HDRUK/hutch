@@ -82,6 +82,7 @@ export const ResultsModifiersList = () => {
         onClose={closeUpdate}
         action={selected ? resultsmodifier.update : resultsmodifier.create}
         initialData={selected}
+        mutate={mutate}
       />
     </VStack>
   );

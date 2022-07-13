@@ -31,6 +31,7 @@ import { validationSchema } from "pages/ResultsModifier/validation";
 import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
+import { useModifierTypeList } from "api/resultsmodifier";
 
 export const ConfirmationModal = ({
   isOpen,
@@ -166,6 +167,7 @@ export const ConfigureResultsModifierModal = ({
   isOpen,
   onClose,
   action,
+  mutate,
 }) => {
   const {
     isOpen: isConfirmOpen,
@@ -173,13 +175,7 @@ export const ConfigureResultsModifierModal = ({
     onClose: onConfirmClose,
   } = useDisclosure();
   const [feedback, setFeedback] = useState();
-
-  // Todo: Get this from backend
-  const typeOptions = [
-    { id: "Type1", limit: "1" },
-    { id: "Type2", limit: "2" },
-    { id: "Type3", limit: "2" },
-  ];
+  const { data: typeOptions } = useModifierTypeList();
 
   const onCloseHandler = () => {
     onClose();
@@ -194,6 +190,8 @@ export const ConfigureResultsModifierModal = ({
         values: payload,
         id: initialData ? initialData.id : undefined,
       }).json();
+      mutate();
+      onConfirmClose();
       onCloseHandler();
     } catch (e) {
       console.error(e);

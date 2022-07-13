@@ -22,22 +22,23 @@ public class ResultsModifierService
     return list.ConvertAll<Models.ResultsModifierModel>(x => new(x));
   }
 
+  public async Task<List<Models.ModifierTypeModel>> GetTypes()
+  {
+    var list = await _db.ModifierTypes
+      .AsNoTracking()
+      .ToListAsync();
+    return list.ConvertAll<Models.ModifierTypeModel>(x => new(x));
+  }
+
   public async Task<Models.ResultsModifierModel> Create(Models.CreateResultsModifier resultsModifier)
   {
-    // Todo: Get this type from the database?
-    /*
-     var type = await _db.ModifierType.ToListAsync().FirstOrDefault(x => x.Id == resultsModifier.Type) ??
-        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType")
-     */
-    var type = new ModifierTypeModel { Id = resultsModifier.Type };
 
-    var entity = new ResultsModifier
-    {
-      Order = resultsModifier.Order,
-      ActivitySource = resultsModifier.ActivitySource,
-      Type = type,
-      Parameters = resultsModifier.Parameters
-    };
+
+    var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
+       throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType");
+
+    var entity = resultsModifier.ToEntity(type);
+    
 
     await _db.ResultsModifier.AddAsync(entity);
     await _db.SaveChangesAsync();
@@ -53,14 +54,10 @@ public class ResultsModifierService
     if (entity is null)
       throw new KeyNotFoundException(
         $"No ResultsModifier with ID: {id}");
-    // Todo: Get this type from the database?
-    /*
-     var type = await _db.ModifierType.ToListAsync().FirstOrDefault(x => x.Id == resultsModifier.Type) ??
-        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType")
-     */
-    var type = new ModifierTypeModel { Id = resultsModifier.Type };
+    
+    var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
+       throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType");
     entity.Order = resultsModifier.Order;
-    entity.ActivitySource = resultsModifier.ActivitySource;
     entity.Type = type;
     entity.Parameters = resultsModifier.Parameters;
     await _db.SaveChangesAsync();
