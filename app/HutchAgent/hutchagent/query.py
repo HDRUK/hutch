@@ -267,7 +267,7 @@ class RQuestQuery:
         self.cohort = cohort if cohort is not None else {}  # turn None to empty dict
         self.cohort = RQuestQueryCohort(**cohort)
         self.job_id = job_id
-        self.uuid = activity_source_id
+        self.activity_source_id = activity_source_id
 
     def to_sql(self):
         columns = set()
