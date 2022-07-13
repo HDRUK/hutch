@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Newtonsoft.Json;
 
 namespace HutchManager.Dto
 {
@@ -18,29 +17,29 @@ namespace HutchManager.Dto
                 QueryResult = new() { Count = count.Value, Files = new List<string>() };
         }
 
-        [JsonProperty(PropertyName="collection_id")]
+        [JsonPropertyName("collection_id")]
         public string CollectionId { get; set; }
         
-        [JsonProperty(PropertyName="uuid")]
+        [JsonPropertyName("uuid")]
         public string JobId { get; set; }
         
-        [JsonProperty(PropertyName="status")]
+        [JsonPropertyName("status")]
         public string Status { get; set; } = "OK";
         
-        [JsonProperty(PropertyName="protocolVersion")]
+        [JsonPropertyName("protocolVersion")]
         public string ProtocolVersion { get; set; } = "2";
 
-        [JsonProperty(PropertyName="queryResult")]
+        [JsonPropertyName("queryResult")]
         public RquestQueryResult? QueryResult { get; set; }
 
     }
 
     public class RquestQueryResult
     {
-        [JsonProperty(PropertyName="count")]
+        [JsonPropertyName("count")]
         public int Count { get; set; }
 
-        [JsonProperty(PropertyName="files")] 
+        [JsonPropertyName("files")] 
         public List<string> Files { get; set; } = new List<string>();
     }
 }

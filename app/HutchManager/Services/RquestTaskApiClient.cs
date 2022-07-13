@@ -7,8 +7,8 @@ using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using HutchManager.Config;
+using System.Text.Json;
 
 
 namespace HutchManager.Services
@@ -49,7 +49,7 @@ namespace HutchManager.Services
     /// <returns>HTTP StringContent with the value serialized to JSON and a media type of "application/json"</returns>
     private StringContent AsHttpJsonString<T>(T value)
       => new StringContent(
-        JsonConvert.SerializeObject(value),
+        JsonSerializer.Serialize(value),
         Encoding.UTF8,
         "application/json");
 
