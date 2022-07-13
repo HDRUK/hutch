@@ -42,7 +42,10 @@ class RQuestQueryRule:
         type: str = "",
         oper: str = "",
         value: str = "",
-        **kwargs,
+        time: str = "",
+        ext: str = "",
+        regex: str = "",
+        unit: str = "",
     ) -> None:
         """Constructor for `RQuestQueryRule`.
 
@@ -59,8 +62,10 @@ class RQuestQueryRule:
         self.oper = oper
         self.value = self._parse_value(value)
         self.column_name = PERSON_LOOKUPS.get(self.concept_id)
-        # `time` is not always present so either get from `kwargs` or default to `None`
-        self.time_ = kwargs.get("time")
+        self.time_ = time
+        self.ext = ext
+        self.regex = regex
+        self.unit = unit
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -104,7 +109,7 @@ class RQuestQueryRule:
             )
 
         # If there is a time clause, combine with main clause.
-        if self.time_ is not None:
+        if self.time_ != "":
             clause = and_(clause, self._get_time_clause())
 
         return clause

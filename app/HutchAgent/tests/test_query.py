@@ -77,13 +77,16 @@ def test_create_rquest_query():
     assert isinstance(rquest_query.cohort.groups[0].rules[0], query.RQuestQueryRule)
 
 
-@pytest.mark.skip
+
 def test_text_rule_sql_clause():
     eq_rule = {
         "varname": "OMOP",
         "type": "TEXT",
         "oper": "=",
         "value": "8527",
+        "ext": "",
+        "unit": "",
+        "regex": "",
     }
     rule_obj = query.RQuestQueryRule(**eq_rule)
     assert rule_obj.concept_id == "8527"
