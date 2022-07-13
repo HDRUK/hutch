@@ -8,6 +8,12 @@ namespace HutchManager.Dto
     public class RquestQueryTask
     {
         [JsonPropertyName("uuid")]
+        public string Uuid
+        { 
+          set { JobId = value; }
+        }
+
+        [JsonPropertyName("job_id")] 
         public string JobId { get; set; } = string.Empty;
 
         [JsonPropertyName("cohort")]
