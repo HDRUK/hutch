@@ -57,14 +57,16 @@ def rquest_callback(
     """
     logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
     response_data = {
-        "protocol_version": "v2",
-        "query_result": dict(),
+        "protocolVersion": "2",
+        "queryResult": dict(),
+        "files": list(),
     }
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)
         query = RQuestQuery(**body_json)
-        response_data["collection_id"] = query.collection
+        response_data["activity_source_id"] = query.activity_source_id
+        response_data["job_id"] = query.job_id
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
@@ -82,22 +84,22 @@ def rquest_callback(
         res = db_manager.execute_and_fetch(query.to_sql())
         query_end = time.time()
         count_ = res[0][0]
-        response_data["query_result"].update(count=count_, status="ok")
+        response_data["queryResult"].update(count=count_, status="ok")
         logger.info(
-            f"Collected {count_} results from query {query.uuid} in {(query_end - query_start):.3f}s."
+            f"Collected {count_} results from query {query.job_id} in {(query_end - query_start):.3f}s."
         )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
-        response_data["query_result"].update(count=0, status="error")
+        response_data["queryResult"].update(count=0, status="error")
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(str(column_error))
-        response_data["query_result"].update(count=0, status="error")
+        response_data["queryResult"].update(count=0, status="error")
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
-        response_data["query_result"].update(count=0, status="error")
+        response_data["queryResult"].update(count=0, status="error")
 
     try:
-        requests.post(os.getenv("MANAGER_URL"), response_data)
+        requests.post(f"{os.getenv('MANAGER_URL')}/api/results", response_data)
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
