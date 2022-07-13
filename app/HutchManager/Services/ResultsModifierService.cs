@@ -43,9 +43,9 @@ public class ResultsModifierService
     var limitCheck = (await _db.ResultsModifier.ToListAsync())
       .Where(x => x.ActivitySource.Id == activitySource.Id && x.Type.Id == type.Id );
 
-    if(limitCheck.Count() >= Int32.Parse(type.Limit))
+    if(limitCheck.Count() >= type.Limit)
     {
-      throw new BadHttpRequestException($"Cannot create any more modifiers of that type for the specified activity source");
+      throw new BadHttpRequestException($"Cannot create any more modifiers of type {type.Id} for the activity source {activitySource.DisplayName}");
     }
 
     var entity = resultsModifier.ToEntity(type,activitySource);
