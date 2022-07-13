@@ -128,7 +128,8 @@ namespace HutchManager.Services
       string body = string.Empty;
 
       body = await response.Content.ReadAsStringAsync();
-      if (body != "Job saved")
+      
+      if (body != "Job saved" && !response.IsSuccessStatusCode)
       {
         var message = "Unsuccessful Response from Submit Results Endpoint";
         _logger.LogError(message);
