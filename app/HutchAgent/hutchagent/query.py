@@ -252,31 +252,22 @@ class RQuestQuery:
 
     def __init__(
         self,
-        owner: str = "",
+        job_id: str = "",
+        activity_source_id: str = "",
         cohort: dict = None,  # mutable types shouldn't used as defaults
-        collection: str = "",
-        protocol_version: str = "",
-        char_salt: str = "",
-        uuid: str = "",
         **kwargs,  # ignored args
     ) -> None:
         """Construction for `RQuestQuery`.
 
         Args:
-            owner (str, optional): The owner of the query. Defaults to "".
+            job_id (str, optional): The job ID of the query. Defaults to "".
+            activity_source_id (str, optional): The activity source ID of the query. Defaults to "".
             cohort (dict, optional): The cohort of groups. Defaults to None.
-            collection (str, optional): The collection ID. Defaults to "".
-            protocol_version (str, optional): The protocol version. Defaults to "".
-            char_salt (str, optional): The char salt. Defaults to "".
-            uuid (str, optional): The UUID. Defaults to "".
         """
-        self.owner = owner
         self.cohort = cohort if cohort is not None else {}  # turn None to empty dict
         self.cohort = RQuestQueryCohort(**cohort)
-        self.collection = collection
-        self.protocol_version = protocol_version
-        self.char_salt = char_salt
-        self.uuid = uuid
+        self.job_id = job_id
+        self.uuid = activity_source_id
 
     def to_sql(self):
         columns = set()
