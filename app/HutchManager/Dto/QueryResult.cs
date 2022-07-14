@@ -13,18 +13,18 @@ namespace HutchManager.Dto
     [JsonPropertyName("job_id")] public string JobId { get; set; } = String.Empty;
 
     [JsonPropertyName("queryResult")]
-    public QueryResultCount Results
-    {
-      get { return _result; }
-      set
-      {
-        _result = value;
-        _count = value.Count;
-      }
-    }
+    public QueryResultCount Results { get; set; } = new();
+    //{
+    //  get { return _result; }
+    //  set
+    //  {
+    //    _result = value;
+    //    _count = value.Count;
+    //  }
+    //}
 
-    private QueryResultCount _result= new QueryResultCount();
-    internal int? _count;
+    //private QueryResultCount _result;
+    //internal int? _count;
 
   }
 
