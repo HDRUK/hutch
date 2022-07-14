@@ -48,7 +48,7 @@ export const ConfirmationModal = ({
       case "type":
         return v.id;
       case "activitySource":
-        return v.id;
+        return JSON.stringify({ id: v.id, displayName: v.displayName });
       default:
         return v;
     }
@@ -119,6 +119,22 @@ export const ConfirmationModal = ({
                     (el) => el[0] == item[0]
                   );
                   if (initialItem && initialItem[1] === item[1]) return null;
+                  if (initialItem[0] === "ActivitySource")
+                    return (
+                      <Tr>
+                        <Td>{item[0]}</Td>
+                        <Td>
+                          <Text color={"red.300"}>
+                            {JSON.parse(initialItem[1]).displayName}
+                          </Text>
+                        </Td>
+                        <Td>
+                          <Text as="b" color={"green.300"}>
+                            {JSON.parse(item[1]).displayName}
+                          </Text>
+                        </Td>
+                      </Tr>
+                    );
                   return (
                     <Tr>
                       <Td>{item[0]}</Td>
@@ -198,7 +214,10 @@ export const ConfigureResultsModifierModal = ({
       const payload = objectStringsToNull(values);
       // post to the api
       await action({
-        values: payload,
+        values: {
+          ...payload,
+          ActivitySourceId: JSON.parse(payload.ActivitySource).id,
+        },
         id: initialData ? initialData.id : undefined,
       }).json();
       mutate();
@@ -231,13 +250,19 @@ export const ConfigureResultsModifierModal = ({
                     Type: initialData.type.id,
                     // capitalise the object keys in the parameters object
                     Parameters: capitaliseObjectKeys(initialData.parameters),
-                    ActivitySourceId: initialData.activitySource.id,
+                    ActivitySource: JSON.stringify({
+                      id: initialData.activitySource.id,
+                      displayName: initialData.activitySource.displayName,
+                    }),
                   }
                 : {
                     Order: "0",
                     Type: typeOptions[0].id,
                     Parameters: {},
-                    ActivitySourceId: activitySourceOptions[0].id,
+                    ActivitySource: JSON.stringify({
+                      id: activitySourceOptions[0].id,
+                      displayName: activitySourceOptions[0].displayName,
+                    }),
                   }
             }
             validationSchema={validationSchema()}
@@ -263,10 +288,13 @@ export const ConfigureResultsModifierModal = ({
                   />
                   <FormikSelect
                     label="Activity Source"
-                    name={"ActivitySourceId"}
-                    type="ActivitySourceId"
+                    name={"ActivitySource"}
+                    type="ActivitySource"
                     options={activitySourceOptions.map((item) => ({
-                      value: item.id,
+                      value: JSON.stringify({
+                        id: item.id,
+                        displayName: item.displayName,
+                      }),
                       label: item.displayName,
                     }))}
                   />
