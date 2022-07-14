@@ -231,13 +231,13 @@ export const ConfigureResultsModifierModal = ({
                     Type: initialData.type.id,
                     // capitalise the object keys in the parameters object
                     Parameters: capitaliseObjectKeys(initialData.parameters),
-                    ActivitySource: initialData.activitySource.id,
+                    ActivitySourceId: initialData.activitySource.id,
                   }
                 : {
                     Order: "0",
                     Type: typeOptions[0].id,
                     Parameters: {},
-                    ActivitySource: activitySourceOptions[0].id,
+                    ActivitySourceId: activitySourceOptions[0].id,
                   }
             }
             validationSchema={validationSchema()}
@@ -263,8 +263,8 @@ export const ConfigureResultsModifierModal = ({
                   />
                   <FormikSelect
                     label="Activity Source"
-                    name={"ActivitySource"}
-                    type="ActivitySource"
+                    name={"ActivitySourceId"}
+                    type="ActivitySourceId"
                     options={activitySourceOptions.map((item) => ({
                       value: item.id,
                       label: item.displayName,

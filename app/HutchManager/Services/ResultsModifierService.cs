@@ -37,8 +37,8 @@ public class ResultsModifierService
 
     var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType");
-    var activitySource = (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySource) ??
-       throw new InvalidOperationException($"Activity Source {resultsModifier.ActivitySource} is not a valid Activity Source");
+    var activitySource = (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySourceId) ??
+       throw new InvalidOperationException($"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
  
     var limitCheck = (await _db.ResultsModifier.ToListAsync())
       .Where(x => x.ActivitySource.Id == activitySource.Id && x.Type.Id == type.Id );
@@ -66,8 +66,8 @@ public class ResultsModifierService
     
     var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType");
-    var activitySource = (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySource) ??
-       throw new InvalidOperationException($"Activity Source {resultsModifier.ActivitySource} is not a valid Activity Source");
+    var activitySource = (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySourceId) ??
+       throw new InvalidOperationException($"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
     entity.Order = resultsModifier.Order;
     entity.Type = type;
     entity.Parameters = resultsModifier.Parameters;

@@ -6,7 +6,7 @@ public class CreateResultsModifier
 {
   public int Id { get; set; }
   public int Order { get; set; }
-  public int ActivitySource { get; set; }
+  public int ActivitySourceId { get; set; }
   public string Type { get; set; } = string.Empty;
   public JsonDocument? Parameters { get; set; }
 
