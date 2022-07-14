@@ -47,6 +47,9 @@ namespace HutchManager.Dto
 
         [JsonPropertyName("value")]
         public string Value { get; set; } = string.Empty;
+        
+        [JsonPropertyName("time")]
+        public string Time { get; set; } = string.Empty;
 
         [JsonPropertyName("ext")]
         public string ExternalAttribute { get; set; } = string.Empty;

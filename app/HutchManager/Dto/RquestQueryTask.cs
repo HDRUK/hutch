@@ -6,8 +6,20 @@ namespace HutchManager.Dto
     /// Task payload returned from RQUEST Task API /query endpoint
     /// </summary>
     public class RquestQueryTask
-    {
+    {   /// <summary>
+        /// UUid sets JobId using "uuid" as the property name
+        /// This is due to the incoming RQuest query using "uuid" as the key name.
+        /// </summary>
         [JsonPropertyName("uuid")]
+        public string Uuid
+        { 
+          set { JobId = value; }
+        }
+        /// <summary>
+        /// JobId is set to property name "job_id" when RquestQueryTask is serialized
+        /// This is so the representation of JobId is consistent between Agent and Manager
+        /// </summary>
+        [JsonPropertyName("job_id")] 
         public string JobId { get; set; } = string.Empty;
 
         [JsonPropertyName("cohort")]

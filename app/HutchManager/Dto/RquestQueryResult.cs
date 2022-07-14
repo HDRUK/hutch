@@ -8,24 +8,38 @@ namespace HutchManager.Dto
     /// </summary>
     public class RquestQueryTaskResult
     {
-        public RquestQueryTaskResult(string jobId, int? count = null)
+        public RquestQueryTaskResult(string collectionId, string jobId, int? count = null)
         {
-            JobId = jobId;
-
+          CollectionId = collectionId;  
+          JobId = jobId;
+          
             if(count.HasValue)
-                QueryResult = new() { Count = count.Value };
+                QueryResult = new() { Count = count.Value, Files = new List<string>() };
         }
 
+        [JsonPropertyName("collection_id")]
+        public string CollectionId { get; set; }
+        
         [JsonPropertyName("uuid")]
         public string JobId { get; set; }
+        
+        [JsonPropertyName("status")]
+        public string Status { get; set; } = "OK";
+        
+        [JsonPropertyName("protocolVersion")]
+        public string ProtocolVersion { get; set; } = "2";
 
-        [JsonPropertyName("query_result")]
+        [JsonPropertyName("queryResult")]
         public RquestQueryResult? QueryResult { get; set; }
+
     }
 
     public class RquestQueryResult
     {
         [JsonPropertyName("count")]
         public int Count { get; set; }
+
+        [JsonPropertyName("files")] 
+        public List<string> Files { get; set; } = new List<string>();
     }
 }
