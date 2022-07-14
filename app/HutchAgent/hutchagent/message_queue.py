@@ -58,8 +58,7 @@ def rquest_callback(
     logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
     response_data = {
         "protocolVersion": "2",
-        "queryResult": dict(),
-        "files": list(),
+        "queryResult": dict(files=list()),
     }
     logger.info("Received message from the Queue. Processing...")
     try:
@@ -84,19 +83,23 @@ def rquest_callback(
         res = db_manager.execute_and_fetch(query.to_sql())
         query_end = time.time()
         count_ = res[0][0]
-        response_data["queryResult"].update(count=count_, status="ok")
+        response_data["queryResult"].update(count=count_)
+        response_data.update(status="ok")
         logger.info(
             f"Collected {count_} results from query {query.job_id} in {(query_end - query_start):.3f}s."
         )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
-        response_data["queryResult"].update(count=0, status="error")
+        response_data["queryResult"].update(count=0)
+        response_data.update(status="error")
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(str(column_error))
-        response_data["queryResult"].update(count=0, status="error")
+        response_data["queryResult"].update(count=0)
+        response_data.update(status="error")
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
-        response_data["queryResult"].update(count=0, status="error")
+        response_data["queryResult"].update(count=0)
+        response_data.update(status="error")
 
     try:
         requests.post(f"{os.getenv('MANAGER_URL')}/api/results", response_data)
