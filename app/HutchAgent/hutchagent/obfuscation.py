@@ -45,3 +45,23 @@ def low_number_suppression(value: Union[int, float], threshold: int) -> Union[in
         Union[int, float]: `value` if `value` > `threshold` else `0`.
     """
     return value if value > threshold else 0
+
+
+def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
+    """_summary_
+
+    Args:
+        value (Union[int, float]): _description_
+        filters (list): _description_
+
+    Returns:
+        Union[int, float]: _description_
+    """
+    filter_types = {
+        "LowNumberSuppression": low_number_suppression
+    }
+    result = value
+    for f in filters:
+        if func := filter_types.get(f.Id):
+            result = func(**f.Parameters)
+    return result
