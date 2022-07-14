@@ -7,7 +7,7 @@ namespace HutchManager.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[AllowAnonymous]
 public class ResultsController: ControllerBase
 {
   private readonly ILogger<ResultsController> _logger;
@@ -18,6 +18,7 @@ public class ResultsController: ControllerBase
     _logger = logger;
     _apiClient = apiClient;
   }
+
   [HttpPost]
   public async Task<IActionResult> Post([FromBody] QueryResult result)
   {
