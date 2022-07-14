@@ -23,14 +23,14 @@ namespace HutchManager.Dto
       }
     }
 
-    private QueryResultCount _result;
+    private QueryResultCount _result= new QueryResultCount();
     internal int? _count;
 
   }
 
   public class QueryResultCount
   {
-    public int Count { get; set; }
+    public int? Count { get; set; } = null;
     public List<string> Files { get; set; } = new List<string>();
   }
 }
