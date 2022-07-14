@@ -41,7 +41,7 @@ export const DataSourcesList = () => {
               key={index}
               href={`/datasources/${item.id}`}
               onDelete={() => onClickDelete(item.id)}
-              title={""}
+              title={item.id}
               lastCheckin={item.lastCheckin}
             ></DataSourceSummary>
           ))}

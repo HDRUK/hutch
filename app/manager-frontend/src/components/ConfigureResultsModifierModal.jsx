@@ -188,8 +188,6 @@ export const ConfigureResultsModifierModal = ({
   const [feedback, setFeedback] = useState();
   const { data: typeOptions } = useModifierTypeList();
   const { data: activitySourceOptions } = useActivitySourceList();
-  console.log(activitySourceOptions);
-
   const onCloseHandler = () => {
     onClose();
     setFeedback(null);
@@ -246,7 +244,7 @@ export const ConfigureResultsModifierModal = ({
           >
             {({ isSubmitting, values }) => (
               <Form noValidate>
-                <VStack align="stretch" spacing={8}>
+                <VStack align="stretch">
                   {feedback && (
                     <Alert status="error">
                       <AlertIcon />
