@@ -10,22 +10,11 @@ namespace HutchManager.Dto
     [JsonPropertyName("activity_source_id")]
     public int ActivitySourceId { get; set; }
 
-    [JsonPropertyName("job_id")] public string JobId { get; set; } = String.Empty;
+    [JsonPropertyName("job_id")] 
+    public string JobId { get; set; } = String.Empty;
 
     [JsonPropertyName("queryResult")]
     public QueryResultCount Results { get; set; } = new();
-    //{
-    //  get { return _result; }
-    //  set
-    //  {
-    //    _result = value;
-    //    _count = value.Count;
-    //  }
-    //}
-
-    //private QueryResultCount _result;
-    //internal int? _count;
-
   }
 
   public class QueryResultCount
