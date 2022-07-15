@@ -2,7 +2,6 @@ import datetime
 import argparse
 
 from logging import getLogger, Handler, LogRecord
-import os
 import dotenv
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, insert
@@ -16,8 +15,8 @@ dotenv.load_dotenv()
 Base = declarative_base()
 
 
-class Log(Base):
-    __tablename__ = os.getenv("LOG_TABLE_NAME")
+class Logs(Base):
+    __tablename__ = "Logs"  # this is required by sqlalchemy
     id = Column(Integer, primary_key=True, autoincrement=True)
     message = Column(Text, nullable=True)
     message_template = Column(Text, nullable=True)
@@ -53,7 +52,7 @@ class SyncLogDBHandler(Handler):
         else:
             exception = None
 
-        log_stmnt = insert(Log).values(
+        log_stmnt = insert(Logs).values(
             message=record.msg,
             level=record.levelname,
             exception=exception,
@@ -127,4 +126,4 @@ def create_log_table():
         database=args.database,
     )
     engine = create_engine(url=url)
-    Log.metadata.create_all(engine, checkfirst=True)
+    Logs.metadata.create_all(engine, checkfirst=True)
