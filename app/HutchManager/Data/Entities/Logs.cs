@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HutchManager.Data.Entities;
 
-[Table("logs")]
 public class Logs
 {
   [Column("id")]
@@ -13,7 +12,7 @@ public class Logs
   public string Level { get; set; } = string.Empty;
   [Column("message")]
   public string Message { get; set; } = string.Empty;
-  [Column("messagetemplate")]
+  [Column("message_template")]
   public string MessageTemplate { get; set; } = string.Empty;
   [Column("properties")]
   public string Properties { get; set; } = string.Empty;
