@@ -18,12 +18,12 @@ Base = declarative_base()
 class Logs(Base):
     __tablename__ = "Logs"  # this is required by sqlalchemy
     id = Column(Integer, primary_key=True, autoincrement=True)
+    exception = Column(Text, nullable=True)
+    level = Column(String(128), nullable=True)
     message = Column(Text, nullable=True)
     message_template = Column(Text, nullable=True)
-    level = Column(String(128), nullable=True)
-    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
-    exception = Column(Text, nullable=True)
     properties = Column(Text, nullable=True)
+    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
 
 class SyncLogDBHandler(Handler):
