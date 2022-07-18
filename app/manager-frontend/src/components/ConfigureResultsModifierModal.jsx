@@ -41,25 +41,20 @@ export const ConfirmationModal = ({
   newData,
 }) => {
   if (!initialData) return null;
-  // transform data from the backend so that Type maps to the type id
-  // rather than the whole object
+
   const getParam = (k, v) => {
     switch (k) {
-      case "type":
+      case "Type":
         return v.id;
-      case "activitySource":
-        return JSON.stringify({ id: v.id, displayName: v.displayName });
+      case "ActivitySource":
+        return v.displayName;
       default:
         return v;
     }
   };
-  const transformedInitialData = Object.fromEntries(
-    Object.entries(initialData).map(([k, v]) => [k, getParam(k, v)])
-  );
+
   // convert the objects to arrays to be compared and displayed
-  const initialDataArray = Object.entries(
-    capitaliseObjectKeys(transformedInitialData)
-  );
+  const initialDataArray = Object.entries(capitaliseObjectKeys(initialData));
   const newDataArray = Object.entries(newData);
 
   const parametersDiff = () => {
@@ -118,34 +113,20 @@ export const ConfirmationModal = ({
                   const initialItem = initialDataArray.find(
                     (el) => el[0] == item[0]
                   );
-                  if (initialItem && initialItem[1] === item[1]) return null;
-                  if (initialItem[0] === "ActivitySource")
-                    return (
-                      <Tr>
-                        <Td>{item[0]}</Td>
-                        <Td>
-                          <Text color={"red.300"}>
-                            {JSON.parse(initialItem[1]).displayName}
-                          </Text>
-                        </Td>
-                        <Td>
-                          <Text as="b" color={"green.300"}>
-                            {JSON.parse(item[1]).displayName}
-                          </Text>
-                        </Td>
-                      </Tr>
-                    );
+                  if (objectsAreEqual(initialItem, item)) return null;
                   return (
                     <Tr>
                       <Td>{item[0]}</Td>
                       <Td>
                         <Text color={"red.300"}>
-                          {initialItem ? initialItem[1] : "undefined"}
+                          {initialItem
+                            ? getParam(initialItem[0], initialItem[1])
+                            : "undefined"}
                         </Text>
                       </Td>
                       <Td>
                         <Text as="b" color={"green.300"}>
-                          {item[1]}
+                          {getParam(item[0], item[1])}
                         </Text>
                       </Td>
                     </Tr>
@@ -216,7 +197,8 @@ export const ConfigureResultsModifierModal = ({
       await action({
         values: {
           ...payload,
-          ActivitySourceId: JSON.parse(payload.ActivitySource).id,
+          ActivitySourceId: payload.ActivitySource.id,
+          Type: payload.Type.id,
         },
         id: initialData ? initialData.id : undefined,
       }).json();
@@ -250,19 +232,13 @@ export const ConfigureResultsModifierModal = ({
                     Type: initialData.type.id,
                     // capitalise the object keys in the parameters object
                     Parameters: capitaliseObjectKeys(initialData.parameters),
-                    ActivitySource: JSON.stringify({
-                      id: initialData.activitySource.id,
-                      displayName: initialData.activitySource.displayName,
-                    }),
+                    ActivitySource: initialData.activitySource,
                   }
                 : {
                     Order: "0",
                     Type: typeOptions[0].id,
                     Parameters: {},
-                    ActivitySource: JSON.stringify({
-                      id: activitySourceOptions[0].id,
-                      displayName: activitySourceOptions[0].displayName,
-                    }),
+                    ActivitySource: activitySourceOptions[0],
                   }
             }
             validationSchema={validationSchema()}
@@ -285,18 +261,19 @@ export const ConfigureResultsModifierModal = ({
                       value: item.id,
                       label: item.id,
                     }))}
+                    sourceList={typeOptions}
+                    sourceParam="id"
                   />
                   <FormikSelect
                     label="Activity Source"
                     name={"ActivitySource"}
                     type="ActivitySource"
                     options={activitySourceOptions.map((item) => ({
-                      value: JSON.stringify({
-                        id: item.id,
-                        displayName: item.displayName,
-                      }),
+                      value: item.id,
                       label: item.displayName,
                     }))}
+                    sourceList={activitySourceOptions}
+                    sourceParam="id"
                   />
                   <LowNumberSuppressionParameters type={values.Type} />
                   <Button
