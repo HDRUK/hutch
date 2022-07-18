@@ -12,7 +12,7 @@ public class Logs
   public string Level { get; set; } = string.Empty;
   [Column("message")]
   public string Message { get; set; } = string.Empty;
-  [Column("message_template")]
+  [Column("messagetemplate")]
   public string MessageTemplate { get; set; } = string.Empty;
   [Column("properties")]
   public string Properties { get; set; } = string.Empty;

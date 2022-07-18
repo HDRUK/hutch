@@ -21,7 +21,7 @@ class Logs(Base):
     exception = Column(Text, nullable=True)
     level = Column(String(128), nullable=True)
     message = Column(Text, nullable=True)
-    message_template = Column(Text, nullable=True)
+    messagetemplate = Column(Text, nullable=True)
     properties = Column(Text, nullable=True)
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
@@ -56,7 +56,7 @@ class SyncLogDBHandler(Handler):
             message=record.msg,
             level=record.levelname,
             exception=exception,
-            message_template=self.formatter._fmt,
+            messagetemplate=self.formatter._fmt,
         )
 
         try:
