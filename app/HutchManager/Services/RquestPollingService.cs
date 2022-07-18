@@ -151,7 +151,7 @@ public class RquestPollingService: IRquestPollingService
           
           {
             channel.QueueDeclare(queue: queueName,
-              durable: true,
+              durable: false,
               exclusive: false,
               autoDelete: false,
               arguments: null);
