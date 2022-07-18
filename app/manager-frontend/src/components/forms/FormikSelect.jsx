@@ -1,8 +1,15 @@
-import { FormControl, FormLabel, Input, Select } from "@chakra-ui/react";
+import {
+  FormControl,
+  FormLabel,
+  Flex,
+  Select,
+  Tooltip,
+  Icon,
+} from "@chakra-ui/react";
 import { useField } from "formik";
-import { useDebounce } from "helpers/hooks/useDebounce";
 import { useEffect, useState } from "react";
 import { FormHelpError } from "./FormHelpError";
+import { AiFillInfoCircle } from "react-icons/ai";
 
 export const FormikSelect = ({
   name,
@@ -16,6 +23,8 @@ export const FormikSelect = ({
   collapseError,
   sourceList,
   sourceParam,
+  tooltip,
+  warning,
   ...p
 }) => {
   const [field, meta, helpers] = useField({ name, type });
@@ -38,7 +47,18 @@ export const FormikSelect = ({
       isRequired={isRequired}
       isInvalid={meta.error && meta.touched}
     >
-      {label && <FormLabel>{label}</FormLabel>}
+      <Flex w={"full"}>
+        {label && <FormLabel>{label}</FormLabel>}
+        {tooltip && (
+          <Flex ml={"auto"} alignItems="center">
+            <Tooltip label={tooltip}>
+              <span>
+                <Icon as={AiFillInfoCircle} color={warning ? "red" : "black"} />
+              </span>
+            </Tooltip>
+          </Flex>
+        )}
+      </Flex>
       <Select value={value} type={type} onChange={handleChange}>
         {options.map((item, index) => (
           <option key={index} value={item.value}>

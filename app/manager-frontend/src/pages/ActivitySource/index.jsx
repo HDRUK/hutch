@@ -17,10 +17,13 @@ import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
+import { useDataSourceList } from "api/datasource";
+import { getDateDaysAgo } from "helpers/dates";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
   const typeOptions = [{ id: "RQUEST" }];
+  const { data: datasourceOptions } = useDataSourceList();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
@@ -58,7 +61,10 @@ export const ActivitySource = ({ activitySource, action, id }) => {
         {}
       );
       // post to the api
-      await action({ values: payload, id: id }).json();
+      await action({
+        values: { ...payload, TargetDataSourceName: payload.DataSource.id },
+        id: id,
+      }).json();
 
       // redirect with a toast
       navigate("/", {
@@ -92,14 +98,28 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   Host: activitySource.host,
                   Type: activitySource.type,
                   ResourceId: activitySource.resourceId,
-                  TargetDataSourceName: activitySource.targetDataSourceName,
+                  DataSource:
+                    datasourceOptions.length > 0
+                      ? datasourceOptions.find(
+                          (item) =>
+                            item.id === activitySource.targetDataSourceName
+                        )
+                        ? datasourceOptions.find(
+                            (item) =>
+                              item.id === activitySource.targetDataSourceName
+                          )
+                        : datasourceOptions[0]
+                      : undefined,
                 }
               : {
                   DisplayName: "",
                   Host: "",
                   Type: typeOptions[0].id,
                   ResourceId: "",
-                  TargetDataSourceName: "",
+                  DataSource:
+                    datasourceOptions.length > 0
+                      ? datasourceOptions[0]
+                      : undefined,
                 }
           }
           validationSchema={validationSchema()}
@@ -133,11 +153,25 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   name={"ResourceId"}
                   type="ResourceId"
                 />
-                <FormikInput
+                <FormikSelect
                   label="Target DataSource Name"
-                  name={"TargetDataSourceName"}
-                  type="TargetDataSourceName"
-                  tooltip={"Warning, some datasources are inactive"}
+                  name={"DataSource"}
+                  type="DataSource"
+                  options={datasourceOptions.map((item) => ({
+                    value: item.id,
+                    label:
+                      new Date(item.lastCheckin) > getDateDaysAgo(2)
+                        ? item.id
+                        : `${item.id} (Inactive)`,
+                  }))}
+                  tooltip={
+                    datasourceOptions.length == 0
+                      ? "There are currently no datasources to use. Please run an agent configured with this manager url and create one"
+                      : "Warning, some datasources are inactive"
+                  }
+                  warning={datasourceOptions.length == 0}
+                  sourceList={datasourceOptions}
+                  sourceParam="id"
                 />
                 <Flex>
                   <Button
