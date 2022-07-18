@@ -22,7 +22,7 @@ class Logs(Base):
     level = Column(String(128), nullable=True)
     message = Column(Text, nullable=True)
     messagetemplate = Column(Text, nullable=True)
-    properties = Column(Text, nullable=True)
+    properties = Column(Text, nullable=False, default="")
     timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
 
