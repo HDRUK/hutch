@@ -166,7 +166,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   }))}
                   tooltip={
                     datasourceOptions.length == 0
-                      ? "There are currently no datasources to use. Please run an agent configured with this manager url and create one"
+                      ? "There are currently no datasources to use. Please run an agent configured with this manager URL and create one"
                       : "Warning, some datasources are inactive"
                   }
                   warning={datasourceOptions.length == 0}
