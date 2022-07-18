@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HutchManager.Data.Entities;
 
-[Table("logs")]
 public class Logs
 {
   [Column("id")]
