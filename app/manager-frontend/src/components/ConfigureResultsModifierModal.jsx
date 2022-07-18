@@ -32,6 +32,7 @@ import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
 import { useModifierTypeList } from "api/resultsmodifier";
+import { useActivitySourceList } from "api/activitysource";
 
 export const ConfirmationModal = ({
   isOpen,
@@ -40,15 +41,20 @@ export const ConfirmationModal = ({
   newData,
 }) => {
   if (!initialData) return null;
-  // transform data from the backend so that Type maps to the type id
-  // rather than the whole object
-  const transformedInitialData = Object.fromEntries(
-    Object.entries(initialData).map(([k, v]) => [k, k === "type" ? v.id : v])
-  );
+
+  const getParam = (k, v) => {
+    switch (k) {
+      case "Type":
+        return v.id;
+      case "ActivitySource":
+        return v.displayName;
+      default:
+        return v;
+    }
+  };
+
   // convert the objects to arrays to be compared and displayed
-  const initialDataArray = Object.entries(
-    capitaliseObjectKeys(transformedInitialData)
-  );
+  const initialDataArray = Object.entries(capitaliseObjectKeys(initialData));
   const newDataArray = Object.entries(newData);
 
   const parametersDiff = () => {
@@ -107,18 +113,20 @@ export const ConfirmationModal = ({
                   const initialItem = initialDataArray.find(
                     (el) => el[0] == item[0]
                   );
-                  if (initialItem && initialItem[1] === item[1]) return null;
+                  if (objectsAreEqual(initialItem, item)) return null;
                   return (
                     <Tr>
                       <Td>{item[0]}</Td>
                       <Td>
                         <Text color={"red.300"}>
-                          {initialItem ? initialItem[1] : "undefined"}
+                          {initialItem
+                            ? getParam(initialItem[0], initialItem[1])
+                            : "undefined"}
                         </Text>
                       </Td>
                       <Td>
                         <Text as="b" color={"green.300"}>
-                          {item[1]}
+                          {getParam(item[0], item[1])}
                         </Text>
                       </Td>
                     </Tr>
@@ -176,7 +184,7 @@ export const ConfigureResultsModifierModal = ({
   } = useDisclosure();
   const [feedback, setFeedback] = useState();
   const { data: typeOptions } = useModifierTypeList();
-
+  const { data: activitySourceOptions } = useActivitySourceList();
   const onCloseHandler = () => {
     onClose();
     setFeedback(null);
@@ -187,7 +195,11 @@ export const ConfigureResultsModifierModal = ({
       const payload = objectStringsToNull(values);
       // post to the api
       await action({
-        values: payload,
+        values: {
+          ...payload,
+          ActivitySourceId: payload.ActivitySource.id,
+          Type: payload.Type.id,
+        },
         id: initialData ? initialData.id : undefined,
       }).json();
       mutate();
@@ -220,18 +232,20 @@ export const ConfigureResultsModifierModal = ({
                     Type: initialData.type.id,
                     // capitalise the object keys in the parameters object
                     Parameters: capitaliseObjectKeys(initialData.parameters),
+                    ActivitySource: initialData.activitySource,
                   }
                 : {
                     Order: "0",
                     Type: typeOptions[0].id,
                     Parameters: {},
+                    ActivitySource: activitySourceOptions[0],
                   }
             }
             validationSchema={validationSchema()}
           >
             {({ isSubmitting, values }) => (
               <Form noValidate>
-                <VStack align="stretch" spacing={8}>
+                <VStack align="stretch">
                   {feedback && (
                     <Alert status="error">
                       <AlertIcon />
@@ -247,6 +261,19 @@ export const ConfigureResultsModifierModal = ({
                       value: item.id,
                       label: item.id,
                     }))}
+                    sourceList={typeOptions}
+                    sourceParam="id"
+                  />
+                  <FormikSelect
+                    label="Activity Source"
+                    name={"ActivitySource"}
+                    type="ActivitySource"
+                    options={activitySourceOptions.map((item) => ({
+                      value: item.id,
+                      label: item.displayName,
+                    }))}
+                    sourceList={activitySourceOptions}
+                    sourceParam="id"
                   />
                   <LowNumberSuppressionParameters type={values.Type} />
                   <Button

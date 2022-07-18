@@ -18,6 +18,7 @@ public class ResultsModifierService
     var list = await _db.ResultsModifier
       .AsNoTracking()
       .Include(x => x.Type)
+      .Include(x => x.ActivitySource)
       .ToListAsync();
     return list.ConvertAll<Models.ResultsModifierModel>(x => new(x));
   }
@@ -36,10 +37,18 @@ public class ResultsModifierService
 
     var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType");
+    var activitySource = (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySourceId) ??
+       throw new InvalidOperationException($"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
+ 
+    var limitCheck = (await _db.ResultsModifier.ToListAsync())
+      .Where(x => x.ActivitySource.Id == activitySource.Id && x.Type.Id == type.Id );
 
-    var entity = resultsModifier.ToEntity(type);
-    
+    if(limitCheck.Count() >= type.Limit)
+    {
+      throw new BadHttpRequestException($"Cannot create any more modifiers of type {type.Id} for the activity source {activitySource.DisplayName}");
+    }
 
+    var entity = resultsModifier.ToEntity(type,activitySource);
     await _db.ResultsModifier.AddAsync(entity);
     await _db.SaveChangesAsync();
     return new(entity);
@@ -57,9 +66,12 @@ public class ResultsModifierService
     
     var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
        throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType");
+    var activitySource = (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySourceId) ??
+       throw new InvalidOperationException($"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
     entity.Order = resultsModifier.Order;
     entity.Type = type;
     entity.Parameters = resultsModifier.Parameters;
+    entity.ActivitySource = activitySource;
     await _db.SaveChangesAsync();
     return new(entity);
   }

@@ -14,20 +14,23 @@ export const FormikSelect = ({
   fieldTip,
   fieldHelp,
   collapseError,
+  sourceList,
+  sourceParam,
   ...p
 }) => {
   const [field, meta, helpers] = useField({ name, type });
-
   const [value, setValue] = useState(field.value);
-  const debouncedValue = useDebounce(value, 150);
 
   const handleChange = ({ target: { value } }) => {
-    setValue(value);
+    let formikValue = value;
+    if (sourceList && sourceParam) {
+      formikValue = sourceList.find((item) => item[sourceParam] == value);
+      setValue(value);
+    } else {
+      setValue(value);
+    }
+    helpers.setValue(formikValue);
   };
-
-  useEffect(() => {
-    helpers.setValue(debouncedValue);
-  }, [debouncedValue]);
 
   return (
     <FormControl
