@@ -88,12 +88,19 @@ class SyncDBManager(BaseDBManager):
             port=port,
             database=database,
         )
-        self.engine = create_engine(
-            url=url,
-            connect_args={
-                "options": "-csearch_path={}".format(os.getenv("DATASOURCE_DB_SCHEMA"))
-            },
-        )
+
+        if os.getenv("DATASOURCE_DB_SCHEMA") is not None:
+            self.engine = create_engine(
+                url=url,
+                connect_args={
+                    "options": "-csearch_path={}".format(
+                        os.getenv("DATASOURCE_DB_SCHEMA")
+                    )
+                },
+            )
+        else:
+            self.engine = create_engine(url=url)
+
         self.inspector = inspect(self.engine)
 
     def execute_and_fetch(self, stmnt: Any) -> list:
