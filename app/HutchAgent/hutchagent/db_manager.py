@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import Any
 
 from sqlalchemy import create_engine, inspect
@@ -88,7 +89,10 @@ class SyncDBManager(BaseDBManager):
             database=database,
         )
         self.engine = create_engine(
-            url=url, connect_args={"options": "-csearch_path={}".format("omop")}
+            url=url,
+            connect_args={
+                "options": "-csearch_path={}".format(os.getenv("DATASOURCE_DB_SCHEMA"))
+            },
         )
         self.inspector = inspect(self.engine)
 
