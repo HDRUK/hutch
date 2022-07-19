@@ -114,7 +114,7 @@ OutboundEmail:
   Provider: local
 
   # If Provider == "local"
-  LocalPath: /temp
+  LocalPath: ~/temp
 
   # If Provider == "sendgrid"
   SendGridApiKey: ""
