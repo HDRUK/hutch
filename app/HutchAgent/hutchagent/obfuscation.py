@@ -34,7 +34,7 @@ def get_results_modifiers(activity_source_id: str) -> list:
     return list()
 
 
-def low_number_suppression(value: Union[int, float], threshold: int) -> Union[int, float]:
+def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Union[int, float]:
     """Suppress values that fall below a given threshold.
 
     Args:
