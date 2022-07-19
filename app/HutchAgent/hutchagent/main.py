@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import hutchagent.config as config
 import pika
 import dotenv
 import hutchagent.message_queue as mq
@@ -19,47 +20,48 @@ def main():
     dotenv.load_dotenv()  # load .env values into environment
 
     LOG_FORMAT = logging.Formatter(
-        os.getenv("MSG_FORMAT"),
-        datefmt=os.getenv("DATE_FORMAT"),
+        config.MSG_FORMAT,
+        datefmt=config.DATE_FORMAT,
     )
 
     # set up the backup logger
     backup_handler = logging.StreamHandler(sys.stdout)
     backup_handler.setFormatter(LOG_FORMAT)
-    backup_logger = logging.getLogger(os.getenv("BACKUP_LOGGER_NAME"))
+    backup_logger = logging.getLogger(config.BACKUP_LOGGER_NAME)
     backup_logger.setLevel(logging.INFO)
     backup_logger.addHandler(backup_handler)
 
     # set up the db logger
+    log_db_port = os.getenv("LOG_DB_PORT")
     db_manager = SyncDBManager(
         username=os.getenv("LOG_DB_USERNAME"),
         password=os.getenv("LOG_DB_PASSWORD"),
         host=os.getenv("LOG_DB_HOST"),
-        port=int(os.getenv("LOG_DB_PORT")),
+        port=int(log_db_port) if log_db_port is not None else None,
         database=os.getenv("LOG_DB_DATABASE"),
-        drivername=os.getenv("LOG_DB_DRIVERNAME"),
+        drivername=os.getenv("LOG_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
     )
-    db_handler = SyncLogDBHandler(db_manager, os.getenv("BACKUP_LOGGER_NAME"))
+    db_handler = SyncLogDBHandler(db_manager, config.BACKUP_LOGGER_NAME)
     db_handler.setFormatter(LOG_FORMAT)
-    db_logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    db_logger = logging.getLogger(config.DB_LOGGER_NAME)
     db_logger.setLevel(logging.INFO)
     db_logger.addHandler(db_handler)
     db_logger.addHandler(backup_handler)
 
     # set up check-in thread
     check_in_thread = CheckIn(
-        cron=os.getenv("CRON_STRING"),
+        cron=os.getenv("CHECKIN_CRON", "0 */1 * * *"),
         url=f"{os.getenv('MANAGER_URL')}/api/agents/checkin",
-        data_source_id=os.getenv("DATASOURCE_ID"),
+        data_source_id=os.getenv("DATASOURCE_NAME"),
     )
 
     # Connect to RabbitMQ
     try:
         check_in_thread.start()
         db_logger.info("Connecting to queue.")
-        channel = mq.connect(os.getenv("DATASOURCE_QUEUE_NAME"))
+        channel = mq.connect(os.getenv("DATASOURCE_NAME"))
         channel.basic_consume(
-            os.getenv("DATASOURCE_QUEUE_NAME"),
+            os.getenv("DATASOURCE_NAME"),
             on_message_callback=(
                 mq.ro_crates_callback
                 if int(os.getenv("USE_RO_CRATES", 0))

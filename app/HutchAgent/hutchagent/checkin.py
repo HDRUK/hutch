@@ -70,7 +70,7 @@ class CheckIn(threading.Thread):
                     res = requests.post(
                         self.url,
                         json={"dataSources": [self.data_source_id]},
-                        verify=os.getenv("MANAGER_CERT"),
+                        verify=bool(os.getenv("MANAGER_VERIFY_SSL", 1)),
                     )
                     if res.status_code == 200:
                         logger.info("Checkin successful.")
