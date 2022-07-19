@@ -89,17 +89,15 @@ class SyncDBManager(BaseDBManager):
             database=database,
         )
 
-        if os.getenv("DATASOURCE_DB_SCHEMA") is not None:
+        if schema := os.getenv("DATASOURCE_DB_SCHEMA"):
             self.engine = create_engine(
                 url=url,
-                connect_args={
-                    "options": "-csearch_path={}".format(
-                        os.getenv("DATASOURCE_DB_SCHEMA")
-                    )
-                },
+                connect_args={"options": "-csearch_path={}".format(schema)},
             )
         else:
-            self.engine = create_engine(url=url)
+            self.engine = create_engine(
+                url=url,
+            )
 
         self.inspector = inspect(self.engine)
 
