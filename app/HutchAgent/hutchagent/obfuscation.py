@@ -42,6 +42,10 @@ def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Uni
 
 def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
     """_summary_
+    TODO: When more modifiers have been designed, use this function as a
+    wrapper to iterate over the list of filters from `get_results_modifiers`,
+    appyling them to the value until either the end last of the filters, or
+    the value reaches 0.
 
     Args:
         value (Union[int, float]): _description_
@@ -50,11 +54,4 @@ def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
     Returns:
         Union[int, float]: _description_
     """
-    filter_types = {
-        "LowNumberSuppression": low_number_suppression
-    }
-    result = value
-    for f in filters:
-        if func := filter_types.get(f.Id):
-            result = func(**f.Parameters)
-    return result
+    pass
