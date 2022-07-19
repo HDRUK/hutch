@@ -59,7 +59,6 @@ b.Services
   .AddApplicationInsightsTelemetry()
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
-  .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
   .Configure<QueryQueueOptions>(b.Configuration.GetSection("JobQueue"))
   .Configure<RquestTaskApiOptions>(b.Configuration.GetSection("RquestTaskApi"))
   .Configure<RquestPollingServiceOptions>(b.Configuration)
