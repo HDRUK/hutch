@@ -44,7 +44,11 @@ def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Uni
     Returns:
         Union[int, float]: `value` if `value` > `threshold` else `0`.
     """
-    return value if value > threshold else 0
+    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    logger.info("Applying Low Number Suppression.")
+    result = value if value > threshold else 0
+    logger.info(f"The count is {result} after Low Number Suppression.")
+    return result
 
 
 def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
