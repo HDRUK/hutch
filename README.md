@@ -123,7 +123,7 @@ ActivitySourcePolling:
   QueryPollingInterval: 5
 
 RquestTaskApi:
-  BaseUrl: ""
+  BaseEndpoint: "bcos-rest/api/task"
   QueueStatusEndpoint: "queue"
   FetchQueryEndpoint: "nextjob"
   SubmitResultEndpoint: "result"
@@ -131,12 +131,10 @@ RquestTaskApi:
   Password: ""
 
 JobQueue:
-  HostName: "localhost"
+  HostName: ""
   Port: 5672
   UserName: "guest"
   Password: "guest"
-  VirtualHost: "/"
-  QueueName: "jobs"
 
 # Opt in feature flags
 # sometimes features here are works in progress

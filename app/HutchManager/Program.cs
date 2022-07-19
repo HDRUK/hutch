@@ -59,7 +59,7 @@ b.Services
   .AddApplicationInsightsTelemetry()
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
-  .Configure<QueryQueueOptions>(b.Configuration.GetSection("JobQueue"))
+  .Configure<JobQueueOptions>(b.Configuration.GetSection("JobQueue"))
   .Configure<RquestTaskApiOptions>(b.Configuration.GetSection("RquestTaskApi"))
   .Configure<RquestPollingServiceOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
   .AddEmailSender(b.Configuration)
@@ -68,7 +68,7 @@ b.Services
   .AddTransient<ActivitySourceService>()
   .AddTransient<DataSourceService>()
   .AddTransient<ResultsModifierService>()
-  .AddTransient<QueryQueueService>()
+  .AddTransient<JobQueueService>()
   .AddHostedService<RquestPollingHostedService>()
   .AddScoped<IRquestPollingService, RquestPollingService>()
   .AddFeatureManagement();
