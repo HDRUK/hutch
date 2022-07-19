@@ -104,6 +104,8 @@ The app can be configured in any standard way an ASP.NET Core application can. T
 ```yaml
 ConnectionStrings:
   Default: "" # the main application SQL Server database
+Serilog:
+  # ...
 OutboundEmail:
   ServiceName: Hutch
   FromName: No Reply

@@ -56,7 +56,7 @@ def rquest_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    logger = logging.getLogger(config.DB_LOGGER_NAME)
+    logger = logging.getLogger(config.LOGGER_NAME)
     response_data = {
         "protocolVersion": "2",
         "queryResult": dict(files=list()),
@@ -132,7 +132,7 @@ def ro_crates_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    logger = logging.getLogger(config.DB_LOGGER_NAME)
+    logger = logging.getLogger(config.LOGGER_NAME)
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)

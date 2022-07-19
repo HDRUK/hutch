@@ -25,28 +25,33 @@ def main():
     )
 
     # set up the backup logger
-    backup_handler = logging.StreamHandler(sys.stdout)
-    backup_handler.setFormatter(LOG_FORMAT)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(LOG_FORMAT)
     backup_logger = logging.getLogger(config.BACKUP_LOGGER_NAME)
     backup_logger.setLevel(logging.INFO)
-    backup_logger.addHandler(backup_handler)
+    backup_logger.addHandler(console_handler)
 
     # set up the db logger
+    log_db_host = os.getenv("LOG_DB_HOST")
     log_db_port = os.getenv("LOG_DB_PORT")
-    db_manager = SyncDBManager(
-        username=os.getenv("LOG_DB_USERNAME"),
-        password=os.getenv("LOG_DB_PASSWORD"),
-        host=os.getenv("LOG_DB_HOST"),
-        port=int(log_db_port) if log_db_port is not None else None,
-        database=os.getenv("LOG_DB_DATABASE"),
-        drivername=os.getenv("LOG_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
-    )
-    db_handler = SyncLogDBHandler(db_manager, config.BACKUP_LOGGER_NAME)
-    db_handler.setFormatter(LOG_FORMAT)
-    db_logger = logging.getLogger(config.DB_LOGGER_NAME)
-    db_logger.setLevel(logging.INFO)
-    db_logger.addHandler(db_handler)
-    db_logger.addHandler(backup_handler)
+    
+    logger = logging.getLogger(config.LOGGER_NAME)
+    logger.setLevel(logging.INFO)
+    if log_db_host is not None:
+        db_manager = SyncDBManager(
+            username=os.getenv("LOG_DB_USERNAME"),
+            password=os.getenv("LOG_DB_PASSWORD"),
+            host=log_db_host,
+            port=int(log_db_port) if log_db_port is not None else None,
+            database=os.getenv("LOG_DB_DATABASE"),
+            drivername=os.getenv("LOG_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
+        )
+        db_handler = SyncLogDBHandler(db_manager, config.BACKUP_LOGGER_NAME)
+        db_handler.setFormatter(LOG_FORMAT)
+    
+        logger.addHandler(db_handler)
+        
+    logger.addHandler(console_handler)
 
     # set up check-in thread
     check_in_thread = CheckIn(
@@ -58,7 +63,7 @@ def main():
     # Connect to RabbitMQ
     try:
         check_in_thread.start()
-        db_logger.info("Connecting to queue.")
+        logger.info("Connecting to queue.")
         channel = mq.connect(os.getenv("DATASOURCE_NAME"))
         channel.basic_consume(
             os.getenv("DATASOURCE_NAME"),
@@ -69,13 +74,13 @@ def main():
             ),
             auto_ack=True,
         )
-        db_logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
+        logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
         channel.start_consuming()  # starts a `while True` loop.
     except pika.exceptions.AMQPConnectionError:
-        db_logger.critical("Unable to connect to queue. Exiting...", exc_info=True)
+        logger.critical("Unable to connect to queue. Exiting...", exc_info=True)
     except KeyboardInterrupt:
         # shut down on Ctrl+C
-        db_logger.info("Disconnecting from queue...")
+        logger.info("Disconnecting from queue...")
         if channel.connection.is_open:
             mq.disconnect(channel)
 
@@ -83,7 +88,7 @@ def main():
         # stop check-in thred
         check_in_thread.join()
 
-    db_logger.info("Successfully shut down :)")
+    logger.info("Successfully shut down :)")
 
 
 if __name__ == "__main__":

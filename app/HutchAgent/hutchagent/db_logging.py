@@ -4,7 +4,7 @@ import argparse
 from logging import getLogger, Handler, LogRecord
 import dotenv
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, insert
+from sqlalchemy import create_engine, Column, Integer, JSON, DateTime, Text, insert
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -17,13 +17,13 @@ Base = declarative_base()
 
 class Logs(Base):
     __tablename__ = "Logs"  # this is required by sqlalchemy
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    exception = Column(Text, nullable=True)
-    level = Column(String(128), nullable=True)
-    message = Column(Text, nullable=True)
-    messagetemplate = Column(Text, nullable=True)
-    properties = Column(Text, nullable=False, default="")
-    timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    Id = Column(Integer, primary_key=True, autoincrement=True)
+    Exception = Column(Text, nullable=True)
+    Level = Column(Text, nullable=True)
+    Message = Column(Text, nullable=True)
+    MessageTemplate = Column(Text, nullable=True)
+    Properties = Column(JSON, nullable=False, default=dict())
+    Timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
 
 class SyncLogDBHandler(Handler):
@@ -53,10 +53,10 @@ class SyncLogDBHandler(Handler):
             exception = None
 
         log_stmnt = insert(Logs).values(
-            message=record.msg,
-            level=record.levelname,
-            exception=exception,
-            messagetemplate=self.formatter._fmt,
+            Message=record.msg,
+            Level=record.levelname,
+            Exception=exception,
+            MessageTemplate=self.formatter._fmt,
         )
 
         try:

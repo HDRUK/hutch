@@ -9,7 +9,6 @@ using HutchManager.HostedServices;
 using HutchManager.Middleware;
 using HutchManager.OptionsModels;
 using HutchManager.Services;
-using HutchManager.Services.QueryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
