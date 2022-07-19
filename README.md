@@ -119,6 +119,9 @@ OutboundEmail:
   # If Provider == "sendgrid"
   SendGridApiKey: ""
 
+ActivitySourcePolling:
+  QueryPollingInterval: 5
+
 RquestTaskApi:
   BaseUrl: ""
   QueueStatusEndpoint: "queue"

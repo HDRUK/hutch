@@ -61,7 +61,7 @@ b.Services
   .AddAuthorization(AuthConfiguration.AuthOptions)
   .Configure<QueryQueueOptions>(b.Configuration.GetSection("JobQueue"))
   .Configure<RquestTaskApiOptions>(b.Configuration.GetSection("RquestTaskApi"))
-  .Configure<RquestPollingServiceOptions>(b.Configuration)
+  .Configure<RquestPollingServiceOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()

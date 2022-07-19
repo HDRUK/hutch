@@ -26,19 +26,15 @@ namespace HutchManager.Services
       IOptions<RquestTaskApiOptions> apiOptions,
       ApplicationDbContext db)
     {
-
       _client = client;
       _logger = logger;
       _apiOptions = apiOptions.Value;
       _db = db;
 
+      // TODO: credentials in future will be per Activity Source, so won't be set as default
       string credentials = _apiOptions.Username + ":" + _apiOptions.Password;
       var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes(credentials));
-
-      _client.BaseAddress = new Uri(Url.Combine(_apiOptions.BaseUrl, "/"));
       _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authString);
-
-
     }
 
     /// <summary>
@@ -60,8 +56,11 @@ namespace HutchManager.Services
     /// <returns>A Task DTO containing a Query to run, or null if none are waiting</returns>
     public async Task<RquestQueryTask?> FetchQuery(ActivitySource activitySource)
     {
-
-      string requestUri = (Url.Combine(_apiOptions.FetchQueryEndpoint, "/", activitySource.ResourceId));
+      var requestUri = Url.Combine(
+        activitySource.Host,
+        _apiOptions.EndpointBase,
+        _apiOptions.FetchQueryEndpoint,
+        activitySource.ResourceId);
       var result = await _client.GetAsync(
         requestUri);
 
@@ -70,7 +69,7 @@ namespace HutchManager.Services
         if (result.StatusCode == HttpStatusCode.NoContent)
         {
           _logger.LogInformation(
-            "No Query Jobs waiting for {_resourceId}",
+            "No Query Jobs waiting for {ResourceId}",
             activitySource.ResourceId);
           return null;
         }
@@ -81,7 +80,7 @@ namespace HutchManager.Services
 
           // a null job is impossible because the necessary JSON payload
           // to achieve it would fail deserialization
-          _logger.LogInformation($"Found Query with Id: {job!.JobId}");
+          _logger.LogInformation("Found Query with Id: {JobId}", job!.JobId);
           //Set ActivitySource ID
           job.ActivitySourceId = activitySource.Id;
           return job;
@@ -91,16 +90,15 @@ namespace HutchManager.Services
           _logger.LogError(e, "Invalid Response Format from Fetch Query Endpoint");
 
           var body = await result.Content.ReadAsStringAsync();
-          _logger.LogDebug("Invalid Response Body: {body}", body);
+          _logger.LogDebug("Invalid Response Body: {Body}", body);
 
           throw;
         }
       }
       else
       {
-        var message = $"Fetch Query Endpoint Request failed: {result.StatusCode}";
-        _logger.LogError(message);
-        throw new ApplicationException(message);
+        _logger.LogError("Fetch Query Endpoint Request failed: {StatusCode}", result.StatusCode);
+        throw new ApplicationException($"Fetch Query Endpoint Request failed: {result.StatusCode}");
       }
     }
 
