@@ -7,6 +7,8 @@ import requests, requests.exceptions as req_exc
 from typing import Union
 from croniter import croniter
 
+import hutchagent.config as config
+
 
 dotenv.load_dotenv()
 
@@ -61,22 +63,22 @@ class CheckIn(threading.Thread):
         When the current time is greater than or equal to the previous
         time plus the specified interval, POST a check-in to the manager.
         """
-        logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+        logger = logging.getLogger(config.LOGGER_NAME)
         while self.running:
             now = dt.datetime.now()
             if self.next_time > now > self.current_time:
                 try:
-                    logger.info(f"Attempting checkin @ {now}.")
+                    logger.info(f"Attempting check-in @ {now}.")
                     res = requests.post(
                         self.url,
                         json={"dataSources": [self.data_source_id]},
-                        verify=bool(os.getenv("MANAGER_VERIFY_SSL", 1)),
+                        verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
                     )
-                    if res.status_code == 200:
-                        logger.info("Checkin successful.")
+                    if res.ok:
+                        logger.info("Check-in successful.")
                     else:
                         logger.warning(
-                            f"Checkin unsuccessful. Code: {res.status_code}{os.linesep}"
+                            f"Check-in unsuccessful. Code: {res.status_code}{os.linesep}"
                             + f"Reason: {res.reason}"
                         )
                 except req_exc.ConnectionError as connection_error:

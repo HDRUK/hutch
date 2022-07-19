@@ -108,7 +108,7 @@ def rquest_callback(
         requests.post(
             f"{os.getenv('MANAGER_URL')}/api/results",
             json=response_data,
-            verify=bool(os.getenv("MANAGER_VERIFY_SSL", 1)),
+            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
@@ -194,7 +194,7 @@ def ro_crates_callback(
         requests.post(
             f"{os.getenv('MANAGER_URL')}/api/results",
             json=result.to_dict(),
-            verify=bool(os.getenv("MANAGER_VERIFY_SSL", 1)),
+            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
