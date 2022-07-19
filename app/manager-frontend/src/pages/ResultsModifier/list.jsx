@@ -63,9 +63,9 @@ export const ResultsModifiersList = () => {
           data.map((item, index) => (
             <ResultsModifier
               key={index}
-              href={`/resultsmodifier/${item.id}`}
               onDelete={() => onClickDelete(item)}
               onUpdate={() => onClickUpdate(item)}
+              item={item}
             ></ResultsModifier>
           ))}
       </VStack>

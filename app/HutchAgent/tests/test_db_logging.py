@@ -6,7 +6,7 @@ import logging
 from sqlalchemy import create_engine, select
 from sqlalchemy.engine import URL
 
-from hutchagent.db_logging import Log, SyncLogDBHandler
+from hutchagent.db_logging import Logs, SyncLogDBHandler
 from hutchagent.db_manager import SyncDBManager
 
 
@@ -52,7 +52,7 @@ def spoof_db():
 
 def test_sync_db_logger(spoof_db):
     # create the log table
-    Log.metadata.create_all(spoof_db)
+    Logs.metadata.create_all(spoof_db)
 
     format = logging.Formatter(
         "%(levelname)s - %(asctime)s - %(message)s",
@@ -89,7 +89,7 @@ def test_sync_db_logger(spoof_db):
     db_logger.warning("This is a test.")
     db_logger.critical("This is a test.")
 
-    res = db_manager.execute_and_fetch(select(Log))
+    res = db_manager.execute_and_fetch(select(Logs))
     assert len(res) == len(
         expected_values
     ), "Did not retrieve the expected number of results"
