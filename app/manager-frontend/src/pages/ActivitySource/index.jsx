@@ -8,8 +8,8 @@ import {
   AlertIcon,
   useDisclosure,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
-import { Form, Formik, useField } from "formik";
+import { useState } from "react";
+import { Form, Formik } from "formik";
 import { FaArrowRight } from "react-icons/fa";
 import { FormikInput } from "../../components/forms/FormikInput";
 import { FormikSelect } from "../../components/forms/FormikSelect";
@@ -19,6 +19,7 @@ import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
 import { useDataSourceList } from "api/datasource";
 import { getDateDaysAgo } from "helpers/dates";
+import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
@@ -34,6 +35,10 @@ export const ActivitySource = ({ activitySource, action, id }) => {
     ? "Create a new Activity Source"
     : "Edit Activity Source";
 
+  const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
+    behavior: "smooth",
+  });
+
   const navigate = useNavigate();
   const onDeleteSource = async () => {
     await activitysource.delete({ id: id });
@@ -42,7 +47,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
     navigate("/", {
       state: {
         toast: {
-          title: "Activity source successfully deleted!",
+          title: "Activity Source successfully deleted!",
           status: "success",
           duration: 2500,
           isClosable: true,
@@ -52,18 +57,10 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   };
   const handleSubmit = async (values, actions) => {
     try {
-      // convert all empty strings to null
-      const payload = Object.entries(values).reduce(
-        (a, [k, v]) => ({
-          ...a,
-          [k]: v !== "" ? v : null,
-        }),
-        {}
-      );
       // post to the api
       await action({
-        values: { ...payload, TargetDataSourceName: payload.DataSource.id },
-        id: id,
+        values,
+        id,
       }).json();
 
       // redirect with a toast
@@ -80,14 +77,14 @@ export const ActivitySource = ({ activitySource, action, id }) => {
     } catch (e) {
       console.error(e);
       setFeedback("Something went wrong!");
-      window.scrollTo(0, 0);
+      scrollTargetIntoView();
     }
     actions.setSubmitting(false);
   };
 
   return (
-    <Container>
-      <VStack w="100%" align="stretch" p={4}>
+    <Container my={8} ref={scrollTarget}>
+      <VStack w="100%" align="stretch" spacing={4}>
         <Heading>{headingText}</Heading>
         <Formik
           onSubmit={handleSubmit}
@@ -98,65 +95,43 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   Host: activitySource.host,
                   Type: activitySource.type,
                   ResourceId: activitySource.resourceId,
-                  DataSource:
-                    datasourceOptions.length > 0
-                      ? datasourceOptions.find(
-                          (item) =>
-                            item.id === activitySource.targetDataSourceName
-                        )
-                        ? datasourceOptions.find(
-                            (item) =>
-                              item.id === activitySource.targetDataSourceName
-                          )
-                        : datasourceOptions[0]
-                      : undefined,
+                  TargetDataSource: datasourceOptions.find(
+                    (item) => item.id === activitySource.targetDataSource
+                  ),
                 }
               : {
                   DisplayName: "",
                   Host: "",
                   Type: typeOptions[0].id,
                   ResourceId: "",
-                  DataSource:
-                    datasourceOptions.length > 0
-                      ? datasourceOptions[0]
-                      : undefined,
+                  TargetDataSource: "",
                 }
           }
           validationSchema={validationSchema()}
         >
-          {({ isSubmitting, values }) => (
+          {({ isSubmitting }) => (
             <Form noValidate>
-              <VStack align="stretch" spacing={8}>
+              <VStack align="stretch" spacing={4}>
                 {feedback && (
                   <Alert status="error">
                     <AlertIcon />
                     {feedback}
                   </Alert>
                 )}
-                <FormikInput
-                  label="Display name"
-                  name={"DisplayName"}
-                  type="DisplayName"
-                />
+                <FormikInput label="Display name" name="DisplayName" />
                 <FormikInput label="Host URl" name={"Host"} type="Host" />
                 <FormikSelect
                   label="Type"
                   name={"Type"}
-                  type="Type"
                   options={typeOptions.map((item) => ({
                     value: item.id,
                     label: item.id,
                   }))}
                 />
-                <FormikInput
-                  label="Resource Id"
-                  name={"ResourceId"}
-                  type="ResourceId"
-                />
+                <FormikInput label="Resource Id" name={"ResourceId"} />
                 <FormikSelect
-                  label="Target DataSource Name"
-                  name={"DataSource"}
-                  type="DataSource"
+                  label="Target Data Source"
+                  name="TargetDataSource"
                   options={datasourceOptions.map((item) => ({
                     value: item.id,
                     label:
@@ -164,14 +139,13 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                         ? item.id
                         : `${item.id} (Inactive)`,
                   }))}
-                  tooltip={
-                    datasourceOptions.length == 0
-                      ? "There are currently no datasources to use. Please run an agent configured with this manager URL and create one"
-                      : "Warning, some datasources are inactive"
+                  alert={
+                    datasourceOptions.length == 0 && {
+                      status: "error",
+                      message: `There are no Data Sources registered. Please "check in" an Agent with this Manager.`,
+                    }
                   }
-                  warning={datasourceOptions.length == 0}
-                  sourceList={datasourceOptions}
-                  sourceParam="id"
+                  hasEmptyDefault
                 />
                 <Flex>
                   <Button

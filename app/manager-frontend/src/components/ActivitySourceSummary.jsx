@@ -8,7 +8,9 @@ import {
   Box,
   Button,
   Flex,
+  Badge,
 } from "@chakra-ui/react";
+import { FaTrash } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 export const ActivitySourceSummary = ({
@@ -31,26 +33,35 @@ export const ActivitySourceSummary = ({
       align="stretch"
       _hover={{
         borderColor: "blue.500",
-        color: "blue.500",
         bg: "gray.50",
       }}
       {...p}
     >
       <HStack>
         <Flex w="full">
-          <Heading as="h3" size="md">
+          <Heading as="h3" size="md" _hoverGroup={{ color: "blue.500" }}>
             <LinkOverlay w="100%" as={Link} to={`${href}`}>
               {title}
             </LinkOverlay>
           </Heading>
-          <Button colorScheme="red" ml={"auto"} onClick={onDelete}>
+          <Button
+            colorScheme="red"
+            ml={"auto"}
+            onClick={onDelete}
+            leftIcon={<FaTrash />}
+          >
             Delete
           </Button>
         </Flex>
       </HStack>
-      {children}
-      {sourceURL && <Text>Source: {sourceURL}</Text>}
-      {collectionId && <Text>collection id: {collectionId}</Text>}
+      <HStack>
+        {sourceURL && (
+          <Badge colorScheme="cyan">Source Host: {sourceURL}</Badge>
+        )}
+        {collectionId && (
+          <Badge colourScheme="turquoise">Resource ID: {collectionId}</Badge>
+        )}
+      </HStack>
     </VStack>
   </LinkBox>
 );

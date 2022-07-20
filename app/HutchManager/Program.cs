@@ -78,6 +78,18 @@ b.Services
 
 var app = b.Build();
 
+// Do data seeding isolated from the running of the app
+using (var scope = app.Services.CreateScope())
+{
+  var db = scope.ServiceProvider
+    .GetRequiredService<ApplicationDbContext>();
+
+  var seeder = new DataSeeder(db);
+
+  await seeder.SeedSourceTypes();
+  await seeder.SeedModifierTypes();
+}
+
 #region Configure Pipeline
 app.UseSerilogRequestLogging();
 app.GnuTerryPratchett();
