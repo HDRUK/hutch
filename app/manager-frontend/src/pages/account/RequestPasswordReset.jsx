@@ -10,17 +10,16 @@ import { Form, Formik } from "formik";
 import { useLocation } from "react-router-dom";
 import { BiMailSend } from "react-icons/bi";
 import { useTranslation } from "react-i18next";
-import { object, string } from "yup";
 import { useResetState } from "helpers/hooks/useResetState";
-import { EmailField } from "components/forms/EmailFieldGroup";
 import { useBackendApi } from "contexts/BackendApi";
+import {
+  EmailField,
+  validationSchema as emailSchema,
+} from "components/forms/EmailField";
+import { object } from "yup";
+import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 
-const validationSchema = (t) =>
-  object().shape({
-    email: string()
-      .email(t("validation.email_valid"))
-      .required(t("validation.email_required")),
-  });
+const validationSchema = (t) => object().shape(emailSchema(t));
 
 export const RequestPasswordReset = () => {
   const { key } = useLocation();
@@ -32,6 +31,10 @@ export const RequestPasswordReset = () => {
   // ajax submissions may cause feedback to display
   // but we reset feedback if the page should remount
   const [feedback, setFeedback] = useResetState([key]);
+
+  const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
+    behavior: "smooth",
+  });
 
   const handleSubmit = async ({ email }, actions) => {
     // If submission was triggered by hitting Enter,
@@ -77,14 +80,14 @@ export const RequestPasswordReset = () => {
       actions.resetForm({ touched: [] });
     }
 
-    window.scrollTo(0, 0);
+    scrollTargetIntoView();
 
     actions.setSubmitting(false);
   };
 
   return (
-    <Container key={key} my={8}>
-      <VStack align="stretch" spacing={8}>
+    <Container ref={scrollTarget} key={key} my={8}>
+      <VStack align="stretch" spacing={4}>
         <Heading as="h2" size="lg">
           {t("requestPasswordReset.heading")}
         </Heading>
@@ -105,11 +108,8 @@ export const RequestPasswordReset = () => {
         >
           {({ isSubmitting }) => (
             <Form noValidate>
-              <VStack align="stretch" spacing={8}>
-                <EmailField
-                  label={t("fields.email")}
-                  placeholder={t("fields.email_placeholder")}
-                />
+              <VStack align="stretch" spacing={4}>
+                <EmailField autoFocus />
 
                 <Button
                   w="200px"
