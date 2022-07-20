@@ -1,7 +1,7 @@
 namespace HutchManager.Constants;
 
-public class FeatureFlags
+public enum FeatureFlags
 {
-  public const string UseROCrates = "UseROCrates";
-  public const string AllowFreeRegistration = "AllowFreeRegistration";
+  UseROCrates,
+  AllowFreeRegistration
 }

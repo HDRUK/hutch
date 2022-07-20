@@ -9,6 +9,7 @@ using HutchManager.Dto;
 using Microsoft.EntityFrameworkCore;
 using HutchManager.Config;
 using System.Text.Json;
+using HutchManager.Constants;
 
 
 namespace HutchManager.Services
@@ -60,7 +61,8 @@ namespace HutchManager.Services
         activitySource.Host,
         _apiOptions.EndpointBase,
         _apiOptions.FetchQueryEndpoint,
-        activitySource.ResourceId);
+        // Currently this method only looks for "Availability Queries""
+        activitySource.ResourceId + RQuestJobTypeSuffixes.AvailabilityQuery);
       var result = await _client.GetAsync(
         requestUri);
 
@@ -107,7 +109,7 @@ namespace HutchManager.Services
     /// </summary>
     /// <param name="activitySourceId">activitySourceId ID</param>
     /// <param name="jobId">Job ID</param>
-    /// <param name="count">Optional Count for submitting results</param>
+    /// <param name="result">Results with Count</param>
     public async Task ResultsEndpointPost(int activitySourceId, string jobId, QueryResultCount result)
     {
       var activitySource = await _db.ActivitySources
@@ -117,27 +119,29 @@ namespace HutchManager.Services
         throw new KeyNotFoundException(
           $"No ActivitySource with ID: {activitySourceId}");
 
-      string resourceId = activitySource.ResourceId.Remove(activitySource.ResourceId.Length - 2);
+      var requestUri = Url.Combine(
+        activitySource.Host,
+        _apiOptions.EndpointBase,
+        _apiOptions.SubmitResultEndpoint,
+        jobId,
+        activitySource.ResourceId);
 
-      string requestUri = (Url.Combine(_apiOptions.SubmitResultEndpoint, "/", jobId, "/", resourceId));
       var response = (await _client.PostAsync(
-        requestUri, AsHttpJsonString(new RquestQueryTaskResult(resourceId, jobId, result.Count)))).EnsureSuccessStatusCode();
-      
-      string body = string.Empty;
+          requestUri, AsHttpJsonString(new RquestQueryTaskResult(activitySource.ResourceId, jobId, result.Count))))
+        .EnsureSuccessStatusCode();
 
-      body = await response.Content.ReadAsStringAsync();
-      
+      var body = await response.Content.ReadAsStringAsync();
+
       if (body != "Job saved" && !response.IsSuccessStatusCode)
       {
-        var message = "Unsuccessful Response from Submit Results Endpoint";
+        const string message = "Unsuccessful Response from Submit Results Endpoint";
         _logger.LogError(message);
-        _logger.LogDebug("Response Body: {body}", body);
+        _logger.LogDebug("Response Body: {Body}", body);
 
         throw new ApplicationException(message);
       }
 
       return;
-
     }
   }
 }

@@ -60,7 +60,7 @@ public class RQuestPollingService
 
   public async Task SendToQueue(RquestQueryTask jobPayload, string queueName)
   {
-    if (await _featureManager.IsEnabledAsync(FeatureFlags.UseROCrates))
+    if (await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.UseROCrates)))
     {
       ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
       _jobQueue.SendMessage(queueName, roCratesQuery);

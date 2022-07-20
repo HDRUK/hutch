@@ -23,6 +23,14 @@ b.Host.UseSerilog((context, services, loggerConfig) => loggerConfig
 
 #region Configure Services
 
+// default missing Feature Flags to false, to "declare" them
+b.Configuration.AddInMemoryCollection(
+  Enum.GetNames<FeatureFlags>()
+    .Where(flagName =>
+      b.Configuration.GetSection("FeatureManagement").GetChildren().All(
+        flagConfigKey => flagConfigKey.Key != flagName))
+    .Select(flagName => new KeyValuePair<string, string>($"FeatureManagement:{flagName}", "false")));
+
 // MVC
 b.Services
   .AddControllersWithViews()

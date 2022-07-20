@@ -35,7 +35,7 @@ public class UserService
   /// <param name="email">The email address to check</param>
   /// <returns></returns>
   public async Task<bool> CanRegister(string email)
-    => await _featureManager.IsEnabledAsync(FeatureFlags.AllowFreeRegistration) ||
+    => await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.AllowFreeRegistration)) ||
         (await _db.RegistrationAllowlist.FindAsync(email) is not null);
 
   /// <summary>
