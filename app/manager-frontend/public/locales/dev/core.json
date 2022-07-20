@@ -19,23 +19,19 @@
   "fields": {
     "email": "Email Address",
     "email_placeholder": "name@example.com",
-    "email_confirm": "Confirm Email Address",
     "password": "Password",
-    "password_confirm": "Confirm Password"
+    "email_checkreminder": "Please check to ensure your email address is correct."
   },
   "validation": {
     "fullname_required": "Please enter your name.",
     "email_required": "Please enter your email address.",
     "email_valid": "Please enter a valid email address.",
-    "emailconfirm_required": "Please confirm your email address.",
-    "emailconfirm_match": "Both Email Address entries must match.",
     "password_required": "Please enter a password.",
     "password_minLength": "Passwords must be at least {{minLength}} characters.",
     "password_digit": "Passwords must have at least one digit ('0' - '9').",
     "password_uppercase": "Passwords must have at least one uppercase character ('A' - 'Z').",
-    "password_special": "Passwords must have at least one non alphanumeric character.",
-    "passwordconfirm_required": "Please confirm your password.",
-    "passwordconfirm_match": "Both Password entries must match."
+    "password_lowercase": "Passwords must have at least one lowercase character ('a' - 'z').",
+    "password_special": "Passwords must have at least one non alphanumeric character."
   },
   "buttons": {
     "brand": "Hutch",
