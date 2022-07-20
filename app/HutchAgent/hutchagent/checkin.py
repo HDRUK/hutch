@@ -68,7 +68,7 @@ class CheckIn(threading.Thread):
             now = dt.datetime.now()
             if self.next_time > now > self.current_time:
                 try:
-                    logger.info(f"Attempting check-in @ {now}.")
+                    logger.info(f"Attempting check-in.")
                     res = requests.post(
                         self.url,
                         json={"dataSources": [self.data_source_id]},
