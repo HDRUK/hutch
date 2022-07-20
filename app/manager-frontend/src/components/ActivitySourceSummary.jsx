@@ -39,14 +39,15 @@ export const ActivitySourceSummary = ({
     >
       <HStack>
         <Flex w="full">
-          <Heading as="h3" size="md" _hoverGroup={{ color: "blue.500" }}>
-            <LinkOverlay w="100%" as={Link} to={`${href}`}>
+          <LinkOverlay w="100%" as={Link} to={`${href}`}>
+            <Heading as="h3" size="md" _hoverGroup={{ color: "blue.500" }}>
               {title}
-            </LinkOverlay>
-          </Heading>
+            </Heading>
+          </LinkOverlay>
           <Button
             colorScheme="red"
-            ml={"auto"}
+            size="sm"
+            variant="outline"
             onClick={onDelete}
             leftIcon={<FaTrash />}
           >
@@ -56,10 +57,14 @@ export const ActivitySourceSummary = ({
       </HStack>
       <HStack>
         {sourceURL && (
-          <Badge colorScheme="cyan">Source Host: {sourceURL}</Badge>
+          <Badge p={1} colorScheme="cyan">
+            Source Host: {sourceURL}
+          </Badge>
         )}
         {collectionId && (
-          <Badge colourScheme="turquoise">Resource ID: {collectionId}</Badge>
+          <Badge p={1} colorScheme="teal">
+            Resource ID: {collectionId}
+          </Badge>
         )}
       </HStack>
     </VStack>
