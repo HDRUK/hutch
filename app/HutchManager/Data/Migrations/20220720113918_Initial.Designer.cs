@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HutchManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220715122118_20220715_rename_logs_to_Logs")]
-    partial class _20220715_rename_logs_to_Logs
+    [Migration("20220720113918_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -45,14 +45,17 @@ namespace HutchManager.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TargetDataSourceName")
+                    b.Property<string>("TargetDataSourceId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("TypeId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TargetDataSourceId");
 
                     b.HasIndex("TypeId");
 
@@ -155,48 +158,6 @@ namespace HutchManager.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("HutchManager.Data.Entities.Logs", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Exception")
-                        .HasColumnType("text")
-                        .HasColumnName("exception");
-
-                    b.Property<string>("Level")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("level");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message");
-
-                    b.Property<string>("MessageTemplate")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message_template");
-
-                    b.Property<string>("Properties")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("properties");
-
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Logs");
                 });
 
             modelBuilder.Entity("HutchManager.Data.Entities.ModifierType", b =>
@@ -396,9 +357,19 @@ namespace HutchManager.Migrations
 
             modelBuilder.Entity("HutchManager.Data.Entities.ActivitySource", b =>
                 {
+                    b.HasOne("HutchManager.Data.Entities.DataSource", "TargetDataSource")
+                        .WithMany()
+                        .HasForeignKey("TargetDataSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("HutchManager.Data.Entities.SourceType", "Type")
                         .WithMany()
-                        .HasForeignKey("TypeId");
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TargetDataSource");
 
                     b.Navigation("Type");
                 });

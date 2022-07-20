@@ -43,14 +43,17 @@ namespace HutchManager.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TargetDataSourceName")
+                    b.Property<string>("TargetDataSourceId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("TypeId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TargetDataSourceId");
 
                     b.HasIndex("TypeId");
 
@@ -352,9 +355,19 @@ namespace HutchManager.Migrations
 
             modelBuilder.Entity("HutchManager.Data.Entities.ActivitySource", b =>
                 {
+                    b.HasOne("HutchManager.Data.Entities.DataSource", "TargetDataSource")
+                        .WithMany()
+                        .HasForeignKey("TargetDataSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("HutchManager.Data.Entities.SourceType", "Type")
                         .WithMany()
-                        .HasForeignKey("TypeId");
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TargetDataSource");
 
                     b.Navigation("Type");
                 });
