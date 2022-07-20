@@ -6,15 +6,10 @@ namespace HutchManager.Models.Account;
 /// Model for setting a known User's password
 /// </summary>
 /// <param name="Password"></param>
-/// <param name="PasswordConfirm"></param>
 public record SetPasswordModel(
   [Required]
   [DataType(DataType.Password)]
-  string Password,
-
-  [Required]
-  [DataType(DataType.Password)]
-  string PasswordConfirm
+  string Password
 );
 
 /// <summary>
