@@ -15,6 +15,15 @@ dotenv.load_dotenv()
 Base = declarative_base()
 
 
+def get_utcnow() -> datetime.datetime:
+    """Get a timezone aware UTC datetime.
+
+    Returns:
+        datetime.datetime: UTC aware datetime.
+    """
+    return datetime.datetime.now(tz=datetime.timezone.utc)
+
+
 class Logs(Base):
     __tablename__ = "Logs"  # this is required by sqlalchemy
     Id = Column(Integer, primary_key=True, autoincrement=True)
@@ -23,7 +32,7 @@ class Logs(Base):
     Message = Column(Text, nullable=True)
     MessageTemplate = Column(Text, nullable=True)
     Properties = Column(JSON, nullable=False, default=dict())
-    Timestamp = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    Timestamp = Column(DateTime, nullable=False, default=get_utcnow)
 
 
 class SyncLogDBHandler(Handler):
