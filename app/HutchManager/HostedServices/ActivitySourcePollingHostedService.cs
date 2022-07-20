@@ -39,7 +39,7 @@ namespace HutchManager.HostedServices
           }
         }
 
-        public Task TriggerActivitySourcePolling()
+        public async Task TriggerActivitySourcePolling()
         {
           var count = Interlocked.Increment(ref _executionCount);
             
@@ -58,12 +58,14 @@ namespace HutchManager.HostedServices
             .Include(x => x.TargetDataSource)
             .ToList();
 
+          List<Task> pollTasks = new();
+
           foreach (var source in sources)
           {
             switch (source.Type.Id)
             {
               case SourceTypes.RQuest:
-                var pollTask = rQuestPoller.Poll(source);
+                pollTasks.Add(rQuestPoller.Poll(source));
                 break;
               default:
                 _logger.LogError("Unknown Activity Source Type cannot be handled: {SourceType}", source.Type.Id);
@@ -71,7 +73,7 @@ namespace HutchManager.HostedServices
             }
           }
 
-          return Task.CompletedTask;
+          await Task.WhenAll(pollTasks);
         }
         
         public override async Task StopAsync(CancellationToken stoppingToken)

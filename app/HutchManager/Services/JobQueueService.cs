@@ -46,7 +46,7 @@ public class JobQueueService : IDisposable
     var body = Encoding.UTF8.GetBytes(
       JsonSerializer.Serialize(message, DefaultJsonOptions.Serializer));
     _channel.BasicPublish(
-      exchange: null,
+      exchange: "",
       basicProperties: null,
       routingKey: queueName,
       body: body);
