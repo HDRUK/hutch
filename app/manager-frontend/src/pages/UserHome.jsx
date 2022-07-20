@@ -5,10 +5,10 @@ import {
   useDisclosure,
   Input,
   HStack,
+  Text,
 } from "@chakra-ui/react";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
-import { ActionCard } from "components/ActionCard";
 import { useSortingAndFiltering } from "helpers/hooks/useSortingAndFiltering";
 import { useActivitySourceList } from "api/activitysource";
 import { ActivitySourceSummary } from "components/ActivitySourceSummary";
@@ -22,7 +22,7 @@ export const UserHome = () => {
   const { user } = useUser();
   const { t } = useTranslation();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [selectedId, setSelectedId] = useState();
+  const [selectedActivitySource, setSelectedActivitySource] = useState();
   const { activitysource } = useBackendApi();
   const { data, mutate } = useActivitySourceList();
   const {
@@ -39,12 +39,12 @@ export const UserHome = () => {
   });
 
   const onDeleteSource = async () => {
-    await activitysource.delete({ id: selectedId });
+    await activitysource.delete({ id: selectedActivitySource.id });
     await mutate();
     onClose();
   };
-  const onClickDelete = (id) => {
-    setSelectedId(id);
+  const onClickDelete = (activitySource) => {
+    setSelectedActivitySource(activitySource);
     onOpen();
   };
 
@@ -76,7 +76,7 @@ export const UserHome = () => {
             <ActivitySourceSummary
               key={index}
               href={`/activitysources/${item.id}`}
-              onDelete={() => onClickDelete(item.id)}
+              onDelete={() => onClickDelete(item)}
               title={item.displayName}
               sourceURL={item.host}
               collectionId={item.resourceId}
@@ -84,8 +84,14 @@ export const UserHome = () => {
           ))}
       </VStack>
       <DeleteModal
-        title={`Delete Activity Source ${selectedId}`}
-        body="Are you sure you want to delete this activity source? You will not be able to reverse this"
+        title={`Delete Activity Source?`}
+        body={
+          <VStack>
+            <Text>Are you sure you want to delete this activity source:</Text>
+            <Text fontWeight="bold">{selectedActivitySource?.displayName}</Text>
+            <Text>You will not be able to reverse this!</Text>
+          </VStack>
+        }
         isOpen={isOpen}
         onClose={onClose}
         onDelete={onDeleteSource}

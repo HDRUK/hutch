@@ -18,7 +18,6 @@ export const ActivitySourceSummary = ({
   href,
   sourceURL,
   collectionId,
-  children,
   onDelete,
   ...p
 }) => (
