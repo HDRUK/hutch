@@ -1,6 +1,6 @@
 ﻿namespace HutchManager.Constants;
 
-public class SourceTypes
+public static class SourceTypes
 {
-  
+  public const string RQuest = "RQUEST";
 }

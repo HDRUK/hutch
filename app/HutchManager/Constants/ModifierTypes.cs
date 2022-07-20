@@ -1,6 +1,6 @@
 ﻿namespace HutchManager.Constants;
 
-public class ModifierTypes
+public static class ModifierTypes
 {
-  
+  public const string LowNumberSuppression = "Low Number Suppression";
 }

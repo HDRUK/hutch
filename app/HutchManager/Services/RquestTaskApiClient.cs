@@ -13,17 +13,17 @@ using System.Text.Json;
 
 namespace HutchManager.Services
 {
-  public class RquestTaskApiClient
+  public class RQuestTaskApiClient
   {
     private readonly HttpClient _client;
-    private readonly ILogger<RquestTaskApiClient> _logger;
-    private readonly RquestTaskApiOptions _apiOptions;
+    private readonly ILogger<RQuestTaskApiClient> _logger;
+    private readonly RQuestTaskApiOptions _apiOptions;
     private readonly ApplicationDbContext _db;
 
-    public RquestTaskApiClient(
+    public RQuestTaskApiClient(
       HttpClient client,
-      ILogger<RquestTaskApiClient> logger,
-      IOptions<RquestTaskApiOptions> apiOptions,
+      ILogger<RQuestTaskApiClient> logger,
+      IOptions<RQuestTaskApiOptions> apiOptions,
       ApplicationDbContext db)
     {
       _client = client;

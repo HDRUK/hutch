@@ -24,7 +24,8 @@ public class ActivitySourceService
   public async Task<Models.ActivitySourceModel> Create(Models.CreateActivitySource activitySource)
   {
     var types = await _db.SourceTypes.ToListAsync();
-    var entity = activitySource.ToEntity(types);
+    var dataSources = await _db.DataSources.ToListAsync();
+    var entity = activitySource.ToEntity(types, dataSources);
     
     await _db.ActivitySources.AddAsync(entity);
     await _db.SaveChangesAsync();

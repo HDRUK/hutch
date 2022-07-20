@@ -1,4 +1,9 @@
+using HutchManager.Constants;
+using HutchManager.Data;
+using HutchManager.OptionsModels;
 using HutchManager.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 
 namespace HutchManager.HostedServices
@@ -7,56 +12,69 @@ namespace HutchManager.HostedServices
     {
         private readonly ILogger<ActivitySourcePollingHostedService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private Timer? _timer;
-      
+        private readonly ActivitySourcePollingOptions _config;
+        private int _executionCount;
+
         public ActivitySourcePollingHostedService(
             ILogger<ActivitySourcePollingHostedService> logger,
             IServiceProvider serviceProvider,
-            IOptions<)
+            IOptions<ActivitySourcePollingOptions> config)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _config = config.Value;
         }
         
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
           _logger.LogInformation("Activity Source Polling started");
-          _timer = new Timer(TriggerActivitySourcePolling);
-          RunTimerOnce();
-          
-          await PollRquest(stoppingToken);
-        }
 
-        public async void TriggerActivitySourcePolling(object? state)
-        {
-          // async void here is intentional to meet the TimerCallback signature
-          // Stephen Cleary says it's ok:
-          // https://stackoverflow.com/a/38918443
-          
-          
-        }
-        
-        private void RunTimerOnce()
-          => _timer?.Change(
-            TimeSpan.FromSeconds(_config.QueryPollingInterval),
-            Timeout.InfiniteTimeSpan);
-        
-        public async Task TriggerActivitySourcePolling(CancellationToken stoppingToken)
-        {
-
-          using (var scope = _serviceProvider.CreateScope())
+          while (!stoppingToken.IsCancellationRequested)
           {
-            var scopedProcessingService = 
-              scope.ServiceProvider
-                .GetRequiredService<IRquestPollingService>();
-
-            await scopedProcessingService.PollRquest(stoppingToken);
+            var executionTask = TriggerActivitySourcePolling();
+            
+            await Task.Delay(TimeSpan.FromSeconds(_config.PollingInterval), stoppingToken);
           }
         }
 
+        public Task TriggerActivitySourcePolling()
+        {
+          var count = Interlocked.Increment(ref _executionCount);
+            
+          _logger.LogDebug(
+            "{Service} is working. Count: {Count}",nameof(RQuestPollingService) , count);
+
+          using var executionScope = _serviceProvider.CreateScope();
+
+          // TODO use another worker service with DI instead of Service Locator? 
+          var db = executionScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+          
+          var rQuestPoller = executionScope.ServiceProvider.GetRequiredService<RQuestPollingService>();
+
+          var sources = db.ActivitySources.AsNoTracking()
+            .Include(x => x.Type)
+            .Include(x => x.TargetDataSource)
+            .ToList();
+
+          foreach (var source in sources)
+          {
+            switch (source.Type.Id)
+            {
+              case SourceTypes.RQuest:
+                var pollTask = rQuestPoller.Poll(source);
+                break;
+              default:
+                _logger.LogError("Unknown Activity Source Type cannot be handled: {SourceType}", source.Type.Id);
+                break;
+            }
+          }
+
+          return Task.CompletedTask;
+        }
+        
         public override async Task StopAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("RQUEST Polling Service stopping.");
+            _logger.LogInformation("Activity Source Polling stopping");
             
             await base.StopAsync(stoppingToken);
         }

@@ -1,9 +1,9 @@
 ﻿namespace HutchManager.Config
 {
     /// <summary>
-    /// Options for the RQUEST Task Api
+    /// Options for the RQuest Task Api
     /// </summary>
-    public class RquestTaskApiOptions
+    public class RQuestTaskApiOptions
     {
         /// <summary>
         /// <para>The Base Path of the Task API endpoints, which will be added to an RQuest Activity Source's Host URI</para>

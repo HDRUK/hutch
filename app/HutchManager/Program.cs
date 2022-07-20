@@ -60,8 +60,8 @@ b.Services
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
   .Configure<JobQueueOptions>(b.Configuration.GetSection("JobQueue"))
-  .Configure<RquestTaskApiOptions>(b.Configuration.GetSection("RquestTaskApi"))
-  .Configure<RquestPollingServiceOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
+  .Configure<RQuestTaskApiOptions>(b.Configuration.GetSection("RQuestTaskApi"))
+  .Configure<ActivitySourcePollingOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()
@@ -69,11 +69,11 @@ b.Services
   .AddTransient<DataSourceService>()
   .AddTransient<ResultsModifierService>()
   .AddTransient<JobQueueService>()
-  .AddHostedService<RquestPollingHostedService>()
-  .AddScoped<IRquestPollingService, RquestPollingService>()
+  .AddHostedService<ActivitySourcePollingHostedService>()
+  .AddScoped<RQuestPollingService>()
   .AddFeatureManagement();
 b.Services
-  .AddHttpClient<RquestTaskApiClient>();
+  .AddHttpClient<RQuestTaskApiClient>();
 #endregion
 
 var app = b.Build();
