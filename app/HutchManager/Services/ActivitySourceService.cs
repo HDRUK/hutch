@@ -17,6 +17,7 @@ public class ActivitySourceService
     var list = await _db.ActivitySources
       .AsNoTracking()
       .Include(x=>x.Type)
+      .Include(x => x.TargetDataSource)
       .ToListAsync();
     return list.ConvertAll<Models.ActivitySourceModel>(x => new(x));
   }
