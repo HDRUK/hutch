@@ -7,10 +7,11 @@ import {
   Alert,
   AlertIcon,
   useDisclosure,
+  HStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Form, Formik } from "formik";
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowRight, FaTrash } from "react-icons/fa";
 import { FormikInput } from "../../components/forms/FormikInput";
 import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
@@ -85,7 +86,19 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   return (
     <Container my={8} ref={scrollTarget}>
       <VStack w="100%" align="stretch" spacing={4}>
-        <Heading>{headingText}</Heading>
+        <Flex justify="space-between">
+          <Heading>{headingText}</Heading>
+          {id && (
+            <Button
+              leftIcon={<FaTrash />}
+              variant="outline"
+              colorScheme="red"
+              onClick={onOpen}
+            >
+              Delete
+            </Button>
+          )}
+        </Flex>
         <Formik
           onSubmit={handleSubmit}
           initialValues={
@@ -95,9 +108,10 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   Host: activitySource.host,
                   Type: activitySource.type,
                   ResourceId: activitySource.resourceId,
-                  TargetDataSource: datasourceOptions.find(
-                    (item) => item.id === activitySource.targetDataSource
-                  ),
+                  TargetDataSource:
+                    datasourceOptions.find(
+                      (item) => item.id === activitySource.targetDataSource
+                    )?.id ?? "",
                 }
               : {
                   DisplayName: "",
@@ -147,24 +161,18 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   }
                   hasEmptyDefault
                 />
-                <Flex>
+                <HStack>
                   <Button
-                    w="full"
+                    w="200px"
                     leftIcon={<FaArrowRight />}
                     colorScheme="blue"
                     type="submit"
                     disabled={isSubmitting}
                     isLoading={isSubmitting}
-                    mx={id ? 4 : 0}
                   >
                     {submitText}
                   </Button>
-                  {id && (
-                    <Button w="full" colorScheme="red" onClick={onOpen} mx={4}>
-                      Delete
-                    </Button>
-                  )}
-                </Flex>
+                </HStack>
               </VStack>
             </Form>
           )}

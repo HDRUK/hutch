@@ -64,7 +64,7 @@ export const UserHome = () => {
             colorScheme="green"
             leftIcon={<FaPlus />}
           >
-            New Activity Source
+            New
           </Button>
           <Input
             placeholder="Search Activity Sources"
