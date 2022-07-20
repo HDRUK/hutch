@@ -120,7 +120,7 @@ OutboundEmail:
   SendGridApiKey: ""
 
 ActivitySourcePolling:
-  QueryPollingInterval: 5
+  PollingInterval: 5 # set to a negative value will disable polling altogether
 
 RquestTaskApi:
   BaseEndpoint: "bcos-rest/api/task"

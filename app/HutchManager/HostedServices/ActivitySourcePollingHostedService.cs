@@ -29,6 +29,8 @@ namespace HutchManager.HostedServices
         {
           _logger.LogInformation("Activity Source Polling started");
 
+          if (_config.PollingInterval < 0) return;
+          
           while (!stoppingToken.IsCancellationRequested)
           {
             var executionTask = TriggerActivitySourcePolling();
