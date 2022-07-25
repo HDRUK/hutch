@@ -262,7 +262,7 @@ export const ConfigureResultsModifierModal = ({
                       label: item.id,
                     }))}
                     sourceList={typeOptions}
-                    sourceParam="id"
+                    sourceKey="id"
                   />
                   <FormikSelect
                     label="Activity Source"
@@ -273,7 +273,7 @@ export const ConfigureResultsModifierModal = ({
                       label: item.displayName,
                     }))}
                     sourceList={activitySourceOptions}
-                    sourceParam="id"
+                    sourceKey="id"
                   />
                   <LowNumberSuppressionParameters type={values.Type} />
                   <Button
