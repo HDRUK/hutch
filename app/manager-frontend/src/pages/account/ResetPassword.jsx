@@ -15,13 +15,14 @@ import { object } from "yup";
 import { useResetState } from "helpers/hooks/useResetState";
 import { useUser } from "contexts/User";
 import { ResendConfirmAlert } from "components/account/ResendConfirmAlert";
-import {
-  PasswordFieldGroup,
-  validationSchema as pwSchema,
-} from "components/forms/PasswordFieldGroup";
 import { useQueryStringViewModel } from "helpers/hooks/useQueryStringViewModel";
 import { TitledAlert } from "components/TitledAlert";
 import { useBackendApi } from "contexts/BackendApi";
+import {
+  PasswordField,
+  validationSchema as pwSchema,
+} from "components/forms/PasswordField";
+import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 
 const validationSchema = (t) => object().shape(pwSchema(t));
 
@@ -67,6 +68,10 @@ export const ResetPassword = () => {
   // ajax submissions may cause feedback to display
   // but we reset feedback if the page should remount
   const [feedback, setFeedback] = useResetState([key]);
+
+  const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
+    behavior: "smooth",
+  });
 
   if (!userId || !token) return <InvalidLinkFeedback />;
 
@@ -134,7 +139,7 @@ export const ResetPassword = () => {
           });
       }
 
-      window.scrollTo(0, 0);
+      scrollTargetIntoView();
     }
 
     // when we reset, untouch fields so that clicking away from an input
@@ -145,8 +150,8 @@ export const ResetPassword = () => {
   };
 
   return (
-    <Container key={key} my={8}>
-      <VStack align="stretch" spacing={8}>
+    <Container ref={scrollTarget} key={key} my={8}>
+      <VStack align="stretch" spacing={4}>
         <Heading as="h2" size="lg">
           {t("resetPassword.heading")}
         </Heading>
@@ -156,17 +161,14 @@ export const ResetPassword = () => {
         <Formik
           initialValues={{
             password: "",
-            passwordConfirm: "",
           }}
           onSubmit={handleSubmit}
           validationSchema={validationSchema(t)}
         >
           {({ isSubmitting }) => (
             <Form noValidate>
-              <VStack align="stretch" spacing={8} hidden={feedback?.hideForm}>
-                <PasswordFieldGroup
-                  initialHidden={feedback?.status !== "error"}
-                />
+              <VStack align="stretch" spacing={4} hidden={feedback?.hideForm}>
+                <PasswordField autoFocus />
 
                 <Button
                   w="200px"

@@ -2,28 +2,30 @@ using System.Globalization;
 using System.Security.Claims;
 using HutchManager.Auth;
 using HutchManager.Config;
+using HutchManager.Constants;
 using HutchManager.Data;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 
 namespace HutchManager.Services;
 
 public class UserService
 {
   private readonly ApplicationDbContext _db;
+  private readonly IFeatureManager _featureManager;
   private readonly IUserClaimsPrincipalFactory<ApplicationUser> _principalFactory;
-  private readonly RegistrationOptions _registerConfig;
 
   public UserService(
     ApplicationDbContext db,
-    IOptions<RegistrationOptions> registerConfig,
+    IFeatureManager featureManager,
     IUserClaimsPrincipalFactory<ApplicationUser> principalFactory)
   {
     _db = db;
     _principalFactory = principalFactory;
-    _registerConfig = registerConfig.Value;
+    _featureManager = featureManager;
   }
 
   /// <summary>
@@ -33,7 +35,7 @@ public class UserService
   /// <param name="email">The email address to check</param>
   /// <returns></returns>
   public async Task<bool> CanRegister(string email)
-    => !_registerConfig.UseAllowList ||
+    => await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.AllowFreeRegistration)) ||
         (await _db.RegistrationAllowlist.FindAsync(email) is not null);
 
   /// <summary>

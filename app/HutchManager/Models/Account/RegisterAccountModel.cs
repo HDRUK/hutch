@@ -13,15 +13,7 @@ public record RegisterAccountModel(
   string Email,
 
   [Required]
-  [EmailAddress]
-  string EmailConfirm,
-
-  [Required]
   [DataType(DataType.Password)]
-  string Password,
-
-  [Required]
-  [DataType(DataType.Password)]
-  string PasswordConfirm
+  string Password
 );
 

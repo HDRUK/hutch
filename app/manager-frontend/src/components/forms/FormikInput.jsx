@@ -1,10 +1,19 @@
-import { FormControl, FormLabel, Input, Flex, Tooltip } from "@chakra-ui/react";
+import {
+  Flex,
+  FormControl,
+  FormLabel,
+  Icon,
+  IconButton,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Tooltip,
+} from "@chakra-ui/react";
 import { useField } from "formik";
 import { useDebounce } from "helpers/hooks/useDebounce";
 import { useEffect, useState } from "react";
+import { FaEye, FaEyeSlash, FaInfoCircle } from "react-icons/fa";
 import { FormHelpError } from "./FormHelpError";
-import { Icon } from "@chakra-ui/react";
-import { AiFillInfoCircle } from "react-icons/ai";
 
 export const FormikInput = ({
   name,
@@ -20,6 +29,8 @@ export const FormikInput = ({
 }) => {
   const [field, meta, helpers] = useField({ name, type });
 
+  const [isMasked, setIsMasked] = useState(type === "password");
+
   const [value, setValue] = useState(field.value);
   const debouncedValue = useDebounce(value, 150);
 
@@ -31,32 +42,55 @@ export const FormikInput = ({
     helpers.setValue(debouncedValue);
   }, [debouncedValue]);
 
+  useEffect(() => {
+    setValue(field.value);
+  }, [field.value]);
+
+  const inputField = (
+    <Input
+      type={isMasked ? "password" : type === "password" ? "text" : type}
+      placeholder={placeholder}
+      {...p}
+      value={value}
+      onChange={handleChange}
+    />
+  );
+
   return (
     <FormControl
       id={field.name}
       isRequired={isRequired}
       isInvalid={meta.error && meta.touched}
     >
-      <Flex w={"full"}>
+      <Flex w="100%">
         {label && <FormLabel>{label}</FormLabel>}
 
         {tooltip && (
           <Flex ml={"auto"} alignItems="center">
             <Tooltip label={tooltip}>
               <span>
-                <Icon as={AiFillInfoCircle} />
+                <Icon as={FaInfoCircle} />
               </span>
             </Tooltip>
           </Flex>
         )}
       </Flex>
-      <Input
-        type={type}
-        placeholder={placeholder}
-        {...p}
-        value={value}
-        onChange={handleChange}
-      />
+      {type === "password" ? (
+        <InputGroup>
+          {inputField}
+          <InputLeftElement>
+            <IconButton
+              variant="solid"
+              onClick={() => setIsMasked(!isMasked)}
+              size="xs"
+              icon={isMasked ? <FaEye /> : <FaEyeSlash />}
+            />
+          </InputLeftElement>
+        </InputGroup>
+      ) : (
+        inputField
+      )}
+
       {fieldTip}
 
       <FormHelpError

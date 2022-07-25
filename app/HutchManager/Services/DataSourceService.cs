@@ -20,30 +20,29 @@ public class DataSourceService
     return list.ConvertAll<Models.DataSource>(x => new(x));
   }
 
-  public async Task<Models.DataSource> CreateorUpdate(Models.DataSource dataSource)
+  public async Task<Models.DataSource> CreateOrUpdate(Models.DataSource dataSource)
   {
     var entity = await _db.DataSources
-      .AsNoTracking()
       .FirstOrDefaultAsync(x => x.Id == dataSource.Id);
+    
     if (entity is null)
     {
       // create new Datasource with LastCheckin set as now
-      var datasourceEntity = new DataSource{
+      entity = new DataSource
+      {
         Id = dataSource.Id,
         LastCheckin = DateTimeOffset.UtcNow,
       };
-      await _db.DataSources.AddAsync(datasourceEntity);
-      await _db.SaveChangesAsync();
-      return new(datasourceEntity);
+      await _db.DataSources.AddAsync(entity);
     }
     else
     {
       // update Datasource LastCheckin to now
       entity.LastCheckin = DateTimeOffset.UtcNow;
-      await _db.SaveChangesAsync();
-      return new(entity);
     }
 
+    await _db.SaveChangesAsync();
+    return new(entity);
   }
 
   public async Task Delete(string dataSourceId)

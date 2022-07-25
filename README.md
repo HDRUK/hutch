@@ -97,11 +97,15 @@ Run scripts with `pnpm <script-name>`
 
 Notes on configuration values that can be provided, and their defaults.
 
+## Manager
+
 The app can be configured in any standard way an ASP.NET Core application can. Typically from the Azure Portal (Environment variables) or an `appsettings.json`.
 
 ```yaml
 ConnectionStrings:
   Default: "" # the main application SQL Server database
+Serilog:
+  # ...
 OutboundEmail:
   ServiceName: Hutch
   FromName: No Reply
@@ -110,13 +114,16 @@ OutboundEmail:
   Provider: local
 
   # If Provider == "local"
-  LocalPath: /temp
+  LocalPath: ~/temp
 
   # If Provider == "sendgrid"
   SendGridApiKey: ""
 
+ActivitySourcePolling:
+  PollingInterval: 5 # set to a negative value will disable polling altogether
+
 RquestTaskApi:
-  BaseUrl: ""
+  BaseEndpoint: "bcos-rest/api/task"
   QueueStatusEndpoint: "queue"
   FetchQueryEndpoint: "nextjob"
   SubmitResultEndpoint: "result"
@@ -124,10 +131,68 @@ RquestTaskApi:
   Password: ""
 
 JobQueue:
-  HostName: "localhost"
+  HostName: ""
   Port: 5672
   UserName: "guest"
   Password: "guest"
-  VirtualHost: "/"
-  QueueName: "jobs"
+
+# Opt in feature flags
+# sometimes features here are works in progress
+FeatureManagement:
+  UseROCrates: false # WIP
+  AllowFreeRegistration: false # By default, the app uses an Allowlist for new account registration; setting this to `true` bypasses that.
 ```
+
+## Agent
+
+The agent is configured by environment variables; for development it will load a `.env` file local to `pyproject.toml`.
+
+Example .env for development (also documents unnecessary/default values)
+
+```sh
+# Logging Database configuration
+
+# LOG_DB_DRIVERNAME="postgresql" # SQLAlchemy driver names (including short names). See currently supported list.
+LOG_DB_HOST="localhost"
+# LOG_DB_PORT=<driver default> # will use the default port of the database driver
+LOG_DB_DATABASE="postgres"
+LOG_DB_USERNAME="postgres"
+LOG_DB_PASSWORD="example"
+
+
+# Data source configuration
+
+DATASOURCE_NAME="jobs"
+# DATASOURCE_DB_DRIVERNAME="postgresql"
+DATASOURCE_DB_HOST=""
+# DATASOURCE_DB_PORT=<driver default> # will use the default port of the database driver
+DATASOURCE_DB_DATABASE=""
+DATASOURCE_DB_USERNAME=""
+DATASOURCE_DB_PASSWORD=""
+# DATASOURCE_DB_SCHEMA=<driver default> # will use the default schema of the database driver (e.g. `public` for postgres, `dbo` for MSSQL...)
+
+
+# Manager related configuration
+
+MANAGER_URL="https://localhost:45588"
+MANAGER_VERIFY_SSL=0 # Disable SSL verification ONLY IN DEVELOPMENT to allow for self-signed certs. Actual in-app default is 1.
+
+# Check In schedule
+
+# CHECKIN_CRON="0 */1 * * *" # once every hour
+
+
+# Feature Flags
+
+# USE_RO_CRATES=0 # Use RO CRATES Query and Results Schema internally, instead of Rquest
+# USE_RESULTS_MODS=0 # Whether to run results modifiers or not when executing a query
+```
+
+### Currently supported SQLAlchemy drivers
+
+We currently only depend on `psycopg2` so that's the only supported driver at this time.
+
+Valid values:
+
+- `postgresql`
+- `postgresql+psycopg2`

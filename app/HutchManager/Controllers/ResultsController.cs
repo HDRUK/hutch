@@ -11,9 +11,9 @@ namespace HutchManager.Controllers;
 public class ResultsController: ControllerBase
 {
   private readonly ILogger<ResultsController> _logger;
-  private readonly RquestTaskApiClient _apiClient;
+  private readonly RQuestTaskApiClient _apiClient;
 
-  public ResultsController(ILogger<ResultsController> logger,RquestTaskApiClient apiClient)
+  public ResultsController(ILogger<ResultsController> logger, RQuestTaskApiClient apiClient)
   {
     _logger = logger;
     _apiClient = apiClient;

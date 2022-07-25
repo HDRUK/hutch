@@ -50,15 +50,20 @@ namespace HutchManager.Services.EmailServices
 
       await using var output = new StringWriter();
 
+      // ViewData Dictionary, based on provided model
+      var metadataProvider = new EmptyModelMetadataProvider();
+      var modelState = new ModelStateDictionary();
+      var viewData = model is null
+        ? new ViewDataDictionary(metadataProvider, modelState)
+        : new ViewDataDictionary<T>(metadataProvider, modelState)
+        {
+          Model = model
+        };
+
       var viewContext = new ViewContext(
           _actionContext,
           view,
-          new ViewDataDictionary<T>(
-              metadataProvider: new EmptyModelMetadataProvider(),
-              modelState: new ModelStateDictionary())
-          {
-            Model = model
-          },
+          viewData,
           new TempDataDictionary(
               _actionContext.HttpContext,
               _tempDataProvider),
@@ -88,7 +93,7 @@ namespace HutchManager.Services.EmailServices
     {
       IEnumerable<string> searchedLocations = new List<string>();
 
-      foreach(var viewPath in GetLocalisedViewPaths(viewName))
+      foreach (var viewPath in GetLocalisedViewPaths(viewName))
       {
         var getViewResult = _razor.GetView(executingFilePath: null, viewPath: viewPath, isMainPage: true);
         if (getViewResult.Success)
