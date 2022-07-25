@@ -11,7 +11,7 @@ namespace HutchManager.Dto
     public int ActivitySourceId { get; set; }
 
     [JsonPropertyName("job_id")] 
-    public string JobId { get; set; } = String.Empty;
+    public string JobId { get; set; } = string.Empty;
 
     [JsonPropertyName("queryResult")]
     public QueryResultCount Results { get; set; } = new();
