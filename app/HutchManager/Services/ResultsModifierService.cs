@@ -20,7 +20,7 @@ public class ResultsModifierService
       .Include(x => x.Type)
       .Include(x => x.ActivitySource)
       .ToListAsync();
-    foreach (ResultsModifier r in list )
+    foreach (ResultsModifier r in list)
     {
       r.ActivitySource = await _db.ActivitySources
                            .AsNoTracking()
