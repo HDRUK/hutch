@@ -229,14 +229,14 @@ export const ConfigureResultsModifierModal = ({
               initialData
                 ? {
                     Order: initialData.order,
-                    Type: initialData.type.id,
+                    Type: initialData.type,
                     // capitalise the object keys in the parameters object
                     Parameters: capitaliseObjectKeys(initialData.parameters),
                     ActivitySource: initialData.activitySource,
                   }
                 : {
                     Order: "0",
-                    Type: typeOptions[0].id,
+                    Type: typeOptions[0],
                     Parameters: {},
                     ActivitySource: activitySourceOptions[0],
                   }
