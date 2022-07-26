@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HutchManager.Constants;
 using HutchManager.Dto;
 using HutchManager.Services;

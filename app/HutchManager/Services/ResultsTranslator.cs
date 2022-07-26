@@ -1,4 +1,3 @@
-using HutchManager.Data;
 using HutchManager.Dto;
 
 namespace HutchManager.Services;
