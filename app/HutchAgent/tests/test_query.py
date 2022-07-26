@@ -136,8 +136,10 @@ def test_group_sql_clause():
         "rules_oper": "OR",
     }
     group = query.RQuestQueryGroup(**and_rule)
+    group.rules[0].set_table(entities.Person)
+    group.rules[0].set_column(entities.Person.race_concept_id)
     # Assert single rule in group builds correctly
-    assert str(group.sql_clause) == "race_concept_id = :race_concept_id_1"
+    assert str(group.sql_clause) == "person.race_concept_id = :race_concept_id_1"
     and_rule["rules"].append(
         {
             "varname": "OMOP",
@@ -147,10 +149,14 @@ def test_group_sql_clause():
         },
     )
     group = query.RQuestQueryGroup(**and_rule)
+    group.rules[0].set_table(entities.Person)
+    group.rules[0].set_column(entities.Person.race_concept_id)
+    group.rules[1].set_table(entities.Person)
+    group.rules[1].set_column(entities.Person.gender_concept_id)
     # Assert multiple rules in group build correctly
     assert (
         str(group.sql_clause)
-        == "gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"
+        == "person.race_concept_id = :race_concept_id_1 OR person.gender_concept_id = :gender_concept_id_1"
     )
 
 
