@@ -56,6 +56,9 @@ class RQuestQueryRule:
         self.ext = ext
         self.regex = regex
         self.unit = unit
+        # Set these with `set_table` and `set_column`
+        self.table = None
+        self.column = None
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -188,6 +191,14 @@ class RQuestQueryRule:
             raise ValueError(
                 f"Could not parse the time value ({self.time_}) in the rule."
             )
+
+    def set_table(self, table):
+        """Set the table for the rule."""
+        self.table = table
+
+    def set_column(self, column):
+        """Set the column for the rule"""
+        self.column = column
 
 
 class RQuestQueryGroup:
