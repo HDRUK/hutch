@@ -1,5 +1,6 @@
 import pytest
 import hutchagent.query as query
+import hutchagent.entities as entities
 
 
 def test_create_rquest_query():
@@ -48,11 +49,13 @@ def test_text_rule_sql_clause():
     }
     rule_obj = query.RQuestQueryRule(**eq_rule)
     assert rule_obj.concept_id == "8527"
-    assert str(rule_obj.sql_clause) == "race_concept_id = :race_concept_id_1"
+    rule_obj.set_column(entities.Person.race_concept_id)
+    assert str(rule_obj.sql_clause) == "person.race_concept_id = :race_concept_id_1"
     ne_rule = eq_rule.copy()
     ne_rule.update(oper="!=")
     rule_obj = query.RQuestQueryRule(**ne_rule)
-    assert str(rule_obj.sql_clause) == "race_concept_id != :race_concept_id_1"
+    rule_obj.set_column(entities.Person.race_concept_id)
+    assert str(rule_obj.sql_clause) == "person.race_concept_id != :race_concept_id_1"
 
 
 def test_numeric_rule_sql_clause():
@@ -63,21 +66,22 @@ def test_numeric_rule_sql_clause():
         "value": "10..20",
     }
     rule_obj = query.RQuestQueryRule(**eq_rule)
+    rule_obj.set_column(entities.Person.race_concept_id)
     assert rule_obj.concept_id == "8527"
     assert (
         str(rule_obj.sql_clause)
-        == "race_concept_id BETWEEN :race_concept_id_1 AND :race_concept_id_2"
+        == "person.race_concept_id BETWEEN :race_concept_id_1 AND :race_concept_id_2"
     )
     ne_rule = eq_rule.copy()
     ne_rule.update(oper="!=")
     rule_obj = query.RQuestQueryRule(**ne_rule)
+    rule_obj.set_column(entities.Person.race_concept_id)
     assert (
         str(rule_obj.sql_clause)
-        == "race_concept_id NOT BETWEEN :race_concept_id_1 AND :race_concept_id_2"
+        == "person.race_concept_id NOT BETWEEN :race_concept_id_1 AND :race_concept_id_2"
     )
 
 
-# @pytest.mark.skip
 def test_time_rule_sql_clause():
     eq_rule = {
         "varname": "OMOP",
@@ -87,26 +91,34 @@ def test_time_rule_sql_clause():
         "time": "18|:AGE:Y",
     }
     rule_obj = query.RQuestQueryRule(**eq_rule)
+    rule_obj.set_table(entities.Person)
+    rule_obj.set_column(entities.Person.race_concept_id)
     assert rule_obj.concept_id == "8527"
     assert (
         str(rule_obj.sql_clause)
-        == "race_concept_id = :race_concept_id_1 AND birth_datetime > :birth_datetime_1"
+        == "person.race_concept_id = :race_concept_id_1 AND person.birth_datetime > :birth_datetime_1"
     )
     ne_rule = eq_rule.copy()
     ne_rule.update(oper="!=")
     rule_obj = query.RQuestQueryRule(**ne_rule)
+    rule_obj.set_table(entities.Person)
+    rule_obj.set_column(entities.Person.race_concept_id)
     assert (
         str(rule_obj.sql_clause)
-        == "race_concept_id != :race_concept_id_1 AND birth_datetime <= :birth_datetime_1"
+        == "person.race_concept_id != :race_concept_id_1 AND person.birth_datetime <= :birth_datetime_1"
     )
     ne_rule.update(time="|18:AGE:Y")
     rule_obj = query.RQuestQueryRule(**ne_rule)
+    rule_obj.set_table(entities.Person)
+    rule_obj.set_column(entities.Person.race_concept_id)
     assert (
         str(rule_obj.sql_clause)
-        == "race_concept_id != :race_concept_id_1 AND birth_datetime >= :birth_datetime_1"
+        == "person.race_concept_id != :race_concept_id_1 AND person.birth_datetime >= :birth_datetime_1"
     )
     ne_rule.update(time="|18|:AGE:Y")
     rule_obj = query.RQuestQueryRule(**ne_rule)
+    rule_obj.set_table(entities.Person)
+    rule_obj.set_column(entities.Person.race_concept_id)
     with pytest.raises(ValueError):
         print(rule_obj.sql_clause)
 

@@ -10,7 +10,7 @@ from sqlalchemy import (
     select,
 )
 from typing import Any
-from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
+from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person, DrugExposure, ProcedureOccurrence
 
 dotenv.load_dotenv()
 
@@ -76,29 +76,16 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
-        if self.column_name is None and self.oper == "=":
-            return or_(
-                column("measurement_concept_id") == self.concept_id,
-                column("observation_concept_id") == self.concept_id,
-                column("condition_concept_id") == self.concept_id,
-            )
-        if self.column_name is None and self.oper == "!=":
-            return or_(
-                column("measurement_concept_id") != self.concept_id,
-                column("observation_concept_id") != self.concept_id,
-                column("condition_concept_id") != self.concept_id,
-            )
-
         clause = None
         if self.type == "TEXT" and self.oper == "=":
-            clause = column(self.column_name) == self.concept_id
+            clause = self.column == self.concept_id
         elif self.type == "TEXT" and self.oper == "!=":
-            clause = column(self.column_name) != self.concept_id
+            clause = self.column != self.concept_id
         elif self.type == "NUM" and self.oper == "=":
-            clause = column(self.column_name).between(self.value[0], self.value[1])
+            clause = self.column.between(self.value[0], self.value[1])
         elif self.type == "NUM" and self.oper == "!=":
             clause = not_(
-                column(self.column_name).between(self.value[0], self.value[1])
+                self.column.between(self.value[0], self.value[1])
             )
 
         # If there is a time clause, combine with main clause.
@@ -132,6 +119,14 @@ class RQuestQueryRule:
         """If an RQuest message has a "time" clause, this function is used
         to parse it into an SQL clause.
         """
+        date_columns = {
+            Person: Person.birth_datetime,
+            Measurement: Measurement.measurement_date,
+            ConditionOccurrence: ConditionOccurrence.condition_start_date,
+            Observation: Observation.observation_date,
+            ProcedureOccurrence: ProcedureOccurrence.procedure_date,
+            DrugExposure: DrugExposure.drug_exposure_start_date,
+        }
         # greater than pattern
         gt_pattern = re.compile(r"^\|(\d+):[a-zA-Z]+:(\w)$")
         # less than pattern
@@ -143,20 +138,20 @@ class RQuestQueryRule:
             time_unit = hit.group(2)
             # older times are smaller, so use `>` for inclusive ("=") seaches
             if time_unit == "Y" and self.oper == "=":
-                return column("birth_datetime") < (
+                return date_columns[self.table] < (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "=":
-                return column("birth_datetime") < (
+                return date_columns[self.table] < (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # newer times are larger, so use `<=` for exclusive ("!=") seaches
             elif time_unit == "Y" and self.oper == "!=":
-                return column("birth_datetime") >= (
+                return date_columns[self.table] >= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "!=":
-                return column("birth_datetime") >= (
+                return date_columns[self.table] >= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             else:
@@ -168,20 +163,20 @@ class RQuestQueryRule:
             time_unit = hit.group(2)
             # newer times are larger, so use `>` for inclusive ("=") seaches
             if time_unit == "Y" and self.oper == "=":
-                return column("birth_datetime") > (
+                return date_columns[self.table] > (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "=":
-                return column("birth_datetime") > (
+                return date_columns[self.table] > (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # older times are smaller, so use `<=` for exclusive ("!=") seaches
             elif time_unit == "Y" and self.oper == "!=":
-                return column("birth_datetime") <= (
+                return date_columns[self.table] <= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "!=":
-                return column("birth_datetime") <= (
+                return date_columns[self.table] <= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             else:
