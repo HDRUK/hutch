@@ -197,8 +197,7 @@ export const ConfigureResultsModifierModal = ({
       await action({
         values: {
           ...payload,
-          ActivitySourceId: payload.ActivitySource.id,
-          Type: payload.Type.id,
+          ActivitySourceId: payload.ActivitySource,
         },
         id: initialData ? initialData.id : undefined,
       }).json();
@@ -232,13 +231,13 @@ export const ConfigureResultsModifierModal = ({
                     Type: initialData.type.id,
                     // capitalise the object keys in the parameters object
                     Parameters: capitaliseObjectKeys(initialData.parameters),
-                    ActivitySource: initialData.activitySource,
+                    ActivitySource: initialData.activitySource.id,
                   }
                 : {
                     Order: "0",
                     Type: typeOptions[0].id,
                     Parameters: {},
-                    ActivitySource: activitySourceOptions[0],
+                    ActivitySource: activitySourceOptions[0].id,
                   }
             }
             validationSchema={validationSchema()}
@@ -261,8 +260,6 @@ export const ConfigureResultsModifierModal = ({
                       value: item.id,
                       label: item.id,
                     }))}
-                    sourceList={typeOptions}
-                    sourceParam="id"
                   />
                   <FormikSelect
                     label="Activity Source"
@@ -272,8 +269,6 @@ export const ConfigureResultsModifierModal = ({
                       value: item.id,
                       label: item.displayName,
                     }))}
-                    sourceList={activitySourceOptions}
-                    sourceParam="id"
                   />
                   <LowNumberSuppressionParameters type={values.Type} />
                   <Button
@@ -293,7 +288,13 @@ export const ConfigureResultsModifierModal = ({
                     isOpen={isConfirmOpen}
                     onClose={onConfirmClose}
                     initialData={initialData}
-                    newData={values}
+                    newData={{
+                      ...values,
+                      ActivitySource: activitySourceOptions.find(
+                        (item) => item.id == values.ActivitySource
+                      ),
+                      Type: typeOptions.find((item) => item.id == values.Type),
+                    }}
                   />
                 </VStack>
               </Form>

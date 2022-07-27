@@ -19,6 +19,9 @@ public class ResultsModifierService
       .AsNoTracking()
       .Include(x => x.Type)
       .Include(x => x.ActivitySource)
+        .ThenInclude(x => x.Type)
+      .Include(x => x.ActivitySource)
+        .ThenInclude(x => x.TargetDataSource)
       .ToListAsync();
     return list.ConvertAll<Models.ResultsModifierModel>(x => new(x));
   }
