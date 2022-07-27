@@ -19,17 +19,10 @@ public class ResultsModifierService
       .AsNoTracking()
       .Include(x => x.Type)
       .Include(x => x.ActivitySource)
+        .ThenInclude(x => x.Type)
+      .Include(x => x.ActivitySource)
+        .ThenInclude(x => x.TargetDataSource)
       .ToListAsync();
-    foreach (ResultsModifier r in list)
-    {
-      r.ActivitySource = await _db.ActivitySources
-                           .AsNoTracking()
-                           .Include(x => x.Type)
-                           .Include(x => x.TargetDataSource)
-                           .SingleOrDefaultAsync(x => x.Id == r.ActivitySource.Id)
-                         ?? throw new KeyNotFoundException();
-    }
-
     return list.ConvertAll<Models.ResultsModifierModel>(x => new(x));
   }
 
