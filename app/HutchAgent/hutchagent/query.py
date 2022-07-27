@@ -9,8 +9,10 @@ from sqlalchemy import (
     or_,
     select,
 )
-from typing import Any
-from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person, DrugExposure, ProcedureOccurrence
+from typing import Any, Union
+from hutchagent.db_manager import SyncDBManager
+from hutchagent.entities import Concept, ConditionOccurrence, Measurement, Observation, Person, DrugExposure, ProcedureOccurrence
+from hutchagent.ro_crates.query import Query
 
 dotenv.load_dotenv()
 
@@ -299,3 +301,45 @@ class RQuestQuery:
             .subquery()
         )
         return select(func.count()).select_from(stmt)
+
+
+class BaseQueryBuilder:
+
+    domain_table_map = {
+        "Drug": DrugExposure,
+        "Ethnicity": Person,
+        "Gender": Person,
+        "Measurement": Measurement,
+        "Observation": Observation,
+        "Procedure": ProcedureOccurrence,
+        "Race": Person,
+    }
+    domain_column_map = {
+        "Drug": DrugExposure.drug_concept_id,
+        "Ethnicity": Person.ethnicity_concept_id,
+        "Gender": Person.gender_concept_id,
+        "Measurement": Measurement.measurement_concept_id,
+        "Observation": Observation.observation_concept_id,
+        "Procedure": ProcedureOccurrence.procedure_concept_id,
+        "Race": Person.race_concept_id,
+    }
+
+    def __init__(self, db_manager: SyncDBManager, query: Union[RQuestQuery, Query]) -> None:
+        self.db_manager = db_manager
+        self.query = query
+
+    def set_tables(self) -> None:
+        raise NotImplementedError
+
+
+class RQuestQueryBuilder(BaseQueryBuilder):
+
+    def set_tables_and_columns(self) -> None:
+        """Set the tables and columns for the rules in the query."""
+        for group in self.query.cohort.groups:
+            for rule in group.rules:
+                domain_res = self.db_manager.execute_and_fetch(
+                    select(Concept.domain_id).where(Concept.concept_id == rule.concept_id)
+                )
+                rule.set_table(self.domain_table_map[domain_res[0][0]])
+                rule.set_column(self.domain_column_map[domain_res[0][0]])
