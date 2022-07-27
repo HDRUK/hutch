@@ -25,25 +25,13 @@ export const FormikSelect = ({
   tooltip,
   alert,
   hasEmptyDefault,
-  sourceList,
-  sourceKey,
 }) => {
   const [field, meta, helpers] = useField({ name, type: "select" });
-  const initialValue =
-    sourceList && sourceKey && typeof field.value === "object"
-      ? sourceList.find((item) => item[sourceKey] == field.value[sourceKey])[
-          sourceKey
-        ]
-      : field.value;
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState(field.value);
 
   const handleChange = ({ target: { value } }) => {
-    let formikValue = value;
-    if (sourceList && sourceKey) {
-      formikValue = sourceList.find((item) => item[sourceKey] == value);
-    }
     setValue(value);
-    helpers.setValue(formikValue);
+    helpers.setValue(value);
   };
 
   return (
