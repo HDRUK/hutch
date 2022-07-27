@@ -178,8 +178,10 @@ def test_cohort_sql_clause():
         "groups_oper": "AND",
     }
     cohort = query.RQuestQueryCohort(**and_group)
+    cohort.groups[0].rules[0].set_table(entities.Person)
+    cohort.groups[0].rules[0].set_column(entities.Person.race_concept_id)
     # Assert single rule in single group builds correctly
-    assert str(cohort.sql_clause) == "race_concept_id = :race_concept_id_1"
+    assert str(cohort.sql_clause) == "person.race_concept_id = :race_concept_id_1"
     and_group["groups"][0]["rules"].append(
         {
             "varname": "OMOP",
@@ -189,10 +191,14 @@ def test_cohort_sql_clause():
         }
     )
     cohort = query.RQuestQueryCohort(**and_group)
+    cohort.groups[0].rules[0].set_table(entities.Person)
+    cohort.groups[0].rules[0].set_column(entities.Person.race_concept_id)
+    cohort.groups[0].rules[1].set_table(entities.Person)
+    cohort.groups[0].rules[1].set_column(entities.Person.gender_concept_id)
     # Assert multiple rules in single group build correctly
     assert (
         str(cohort.sql_clause)
-        == "gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1"
+        == "person.race_concept_id = :race_concept_id_1 OR person.gender_concept_id = :gender_concept_id_1"
     )
     and_group["groups"].append(
         {
@@ -209,9 +215,15 @@ def test_cohort_sql_clause():
     )
     # Assert multiple rules in multiple groups build correctly
     cohort = query.RQuestQueryCohort(**and_group)
+    cohort.groups[0].rules[0].set_table(entities.Person)
+    cohort.groups[0].rules[0].set_column(entities.Person.race_concept_id)
+    cohort.groups[0].rules[1].set_table(entities.Person)
+    cohort.groups[0].rules[1].set_column(entities.Person.gender_concept_id)
+    cohort.groups[1].rules[0].set_table(entities.Person)
+    cohort.groups[1].rules[0].set_column(entities.Person.gender_concept_id)
     assert (
         str(cohort.sql_clause)
-        == "(gender_concept_id = :gender_concept_id_1 OR race_concept_id = :race_concept_id_1) AND gender_concept_id = :gender_concept_id_2"
+        == "(person.race_concept_id = :race_concept_id_1 OR person.gender_concept_id = :gender_concept_id_1) AND person.gender_concept_id = :gender_concept_id_2"
     )
 
 

@@ -212,8 +212,6 @@ class RQuestQueryGroup:
         self.rules = (
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
         )
-        # Sort rules for more predictable behaviour in tests.
-        self.rules = sorted(self.rules, key=lambda x: x.column_name)
         self.rules_oper = rules_oper
         self.exclude = exclude
 
