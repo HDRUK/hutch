@@ -8,6 +8,7 @@ from sqlalchemy import (
     not_,
     or_,
     select,
+    sql,
 )
 from typing import Any, Union
 from hutchagent.db_manager import SyncDBManager
@@ -306,13 +307,13 @@ class RQuestQuery:
 class BaseQueryBuilder:
 
     domain_table_map = {
-        "Drug": DrugExposure,
-        "Ethnicity": Person,
-        "Gender": Person,
-        "Measurement": Measurement,
-        "Observation": Observation,
-        "Procedure": ProcedureOccurrence,
-        "Race": Person,
+        "Drug": DrugExposure.person_id,
+        "Ethnicity": Person.person_id,
+        "Gender": Person.person_id,
+        "Measurement": Measurement.person_id,
+        "Observation": Observation.person_id,
+        "Procedure": ProcedureOccurrence.person_id,
+        "Race": Person.person_id,
     }
     domain_column_map = {
         "Drug": DrugExposure.drug_concept_id,
@@ -323,12 +324,19 @@ class BaseQueryBuilder:
         "Procedure": ProcedureOccurrence.procedure_concept_id,
         "Race": Person.race_concept_id,
     }
+    subqueries = list()
 
     def __init__(self, db_manager: SyncDBManager, query: Union[RQuestQuery, Query]) -> None:
         self.db_manager = db_manager
         self.query = query
 
-    def set_tables(self) -> None:
+    def set_tables_and_columns(self) -> None:
+        raise NotImplementedError
+
+    def build_subqueries(self) -> None:
+        raise NotImplementedError
+
+    def build_sql(self) -> sql.selectable.Select:
         raise NotImplementedError
 
 
@@ -343,3 +351,18 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                 )
                 rule.set_table(self.domain_table_map[domain_res[0][0]])
                 rule.set_column(self.domain_column_map[domain_res[0][0]])
+
+    def build_subqueries(self) -> None:
+        """Build the subqueries for the main query."""
+        for group in self.query.cohort.groups:
+            for rule in group.rules:
+                self.subqueries.append(
+                    select(rule.table).where(rule.sql_clause).distinc().subquery()
+                )
+
+    def build_sql(self) -> sql.selectable.Select:
+        """Build and return the final SQL that can be used to query the database."""
+        stmnt = select(func.count()).select_from(self.subqueries[0])
+        for sq in self.subqueries[1:]:
+            stmnt = stmnt.join(sq)
+        return stmnt
