@@ -20,13 +20,17 @@ public class ResultsController: ControllerBase
   {
     _logger = logger;
     _apiClient = apiClient;
-    _featureManager = featureManager; //UseROCrates default is set to false, uses the RQuest endpoint
+    _featureManager = featureManager;
   }
-
+  /// <summary>
+  /// Endpoint for RQuest results, returns 404 when UseROCrates is set to true
+  /// Default setting is false
+  /// </summary>
+  /// <param name="result"></param>
+  /// <returns></returns>
   [HttpPost]
   public async Task<IActionResult> Post([FromBody] QueryResult result)
   {
-    //Endpoint for RQuest results, returns 404 when UseROCrates is set to true
     if (await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.UseROCrates)))
     {
       return BadRequest();
@@ -34,11 +38,15 @@ public class ResultsController: ControllerBase
     await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Results);
     return Ok(_apiClient);
   }
-  
+  /// <summary>
+  /// Endpoint for ROCrates results, returns 404 when UseROCrates is set to false
+  /// Default setting is false
+  /// </summary>
+  /// <param name="roCratesQueryResult"></param>
+  /// <returns></returns>
   [HttpPost("rocrates")]
   public async Task<IActionResult> PostRoCrates([FromBody] ROCratesQueryResult roCratesQueryResult)
   {
-    //Endpoint for ROCrates results, returns 404 when UseROCrates is set to false
     if (await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.UseROCrates)))
     {
       QueryResult result = new ResultsTranslator.RoCratesQueryTranslator().TranslateRoCrates(roCratesQueryResult);
