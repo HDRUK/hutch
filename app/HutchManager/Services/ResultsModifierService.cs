@@ -83,10 +83,25 @@ public class ResultsModifierService
     var resultsModifier = await _db.ResultsModifier
                      .AsNoTracking()
                      .Include(x => x.Type)
+                     .Include(x=>x.ActivitySource.Type)
+                     .Include(x=>x.ActivitySource.TargetDataSource)
                      .Where(x => x.Id == resultsModifierId)
                      .SingleOrDefaultAsync()
                    ?? throw new KeyNotFoundException();
     return new(resultsModifier);
+  }
+  
+  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifier(int activitySourceId)
+  {
+    var resultsModifierList = await _db.ResultsModifier
+                            .AsNoTracking()
+                            .Include(x => x.Type)
+                            .Include(x=>x.ActivitySource)
+                            .Include(x=> x.ActivitySource.Type)
+                            .Include(x => x.ActivitySource.TargetDataSource)
+                            .Where(x => x.ActivitySource.Id == activitySourceId)
+                            .ToListAsync();
+    return resultsModifierList.ConvertAll<Models.ResultsModifierModel>(x => new(x));
   }
 
   public async Task Delete(int resultsModifierId)

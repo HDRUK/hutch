@@ -16,14 +16,14 @@ public class ResultsModifierController : ControllerBase
     _resultsModifier = resultsModifier;
   }
 
-  [HttpGet]
-  public async Task<List<Models.ResultsModifierModel>> List()
-    => await _resultsModifier.List();
+  [HttpGet("activitysource/{activitySourceId}")]
+  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifier(int activitySourceId)
+    => await _resultsModifier.GetActivitySourceResultsModifier(activitySourceId);
 
   [HttpPost]
   public async Task<ResultsModifierModel> Create(CreateResultsModifier resultsModifier)
     => await _resultsModifier.Create(resultsModifier);
-
+  
   [HttpGet("{id}")]
   public async Task<ActionResult<ResultsModifierModel>> Get(int id)
     => await _resultsModifier.Get(id);
