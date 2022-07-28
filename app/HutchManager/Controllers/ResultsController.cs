@@ -20,7 +20,7 @@ public class ResultsController: ControllerBase
   {
     _logger = logger;
     _apiClient = apiClient;
-    _featureManager = featureManager;
+    _featureManager = featureManager; //UseROCrates default is set to false, uses the RQuest endpoint
   }
 
   [HttpPost]
