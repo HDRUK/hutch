@@ -26,6 +26,7 @@ public class ResultsController: ControllerBase
   [HttpPost]
   public async Task<IActionResult> Post([FromBody] QueryResult result)
   {
+    //Endpoint for RQuest results, returns 404 when UseROCrates is set to true
     if (await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.UseROCrates)))
     {
       return BadRequest();
@@ -37,6 +38,7 @@ public class ResultsController: ControllerBase
   [HttpPost("rocrates")]
   public async Task<IActionResult> PostRoCrates([FromBody] ROCratesQueryResult roCratesQueryResult)
   {
+    //Endpoint for ROCrates results, returns 404 when UseROCrates is set to false
     if (await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.UseROCrates)))
     {
       QueryResult result = new ResultsTranslator.RoCratesQueryTranslator().TranslateRoCrates(roCratesQueryResult);
