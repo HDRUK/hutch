@@ -8,27 +8,19 @@ namespace HutchManager.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ResultsModifierController : ControllerBase
+public class ResultsModifiersController : ControllerBase
 {
   private readonly ResultsModifierService _resultsModifier;
-  public ResultsModifierController(ResultsModifierService resultsModifier)
+  public ResultsModifiersController(ResultsModifierService resultsModifier)
   {
     _resultsModifier = resultsModifier;
   }
 
-  [HttpGet("activitysource/{activitySourceId}")]
-  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifier(int activitySourceId)
-    => await _resultsModifier.GetActivitySourceResultsModifier(activitySourceId);
-
   [HttpPost]
   public async Task<ResultsModifierModel> Create(CreateResultsModifier resultsModifier)
     => await _resultsModifier.Create(resultsModifier);
-  
-  [HttpGet("{id}")]
-  public async Task<ActionResult<ResultsModifierModel>> Get(int id)
-    => await _resultsModifier.Get(id);
 
-  [HttpGet("Types")]
+  [HttpGet("types")]
   public async Task<List<ModifierTypeModel>> GetTypes()
     => await _resultsModifier.GetTypes();
 

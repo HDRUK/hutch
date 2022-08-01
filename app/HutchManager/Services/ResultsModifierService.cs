@@ -12,19 +12,6 @@ public class ResultsModifierService
     _db = db;
   }
 
-  public async Task<List<Models.ResultsModifierModel>> List()
-  {
-    var list = await _db.ResultsModifier
-      .AsNoTracking()
-      .Include(x => x.Type)
-      .Include(x => x.ActivitySource)
-      .ThenInclude(x => x.Type)
-      .Include(x => x.ActivitySource)
-      .ThenInclude(x => x.TargetDataSource)
-      .ToListAsync();
-    return list.ConvertAll<Models.ResultsModifierModel>(x => new(x));
-  }
-
   public async Task<List<Models.ModifierTypeModel>> GetTypes()
   {
     var list = await _db.ModifierTypes
@@ -79,32 +66,6 @@ public class ResultsModifierService
     entity.ActivitySource = activitySource;
     await _db.SaveChangesAsync();
     return new(entity);
-  }
-
-  public async Task<Models.ResultsModifierModel> Get(int resultsModifierId)
-  {
-    var resultsModifier = await _db.ResultsModifier
-                            .AsNoTracking()
-                            .Include(x => x.Type)
-                            .Include(x => x.ActivitySource.Type)
-                            .Include(x => x.ActivitySource.TargetDataSource)
-                            .Where(x => x.Id == resultsModifierId)
-                            .SingleOrDefaultAsync()
-                          ?? throw new KeyNotFoundException();
-    return new(resultsModifier);
-  }
-
-  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifier(int activitySourceId)
-  {
-    var resultsModifierList = await _db.ResultsModifier
-      .AsNoTracking()
-      .Include(x => x.Type)
-      .Include(x => x.ActivitySource)
-      .Include(x => x.ActivitySource.Type)
-      .Include(x => x.ActivitySource.TargetDataSource)
-      .Where(x => x.ActivitySource.Id == activitySourceId)
-      .ToListAsync();
-    return resultsModifierList.ConvertAll<Models.ResultsModifierModel>(x => new(x));
   }
 
   public async Task Delete(int resultsModifierId)
