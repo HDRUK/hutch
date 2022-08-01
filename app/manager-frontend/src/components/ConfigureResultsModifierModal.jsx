@@ -32,7 +32,8 @@ import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
 import { useModifierTypeList } from "api/resultsmodifier";
-import { useActivitySourceList } from "api/activitysource";
+import { useActivitySourceList } from "api/activitysources";
+import { addPointerEvent } from "framer-motion";
 
 export const ConfirmationModal = ({
   isOpen,
@@ -227,18 +228,18 @@ export const ConfigureResultsModifierModal = ({
             initialValues={
               initialData
                 ? {
-                    Order: initialData.order,
-                    Type: initialData.type.id,
-                    // capitalise the object keys in the parameters object
-                    Parameters: capitaliseObjectKeys(initialData.parameters),
-                    ActivitySource: initialData.activitySource.id,
-                  }
+                  Order: initialData.order,
+                  Type: initialData.type.id,
+                  // capitalise the object keys in the parameters object
+                  Parameters: capitaliseObjectKeys(initialData.parameters),
+                  ActivitySource: initialData.activitySource.id,
+                }
                 : {
-                    Order: "0",
-                    Type: typeOptions[0].id,
-                    Parameters: {},
-                    ActivitySource: activitySourceOptions[0].id,
-                  }
+                  Order: "0",
+                  Type: typeOptions[0].id,
+                  Parameters: {},
+                  ActivitySource: activitySourceOptions[0].id,
+                }
             }
             validationSchema={validationSchema()}
           >
