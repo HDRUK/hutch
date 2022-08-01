@@ -344,25 +344,57 @@ class RQuestQueryBuilder(BaseQueryBuilder):
 
     def set_tables_and_columns(self) -> None:
         """Set the tables and columns for the rules in the query."""
-        for group in self.query.cohort.groups:
-            for rule in group.rules:
-                domain_res = self.db_manager.execute_and_fetch(
-                    select(Concept.domain_id).where(Concept.concept_id == rule.concept_id)
-                )
-                rule.set_table(self.domain_table_map[domain_res[0][0]])
-                rule.set_column(self.domain_column_map[domain_res[0][0]])
+        pass
 
     def build_subqueries(self) -> None:
         """Build the subqueries for the main query."""
         for group in self.query.cohort.groups:
             for rule in group.rules:
-                self.subqueries.append(
-                    select(rule.table).where(rule.sql_clause).distinc().subquery()
-                )
+                # Text rules testing for inclusion
+                if rule.type == "TEXT" and rule.oper == "=":
+                    self.subqueries.append(
+                        select(Person.person_id)
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id == rule.concept_id,
+                                Person.gender_concept_id == rule.concept_id,
+                                Person.race_concept_id == rule.concept_id,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                # Text rules testing for exclusion
+                elif rule.type == "TEXT" and rule.oper == "!=":
+                    self.subqueries.append(
+                        select(Person.person_id)
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id != rule.concept_id,
+                                Person.gender_concept_id != rule.concept_id,
+                                Person.race_concept_id != rule.concept_id,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                else:
+                    # numeric rule
+                    self.subqueries.append(
+                        select(Measurement.person_id)
+                        .where(
+                            and_(
+                                Measurement.measurement_concept_id == rule.concept_id,
+                                Measurement.value_as_number.between(*rule.value)
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
 
     def build_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
         stmnt = select(func.count()).select_from(self.subqueries[0])
         for sq in self.subqueries[1:]:
-            stmnt = stmnt.join(sq)
+            stmnt = stmnt.join(sq, isouter=True)
         return stmnt
