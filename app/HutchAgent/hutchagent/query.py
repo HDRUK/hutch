@@ -398,3 +398,63 @@ class RQuestQueryBuilder(BaseQueryBuilder):
         for sq in self.subqueries[1:]:
             stmnt = stmnt.join(sq, isouter=True)
         return stmnt
+
+
+class ROCratesQueryBuilder(BaseQueryBuilder):
+
+    def set_tables_and_columns(self) -> None:
+        """Set the tables and columns for the rules in the query."""
+        pass
+
+    def build_subqueries(self) -> None:
+        """Build the subqueries for the main query."""
+        for group in self.query.groups:
+            for rule in group.rules:
+                # Text rules testing for inclusion
+                if rule.value is not None and rule.operator == "=":
+                    self.subqueries.append(
+                        select(Person.person_id)
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id == rule.concept_id,
+                                Person.gender_concept_id == rule.concept_id,
+                                Person.race_concept_id == rule.concept_id,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                # Text rules testing for exclusion
+                elif rule.value is not None and rule.operator == "!=":
+                    self.subqueries.append(
+                        select(Person.person_id)
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id != rule.concept_id,
+                                Person.gender_concept_id != rule.concept_id,
+                                Person.race_concept_id != rule.concept_id,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                else:
+                    # numeric rule
+                    self.subqueries.append(
+                        select(Measurement.person_id)
+                        .where(
+                            and_(
+                                Measurement.measurement_concept_id == rule.concept_id,
+                                Measurement.value_as_number.between(rule.min_value, rule.max_value)
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+
+    def build_sql(self) -> sql.selectable.Select:
+        """Build and return the final SQL that can be used to query the database."""
+        stmnt = select(func.count()).select_from(self.subqueries[0])
+        for sq in self.subqueries[1:]:
+            stmnt = stmnt.join(sq, isouter=True)
+        return stmnt
