@@ -8,10 +8,10 @@ namespace HutchManager.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ActivitySourceController : ControllerBase
+public class ActivitySourcesController : ControllerBase
 {
   private readonly ActivitySourceService _activitySources;
-  public ActivitySourceController(ActivitySourceService activitySources)
+  public ActivitySourcesController(ActivitySourceService activitySources)
   {
     _activitySources = activitySources;
   }
@@ -27,6 +27,10 @@ public class ActivitySourceController : ControllerBase
   [HttpGet("{id}")]
   public async Task<ActionResult<ActivitySourceModel>> Get(int id)
     =>await _activitySources.Get(id);
+  
+  [HttpGet("{id}/resultsmodifiers")]
+  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifier(int id)
+    => await _activitySources.GetActivitySourceResultsModifier(id);
   
   [HttpDelete("{id}")]
   public async Task<IActionResult> Delete(int id)
