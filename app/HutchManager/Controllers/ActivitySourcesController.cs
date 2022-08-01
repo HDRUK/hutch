@@ -29,8 +29,8 @@ public class ActivitySourcesController : ControllerBase
     =>await _activitySources.Get(id);
   
   [HttpGet("{id}/resultsmodifiers")]
-  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifier(int id)
-    => await _activitySources.GetActivitySourceResultsModifier(id);
+  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifiers(int id)
+    => await _activitySources.GetActivitySourceResultsModifiers(id);
   
   [HttpDelete("{id}")]
   public async Task<IActionResult> Delete(int id)

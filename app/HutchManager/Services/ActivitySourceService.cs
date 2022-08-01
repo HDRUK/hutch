@@ -61,7 +61,7 @@ public class ActivitySourceService
     return new(activitySource);
   }
   
-  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifier(int activitySourceId)
+  public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifiers(int activitySourceId)
   {
     var resultsModifierList = await _db.ResultsModifier
       .AsNoTracking()
