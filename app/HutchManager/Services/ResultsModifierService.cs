@@ -12,6 +12,10 @@ public class ResultsModifierService
     _db = db;
   }
 
+  /// <summary>
+  /// Get all records in ModifierTypeModel
+  /// </summary>
+  /// <returns></returns>
   public async Task<List<Models.ModifierTypeModel>> GetTypes()
   {
     var list = await _db.ModifierTypes
@@ -20,6 +24,13 @@ public class ResultsModifierService
     return list.ConvertAll<Models.ModifierTypeModel>(x => new(x));
   }
 
+  /// <summary>
+  /// Create a new ResultsModifier record
+  /// </summary>
+  /// <param name="resultsModifier"></param>
+  /// <returns></returns>
+  /// <exception cref="InvalidOperationException"></exception>
+  /// <exception cref="BadHttpRequestException"></exception>
   public async Task<Models.ResultsModifierModel> Create(Models.CreateResultsModifier resultsModifier)
   {
     var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
@@ -44,6 +55,14 @@ public class ResultsModifierService
     return new(entity);
   }
 
+  /// <summary>
+  /// Modify an existing ResultsModifier record
+  /// </summary>
+  /// <param name="id"></param>
+  /// <param name="resultsModifier"></param>
+  /// <returns></returns>
+  /// <exception cref="KeyNotFoundException"></exception>
+  /// <exception cref="InvalidOperationException"></exception>
   public async Task<Models.ResultsModifierModel> Set(int id, Models.CreateResultsModifier resultsModifier)
   {
     var entity = await _db.ResultsModifier
@@ -67,7 +86,12 @@ public class ResultsModifierService
     await _db.SaveChangesAsync();
     return new(entity);
   }
-
+  
+  /// <summary>
+  /// Delete a ResultsModifier by ID
+  /// </summary>
+  /// <param name="resultsModifierId"></param>
+  /// <exception cref="KeyNotFoundException"></exception>
   public async Task Delete(int resultsModifierId)
   {
     var entity = await _db.ResultsModifier
