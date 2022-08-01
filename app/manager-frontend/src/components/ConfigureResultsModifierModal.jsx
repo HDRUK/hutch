@@ -31,7 +31,7 @@ import { validationSchema } from "pages/ResultsModifier/validation";
 import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
-import { useModifierTypeList } from "api/resultsmodifier";
+import { useModifierTypeList } from "api/resultsmodifiers";
 import { useActivitySourceList } from "api/activitysources";
 import { addPointerEvent } from "framer-motion";
 
