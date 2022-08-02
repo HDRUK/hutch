@@ -1,11 +1,11 @@
 import { getAccountApi } from "api/account";
 import { getUserApi } from "api/user";
-import { getActivitySourceApi } from "api/activitysources";
+import { getActivitySourceApi } from "api/activitysource";
 import { getDataSourceApi } from "api/datasource";
 import ky from "ky";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { getResultsModifierApi } from "api/resultsmodifiers";
+import { getResultsModifierApi } from "api/resultsmodifier";
 const BackendApiContext = createContext({});
 export const useBackendApi = () => useContext(BackendApiContext);
 

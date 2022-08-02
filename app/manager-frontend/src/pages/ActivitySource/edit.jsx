@@ -2,7 +2,7 @@ import React from "react";
 import { useBackendApi } from "contexts/BackendApi";
 import { ActivitySource } from ".";
 import { useParams } from "react-router-dom";
-import { useActivitySource } from "api/activitysources";
+import { useActivitySource } from "api/activitysource";
 
 function edit() {
   const {
