@@ -397,7 +397,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
         stmnt = select(func.count()).select_from(self.subqueries[0])
         for sq in self.subqueries[1:]:
             stmnt = stmnt.join(sq, isouter=True)
-        self.subqueries = list()
+        self.subqueries.clear()
         return stmnt
 
 
@@ -458,5 +458,5 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         stmnt = select(func.count()).select_from(self.subqueries[0])
         for sq in self.subqueries[1:]:
             stmnt = stmnt.join(sq, isouter=True)
-        self.subqueries = list()
+        self.subqueries.clear()
         return stmnt
