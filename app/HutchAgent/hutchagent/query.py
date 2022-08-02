@@ -479,6 +479,34 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                             )
                         )
                         .distinct()
+                        .join(
+                            select(ProcedureOccurrence.person_id)
+                            .where(ProcedureOccurrence.procedure_concept_id == rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
+                        .join(
+                            select(ConditionOccurrence.person_id)
+                            .where(ConditionOccurrence.condition_concept_id == rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
+                        .join(
+                            select(Observation.person_id)
+                            .where(Observation.observation_concept_id == rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
+                        .join(
+                            select(DrugExposure.person_id)
+                            .where(DrugExposure.drug_concept_id == rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
                         .subquery()
                     )
                 # Text rules testing for exclusion
@@ -493,6 +521,34 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                             )
                         )
                         .distinct()
+                        .join(
+                            select(ProcedureOccurrence.person_id)
+                            .where(ProcedureOccurrence.procedure_concept_id != rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
+                        .join(
+                            select(ConditionOccurrence.person_id)
+                            .where(ConditionOccurrence.condition_concept_id != rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
+                        .join(
+                            select(Observation.person_id)
+                            .where(Observation.observation_concept_id != rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
+                        .join(
+                            select(DrugExposure.person_id)
+                            .where(DrugExposure.drug_concept_id != rule.concept_id)
+                            .distinct()
+                            .subquery(),
+                            isouter=True
+                        )
                         .subquery()
                     )
                 else:
