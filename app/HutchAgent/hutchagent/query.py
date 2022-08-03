@@ -485,13 +485,13 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         )
                         .where(
                             or_(
-                                Person.ethnicity_concept_id == rule.concept_id,
-                                Person.gender_concept_id == rule.concept_id,
-                                Person.race_concept_id == rule.concept_id,
-                                ProcedureOccurrence.procedure_concept_id == rule.concept_id,
-                                ConditionOccurrence.condition_concept_id == rule.concept_id,
-                                Observation.observation_concept_id == rule.concept_id,
-                                DrugExposure.drug_concept_id == rule.concept_id,
+                                Person.ethnicity_concept_id == rule.name,
+                                Person.gender_concept_id == rule.name,
+                                Person.race_concept_id == rule.name,
+                                ProcedureOccurrence.procedure_concept_id == rule.name,
+                                ConditionOccurrence.condition_concept_id == rule.name,
+                                Observation.observation_concept_id == rule.name,
+                                DrugExposure.drug_concept_id == rule.name,
                             )
                         )
                         .distinct()
@@ -523,13 +523,13 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         )
                         .where(
                             or_(
-                                Person.ethnicity_concept_id != rule.concept_id,
-                                Person.gender_concept_id != rule.concept_id,
-                                Person.race_concept_id != rule.concept_id,
-                                ProcedureOccurrence.procedure_concept_id != rule.concept_id,
-                                ConditionOccurrence.condition_concept_id != rule.concept_id,
-                                Observation.observation_concept_id != rule.concept_id,
-                                DrugExposure.drug_concept_id != rule.concept_id,
+                                Person.ethnicity_concept_id != rule.name,
+                                Person.gender_concept_id != rule.name,
+                                Person.race_concept_id != rule.name,
+                                ProcedureOccurrence.procedure_concept_id != rule.name,
+                                ConditionOccurrence.condition_concept_id != rule.name,
+                                Observation.observation_concept_id != rule.name,
+                                DrugExposure.drug_concept_id != rule.name,
                             )
                         )
                         .distinct()
@@ -541,7 +541,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         select(Measurement.person_id)
                         .where(
                             and_(
-                                Measurement.measurement_concept_id == rule.concept_id,
+                                Measurement.measurement_concept_id == rule.name,
                                 Measurement.value_as_number.between(rule.min_value, rule.max_value)
                             )
                         )
