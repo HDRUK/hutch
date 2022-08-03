@@ -354,84 +354,76 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                 if rule.type == "TEXT" and rule.oper == "=":
                     self.subqueries.append(
                         select(Person.person_id)
+                        .join(
+                            ProcedureOccurrence,
+                            Person.person_id == ProcedureOccurrence.person_id,
+                            isouter=True,
+                        )
+                        .join(
+                            ConditionOccurrence,
+                            Person.person_id == ConditionOccurrence.person_id,
+                            isouter=True,
+                        )
+                        .join(
+                            Observation,
+                            Person.person_id == Observation.person_id,
+                            isouter=True,
+                        )
+                        .join(
+                            DrugExposure,
+                            Person.person_id == DrugExposure.person_id,
+                            isouter=True,
+                        )
                         .where(
                             or_(
                                 Person.ethnicity_concept_id == rule.concept_id,
                                 Person.gender_concept_id == rule.concept_id,
                                 Person.race_concept_id == rule.concept_id,
+                                ProcedureOccurrence.procedure_concept_id == rule.concept_id,
+                                ConditionOccurrence.condition_concept_id == rule.concept_id,
+                                Observation.observation_concept_id == rule.concept_id,
+                                DrugExposure.drug_concept_id == rule.concept_id,
                             )
                         )
                         .distinct()
-                        .join(
-                            select(ProcedureOccurrence.person_id)
-                            .where(ProcedureOccurrence.procedure_concept_id == rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
-                        .join(
-                            select(ConditionOccurrence.person_id)
-                            .where(ConditionOccurrence.condition_concept_id == rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
-                        .join(
-                            select(Observation.person_id)
-                            .where(Observation.observation_concept_id == rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
-                        .join(
-                            select(DrugExposure.person_id)
-                            .where(DrugExposure.drug_concept_id == rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
                         .subquery()
                     )
                 # Text rules testing for exclusion
                 elif rule.type == "TEXT" and rule.oper == "!=":
                     self.subqueries.append(
                         select(Person.person_id)
+                        .join(
+                            ProcedureOccurrence,
+                            Person.person_id == ProcedureOccurrence.person_id,
+                            isouter=True,
+                        )
+                        .join(
+                            ConditionOccurrence,
+                            Person.person_id == ConditionOccurrence.person_id,
+                            isouter=True,
+                        )
+                        .join(
+                            Observation,
+                            Person.person_id == Observation.person_id,
+                            isouter=True,
+                        )
+                        .join(
+                            DrugExposure,
+                            Person.person_id == DrugExposure.person_id,
+                            isouter=True,
+                        )
                         .where(
                             or_(
                                 Person.ethnicity_concept_id != rule.concept_id,
                                 Person.gender_concept_id != rule.concept_id,
                                 Person.race_concept_id != rule.concept_id,
+                                ProcedureOccurrence.procedure_concept_id != rule.concept_id,
+                                ConditionOccurrence.condition_concept_id != rule.concept_id,
+                                Observation.observation_concept_id != rule.concept_id,
+                                DrugExposure.drug_concept_id != rule.concept_id,
                             )
                         )
                         .distinct()
-                        .join(
-                            select(ProcedureOccurrence.person_id)
-                            .where(ProcedureOccurrence.procedure_concept_id != rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
-                        .join(
-                            select(ConditionOccurrence.person_id)
-                            .where(ConditionOccurrence.condition_concept_id != rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
-                        .join(
-                            select(Observation.person_id)
-                            .where(Observation.observation_concept_id != rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
-                        .join(
-                            select(DrugExposure.person_id)
-                            .where(DrugExposure.drug_concept_id != rule.concept_id)
-                            .distinct()
-                            .subquery(),
-                            isouter=True
-                        )
                         .subquery()
                     )
                 else:
