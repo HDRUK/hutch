@@ -357,22 +357,22 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         .join(
                             ProcedureOccurrence,
                             Person.person_id == ProcedureOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             ConditionOccurrence,
                             Person.person_id == ConditionOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             Observation,
                             Person.person_id == Observation.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             DrugExposure,
                             Person.person_id == DrugExposure.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .where(
                             or_(
@@ -395,22 +395,22 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         .join(
                             ProcedureOccurrence,
                             Person.person_id == ProcedureOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             ConditionOccurrence,
                             Person.person_id == ConditionOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             Observation,
                             Person.person_id == Observation.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             DrugExposure,
                             Person.person_id == DrugExposure.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .where(
                             or_(
@@ -444,7 +444,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
         """Build and return the final SQL that can be used to query the database."""
         stmnt = select(func.count()).select_from(self.subqueries[0])
         for sq in self.subqueries[1:]:
-            stmnt = stmnt.join(sq, isouter=True)
+            stmnt = stmnt.join(sq)
         self.subqueries.clear()
         return stmnt
 
@@ -466,22 +466,22 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         .join(
                             ProcedureOccurrence,
                             Person.person_id == ProcedureOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             ConditionOccurrence,
                             Person.person_id == ConditionOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             Observation,
                             Person.person_id == Observation.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             DrugExposure,
                             Person.person_id == DrugExposure.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .where(
                             or_(
@@ -504,22 +504,22 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         .join(
                             ProcedureOccurrence,
                             Person.person_id == ProcedureOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             ConditionOccurrence,
                             Person.person_id == ConditionOccurrence.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             Observation,
                             Person.person_id == Observation.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .join(
                             DrugExposure,
                             Person.person_id == DrugExposure.person_id,
-                            isouter=True,
+                            full=True,
                         )
                         .where(
                             or_(
@@ -553,6 +553,6 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         """Build and return the final SQL that can be used to query the database."""
         stmnt = select(func.count()).select_from(self.subqueries[0])
         for sq in self.subqueries[1:]:
-            stmnt = stmnt.join(sq, isouter=True)
+            stmnt = stmnt.join(sq)
         self.subqueries.clear()
         return stmnt
