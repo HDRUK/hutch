@@ -461,6 +461,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                                 Measurement.value_as_number.between(*group.rules[i].value)
                             )
                         )
+                        .distinct()
                         .subquery()
                     )
                     stmnt = stmnt.join(
@@ -472,10 +473,11 @@ class RQuestQueryBuilder(BaseQueryBuilder):
 
     def build_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
-        stmnt = select(func.count()).select_from(self.subqueries[0])
+        group_stmnt = self.subqueries[0]
         for sq in self.subqueries[1:]:
-            stmnt = stmnt.join(sq)
+            group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
         self.subqueries.clear()
+        stmnt = select(func.count()).select_from(group_stmnt)
         return stmnt
 
 
