@@ -489,102 +489,134 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
 
     def build_subqueries(self) -> None:
         """Build the subqueries for the main query."""
+        base_txt_stmnt = (
+            select(Person.person_id)
+            .join(
+                ProcedureOccurrence,
+                Person.person_id == ProcedureOccurrence.person_id,
+                full=True,
+            )
+            .join(
+                ConditionOccurrence,
+                Person.person_id == ConditionOccurrence.person_id,
+                full=True,
+            )
+            .join(
+                Observation,
+                Person.person_id == Observation.person_id,
+                full=True,
+            )
+            .join(
+                DrugExposure,
+                Person.person_id == DrugExposure.person_id,
+                full=True,
+            )
+        )
+        base_num_stmnt = select(Measurement.person_id)
         for group in self.query.groups:
-            for rule in group.rules:
+            if group.rules[0].value is not None and group.rules[0].operator == "=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id == group.rules[0].name,
+                        Person.gender_concept_id == group.rules[0].name,
+                        Person.race_concept_id == group.rules[0].name,
+                        ProcedureOccurrence.procedure_concept_id == group.rules[0].name,
+                        ConditionOccurrence.condition_concept_id == group.rules[0].name,
+                        Observation.observation_concept_id == group.rules[0].name,
+                        DrugExposure.drug_concept_id == group.rules[0].name,
+                    )
+                ).distinct().subquery()
+            elif group.rules[0].value is not None and group.rules[0].operator == "!=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id != group.rules[0].name,
+                        Person.gender_concept_id != group.rules[0].name,
+                        Person.race_concept_id != group.rules[0].name,
+                        ProcedureOccurrence.procedure_concept_id != group.rules[0].name,
+                        ConditionOccurrence.condition_concept_id != group.rules[0].name,
+                        Observation.observation_concept_id != group.rules[0].name,
+                        DrugExposure.drug_concept_id != group.rules[0].name,
+                    )
+                ).distinct().subquery()
+            else:
+                stmnt = base_num_stmnt.where(
+                    and_(
+                        Measurement.measurement_concept_id == group.rules[0].name,
+                        Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
+                    )
+                ).distinct().subquery()
+            for i in range(1, len(group.rules[1:]) + 1):
                 # Text rules testing for inclusion
-                if rule.value is not None and rule.operator == "=":
-                    self.subqueries.append(
-                        select(Person.person_id)
-                        .join(
-                            ProcedureOccurrence,
-                            Person.person_id == ProcedureOccurrence.person_id,
-                            full=True,
-                        )
-                        .join(
-                            ConditionOccurrence,
-                            Person.person_id == ConditionOccurrence.person_id,
-                            full=True,
-                        )
-                        .join(
-                            Observation,
-                            Person.person_id == Observation.person_id,
-                            full=True,
-                        )
-                        .join(
-                            DrugExposure,
-                            Person.person_id == DrugExposure.person_id,
-                            full=True,
-                        )
+                if group.rules[0].value is not None and group.rules[0].operator == "=":
+                    rule_stmnt = (
+                        base_txt_stmnt
                         .where(
                             or_(
-                                Person.ethnicity_concept_id == rule.name,
-                                Person.gender_concept_id == rule.name,
-                                Person.race_concept_id == rule.name,
-                                ProcedureOccurrence.procedure_concept_id == rule.name,
-                                ConditionOccurrence.condition_concept_id == rule.name,
-                                Observation.observation_concept_id == rule.name,
-                                DrugExposure.drug_concept_id == rule.name,
+                                Person.ethnicity_concept_id == group.rules[i].name,
+                                Person.gender_concept_id == group.rules[i].name,
+                                Person.race_concept_id == group.rules[i].name,
+                                ProcedureOccurrence.procedure_concept_id == group.rules[i].name,
+                                ConditionOccurrence.condition_concept_id == group.rules[i].name,
+                                Observation.observation_concept_id == group.rules[i].name,
+                                DrugExposure.drug_concept_id == group.rules[i].name,
                             )
                         )
                         .distinct()
                         .subquery()
                     )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
                 # Text rules testing for exclusion
-                elif rule.value is not None and rule.operator == "!=":
-                    self.subqueries.append(
-                        select(Person.person_id)
-                        .join(
-                            ProcedureOccurrence,
-                            Person.person_id == ProcedureOccurrence.person_id,
-                            full=True,
-                        )
-                        .join(
-                            ConditionOccurrence,
-                            Person.person_id == ConditionOccurrence.person_id,
-                            full=True,
-                        )
-                        .join(
-                            Observation,
-                            Person.person_id == Observation.person_id,
-                            full=True,
-                        )
-                        .join(
-                            DrugExposure,
-                            Person.person_id == DrugExposure.person_id,
-                            full=True,
-                        )
+                elif group.rules[0].value is not None and group.rules[0].operator == "!=":
+                    rule_stmnt = (
+                        base_txt_stmnt
                         .where(
                             or_(
-                                Person.ethnicity_concept_id != rule.name,
-                                Person.gender_concept_id != rule.name,
-                                Person.race_concept_id != rule.name,
-                                ProcedureOccurrence.procedure_concept_id != rule.name,
-                                ConditionOccurrence.condition_concept_id != rule.name,
-                                Observation.observation_concept_id != rule.name,
-                                DrugExposure.drug_concept_id != rule.name,
+                                Person.ethnicity_concept_id != group.rules[i].name,
+                                Person.gender_concept_id != group.rules[i].name,
+                                Person.race_concept_id != group.rules[i].name,
+                                ProcedureOccurrence.procedure_concept_id != group.rules[i].name,
+                                ConditionOccurrence.condition_concept_id != group.rules[i].name,
+                                Observation.observation_concept_id != group.rules[i].name,
+                                DrugExposure.drug_concept_id != group.rules[i].name,
                             )
                         )
                         .distinct()
                         .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
                     )
                 else:
                     # numeric rule
-                    self.subqueries.append(
-                        select(Measurement.person_id)
+                    rule_stmnt = (
+                        base_num_stmnt
                         .where(
                             and_(
-                                Measurement.measurement_concept_id == rule.name,
-                                Measurement.value_as_number.between(rule.min_value, rule.max_value)
+                                Measurement.measurement_concept_id == group.rules[i].name,
+                                Measurement.value_as_number.between(group.rules[i].min_value, group.rules[i].max_value)
                             )
                         )
                         .distinct()
                         .subquery()
                     )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
+            self.subqueries.append(stmnt)
 
     def build_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
-        stmnt = select(func.count()).select_from(self.subqueries[0])
+        group_stmnt = self.subqueries[0]
         for sq in self.subqueries[1:]:
-            stmnt = stmnt.join(sq)
+            group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
         self.subqueries.clear()
+        stmnt = select(func.count()).select_from(group_stmnt)
         return stmnt
