@@ -79,6 +79,7 @@ class SyncDBManager(BaseDBManager):
         port: int,
         database: str,
         drivername: str,
+        schema: str = None,
     ) -> None:
         url = URL.create(
             drivername=drivername,
@@ -88,12 +89,17 @@ class SyncDBManager(BaseDBManager):
             port=port,
             database=database,
         )
-        self.engine = create_engine(
-            url=url,
-            connect_args={
-                "options": "-csearch_path={}".format(os.getenv("DATASOURCE_DB_SCHEMA"))
-            },
-        )
+
+        if schema is not None:
+            self.engine = create_engine(
+                url=url,
+                connect_args={"options": "-csearch_path={}".format(schema)},
+            )
+        else:
+            self.engine = create_engine(
+                url=url,
+            )
+
         self.inspector = inspect(self.engine)
 
     def execute_and_fetch(self, stmnt: Any) -> list:
@@ -110,6 +116,7 @@ class SyncDBManager(BaseDBManager):
         # Need to call `dispose` - not automatic
         self.engine.dispose()
 
+
     def list_tables(self) -> list:
         return self.inspector.get_table_names()
 
@@ -123,6 +130,7 @@ class AsyncDBManager(BaseDBManager):
         port: int,
         database: str,
         drivername: str,
+        schema: str = None,
     ) -> None:
         url = URL(
             drivername=drivername,
@@ -132,7 +140,17 @@ class AsyncDBManager(BaseDBManager):
             port=port,
             database=database,
         )
-        self.engine = create_async_engine(url=url)
+
+        if schema is not None:
+            self.engine = create_async_engine(
+                url=url,
+                connect_args={"options": "-csearch_path={}".format(schema)},
+            )
+        else:
+            self.engine = create_async_engine(
+                url=url,
+            )
+
         self.inspector = inspect(self.engine)
 
     async def execute_and_fetch(self, stmnt: Any) -> list:

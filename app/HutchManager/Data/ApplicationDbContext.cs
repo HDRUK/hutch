@@ -24,8 +24,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
   public DbSet<ResultsModifier> ResultsModifier => Set<ResultsModifier>();
 
-  public DbSet<Logs> Logs => Set<Logs>();
-
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
     base.OnModelCreating(modelBuilder);

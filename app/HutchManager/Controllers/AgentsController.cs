@@ -17,16 +17,12 @@ public class AgentsController : ControllerBase
   }
 
   [HttpPost("checkin")]
-  public async Task<List<DataSource>> CheckIn(AgentCheckInModel payload)
+  public async Task<IActionResult> CheckIn(AgentCheckInModel payload)
   {
-    List<DataSource> dataSource = payload.DataSources.Select(x => new DataSource { Id = x }).ToList();
-    List<DataSource> dataSourceList = new List<DataSource>();
-    for (int i = 0; i < dataSource.Count; i++)
-    {
-      DataSource d = await _dataSources.CreateorUpdate(dataSource[i]);
-      dataSourceList.Add(d);
-    }
-    return dataSourceList;
+    foreach (var ds in payload.DataSources) 
+      await _dataSources.CreateOrUpdate(new() { Id = ds });
+
+    return Accepted();
   }
 
 }

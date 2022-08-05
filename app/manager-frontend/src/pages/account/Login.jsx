@@ -10,8 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { FaSignInAlt } from "react-icons/fa";
-import { EmailField } from "components/forms/EmailFieldGroup";
-import { PasswordField } from "components/forms/PasswordFieldGroup";
+import { PasswordField } from "components/forms/PasswordField";
 import { Form, Formik } from "formik";
 import { useTranslation } from "react-i18next";
 import { object, string } from "yup";
@@ -19,6 +18,8 @@ import { useResetState } from "helpers/hooks/useResetState";
 import { useUser } from "contexts/User";
 import { ResendConfirmAlert } from "components/account/ResendConfirmAlert";
 import { useBackendApi } from "contexts/BackendApi";
+import { EmailField } from "components/forms/EmailField";
+import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 
 const validationSchema = (t) =>
   object().shape({
@@ -49,12 +50,16 @@ export const Login = () => {
   // but we reset feedback if the page should remount
   const [feedback, setFeedback] = useResetState([key]);
 
+  const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
+    behavior: "smooth",
+  });
+
   const handleSubmit = async (values, actions) => {
     try {
       const { user } = await login(values).json();
       signIn(user);
 
-      // redirect back to where we came from; otherwise the app root
+      // redirect back to where we came from; otherwise the user home
       navigate(state?.from ?? "/");
       return;
     } catch (e) {
@@ -79,15 +84,15 @@ export const Login = () => {
           });
       }
 
-      window.scrollTo(0, 0);
+      scrollTargetIntoView();
     }
 
     actions.setSubmitting(false);
   };
 
   return (
-    <Container key={key} my={8}>
-      <VStack align="stretch" spacing={8}>
+    <Container ref={scrollTarget} key={key} my={8}>
+      <VStack align="stretch" spacing={4}>
         <Heading as="h2" size="lg">
           {t("login.heading")}
         </Heading>
@@ -102,7 +107,7 @@ export const Login = () => {
         >
           {({ isSubmitting, values }) => (
             <Form noValidate>
-              <VStack align="stretch" spacing={8}>
+              <VStack align="stretch" spacing={4}>
                 {feedback?.status && (
                   <Alert status={feedback.status}>
                     <AlertIcon />
@@ -113,15 +118,9 @@ export const Login = () => {
                   <ResendConfirmAlert userIdOrEmail={values.username} />
                 )}
 
-                <EmailField
-                  name="username"
-                  label={t("fields.email")}
-                  placeholder={t("fields.email_placeholder")}
-                />
+                <EmailField name="username" autoFocus />
 
                 <PasswordField
-                  label={t("fields.password")}
-                  placeholder={t("fields.password")}
                   fieldTip={
                     <Link as={RouterLink} to="/account/password/reset">
                       {t("login.links.forgotPassword")}

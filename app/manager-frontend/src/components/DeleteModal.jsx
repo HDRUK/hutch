@@ -8,6 +8,7 @@ import {
   ModalBody,
   ModalCloseButton,
 } from "@chakra-ui/react";
+import { FaTrash } from "react-icons/fa";
 
 export const DeleteModal = ({ title, body, isOpen, onClose, onDelete }) => (
   <Modal isOpen={isOpen} onClose={onClose}>
@@ -18,9 +19,9 @@ export const DeleteModal = ({ title, body, isOpen, onClose, onDelete }) => (
       <ModalBody>{body}</ModalBody>
       <ModalFooter>
         <Button variant="ghost" mr={3} onClick={onClose}>
-          Close
+          Cancel
         </Button>
-        <Button colorScheme="red" onClick={onDelete}>
+        <Button leftIcon={<FaTrash />} colorScheme="red" onClick={onDelete}>
           Delete
         </Button>
       </ModalFooter>

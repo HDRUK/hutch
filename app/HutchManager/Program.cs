@@ -9,7 +9,6 @@ using HutchManager.HostedServices;
 using HutchManager.Middleware;
 using HutchManager.OptionsModels;
 using HutchManager.Services;
-using HutchManager.Services.QueryServices;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
@@ -23,6 +22,14 @@ b.Host.UseSerilog((context, services, loggerConfig) => loggerConfig
   .Enrich.FromLogContext());
 
 #region Configure Services
+
+// default missing Feature Flags to false, to "declare" them
+b.Configuration.AddInMemoryCollection(
+  Enum.GetNames<FeatureFlags>()
+    .Where(flagName =>
+      b.Configuration.GetSection("FeatureManagement").GetChildren().All(
+        flagConfigKey => flagConfigKey.Key != flagName))
+    .Select(flagName => new KeyValuePair<string, string>($"FeatureManagement:{flagName}", "false")));
 
 // MVC
 b.Services
@@ -60,25 +67,36 @@ b.Services
   .AddApplicationInsightsTelemetry()
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
-  .Configure<RegistrationOptions>(b.Configuration.GetSection("Registration"))
-  .Configure<QueryQueueOptions>(b.Configuration.GetSection("JobQueue"))
-  .Configure<RquestTaskApiOptions>(b.Configuration.GetSection("RquestTaskApi"))
-  .Configure<RquestPollingServiceOptions>(b.Configuration)
+  .Configure<JobQueueOptions>(b.Configuration.GetSection("JobQueue"))
+  .Configure<RQuestTaskApiOptions>(b.Configuration.GetSection("RQuestTaskApi"))
+  .Configure<ActivitySourcePollingOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()
   .AddTransient<ActivitySourceService>()
   .AddTransient<DataSourceService>()
   .AddTransient<ResultsModifierService>()
-  .AddTransient<QueryQueueService>()
-  .AddHostedService<RquestPollingHostedService>()
-  .AddScoped<IRquestPollingService, RquestPollingService>()
+  .AddTransient<JobQueueService>()
+  .AddHostedService<ActivitySourcePollingHostedService>()
+  .AddScoped<RQuestPollingService>()
   .AddFeatureManagement();
 b.Services
-  .AddHttpClient<RquestTaskApiClient>();
+  .AddHttpClient<RQuestTaskApiClient>();
 #endregion
 
 var app = b.Build();
+
+// Do data seeding isolated from the running of the app
+using (var scope = app.Services.CreateScope())
+{
+  var db = scope.ServiceProvider
+    .GetRequiredService<ApplicationDbContext>();
+
+  var seeder = new DataSeeder(db);
+
+  await seeder.SeedSourceTypes();
+  await seeder.SeedModifierTypes();
+}
 
 #region Configure Pipeline
 app.UseSerilogRequestLogging();

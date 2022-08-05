@@ -5,40 +5,33 @@ import {
   Select,
   Tooltip,
   Icon,
+  Alert,
+  AlertIcon,
+  VStack,
 } from "@chakra-ui/react";
 import { useField } from "formik";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FormHelpError } from "./FormHelpError";
-import { AiFillInfoCircle } from "react-icons/ai";
+import { FaInfoCircle } from "react-icons/fa";
 
 export const FormikSelect = ({
   name,
   label,
   options,
-  placeholder,
-  type = "select",
   isRequired,
   fieldTip,
   fieldHelp,
   collapseError,
-  sourceList,
-  sourceParam,
   tooltip,
-  warning,
-  ...p
+  alert,
+  hasEmptyDefault,
 }) => {
-  const [field, meta, helpers] = useField({ name, type });
+  const [field, meta, helpers] = useField({ name, type: "select" });
   const [value, setValue] = useState(field.value);
 
   const handleChange = ({ target: { value } }) => {
-    let formikValue = value;
-    if (sourceList && sourceParam) {
-      formikValue = sourceList.find((item) => item[sourceParam] == value);
-      setValue(value);
-    } else {
-      setValue(value);
-    }
-    helpers.setValue(formikValue);
+    setValue(value);
+    helpers.setValue(value);
   };
 
   return (
@@ -53,19 +46,30 @@ export const FormikSelect = ({
           <Flex ml={"auto"} alignItems="center">
             <Tooltip label={tooltip}>
               <span>
-                <Icon as={AiFillInfoCircle} color={warning ? "red" : "black"} />
+                <Icon as={FaInfoCircle} />
               </span>
             </Tooltip>
           </Flex>
         )}
       </Flex>
-      <Select value={value} type={type} onChange={handleChange}>
-        {options.map((item, index) => (
-          <option key={index} value={item.value}>
-            {item.label}
-          </option>
-        ))}
-      </Select>
+
+      <VStack>
+        {alert?.message && (
+          <Alert status={alert.status ?? "info"} variant="left-accent">
+            <AlertIcon />
+            {alert.message}
+          </Alert>
+        )}
+
+        <Select value={value} onChange={handleChange}>
+          {hasEmptyDefault && <option value=""></option>}
+          {options.map((item, index) => (
+            <option key={index} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </Select>
+      </VStack>
       {fieldTip}
 
       <FormHelpError

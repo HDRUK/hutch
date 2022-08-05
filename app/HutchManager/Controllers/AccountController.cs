@@ -34,15 +34,6 @@ public class AccountController : ControllerBase
   [HttpPost("register")]
   public async Task<IActionResult> Register(RegisterAccountModel model)
   {
-    if (ModelState.IsValid) // Peform additional manual validation
-    {
-      // Client side should catch these, but we should be on the safe side.
-      if (model.Email != model.EmailConfirm)
-        ModelState.AddModelError(string.Empty, "The email addresses entered do not match.");
-      if (model.Password != model.PasswordConfirm)
-        ModelState.AddModelError(string.Empty, "The passwords entered do not match.");
-    }
-
     RegisterAccountResult regResult = new();
 
     if (ModelState.IsValid) // Additional Pre-registration checks
@@ -212,13 +203,6 @@ public class AccountController : ControllerBase
   [HttpPost("password")]
   public async Task<IActionResult> ResetPassword(AnonymousSetPasswordModel model)
   {
-    if (ModelState.IsValid) // Perform additional Model validation
-    {
-      // Client side should catch these, but we should be on the safe side.
-      if (model.Data.Password != model.Data.PasswordConfirm)
-        ModelState.AddModelError(string.Empty, "The passwords entered do not match.");
-    }
-
     if (ModelState.IsValid)
     {
       var user = await _users.FindByIdAsync(model.Credentials.UserId);

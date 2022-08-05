@@ -12,26 +12,25 @@ import { Form, Formik } from "formik";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { FaUserPlus } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { object, string, ref } from "yup";
+import { object, string } from "yup";
 import { useResetState } from "helpers/hooks/useResetState";
 import { FormikInput } from "components/forms/FormikInput";
-import { EmailFieldGroup } from "components/forms/EmailFieldGroup";
-import {
-  PasswordFieldGroup,
-  validationSchema as pwSchema,
-} from "components/forms/PasswordFieldGroup";
 import { TitledAlert } from "components/TitledAlert";
 import { useBackendApi } from "contexts/BackendApi";
+import {
+  EmailField,
+  validationSchema as emailSchema,
+} from "components/forms/EmailField";
+import {
+  PasswordField,
+  validationSchema as pwSchema,
+} from "components/forms/PasswordField";
+import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 
 export const validationSchema = (t) =>
   object().shape({
     fullname: string().required(t("validation.fullname_required")),
-    email: string()
-      .email(t("validation.email_valid"))
-      .required(t("validation.email_required")),
-    emailConfirm: string()
-      .oneOf([ref("email")], t("validation.emailconfirm_match"))
-      .required(t("validation.emailconfirm_required")),
+    ...emailSchema(t),
     ...pwSchema(t),
   });
 
@@ -45,6 +44,10 @@ export const Register = () => {
   // ajax submissions may cause feedback to display
   // but we reset feedback if the page should remount
   const [feedback, setFeedback] = useResetState([key]);
+
+  const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
+    behavior: "smooth",
+  });
 
   const handleSubmit = async (values, actions) => {
     // If submission was triggered by hitting Enter,
@@ -87,14 +90,14 @@ export const Register = () => {
       }
     }
 
-    window.scrollTo(0, 0);
+    scrollTargetIntoView();
 
     actions.setSubmitting(false);
   };
 
   return (
-    <Container key={key} my={8}>
-      <VStack align="stretch" spacing={8}>
+    <Container ref={scrollTarget} key={key} my={8}>
+      <VStack align="stretch" spacing={4}>
         <Heading as="h2" size="lg">
           {t("register.heading")}
         </Heading>
@@ -115,16 +118,16 @@ export const Register = () => {
           initialValues={{
             fullname: "",
             email: "",
-            emailConfirm: "",
             password: "",
-            passwordConfirm: "",
           }}
           onSubmit={handleSubmit}
           validationSchema={validationSchema(t)}
         >
           {({ isSubmitting }) => (
             <Form noValidate>
-              <VStack align="stretch" spacing={8}>
+              <VStack align="stretch" spacing={4}>
+                <EmailField hasCheckReminder autoFocus />
+
                 <FormikInput
                   name="fullname"
                   label={t("register.fields.fullname")}
@@ -132,11 +135,7 @@ export const Register = () => {
                   isRequired
                 />
 
-                <EmailFieldGroup initialHidden={feedback?.status !== "error"} />
-
-                <PasswordFieldGroup
-                  initialHidden={feedback?.status !== "error"}
-                />
+                <PasswordField />
 
                 <HStack justify="space-between">
                   <Button

@@ -31,8 +31,8 @@ import { validationSchema } from "pages/ResultsModifier/validation";
 import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
-import { useModifierTypeList } from "api/resultsmodifier";
-import { useActivitySourceList } from "api/activitysource";
+import { useModifierTypeList } from "api/resultsmodifiers";
+import { useActivitySourceList } from "api/activitysources";
 
 export const ConfirmationModal = ({
   isOpen,
@@ -197,8 +197,7 @@ export const ConfigureResultsModifierModal = ({
       await action({
         values: {
           ...payload,
-          ActivitySourceId: payload.ActivitySource.id,
-          Type: payload.Type.id,
+          ActivitySourceId: payload.ActivitySource,
         },
         id: initialData ? initialData.id : undefined,
       }).json();
@@ -228,18 +227,18 @@ export const ConfigureResultsModifierModal = ({
             initialValues={
               initialData
                 ? {
-                    Order: initialData.order,
-                    Type: initialData.type.id,
-                    // capitalise the object keys in the parameters object
-                    Parameters: capitaliseObjectKeys(initialData.parameters),
-                    ActivitySource: initialData.activitySource,
-                  }
+                  Order: initialData.order,
+                  Type: initialData.type.id,
+                  // capitalise the object keys in the parameters object
+                  Parameters: capitaliseObjectKeys(initialData.parameters),
+                  ActivitySource: initialData.activitySource.id,
+                }
                 : {
-                    Order: "0",
-                    Type: typeOptions[0].id,
-                    Parameters: {},
-                    ActivitySource: activitySourceOptions[0],
-                  }
+                  Order: "0",
+                  Type: typeOptions[0].id,
+                  Parameters: {},
+                  ActivitySource: activitySourceOptions[0].id,
+                }
             }
             validationSchema={validationSchema()}
           >
@@ -261,8 +260,6 @@ export const ConfigureResultsModifierModal = ({
                       value: item.id,
                       label: item.id,
                     }))}
-                    sourceList={typeOptions}
-                    sourceParam="id"
                   />
                   <FormikSelect
                     label="Activity Source"
@@ -272,8 +269,6 @@ export const ConfigureResultsModifierModal = ({
                       value: item.id,
                       label: item.displayName,
                     }))}
-                    sourceList={activitySourceOptions}
-                    sourceParam="id"
                   />
                   <LowNumberSuppressionParameters type={values.Type} />
                   <Button
@@ -293,7 +288,13 @@ export const ConfigureResultsModifierModal = ({
                     isOpen={isConfirmOpen}
                     onClose={onConfirmClose}
                     initialData={initialData}
-                    newData={values}
+                    newData={{
+                      ...values,
+                      ActivitySource: activitySourceOptions.find(
+                        (item) => item.id == values.ActivitySource
+                      ),
+                      Type: typeOptions.find((item) => item.id == values.Type),
+                    }}
                   />
                 </VStack>
               </Form>

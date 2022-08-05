@@ -1,14 +1,21 @@
 ﻿namespace HutchManager.Config
 {
     /// <summary>
-    /// Options for the RQUEST Task Api
+    /// Options for the RQuest Task Api
     /// </summary>
-    public class RquestTaskApiOptions
+    public class RQuestTaskApiOptions
     {
         /// <summary>
-        /// The Base Url of the Task API, not just RQUEST.
+        /// <para>The Base Path of the Task API endpoints, which will be added to an RQuest Activity Source's Host URI</para>
+        ///
+        /// <para>
+        /// e.g.</para>
+        /// <para>Host URI configured as `https://my-rquest.com:12345`</para>
+        /// <para>EndpointBase of `bcos-rest/task`</para>
+        ///
+        /// <para>Actual requests will go to `https://my-rquest.com:12345/bcos-rest/task/&lt;endpoint&gt;`</para>
         /// </summary>
-        public string BaseUrl { get; set; } = string.Empty;
+        public string EndpointBase { get; set; } = "bcos-rest/api/task";
 
         /// <summary>
         /// Queue Status Endpoint

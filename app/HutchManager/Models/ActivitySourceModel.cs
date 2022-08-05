@@ -2,27 +2,22 @@ namespace HutchManager.Models;
 
 public class ActivitySourceModel
 {
-
   public int Id { get; set; }
-  public string Host { get; set; } = string.Empty;
-  public string Type { get; set; } = string.Empty;
-  public string ResourceId { get; set; } = string.Empty;
-  public string DisplayName { get; set; } = string.Empty;
+  public string Host { get; set; }
+  public string Type { get; set; }
+  public string ResourceId { get; set; }
+  public string DisplayName { get; set; }
 
-  public string TargetDataSourceName { get; set; } = string.Empty;
+  public string TargetDataSource { get; set; }
 
   public ActivitySourceModel(Data.Entities.ActivitySource entity)
   {
     Id = entity.Id;
     Host = entity.Host;
-    Type = entity.Type !=null ? entity.Type.Id : "";
+    Type = entity.Type.Id;
     ResourceId = entity.ResourceId;
     DisplayName = entity.DisplayName;
-    TargetDataSourceName = entity.TargetDataSourceName;
-  }
-
-  public ActivitySourceModel()
-  {
+    TargetDataSource = entity.TargetDataSource.Id;
   }
 }
 

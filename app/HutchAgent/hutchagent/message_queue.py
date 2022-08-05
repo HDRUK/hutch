@@ -8,10 +8,11 @@ from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 import requests, requests.exceptions as req_exc
 from sqlalchemy import exc as sql_exc
+import hutchagent.config as config
 from hutchagent.ro_crates.result import Result
 from hutchagent.ro_crates.query import Query
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.query import RQuestQuery
+from hutchagent.query import RQuestQuery, RQuestQueryBuilder, ROCratesQueryBuilder
 
 from app.HutchAgent.hutchagent.obfuscation import low_number_suppression
 
@@ -57,7 +58,7 @@ def rquest_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    logger = logging.getLogger(config.LOGGER_NAME)
     response_data = {
         "protocolVersion": "2",
         "queryResult": dict(files=list()),
@@ -72,17 +73,21 @@ def rquest_callback(
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
 
+    datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
     db_manager = SyncDBManager(
         username=os.getenv("DATASOURCE_DB_USERNAME"),
         password=os.getenv("DATASOURCE_DB_PASSWORD"),
         host=os.getenv("DATASOURCE_DB_HOST"),
-        port=int(os.getenv("DATASOURCE_DB_PORT")),
+        port=int(datasource_db_port) if datasource_db_port is not None else None,
         database=os.getenv("DATASOURCE_DB_DATABASE"),
-        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
+        schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
+    query_builder = RQuestQueryBuilder(db_manager, query)
+    query_builder.build_subqueries()
     try:
         query_start = time.time()
-        res = db_manager.execute_and_fetch(query.to_sql())
+        res = db_manager.execute_and_fetch(query_builder.build_sql())
         query_end = time.time()
         count_ = res[0][0]
         if int(os.getenv("USE_RESULTS_MODS", 0)):
@@ -109,7 +114,7 @@ def rquest_callback(
         requests.post(
             f"{os.getenv('MANAGER_URL')}/api/results",
             json=response_data,
-            verify=os.getenv("MANAGER_CERT"),
+            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
@@ -133,7 +138,7 @@ def ro_crates_callback(
         properties (BasicProperties): The message properties.
         body (bytes): The body of the message.
     """
-    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    logger = logging.getLogger(config.LOGGER_NAME)
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)
@@ -142,17 +147,21 @@ def ro_crates_callback(
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
 
+    datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
     db_manager = SyncDBManager(
         username=os.getenv("DATASOURCE_DB_USERNAME"),
         password=os.getenv("DATASOURCE_DB_PASSWORD"),
         host=os.getenv("DATASOURCE_DB_HOST"),
-        port=int(os.getenv("DATASOURCE_DB_PORT")),
+        port=int(datasource_db_port) if datasource_db_port is not None else None,
         database=os.getenv("DATASOURCE_DB_DATABASE"),
-        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
+        schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
+    query_builder = ROCratesQueryBuilder(db_manager, query)
+    query_builder.build_subqueries()
     try:
         query_start = time.time()
-        res = db_manager.execute_and_fetch(query.to_sql())
+        res = db_manager.execute_and_fetch(query_builder.build_sql())
         query_end = time.time()
         count_ = res[0][0]
         if int(os.getenv("USE_RESULTS_MODS", 0)):
@@ -195,7 +204,7 @@ def ro_crates_callback(
         requests.post(
             f"{os.getenv('MANAGER_URL')}/api/results",
             json=result.to_dict(),
-            verify=os.getenv("MANAGER_CERT"),
+            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:

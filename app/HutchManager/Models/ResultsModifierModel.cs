@@ -6,27 +6,16 @@ public class ResultsModifierModel
 {
   public int Id { get; set; }
   public int Order { get; set; }
-  public ActivitySourceModel ActivitySource { get; set; } = new();
-  public ModifierTypeModel Type { get; set; } = new();
+  public ActivitySourceModel ActivitySource { get; set; }
+  public ModifierTypeModel Type { get; set; }
   public JsonDocument? Parameters { get; set; }
 
   public ResultsModifierModel(Data.Entities.ResultsModifier entity)
   {
     Id = entity.Id;
     Order = entity.Order;
-    ActivitySource = new ActivitySourceModel 
-    {
-    Id = entity.ActivitySource.Id,
-    Host = entity.ActivitySource.Host,
-    ResourceId = entity.ActivitySource.ResourceId,
-    DisplayName = entity.ActivitySource.DisplayName,
-    TargetDataSourceName = entity.ActivitySource.TargetDataSourceName,
-    };
-    Type = new ModifierTypeModel 
-    { 
-      Id = entity.Type.Id, 
-      Limit = entity.Type.Limit
-    };
+    ActivitySource = new(entity.ActivitySource);
+    Type = new(entity.Type);
     Parameters = entity.Parameters;
   }
 }

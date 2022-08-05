@@ -34,10 +34,9 @@
     <PackageReference Include="Npgsql" Version="6.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
-    <PackageReference Include="Serilog.Sinks.PostgreSQL" Version="2.3.0" />
     <PackageReference Include="Serilog.Sinks.Postgresql.Alternative" Version="3.4.2" />
-    <PackageReference Include="Serilog.Sinks.PostgreSQL.Configuration" Version="1.0.1" />
     <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
+    <PackageReference Include="Serilog.Sinks.PostgreSQL.Configuration" Version="1.0.1" />
     <PackageReference Include="UoN.AspNetCore.VersionMiddleware" Version="1.1.1" />
     
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">

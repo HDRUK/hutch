@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -52,6 +53,18 @@ namespace HutchManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DataSources",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    LastCheckin = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataSources", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FeatureFlags",
                 columns: table => new
                 {
@@ -64,21 +77,15 @@ namespace HutchManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "logs",
+                name: "ModifierTypes",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    exception = table.Column<string>(type: "text", nullable: true),
-                    level = table.Column<string>(type: "text", nullable: false),
-                    message = table.Column<string>(type: "text", nullable: false),
-                    messagetemplate = table.Column<string>(type: "text", nullable: false),
-                    properties = table.Column<string>(type: "text", nullable: false),
-                    timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Limit = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_logs", x => x.id);
+                    table.PrimaryKey("PK_ModifierTypes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -216,18 +223,60 @@ namespace HutchManager.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Host = table.Column<string>(type: "text", nullable: false),
-                    TypeId = table.Column<string>(type: "text", nullable: true),
-                    ResourceId = table.Column<string>(type: "text", nullable: false)
+                    TypeId = table.Column<string>(type: "text", nullable: false),
+                    ResourceId = table.Column<string>(type: "text", nullable: false),
+                    DisplayName = table.Column<string>(type: "text", nullable: false),
+                    TargetDataSourceId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ActivitySources", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_ActivitySources_DataSources_TargetDataSourceId",
+                        column: x => x.TargetDataSourceId,
+                        principalTable: "DataSources",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_ActivitySources_SourceTypes_TypeId",
                         column: x => x.TypeId,
                         principalTable: "SourceTypes",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "ResultsModifier",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Order = table.Column<int>(type: "integer", nullable: false),
+                    ActivitySourceId = table.Column<int>(type: "integer", nullable: false),
+                    TypeId = table.Column<string>(type: "text", nullable: false),
+                    Parameters = table.Column<JsonDocument>(type: "jsonb", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ResultsModifier", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ResultsModifier_ActivitySources_ActivitySourceId",
+                        column: x => x.ActivitySourceId,
+                        principalTable: "ActivitySources",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ResultsModifier_ModifierTypes_TypeId",
+                        column: x => x.TypeId,
+                        principalTable: "ModifierTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivitySources_TargetDataSourceId",
+                table: "ActivitySources",
+                column: "TargetDataSourceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ActivitySources_TypeId",
@@ -270,13 +319,20 @@ namespace HutchManager.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ResultsModifier_ActivitySourceId",
+                table: "ResultsModifier",
+                column: "ActivitySourceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ResultsModifier_TypeId",
+                table: "ResultsModifier",
+                column: "TypeId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ActivitySources");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -296,19 +352,28 @@ namespace HutchManager.Migrations
                 name: "FeatureFlags");
 
             migrationBuilder.DropTable(
-                name: "logs");
-
-            migrationBuilder.DropTable(
                 name: "RegistrationAllowlist");
 
             migrationBuilder.DropTable(
-                name: "SourceTypes");
+                name: "ResultsModifier");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "ActivitySources");
+
+            migrationBuilder.DropTable(
+                name: "ModifierTypes");
+
+            migrationBuilder.DropTable(
+                name: "DataSources");
+
+            migrationBuilder.DropTable(
+                name: "SourceTypes");
         }
     }
 }

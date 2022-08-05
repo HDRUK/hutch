@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace HutchManager.Data.Entities;
 
 public class ActivitySource
@@ -6,11 +8,14 @@ public class ActivitySource
 
   public string Host { get; set; } = string.Empty;
 
+  [Required]
   public SourceType Type { get; set; } = null!;
   
   public string ResourceId { get; set; } = string.Empty;
 
   public string DisplayName { get; set; } = string.Empty;
-  public string TargetDataSourceName { get; set; } = string.Empty;
+  
+  [Required]
+  public DataSource TargetDataSource { get; set; } = null!;
 
 }

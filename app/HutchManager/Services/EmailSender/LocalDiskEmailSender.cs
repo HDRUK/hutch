@@ -10,6 +10,7 @@ namespace HutchManager.Services.EmailSender
   public class LocalDiskEmailSender : IEmailSender
   {
     private readonly LocalDiskEmailOptions _config;
+    private readonly string _localPath;
     private readonly RazorViewService _emailViews;
 
     public LocalDiskEmailSender(
@@ -18,12 +19,28 @@ namespace HutchManager.Services.EmailSender
     {
       _config = options.Value;
       _emailViews = emailViews;
+      
+      // local path preprocessing
+      // special case replacements, like `~`
+      _localPath = _config.LocalPath.StartsWith("~/")
+        ? Path.Combine(
+          Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+          _config.LocalPath.Replace("~/", "")) 
+        : _config.LocalPath;
+    }
+
+    private void EnsureTargetPath()
+    {
+      if (!Directory.Exists(_localPath))
+        Directory.CreateDirectory(_localPath);
     }
 
     /// <inheritdoc />
     public async Task SendEmail<TModel>(List<EmailAddress> toAddresses, string viewName, TModel model)
         where TModel : class
     {
+      EnsureTargetPath();
+      
       var (body, viewContext) = await _emailViews.RenderToString(viewName, model);
 
       var message = new MimeMessage();
@@ -43,7 +60,7 @@ namespace HutchManager.Services.EmailSender
       };
 
       await message.WriteToAsync(
-          Path.Combine(_config.LocalPath,
+          Path.Combine(_localPath,
               MessageFileName(viewName, toAddresses[0].Address)));
     }
 
