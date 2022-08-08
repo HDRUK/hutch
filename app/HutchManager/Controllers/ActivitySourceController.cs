@@ -11,13 +11,16 @@ namespace HutchManager.Controllers;
 public class ActivitySourceController : ControllerBase
 {
   private readonly ActivitySourceService _activitySources;
-  public ActivitySourceController(ActivitySourceService activitySources)
+  private readonly ResultsModifierService _resultsModifier;
+
+  public ActivitySourceController(ActivitySourceService activitySources,ResultsModifierService resultsModifier)
   {
     _activitySources = activitySources;
+    _resultsModifier = resultsModifier;
   }
 
   [HttpGet]
-  public async Task<List<Models.ActivitySourceModel>> List()
+  public async Task<List<ActivitySourceModel>> List()
     => await _activitySources.List();
   
   [HttpPost]
@@ -53,4 +56,8 @@ public class ActivitySourceController : ControllerBase
       return NotFound();
     }
   }
+  
+  [HttpPost("{id}/resultsmodifiers")]
+  public async Task<ResultsModifierModel> Create(int id,CreateResultsModifier resultsModifier)
+    => await _resultsModifier.Create(id,resultsModifier);
 }
