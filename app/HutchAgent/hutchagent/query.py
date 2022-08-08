@@ -8,9 +8,12 @@ from sqlalchemy import (
     not_,
     or_,
     select,
+    sql,
 )
-from typing import Any
-from hutchagent.entities import ConditionOccurrence, Measurement, Observation, Person
+from typing import Any, Union
+from hutchagent.db_manager import SyncDBManager
+from hutchagent.entities import Concept, ConditionOccurrence, Measurement, Observation, Person, DrugExposure, ProcedureOccurrence
+from hutchagent.ro_crates.query import Query
 
 dotenv.load_dotenv()
 
@@ -56,6 +59,9 @@ class RQuestQueryRule:
         self.ext = ext
         self.regex = regex
         self.unit = unit
+        # Set these with `set_table` and `set_column`
+        self.table = None
+        self.column = None
 
     def _parse_value(self, value: str) -> Any:
         """Parse string value into correct type.
@@ -73,29 +79,16 @@ class RQuestQueryRule:
 
     @property
     def sql_clause(self):
-        if self.column_name is None and self.oper == "=":
-            return or_(
-                column("measurement_concept_id") == self.concept_id,
-                column("observation_concept_id") == self.concept_id,
-                column("condition_concept_id") == self.concept_id,
-            )
-        if self.column_name is None and self.oper == "!=":
-            return or_(
-                column("measurement_concept_id") != self.concept_id,
-                column("observation_concept_id") != self.concept_id,
-                column("condition_concept_id") != self.concept_id,
-            )
-
         clause = None
         if self.type == "TEXT" and self.oper == "=":
-            clause = column(self.column_name) == self.concept_id
+            clause = self.column == self.concept_id
         elif self.type == "TEXT" and self.oper == "!=":
-            clause = column(self.column_name) != self.concept_id
+            clause = self.column != self.concept_id
         elif self.type == "NUM" and self.oper == "=":
-            clause = column(self.column_name).between(self.value[0], self.value[1])
+            clause = self.column.between(self.value[0], self.value[1])
         elif self.type == "NUM" and self.oper == "!=":
             clause = not_(
-                column(self.column_name).between(self.value[0], self.value[1])
+                self.column.between(self.value[0], self.value[1])
             )
 
         # If there is a time clause, combine with main clause.
@@ -129,6 +122,14 @@ class RQuestQueryRule:
         """If an RQuest message has a "time" clause, this function is used
         to parse it into an SQL clause.
         """
+        date_columns = {
+            Person: Person.birth_datetime,
+            Measurement: Measurement.measurement_date,
+            ConditionOccurrence: ConditionOccurrence.condition_start_date,
+            Observation: Observation.observation_date,
+            ProcedureOccurrence: ProcedureOccurrence.procedure_date,
+            DrugExposure: DrugExposure.drug_exposure_start_date,
+        }
         # greater than pattern
         gt_pattern = re.compile(r"^\|(\d+):[a-zA-Z]+:(\w)$")
         # less than pattern
@@ -140,20 +141,20 @@ class RQuestQueryRule:
             time_unit = hit.group(2)
             # older times are smaller, so use `>` for inclusive ("=") seaches
             if time_unit == "Y" and self.oper == "=":
-                return column("birth_datetime") < (
+                return date_columns[self.table] < (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "=":
-                return column("birth_datetime") < (
+                return date_columns[self.table] < (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # newer times are larger, so use `<=` for exclusive ("!=") seaches
             elif time_unit == "Y" and self.oper == "!=":
-                return column("birth_datetime") >= (
+                return date_columns[self.table] >= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "!=":
-                return column("birth_datetime") >= (
+                return date_columns[self.table] >= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             else:
@@ -165,20 +166,20 @@ class RQuestQueryRule:
             time_unit = hit.group(2)
             # newer times are larger, so use `>` for inclusive ("=") seaches
             if time_unit == "Y" and self.oper == "=":
-                return column("birth_datetime") > (
+                return date_columns[self.table] > (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "=":
-                return column("birth_datetime") > (
+                return date_columns[self.table] > (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             # older times are smaller, so use `<=` for exclusive ("!=") seaches
             elif time_unit == "Y" and self.oper == "!=":
-                return column("birth_datetime") <= (
+                return date_columns[self.table] <= (
                     dt.datetime.now() - dt.timedelta(days=365 * timespan)
                 )
             elif time_unit == "M" and self.oper == "!=":
-                return column("birth_datetime") <= (
+                return date_columns[self.table] <= (
                     dt.datetime.now() - dt.timedelta(weeks=4.33 * timespan)
                 )
             else:
@@ -188,6 +189,14 @@ class RQuestQueryRule:
             raise ValueError(
                 f"Could not parse the time value ({self.time_}) in the rule."
             )
+
+    def set_table(self, table):
+        """Set the table for the rule."""
+        self.table = table
+
+    def set_column(self, column):
+        """Set the column for the rule"""
+        self.column = column
 
 
 class RQuestQueryGroup:
@@ -206,8 +215,6 @@ class RQuestQueryGroup:
         self.rules = (
             [RQuestQueryRule(**r) for r in rules] if rules is not None else list()
         )
-        # Sort rules for more predictable behaviour in tests.
-        self.rules = sorted(self.rules, key=lambda x: x.column_name)
         self.rules_oper = rules_oper
         self.exclude = exclude
 
@@ -295,3 +302,321 @@ class RQuestQuery:
             .subquery()
         )
         return select(func.count()).select_from(stmt)
+
+
+class BaseQueryBuilder:
+
+    domain_table_map = {
+        "Drug": DrugExposure.person_id,
+        "Ethnicity": Person.person_id,
+        "Gender": Person.person_id,
+        "Measurement": Measurement.person_id,
+        "Observation": Observation.person_id,
+        "Procedure": ProcedureOccurrence.person_id,
+        "Race": Person.person_id,
+    }
+    domain_column_map = {
+        "Drug": DrugExposure.drug_concept_id,
+        "Ethnicity": Person.ethnicity_concept_id,
+        "Gender": Person.gender_concept_id,
+        "Measurement": Measurement.measurement_concept_id,
+        "Observation": Observation.observation_concept_id,
+        "Procedure": ProcedureOccurrence.procedure_concept_id,
+        "Race": Person.race_concept_id,
+    }
+    subqueries = list()
+
+    def __init__(self, db_manager: SyncDBManager, query: Union[RQuestQuery, Query]) -> None:
+        self.db_manager = db_manager
+        self.query = query
+
+    def set_tables_and_columns(self) -> None:
+        raise NotImplementedError
+
+    def build_subqueries(self) -> None:
+        raise NotImplementedError
+
+    def build_sql(self) -> sql.selectable.Select:
+        raise NotImplementedError
+
+
+class RQuestQueryBuilder(BaseQueryBuilder):
+
+    def set_tables_and_columns(self) -> None:
+        """Set the tables and columns for the rules in the query."""
+        pass
+
+    def build_subqueries(self) -> None:
+        """Build the subqueries for the main query."""
+        base_txt_stmnt = (
+            select(Person.person_id)
+            .join(
+                ProcedureOccurrence,
+                Person.person_id == ProcedureOccurrence.person_id,
+                full=True,
+            )
+            .join(
+                ConditionOccurrence,
+                Person.person_id == ConditionOccurrence.person_id,
+                full=True,
+            )
+            .join(
+                Observation,
+                Person.person_id == Observation.person_id,
+                full=True,
+            )
+            .join(
+                DrugExposure,
+                Person.person_id == DrugExposure.person_id,
+                full=True,
+            )
+        )
+        base_num_stmnt = select(Measurement.person_id)
+        for group in self.query.cohort.groups:
+            if group.rules[0].type == "TEXT" and group.rules[0].oper == "=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id == group.rules[0].concept_id,
+                        Person.gender_concept_id == group.rules[0].concept_id,
+                        Person.race_concept_id == group.rules[0].concept_id,
+                        ProcedureOccurrence.procedure_concept_id == group.rules[0].concept_id,
+                        ConditionOccurrence.condition_concept_id == group.rules[0].concept_id,
+                        Observation.observation_concept_id == group.rules[0].concept_id,
+                        DrugExposure.drug_concept_id == group.rules[0].concept_id,
+                    )
+                ).distinct().subquery()
+            elif group.rules[0].type == "TEXT" and group.rules[0].oper == "!=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id != group.rules[0].concept_id,
+                        Person.gender_concept_id != group.rules[0].concept_id,
+                        Person.race_concept_id != group.rules[0].concept_id,
+                        ProcedureOccurrence.procedure_concept_id != group.rules[0].concept_id,
+                        ConditionOccurrence.condition_concept_id != group.rules[0].concept_id,
+                        Observation.observation_concept_id != group.rules[0].concept_id,
+                        DrugExposure.drug_concept_id != group.rules[0].concept_id,
+                    )
+                ).distinct().subquery()
+            else:
+                stmnt = base_num_stmnt.where(
+                    and_(
+                        Measurement.measurement_concept_id == group.rules[0].concept_id,
+                        Measurement.value_as_number.between(*group.rules[0].value)
+                    )
+                ).distinct().subquery()
+            for i in range(1, len(group.rules[1:]) + 1):
+                # Text rules testing for inclusion
+                if group.rules[i].type == "TEXT" and group.rules[i].oper == "=":
+                    rule_stmnt = (
+                        base_txt_stmnt
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id == group.rules[i].concept_id,
+                                Person.gender_concept_id == group.rules[i].concept_id,
+                                Person.race_concept_id == group.rules[i].concept_id,
+                                ProcedureOccurrence.procedure_concept_id == group.rules[i].concept_id,
+                                ConditionOccurrence.condition_concept_id == group.rules[i].concept_id,
+                                Observation.observation_concept_id == group.rules[i].concept_id,
+                                DrugExposure.drug_concept_id == group.rules[i].concept_id,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
+                # Text rules testing for exclusion
+                elif group.rules[i].type == "TEXT" and group.rules[i].oper == "!=":
+                    rule_stmnt = (
+                        base_txt_stmnt
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id != group.rules[i].concept_id,
+                                Person.gender_concept_id != group.rules[i].concept_id,
+                                Person.race_concept_id != group.rules[i].concept_id,
+                                ProcedureOccurrence.procedure_concept_id != group.rules[i].concept_id,
+                                ConditionOccurrence.condition_concept_id != group.rules[i].concept_id,
+                                Observation.observation_concept_id != group.rules[i].concept_id,
+                                DrugExposure.drug_concept_id != group.rules[i].concept_id,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
+                else:
+                    # numeric rule
+                    rule_stmnt = (
+                        base_num_stmnt
+                        .where(
+                            and_(
+                                Measurement.measurement_concept_id == group.rules[i].concept_id,
+                                Measurement.value_as_number.between(*group.rules[i].value)
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
+            self.subqueries.append(stmnt)
+
+    def build_sql(self) -> sql.selectable.Select:
+        """Build and return the final SQL that can be used to query the database."""
+        group_stmnt = self.subqueries[0]
+        for sq in self.subqueries[1:]:
+            group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
+        self.subqueries.clear()
+        stmnt = select(func.count()).select_from(group_stmnt)
+        return stmnt
+
+
+class ROCratesQueryBuilder(BaseQueryBuilder):
+
+    def set_tables_and_columns(self) -> None:
+        """Set the tables and columns for the rules in the query."""
+        pass
+
+    def build_subqueries(self) -> None:
+        """Build the subqueries for the main query."""
+        base_txt_stmnt = (
+            select(Person.person_id)
+            .join(
+                ProcedureOccurrence,
+                Person.person_id == ProcedureOccurrence.person_id,
+                full=True,
+            )
+            .join(
+                ConditionOccurrence,
+                Person.person_id == ConditionOccurrence.person_id,
+                full=True,
+            )
+            .join(
+                Observation,
+                Person.person_id == Observation.person_id,
+                full=True,
+            )
+            .join(
+                DrugExposure,
+                Person.person_id == DrugExposure.person_id,
+                full=True,
+            )
+        )
+        base_num_stmnt = select(Measurement.person_id)
+        for group in self.query.groups:
+            if group.rules[0].value is not None and group.rules[0].operator == "=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id == group.rules[0].name,
+                        Person.gender_concept_id == group.rules[0].name,
+                        Person.race_concept_id == group.rules[0].name,
+                        ProcedureOccurrence.procedure_concept_id == group.rules[0].name,
+                        ConditionOccurrence.condition_concept_id == group.rules[0].name,
+                        Observation.observation_concept_id == group.rules[0].name,
+                        DrugExposure.drug_concept_id == group.rules[0].name,
+                    )
+                ).distinct().subquery()
+            elif group.rules[0].value is not None and group.rules[0].operator == "!=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id != group.rules[0].name,
+                        Person.gender_concept_id != group.rules[0].name,
+                        Person.race_concept_id != group.rules[0].name,
+                        ProcedureOccurrence.procedure_concept_id != group.rules[0].name,
+                        ConditionOccurrence.condition_concept_id != group.rules[0].name,
+                        Observation.observation_concept_id != group.rules[0].name,
+                        DrugExposure.drug_concept_id != group.rules[0].name,
+                    )
+                ).distinct().subquery()
+            else:
+                stmnt = base_num_stmnt.where(
+                    and_(
+                        Measurement.measurement_concept_id == group.rules[0].name,
+                        Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
+                    )
+                ).distinct().subquery()
+            for i in range(1, len(group.rules[1:]) + 1):
+                # Text rules testing for inclusion
+                if group.rules[0].value is not None and group.rules[0].operator == "=":
+                    rule_stmnt = (
+                        base_txt_stmnt
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id == group.rules[i].name,
+                                Person.gender_concept_id == group.rules[i].name,
+                                Person.race_concept_id == group.rules[i].name,
+                                ProcedureOccurrence.procedure_concept_id == group.rules[i].name,
+                                ConditionOccurrence.condition_concept_id == group.rules[i].name,
+                                Observation.observation_concept_id == group.rules[i].name,
+                                DrugExposure.drug_concept_id == group.rules[i].name,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
+                # Text rules testing for exclusion
+                elif group.rules[0].value is not None and group.rules[0].operator == "!=":
+                    rule_stmnt = (
+                        base_txt_stmnt
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id != group.rules[i].name,
+                                Person.gender_concept_id != group.rules[i].name,
+                                Person.race_concept_id != group.rules[i].name,
+                                ProcedureOccurrence.procedure_concept_id != group.rules[i].name,
+                                ConditionOccurrence.condition_concept_id != group.rules[i].name,
+                                Observation.observation_concept_id != group.rules[i].name,
+                                DrugExposure.drug_concept_id != group.rules[i].name,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
+                else:
+                    # numeric rule
+                    rule_stmnt = (
+                        base_num_stmnt
+                        .where(
+                            and_(
+                                Measurement.measurement_concept_id == group.rules[i].name,
+                                Measurement.value_as_number.between(group.rules[i].min_value, group.rules[i].max_value)
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rules_oper == "OR",
+                    )
+            self.subqueries.append(stmnt)
+
+    def build_sql(self) -> sql.selectable.Select:
+        """Build and return the final SQL that can be used to query the database."""
+        group_stmnt = self.subqueries[0]
+        for sq in self.subqueries[1:]:
+            group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
+        self.subqueries.clear()
+        stmnt = select(func.count()).select_from(group_stmnt)
+        return stmnt

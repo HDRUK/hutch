@@ -8,12 +8,12 @@ namespace HutchManager.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ActivitySourceController : ControllerBase
+public class ActivitySourcesController : ControllerBase
 {
   private readonly ActivitySourceService _activitySources;
   private readonly ResultsModifierService _resultsModifier;
 
-  public ActivitySourceController(ActivitySourceService activitySources, ResultsModifierService resultsModifier)
+  public ActivitySourcesController(ActivitySourceService activitySources, ResultsModifierService resultsModifier)
   {
     _activitySources = activitySources;
     _resultsModifier = resultsModifier;

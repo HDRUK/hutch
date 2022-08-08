@@ -7,24 +7,16 @@ namespace HutchManager.Services;
 public class ResultsModifierService
 {
   private readonly ApplicationDbContext _db;
+
   public ResultsModifierService(ApplicationDbContext db)
   {
     _db = db;
   }
 
-  public async Task<List<Models.ResultsModifierModel>> List()
-  {
-    var list = await _db.ResultsModifier
-      .AsNoTracking()
-      .Include(x => x.Type)
-      .Include(x => x.ActivitySource)
-      .ThenInclude(x => x.Type)
-      .Include(x => x.ActivitySource)
-      .ThenInclude(x => x.TargetDataSource)
-      .ToListAsync();
-    return list.ConvertAll<Models.ResultsModifierModel>(x => new(x));
-  }
-
+  /// <summary>
+  /// Get all records in ModifierTypeModel
+  /// </summary>
+  /// <returns></returns>
   public async Task<List<Models.ModifierTypeModel>> GetTypes()
   {
     var list = await _db.ModifierTypes
@@ -51,13 +43,13 @@ public class ResultsModifierService
       throw new BadHttpRequestException(
         $"Cannot create any more modifiers of type {type.Id} for the activity source {activitySource.DisplayName}");
     }
-    
+
     var activitySourceModifiers = (await _db.ResultsModifier.Include(x => x.ActivitySource).ToListAsync())
       .Where(x => x.ActivitySource.Id == activitySourceId)
       .ToList();
-    
+
     var order = activitySourceModifiers.Count() + 1;//Set to be the last one
-    var entity = resultsModifier.ToEntity(type, activitySource,order);
+    var entity = resultsModifier.ToEntity(type, activitySource, order);
     await _db.ResultsModifier.AddAsync(entity);
     await _db.SaveChangesAsync();
     return new(entity);
@@ -79,7 +71,7 @@ public class ResultsModifierService
       (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySourceId) ??
       throw new InvalidOperationException(
         $"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
-    
+
     entity.Type = type;
     entity.Parameters = resultsModifier.Parameters;
     entity.ActivitySource = activitySource;
@@ -87,17 +79,11 @@ public class ResultsModifierService
     return new(entity);
   }
 
-  public async Task<ResultsModifierModel> Get(int resultsModifierId)
-  {
-    var resultsModifier = await _db.ResultsModifier
-                            .AsNoTracking()
-                            .Include(x => x.Type)
-                            .Where(x => x.Id == resultsModifierId)
-                            .SingleOrDefaultAsync()
-                          ?? throw new KeyNotFoundException();
-    return new(resultsModifier);
-  }
-
+  /// <summary>
+  /// Delete a ResultsModifier by ID
+  /// </summary>
+  /// <param name="resultsModifierId"></param>
+  /// <exception cref="KeyNotFoundException"></exception>
   public async Task Delete(int resultsModifierId)
   {
     var entity = await _db.ResultsModifier
@@ -111,7 +97,7 @@ public class ResultsModifierService
     _db.ResultsModifier.Remove(entity);
     await _db.SaveChangesAsync();
   }
-  
+
   /// <summary>
   /// Re-order all ResultsModifiers of an ActivitySource based on the newPosition
   /// </summary>
@@ -122,30 +108,30 @@ public class ResultsModifierService
   /// <exception cref="InvalidOperationException"></exception>
   public async Task<ResultsModifierModel> SetOrder(int id, int newPosition)
   {
-    
+
     var entity = await _db.ResultsModifier
       .Include(x => x.Type)
-      .Include(x=>x.ActivitySource)
-      .ThenInclude(x=>x.TargetDataSource)
+      .Include(x => x.ActivitySource)
+      .ThenInclude(x => x.TargetDataSource)
       .Include(x => x.ActivitySource)
       .ThenInclude(x => x.Type)
       .FirstOrDefaultAsync(x => x.Id == id) ?? throw new KeyNotFoundException($"No ResultsModifier with ID: {id}");
-    
+
     var activitySourceModifiers = (await _db.ResultsModifier
                                     .Include(x => x.Type)
                                     .Include(x => x.ActivitySource)
                                     .ToListAsync())
                                     .Where(x => x.ActivitySource.Id == entity.ActivitySource.Id)
-                                    .ToList()??
+                                    .ToList() ??
                                   throw new InvalidOperationException($"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
-    
+
     if (newPosition <= 0) newPosition = 1; // Set to 1 if newPosition is 0 or negative
-    
-    if (newPosition > activitySourceModifiers.Count() ) newPosition = activitySourceModifiers.Count() ; // Set to last position if newPosition is higher than the count 
+
+    if (newPosition > activitySourceModifiers.Count()) newPosition = activitySourceModifiers.Count(); // Set to last position if newPosition is higher than the count 
 
     if (newPosition == entity.Order) return new(entity); // Make no changes if newPosition is the same as current one
-    
-    activitySourceModifiers= activitySourceModifiers.OrderBy(o=>o.Order).ToList(); // Match order to list index
+
+    activitySourceModifiers = activitySourceModifiers.OrderBy(o => o.Order).ToList(); // Match order to list index
 
     if (newPosition < entity.Order)
     {
@@ -155,8 +141,8 @@ public class ResultsModifierService
       var i = activitySourceModifiers.IndexOf(entity);
       var newEntity = entity;
       newEntity.Order = newPosition;
-      activitySourceModifiers.Insert(newPosition-1,newEntity);
-      activitySourceModifiers.RemoveAt(i+1);
+      activitySourceModifiers.Insert(newPosition - 1, newEntity);
+      activitySourceModifiers.RemoveAt(i + 1);
     }
     else
     {
@@ -169,10 +155,12 @@ public class ResultsModifierService
       activitySourceModifiers.Insert(newPosition - 1, newEntity);
     }
     //Change the Order for the rest of the resultsModifiers in the ActivitySource
-    var modifiers = activitySourceModifiers.Select((x, index) => { x.Order = index + 1;
+    var modifiers = activitySourceModifiers.Select((x, index) =>
+    {
+      x.Order = index + 1;
       return x;
     });
-    
+
     foreach (var resultsModifier in modifiers)
     {
       resultsModifier.Order = resultsModifier.Order;
