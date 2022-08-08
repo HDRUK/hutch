@@ -20,10 +20,6 @@ public class ResultsModifierController : ControllerBase
   public async Task<List<Models.ResultsModifierModel>> List()
     => await _resultsModifier.List();
 
-  [HttpPost]
-  public async Task<ResultsModifierModel> Create(CreateResultsModifier resultsModifier)
-    => await _resultsModifier.Create(resultsModifier);
-
   [HttpGet("{id}")]
   public async Task<ActionResult<ResultsModifierModel>> Get(int id)
     => await _resultsModifier.Get(id);
@@ -47,7 +43,7 @@ public class ResultsModifierController : ControllerBase
   }
 
   [HttpPut("{id}")]
-  public async Task<IActionResult> Set(int id, [FromBody] CreateResultsModifier resultsModifier)
+  public async Task<IActionResult> Set(int id, [FromBody] UpdateResultsModifier resultsModifier)
   {
     try
     {
@@ -58,4 +54,18 @@ public class ResultsModifierController : ControllerBase
       return NotFound();
     }
   }
+  
+  [HttpPut("{id}/order/{newPosition}")]
+  public async Task<IActionResult> SetOrder(int id, int newPosition)
+  {
+    try
+    {
+      return Ok(await _resultsModifier.SetOrder(id, newPosition));
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
+  
 }
