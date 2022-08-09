@@ -32,7 +32,7 @@ public class ResultsModifierService
     var activitySource =
       (await _db.ActivitySources.Include(x => x.Type).Include(x => x.TargetDataSource).ToListAsync()).FirstOrDefault(
         x => x.Id == activitySourceId) ??
-      throw new InvalidOperationException(
+      throw new KeyNotFoundException(
         $"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
 
     var limitCheck = (await _db.ResultsModifier.ToListAsync())
@@ -123,7 +123,7 @@ public class ResultsModifierService
                                     .ToListAsync())
                                     .Where(x => x.ActivitySource.Id == entity.ActivitySource.Id)
                                     .ToList() ??
-                                  throw new InvalidOperationException($"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
+                                  throw new KeyNotFoundException($"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
 
     if (newPosition <= 0) newPosition = 1; // Set to 1 if newPosition is 0 or negative
 

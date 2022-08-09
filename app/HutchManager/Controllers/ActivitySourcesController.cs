@@ -93,6 +93,17 @@ public class ActivitySourcesController : ControllerBase
   }
 
   [HttpPost("{id}/resultsmodifiers")]
-  public async Task<ResultsModifierModel> Create(int id, CreateResultsModifier resultsModifier)
-    => await _resultsModifier.Create(id, resultsModifier);
+  public async Task<IActionResult> Create(int id, CreateResultsModifier resultsModifier)
+  {
+    try
+    {
+        return Ok(await _resultsModifier.Create(id, resultsModifier));
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
+ 
+   
 }
