@@ -11,10 +11,14 @@ namespace HutchManager.Controllers;
 public class ActivitySourcesController : ControllerBase
 {
   private readonly ActivitySourceService _activitySources;
-  public ActivitySourcesController(ActivitySourceService activitySources)
+  private readonly ResultsModifierService _resultsModifier;
+
+  public ActivitySourcesController(ActivitySourceService activitySources, ResultsModifierService resultsModifier)
   {
     _activitySources = activitySources;
+    _resultsModifier = resultsModifier;
   }
+
   /// <summary>
   /// Get a list of all ActivitySources
   /// </summary>
@@ -22,7 +26,7 @@ public class ActivitySourcesController : ControllerBase
   [HttpGet]
   public async Task<List<ActivitySourceModel>> List()
     => await _activitySources.List();
-  
+
   /// <summary>
   /// Create a new ActivitySource
   /// </summary>
@@ -31,7 +35,7 @@ public class ActivitySourcesController : ControllerBase
   [HttpPost]
   public async Task<ActivitySourceModel> Create(CreateActivitySource activitySource)
     => await _activitySources.Create(activitySource);
-  
+
   /// <summary>
   /// Get an ActivitySource by ID
   /// </summary>
@@ -39,8 +43,8 @@ public class ActivitySourcesController : ControllerBase
   /// <returns></returns>
   [HttpGet("{id}")]
   public async Task<ActionResult<ActivitySourceModel>> Get(int id)
-    =>await _activitySources.Get(id);
-  
+    => await _activitySources.Get(id);
+
   /// <summary>
   /// Get all ResultsModifiers related to an ActivitySource
   /// </summary>
@@ -49,7 +53,7 @@ public class ActivitySourcesController : ControllerBase
   [HttpGet("{id}/resultsmodifiers")]
   public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifiers(int id)
     => await _activitySources.GetActivitySourceResultsModifiers(id);
-  
+
   /// <summary>
   /// Delete an ActivitySource by ID
   /// </summary>
@@ -62,12 +66,13 @@ public class ActivitySourcesController : ControllerBase
     {
       await _activitySources.Delete(id);
     }
-    catch (KeyNotFoundException) {
-      
+    catch (KeyNotFoundException)
+    {
+
     }
     return NoContent();
   }
-  
+
   /// <summary>
   /// Modify an ActivitySource by ID
   /// </summary>
@@ -86,4 +91,19 @@ public class ActivitySourcesController : ControllerBase
       return NotFound();
     }
   }
+
+  [HttpPost("{id}/resultsmodifiers")]
+  public async Task<IActionResult> Create(int id, CreateResultsModifier resultsModifier)
+  {
+    try
+    {
+        return Ok(await _resultsModifier.Create(id, resultsModifier));
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
+ 
+   
 }
