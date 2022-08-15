@@ -14,7 +14,7 @@ from hutchagent.ro_crates.query import Query
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query import RQuestQuery, RQuestQueryBuilder, ROCratesQueryBuilder
 
-from app.HutchAgent.hutchagent.obfuscation import low_number_suppression
+from hutchagent.obfuscation import get_results_modifiers, apply_filters
 
 
 def connect(queue: str, host="localhost", **kwargs) -> BlockingChannel:
@@ -91,7 +91,8 @@ def rquest_callback(
         query_end = time.time()
         count_ = res[0][0]
         if int(os.getenv("USE_RESULTS_MODS", 0)):
-            count_ = low_number_suppression(count_)
+            result_modifiers = get_results_modifiers(query.activity_source_id)
+            count_ = apply_filters(count_, result_modifiers)
         response_data["queryResult"].update(count=count_)
         response_data.update(status="ok")
         logger.info(
@@ -165,7 +166,8 @@ def ro_crates_callback(
         query_end = time.time()
         count_ = res[0][0]
         if int(os.getenv("USE_RESULTS_MODS", 0)):
-            count_ = low_number_suppression(count_)
+            result_modifiers = get_results_modifiers(query.activity_source_id)
+            count_ = apply_filters(count_, result_modifiers)
         logger.info(
             f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
         )
