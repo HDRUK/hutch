@@ -10,9 +10,6 @@ dotenv.load_dotenv()
 
 def get_results_modifiers(activity_source_id: int) -> list:
     """Get the results modifiers for a given activity source.
-    TODO: Once it is possible to query the results modifier endpoint
-    by acitivity source ID, this function send a GET request to
-    retrieve the relevant modifiers and return them as a list.
 
     Args:
         activity_source_id (int): The acivity source ID.
@@ -20,7 +17,27 @@ def get_results_modifiers(activity_source_id: int) -> list:
     Returns:
         list: The modifiers for the given activity source.
     """
-    pass
+    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    try:
+        logger.info(f"Getting results modifiers for activity source {activity_source_id}.")
+        res = requests.get(
+            f"{os.getenv('MANAGER_URL')}/api/activitysources/{activity_source_id}/resultsmodifiers"
+        )
+        modifiers = res.json()
+        logger.info(f"Retrieved {len(modifiers)} modifiers for activity source {activity_source_id}.")
+        return modifiers
+    except req_exc.ConnectionError as connection_error:
+        logger.error(str(connection_error))
+        return list()
+    except req_exc.Timeout as timeout_error:
+        logger.error(str(timeout_error))
+        return list()
+    except req_exc.MissingSchema as missing_schema_error:
+        logger.error(str(missing_schema_error))
+        return list()
+    except req_exc.JSONDecodeError as json_error:
+        logger.error(str(json_error))
+        return list()
 
 
 def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Union[int, float]:
