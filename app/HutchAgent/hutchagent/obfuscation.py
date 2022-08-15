@@ -2,7 +2,8 @@ import logging
 import os
 import dotenv
 import requests, requests.exceptions as req_exc
-from typing import Any, Union
+import hutchagent.config as config
+from typing import Union
 
 
 dotenv.load_dotenv()
@@ -17,11 +18,12 @@ def get_results_modifiers(activity_source_id: int) -> list:
     Returns:
         list: The modifiers for the given activity source.
     """
-    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    logger = logging.getLogger(config.LOGGER_NAME)
     try:
         logger.info(f"Getting results modifiers for activity source {activity_source_id}.")
         res = requests.get(
-            f"{os.getenv('MANAGER_URL')}/api/activitysources/{activity_source_id}/resultsmodifiers"
+            f"{os.getenv('MANAGER_URL')}/api/activitysources/{activity_source_id}/resultsmodifiers",
+            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
         modifiers = res.json()
         logger.info(f"Retrieved {len(modifiers)} modifiers for activity source {activity_source_id}.")
@@ -50,7 +52,7 @@ def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Uni
     Returns:
         Union[int, float]: `value` if `value` > `threshold` else `0`.
     """
-    logger = logging.getLogger(os.getenv("DB_LOGGER_NAME"))
+    logger = logging.getLogger(config.LOGGER_NAME)
     logger.info("Applying Low Number Suppression.")
     result = value if value > threshold else 0
     logger.info(f"The count is {result} after Low Number Suppression.")
@@ -73,8 +75,8 @@ def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
     }
     result = value
     for f in filters:
-        if action := actions.get(f["TypeId"]):
-            result = action(result, **f["Parameters"])
+        if action := actions.get(f["type"]["id"]):
+            result = action(result, **f["parameters"])
             if result == 0:
                 break  # don't apply any more filters
     return result
