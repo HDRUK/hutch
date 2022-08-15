@@ -58,17 +58,23 @@ def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Uni
 
 
 def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
-    """_summary_
-    TODO: When more modifiers have been designed, use this function as a
-    wrapper to iterate over the list of filters from `get_results_modifiers`,
-    appyling them to the value until either the end last of the filters, or
-    the value reaches 0.
+    """Iterate over a list of filters from the Manager and apply them to the
+    supplied value.
 
     Args:
-        value (Union[int, float]): _description_
-        filters (list): _description_
+        value (Union[int, float]): The value to be filtered.
+        filters (list): The filters applied to the value.
 
     Returns:
-        Union[int, float]: _description_
+        Union[int, float]: The filtered value.
     """
-    pass
+    actions = {
+        "Low Number Suppression": low_number_suppression
+    }
+    result = value
+    for f in filters:
+        if action := actions.get(f["TypeId"]):
+            result = action(result, **f["Parameters"])
+            if result == 0:
+                break  # don't apply any more filters
+    return result
