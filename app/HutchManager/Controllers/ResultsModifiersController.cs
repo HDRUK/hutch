@@ -15,16 +15,7 @@ public class ResultsModifiersController : ControllerBase
   {
     _resultsModifier = resultsModifier;
   }
-  
-  /// <summary>
-  /// Create a new ResultsModifier
-  /// </summary>
-  /// <param name="resultsModifier"></param>
-  /// <returns></returns>
-  [HttpPost]
-  public async Task<ResultsModifierModel> Create(CreateResultsModifier resultsModifier)
-    => await _resultsModifier.Create(resultsModifier);
-  
+
   /// <summary>
   /// Get a list of all Types
   /// </summary>
@@ -32,7 +23,7 @@ public class ResultsModifiersController : ControllerBase
   [HttpGet("types")]
   public async Task<List<ModifierTypeModel>> GetTypes()
     => await _resultsModifier.GetTypes();
-  
+
   /// <summary>
   /// Delete a ResultsModiefier by ID
   /// </summary>
@@ -51,7 +42,7 @@ public class ResultsModifiersController : ControllerBase
     }
     return NoContent();
   }
-  
+
   /// <summary>
   /// Modify a ResultsModifier by ID
   /// </summary>
@@ -59,7 +50,7 @@ public class ResultsModifiersController : ControllerBase
   /// <param name="resultsModifier"></param>
   /// <returns></returns>
   [HttpPut("{id}")]
-  public async Task<IActionResult> Set(int id, [FromBody] CreateResultsModifier resultsModifier)
+  public async Task<IActionResult> Set(int id, [FromBody] UpdateResultsModifier resultsModifier)
   {
     try
     {
@@ -70,4 +61,18 @@ public class ResultsModifiersController : ControllerBase
       return NotFound();
     }
   }
+
+  [HttpPut("{id}/order/{newPosition}")]
+  public async Task<IActionResult> SetOrder(int id, int newPosition)
+  {
+    try
+    {
+      return Ok(await _resultsModifier.SetOrder(id, newPosition));
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
+
 }
