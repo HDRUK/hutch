@@ -514,51 +514,51 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         )
         base_num_stmnt = select(Measurement.person_id)
         for group in self.query.groups:
-            if group.rules[0].value is not None and group.rules[0].operator == "=":
+            if group.rules[0].value is not None and group.rules[0].operator.value == "=":
                 stmnt = base_txt_stmnt.where(
                     or_(
-                        Person.ethnicity_concept_id == group.rules[0].name,
-                        Person.gender_concept_id == group.rules[0].name,
-                        Person.race_concept_id == group.rules[0].name,
-                        ProcedureOccurrence.procedure_concept_id == group.rules[0].name,
-                        ConditionOccurrence.condition_concept_id == group.rules[0].name,
-                        Observation.observation_concept_id == group.rules[0].name,
-                        DrugExposure.drug_concept_id == group.rules[0].name,
+                        Person.ethnicity_concept_id == group.rules[0].value,
+                        Person.gender_concept_id == group.rules[0].value,
+                        Person.race_concept_id == group.rules[0].value,
+                        ProcedureOccurrence.procedure_concept_id == group.rules[0].value,
+                        ConditionOccurrence.condition_concept_id == group.rules[0].value,
+                        Observation.observation_concept_id == group.rules[0].value,
+                        DrugExposure.drug_concept_id == group.rules[0].value,
                     )
                 ).distinct().subquery()
             elif group.rules[0].value is not None and group.rules[0].operator == "!=":
                 stmnt = base_txt_stmnt.where(
                     or_(
-                        Person.ethnicity_concept_id != group.rules[0].name,
-                        Person.gender_concept_id != group.rules[0].name,
-                        Person.race_concept_id != group.rules[0].name,
-                        ProcedureOccurrence.procedure_concept_id != group.rules[0].name,
-                        ConditionOccurrence.condition_concept_id != group.rules[0].name,
-                        Observation.observation_concept_id != group.rules[0].name,
-                        DrugExposure.drug_concept_id != group.rules[0].name,
+                        Person.ethnicity_concept_id != group.rules[0].value,
+                        Person.gender_concept_id != group.rules[0].value,
+                        Person.race_concept_id != group.rules[0].value,
+                        ProcedureOccurrence.procedure_concept_id != group.rules[0].value,
+                        ConditionOccurrence.condition_concept_id != group.rules[0].value,
+                        Observation.observation_concept_id != group.rules[0].value,
+                        DrugExposure.drug_concept_id != group.rules[0].value,
                     )
                 ).distinct().subquery()
             else:
                 stmnt = base_num_stmnt.where(
                     and_(
-                        Measurement.measurement_concept_id == group.rules[0].name,
+                        Measurement.measurement_concept_id == group.rules[0].value,
                         Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
                     )
                 ).distinct().subquery()
             for i in range(1, len(group.rules[1:]) + 1):
                 # Text rules testing for inclusion
-                if group.rules[0].value is not None and group.rules[0].operator == "=":
+                if group.rules[i].value is not None and group.rules[i].operator.value == "=":
                     rule_stmnt = (
                         base_txt_stmnt
                         .where(
                             or_(
-                                Person.ethnicity_concept_id == group.rules[i].name,
-                                Person.gender_concept_id == group.rules[i].name,
-                                Person.race_concept_id == group.rules[i].name,
-                                ProcedureOccurrence.procedure_concept_id == group.rules[i].name,
-                                ConditionOccurrence.condition_concept_id == group.rules[i].name,
-                                Observation.observation_concept_id == group.rules[i].name,
-                                DrugExposure.drug_concept_id == group.rules[i].name,
+                                Person.ethnicity_concept_id == group.rules[i].value,
+                                Person.gender_concept_id == group.rules[i].value,
+                                Person.race_concept_id == group.rules[i].value,
+                                ProcedureOccurrence.procedure_concept_id == group.rules[i].value,
+                                ConditionOccurrence.condition_concept_id == group.rules[i].value,
+                                Observation.observation_concept_id == group.rules[i].value,
+                                DrugExposure.drug_concept_id == group.rules[i].value,
                             )
                         )
                         .distinct()
@@ -570,18 +570,18 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         full=group.rules_oper == "OR",
                     )
                 # Text rules testing for exclusion
-                elif group.rules[0].value is not None and group.rules[0].operator == "!=":
+                elif group.rules[i].value is not None and group.rules[i].operator == "!=":
                     rule_stmnt = (
                         base_txt_stmnt
                         .where(
                             or_(
-                                Person.ethnicity_concept_id != group.rules[i].name,
-                                Person.gender_concept_id != group.rules[i].name,
-                                Person.race_concept_id != group.rules[i].name,
-                                ProcedureOccurrence.procedure_concept_id != group.rules[i].name,
-                                ConditionOccurrence.condition_concept_id != group.rules[i].name,
-                                Observation.observation_concept_id != group.rules[i].name,
-                                DrugExposure.drug_concept_id != group.rules[i].name,
+                                Person.ethnicity_concept_id != group.rules[i].value,
+                                Person.gender_concept_id != group.rules[i].value,
+                                Person.race_concept_id != group.rules[i].value,
+                                ProcedureOccurrence.procedure_concept_id != group.rules[i].value,
+                                ConditionOccurrence.condition_concept_id != group.rules[i].value,
+                                Observation.observation_concept_id != group.rules[i].value,
+                                DrugExposure.drug_concept_id != group.rules[i].value,
                             )
                         )
                         .distinct()
@@ -598,7 +598,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         base_num_stmnt
                         .where(
                             and_(
-                                Measurement.measurement_concept_id == group.rules[i].name,
+                                Measurement.measurement_concept_id == group.rules[i].value,
                                 Measurement.value_as_number.between(group.rules[i].min_value, group.rules[i].max_value)
                             )
                         )
