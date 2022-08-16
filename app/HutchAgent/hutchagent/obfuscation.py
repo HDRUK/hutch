@@ -54,6 +54,7 @@ def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Uni
     """
     logger = logging.getLogger(config.LOGGER_NAME)
     logger.info("Applying Low Number Suppression.")
+    logger.info(f"The count is {value} before Low Number Suppression.")
     result = value if value > threshold else 0
     logger.info(f"The count is {result} after Low Number Suppression.")
     return result
