@@ -196,7 +196,7 @@ def ro_crates_callback(
 
     try:
         requests.post(
-            f"{os.getenv('MANAGER_URL')}/api/results",
+            f"{os.getenv('MANAGER_URL')}/api/results/rocrates",
             json=result.to_dict(),
             verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
