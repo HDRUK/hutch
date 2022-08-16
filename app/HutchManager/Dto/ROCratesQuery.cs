@@ -45,6 +45,12 @@ public class ROCratesQuery
     
     [JsonPropertyName("value")]
     public string Value { get; set; } = string.Empty;
+    
+    [JsonPropertyName("minValue")]
+    public string? MinValue { get; set; }
+    
+    [JsonPropertyName("maxValue")]
+    public string? MaxValue { get; set; }
 
     [JsonPropertyName("additionalProperty")]
     public Property? AdditionalProperty { get; set; }
