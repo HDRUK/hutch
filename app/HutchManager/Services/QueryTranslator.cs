@@ -43,14 +43,11 @@ public class QueryTranslator
             {
               Type = rule.Type,
               Value = rule.Value,
-              AdditionalProperties = new List<ROCratesQuery.Property>()
+              AdditionalProperty = new ROCratesQuery.Property()
               {
-                new ROCratesQuery.Property()
-                {
-                  Type = rule.Type,
-                  Name = "operator",
-                  Value = rule.Operand,
-                }
+                Type = rule.Type,
+                Name = "operator",
+                Value = rule.Operand,
               }
             }
           )

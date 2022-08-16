@@ -47,7 +47,7 @@ public class ROCratesQuery
     public string Value { get; set; } = string.Empty;
 
     [JsonPropertyName("additionalProperty")]
-    public List<Property>? AdditionalProperties { get; set; }
+    public Property? AdditionalProperty { get; set; }
   }
 
   public class Property
