@@ -526,7 +526,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         DrugExposure.drug_concept_id == group.rules[0].value,
                     )
                 ).distinct().subquery()
-            elif group.rules[0].value is not None and group.rules[0].operator == "!=":
+            elif group.rules[0].value is not None and group.rules[0].operator.value == "!=":
                 stmnt = base_txt_stmnt.where(
                     or_(
                         Person.ethnicity_concept_id != group.rules[0].value,
@@ -567,10 +567,10 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     stmnt = stmnt.join(
                         rule_stmnt,
                         stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
+                        full=group.rule_operator.value == "OR",
                     )
                 # Text rules testing for exclusion
-                elif group.rules[i].value is not None and group.rules[i].operator == "!=":
+                elif group.rules[i].value is not None and group.rules[i].operator.value == "!=":
                     rule_stmnt = (
                         base_txt_stmnt
                         .where(
@@ -590,7 +590,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     stmnt = stmnt.join(
                         rule_stmnt,
                         stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
+                        full=group.rule_operator.value == "OR",
                     )
                 else:
                     # numeric rule
@@ -608,7 +608,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     stmnt = stmnt.join(
                         rule_stmnt,
                         stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
+                        full=group.rule_operator.value == "OR",
                     )
             self.subqueries.append(stmnt)
 
@@ -616,7 +616,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         """Build and return the final SQL that can be used to query the database."""
         group_stmnt = self.subqueries[0]
         for sq in self.subqueries[1:]:
-            group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
+            group_stmnt = group_stmnt.join(sq, full=self.query.group_operator.value == "OR")
         self.subqueries.clear()
         stmnt = select(func.count()).select_from(group_stmnt)
         return stmnt
