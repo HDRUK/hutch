@@ -51,6 +51,7 @@ public class ActivitySourcesController : ControllerBase
   /// <param name="id"></param>
   /// <returns></returns>
   [HttpGet("{id}/resultsmodifiers")]
+  [AllowAnonymous]
   public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifiers(int id)
     => await _activitySources.GetActivitySourceResultsModifiers(id);
 
