@@ -521,7 +521,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
                     )
                 ).distinct().subquery()
-            elif group.rules[0].value is not None and group.rules[0].operator.value == "=":
+            elif group.rules[0].operator.value == "=":
                 stmnt = base_txt_stmnt.where(
                     or_(
                         Person.ethnicity_concept_id == group.rules[0].value,
@@ -533,7 +533,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         DrugExposure.drug_concept_id == group.rules[0].value,
                     )
                 ).distinct().subquery()
-            elif group.rules[0].value is not None and group.rules[0].operator.value == "!=":
+            elif group.rules[0].operator.value == "!=":
                 stmnt = base_txt_stmnt.where(
                     or_(
                         Person.ethnicity_concept_id != group.rules[0].value,
@@ -565,7 +565,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         full=group.rule_operator.value == "OR",
                     )
                 # Text rules testing for inclusion
-                elif group.rules[i].value is not None and group.rules[i].operator.value == "=":
+                elif group.rules[i].operator.value == "=":
                     rule_stmnt = (
                         base_txt_stmnt
                         .where(
@@ -588,7 +588,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         full=group.rule_operator.value == "OR",
                     )
                 # Text rules testing for exclusion
-                elif group.rules[i].value is not None and group.rules[i].operator.value == "!=":
+                elif group.rules[i].operator.value == "!=":
                     rule_stmnt = (
                         base_txt_stmnt
                         .where(
