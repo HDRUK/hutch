@@ -1,3 +1,4 @@
+using System.Data;
 using HutchManager.Dto;
 
 
@@ -30,35 +31,57 @@ public class QueryTranslator
         Name = "job_id",
         Value = job.JobId
       });
+      
       foreach (var group in job.Query.Groups)
       {
-
-        var graph = new ROCratesQuery.ROCratesGraph()
+        var graph = new ROCratesQuery.ROCratesGraph();
+        var itemListElements = new List<ROCratesQuery.Item>();
+        
+        foreach (var rule in group.Rules)
         {
-          Type = "ItemList",
-          Name = "group",
-          NumberOfItems = group.Rules.Count,
-          ItemListElements = group.Rules.Select(rule =>
-            new ROCratesQuery.Item()
+          graph.Type = "ItemList";
+          graph.Name = "group";
+          graph.NumberOfItems = group.Rules.Count;
+          
+          var itemListElement = new ROCratesQuery.Item();
+          itemListElement.Type = "QuantitativeValue";
+          
+          
+          if (rule.Type == "NUM")
+          {
+            //For "NUM" Rules
+            //Split the Rule's VariableName at "="
+            //Save the Rule's OMOP Concept ID in the Item's Value.
+            itemListElement.Value = rule.VariableName.Split("=")[1];
+            //Split the Rule's Value to get the minValue and maxValue
+            var range = rule.Value.Split("..");
+            itemListElement.MinValue = range[0];
+            itemListElement.MaxValue = range[1];
+          }
+          else
+          {
+            //For "TEXT" Rules
+            itemListElement.Value = rule.Value;
+            itemListElement.AdditionalProperty = new ROCratesQuery.Property
             {
-              Type = rule.Type,
-              Value = rule.Value,
-              AdditionalProperty = new ROCratesQuery.Property()
-              {
-                Type = rule.Type,
-                Name = "operator",
-                Value = rule.Operand,
-              }
-            }
-          )
-        };
-        var ruleOperator = new ROCratesQuery.Item()
+              Type = "PropertyValue",
+              Name = "operator",
+              Value = rule.Operand,
+            };
+          }
+          //Add the Item to a List
+          itemListElements.Add(itemListElement);
+          //Save the list to the Graph's ItemListElement
+          graph.ItemListElement = itemListElements;
+        }
+        //Create an Item for the Rule's Operator
+        var ruleOperator = new ROCratesQuery.Item
         {
           Type = "PropertyValue",
           Name = "ruleOperator",
           Value = group.Combinator
         };
-        graph.ItemListElements = graph.ItemListElements.Append(ruleOperator);
+        graph.ItemListElement = graph.ItemListElement.Append(ruleOperator);
         graphs.Add(graph);
       }
       roCratesQuery.Graphs = graphs;
