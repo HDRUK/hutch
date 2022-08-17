@@ -514,7 +514,14 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         )
         base_num_stmnt = select(Measurement.person_id)
         for group in self.query.groups:
-            if group.rules[0].value is not None and group.rules[0].operator.value == "=":
+            if group.rules[0].min_value is not None and group.rules[0].max_value is not None:
+                stmnt = base_num_stmnt.where(
+                    and_(
+                        Measurement.measurement_concept_id == group.rules[0].value,
+                        Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
+                    )
+                ).distinct().subquery()
+            elif group.rules[0].value is not None and group.rules[0].operator.value == "=":
                 stmnt = base_txt_stmnt.where(
                     or_(
                         Person.ethnicity_concept_id == group.rules[0].value,
@@ -538,16 +545,27 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         DrugExposure.drug_concept_id != group.rules[0].value,
                     )
                 ).distinct().subquery()
-            else:
-                stmnt = base_num_stmnt.where(
-                    and_(
-                        Measurement.measurement_concept_id == group.rules[0].value,
-                        Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
-                    )
-                ).distinct().subquery()
             for i in range(1, len(group.rules[1:]) + 1):
+                if group.rules[i].min_value is not None and group.rules[i].max_value is not None:
+                    # numeric rule
+                    rule_stmnt = (
+                        base_num_stmnt
+                        .where(
+                            and_(
+                                Measurement.measurement_concept_id == group.rules[i].value,
+                                Measurement.value_as_number.between(group.rules[i].min_value, group.rules[i].max_value)
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        full=group.rule_operator.value == "OR",
+                    )
                 # Text rules testing for inclusion
-                if group.rules[i].value is not None and group.rules[i].operator.value == "=":
+                elif group.rules[i].value is not None and group.rules[i].operator.value == "=":
                     rule_stmnt = (
                         base_txt_stmnt
                         .where(
@@ -582,24 +600,6 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                                 ConditionOccurrence.condition_concept_id != group.rules[i].value,
                                 Observation.observation_concept_id != group.rules[i].value,
                                 DrugExposure.drug_concept_id != group.rules[i].value,
-                            )
-                        )
-                        .distinct()
-                        .subquery()
-                    )
-                    stmnt = stmnt.join(
-                        rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rule_operator.value == "OR",
-                    )
-                else:
-                    # numeric rule
-                    rule_stmnt = (
-                        base_num_stmnt
-                        .where(
-                            and_(
-                                Measurement.measurement_concept_id == group.rules[i].value,
-                                Measurement.value_as_number.between(group.rules[i].min_value, group.rules[i].max_value)
                             )
                         )
                         .distinct()
