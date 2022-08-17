@@ -29,7 +29,7 @@ public class ROCratesQuery
     public int? NumberOfItems { get; set;}
     
     [JsonPropertyName("itemListElement")] 
-    public IEnumerable<Item> ItemListElements { get; set;} = null!;
+    public IEnumerable<Item> ItemListElement { get; set;} = null!;
   }
   
   public class Item
