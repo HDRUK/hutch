@@ -23,7 +23,7 @@ public class ROCratesQuery
     public string Name { get; set; } = string.Empty;
     
     [JsonPropertyName("value")]
-    public string Value { get; set; } = string.Empty;
+    public string? Value { get; set; }
     
     [JsonPropertyName("numberOfItems")]
     public int? NumberOfItems { get; set;}
