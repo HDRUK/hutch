@@ -5,9 +5,8 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["app/HutchManager/HutchManager.csproj", "HutchManager/"]
-RUN dotnet restore "app/HutchManager/HutchManager.csproj"
-COPY . .
+COPY . ./HutchManager
+RUN dotnet restore "HutchManager/HutchManager.csproj"
 WORKDIR "/src/HutchManager"
 RUN dotnet build "HutchManager.csproj" -c Release -o /app/build
 
