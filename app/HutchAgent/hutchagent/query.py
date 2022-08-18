@@ -489,6 +489,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
 
     def build_subqueries(self) -> None:
         """Build the subqueries for the main query."""
+        # base query for text rules
         base_txt_stmnt = (
             select(Person.person_id)
             .join(
@@ -512,7 +513,16 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 full=True,
             )
         )
+        # base query for numeric rules
         base_num_stmnt = select(Measurement.person_id)
+        # make join clause
+        join_clause =lambda x, left, right: (
+            # x is 0-indexed counter
+            # aliasing comes in when x > 1 (2 or more addition subqueries)
+            left.c.main_person_id == right.c[f"person_id_{x}"]
+            if x > 1 
+            else left.c.person_id == right.c[f"person_id_{x}"]
+        )
         for group in self.query.groups:
             if group.rules[0].min_value is not None and group.rules[0].max_value is not None:
                 stmnt = base_num_stmnt.where(
@@ -520,7 +530,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         Measurement.measurement_concept_id == group.rules[0].value,
                         Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
                     )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
             elif group.rules[0].operator.value == "=":
                 stmnt = base_txt_stmnt.where(
                     or_(
@@ -532,7 +542,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         Observation.observation_concept_id == group.rules[0].value,
                         DrugExposure.drug_concept_id == group.rules[0].value,
                     )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
             elif group.rules[0].operator.value == "!=":
                 stmnt = base_txt_stmnt.where(
                     or_(
@@ -544,12 +554,12 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         Observation.observation_concept_id != group.rules[0].value,
                         DrugExposure.drug_concept_id != group.rules[0].value,
                     )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
             for i in range(1, len(group.rules[1:]) + 1):
                 if group.rules[i].min_value is not None and group.rules[i].max_value is not None:
                     # numeric rule
                     rule_stmnt = (
-                        base_num_stmnt
+                        select(base_num_stmnt.c.person_id.label(f"person_id_{i}"))
                         .where(
                             and_(
                                 Measurement.measurement_concept_id == group.rules[i].value,
@@ -561,13 +571,13 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        join_clause(i, stmnt, rule_stmnt),
                         full=group.rule_operator.value == "OR",
                     )
                 # Text rules testing for inclusion
                 elif group.rules[i].operator.value == "=":
                     rule_stmnt = (
-                        base_txt_stmnt
+                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
                         .where(
                             or_(
                                 Person.ethnicity_concept_id == group.rules[i].value,
@@ -584,13 +594,13 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        join_clause(i, stmnt, rule_stmnt),
                         full=group.rule_operator.value == "OR",
                     )
                 # Text rules testing for exclusion
                 elif group.rules[i].operator.value == "!=":
                     rule_stmnt = (
-                        base_txt_stmnt
+                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
                         .where(
                             or_(
                                 Person.ethnicity_concept_id != group.rules[i].value,
@@ -607,7 +617,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        join_clause(i, stmnt, rule_stmnt),
                         full=group.rule_operator.value == "OR",
                     )
             self.subqueries.append(stmnt)
