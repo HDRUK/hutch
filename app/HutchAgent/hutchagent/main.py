@@ -64,7 +64,10 @@ def main():
     try:
         check_in_thread.start()
         logger.info("Connecting to queue.")
-        channel = mq.connect(os.getenv("DATASOURCE_NAME"))
+        channel = mq.connect(
+            queue=os.getenv("DATASOURCE_NAME"),
+            host=os.getenv("MSG_QUEUE_HOST", "localhost")
+        )
         channel.basic_consume(
             os.getenv("DATASOURCE_NAME"),
             on_message_callback=(
