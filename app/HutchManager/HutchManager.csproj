@@ -9,6 +9,7 @@
     
     <!-- Append GitHash to Version if provided -->
     <Version Condition="'$(GitHash)' != ''">$(Version)+$(GitHash)</Version>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <PropertyGroup>
