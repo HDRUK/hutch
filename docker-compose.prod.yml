@@ -6,6 +6,8 @@ services:
       - 5432:5432
     volumes:
       - db_data:/var/lib/postgresql/data
+    env_file:
+      - envs/db.prod.env  # placeholder until a better solution is found
 
   adminer:
     image: adminer
@@ -23,6 +25,8 @@ services:
       - 15672:15672 # port for the in-browser manager
     volumes:
       - queue_data:/var/lib/rabbitmq/mnesia/
+    env_file:
+      - envs/msg_queue.prod.env  # placeholder until a better solution is found
 
   hutch.manager:
     build: app/HutchManager  # placeholder until image storage arranged
@@ -33,6 +37,8 @@ services:
     depends_on:
       - hutch.db
       - hutch.msg_queue
+    env_file:
+      - envs/manager.prod.env  # placeholder until a better solution is found
 
   hutch.agent:
     build: app/HutchAgent  # placeholder until image storage arranged
@@ -41,6 +47,8 @@ services:
       - hutch.db
       - hutch.msg_queue
       - hutch.manager
+    env_file:
+      - envs/agent.prod.env  # placeholder until a better solution is found
 
 volumes:
   db_data:
