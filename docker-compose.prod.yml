@@ -22,6 +22,7 @@ services:
     restart: always
     ports:
       - 5672:5672 # port for the queue
+      - 15672:15672 # port for the in-browser manager
     volumes:
       - queue_data:/var/lib/rabbitmq/mnesia/
 
