@@ -25,6 +25,16 @@ services:
     volumes:
       - queue_data:/var/lib/rabbitmq/mnesia/
 
+  hutch.manager:
+    build: app/HutchManager
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - hutch.db
+      - hutch.msg_queue
+
 volumes:
   db_data:
   queue_data:
