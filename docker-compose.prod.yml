@@ -4,8 +4,6 @@ services:
     restart: always
     ports:
       - 5432:5432
-    environment:
-      POSTGRES_PASSWORD: example
     volumes:
       - db_data:/var/lib/postgresql/data
 
