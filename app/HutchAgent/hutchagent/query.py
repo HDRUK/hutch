@@ -348,6 +348,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
 
     def build_subqueries(self) -> None:
         """Build the subqueries for the main query."""
+        # base query for text rules
         base_txt_stmnt = (
             select(Person.person_id)
             .join(
@@ -371,9 +372,25 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                 full=True,
             )
         )
+        # base query for numeric rules
         base_num_stmnt = select(Measurement.person_id)
+        # make join clause
+        join_clause =lambda x, left, right: (
+            # x is 0-indexed counter
+            # aliasing comes in when x > 1 (2 or more addition subqueries)
+            left.c.main_person_id == right.c[f"person_id_{x}"]
+            if x > 1 
+            else left.c.person_id == right.c[f"person_id_{x}"]
+        )
         for group in self.query.cohort.groups:
-            if group.rules[0].type == "TEXT" and group.rules[0].oper == "=":
+            if group.rules[0].type == "NUM":
+                stmnt = base_num_stmnt.where(
+                    and_(
+                        Measurement.measurement_concept_id == group.rules[0].concept_id,
+                        Measurement.value_as_number.between(*group.rules[0].value)
+                    )
+                ).distinct().subquery().alias("main")
+            elif group.rules[0].type == "TEXT" and group.rules[0].oper == "=":
                 stmnt = base_txt_stmnt.where(
                     or_(
                         Person.ethnicity_concept_id == group.rules[0].concept_id,
@@ -384,7 +401,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         Observation.observation_concept_id == group.rules[0].concept_id,
                         DrugExposure.drug_concept_id == group.rules[0].concept_id,
                     )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
             elif group.rules[0].type == "TEXT" and group.rules[0].oper == "!=":
                 stmnt = base_txt_stmnt.where(
                     or_(
@@ -396,19 +413,30 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         Observation.observation_concept_id != group.rules[0].concept_id,
                         DrugExposure.drug_concept_id != group.rules[0].concept_id,
                     )
-                ).distinct().subquery()
-            else:
-                stmnt = base_num_stmnt.where(
-                    and_(
-                        Measurement.measurement_concept_id == group.rules[0].concept_id,
-                        Measurement.value_as_number.between(*group.rules[0].value)
-                    )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
             for i in range(1, len(group.rules[1:]) + 1):
-                # Text rules testing for inclusion
-                if group.rules[i].type == "TEXT" and group.rules[i].oper == "=":
+                # numeric rule
+                if group.rules[i].type == "NUM":
                     rule_stmnt = (
-                        base_txt_stmnt
+                        select(base_num_stmnt.c.person_id.label(f"person_id_{i}"))
+                        .where(
+                            and_(
+                                Measurement.measurement_concept_id == group.rules[i].concept_id,
+                                Measurement.value_as_number.between(*group.rules[i].value)
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        join_clause(i, stmnt, rule_stmnt),
+                        full=group.rules_oper == "OR",
+                    )
+                # Text rules testing for inclusion
+                elif group.rules[i].type == "TEXT" and group.rules[i].oper == "=":
+                    rule_stmnt = (
+                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
                         .where(
                             or_(
                                 Person.ethnicity_concept_id == group.rules[i].concept_id,
@@ -425,13 +453,13 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        join_clause(i, stmnt, rule_stmnt),
                         full=group.rules_oper == "OR",
                     )
                 # Text rules testing for exclusion
                 elif group.rules[i].type == "TEXT" and group.rules[i].oper == "!=":
                     rule_stmnt = (
-                        base_txt_stmnt
+                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
                         .where(
                             or_(
                                 Person.ethnicity_concept_id != group.rules[i].concept_id,
@@ -448,25 +476,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
-                    )
-                else:
-                    # numeric rule
-                    rule_stmnt = (
-                        base_num_stmnt
-                        .where(
-                            and_(
-                                Measurement.measurement_concept_id == group.rules[i].concept_id,
-                                Measurement.value_as_number.between(*group.rules[i].value)
-                            )
-                        )
-                        .distinct()
-                        .subquery()
-                    )
-                    stmnt = stmnt.join(
-                        rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        join_clause(i, stmnt, rule_stmnt),
                         full=group.rules_oper == "OR",
                     )
             self.subqueries.append(stmnt)
