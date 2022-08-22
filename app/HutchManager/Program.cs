@@ -129,16 +129,4 @@ app.MapFallbackToFile("index.html").AllowAnonymous();
 
 #endregion
 
-// See: https://stackoverflow.com/questions/55970148/apply-entity-framework-migrations-when-using-asp-net-core-in-a-docker-image#:~:text=For%20anyone%20on%20.net%206%20I%20used%20this%20to%20apply%20migrations%20at%20startup%20just%20before%20app.Run()%20in%20Program.cs%20file
-using (var scope = app.Services.CreateScope())
-{
-  var services = scope.ServiceProvider;
-
-  var context = services.GetRequiredService<ApplicationDbContext>();
-  if (context.Database.GetPendingMigrations().Any())
-  {
-    context.Database.Migrate();
-  }
-}
-
 app.Run();
