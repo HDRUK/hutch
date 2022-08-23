@@ -1,0 +1,6 @@
+.env
+**/**.env
+dist
+.tox
+.gitignore
+.DS_Store

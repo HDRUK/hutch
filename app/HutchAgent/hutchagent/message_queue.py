@@ -17,7 +17,7 @@ from hutchagent.query import RQuestQuery, RQuestQueryBuilder, ROCratesQueryBuild
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
 
 
-def connect(queue: str, host="localhost", **kwargs) -> BlockingChannel:
+def connect(queue: str, host, **kwargs) -> BlockingChannel:
     """Connect to a RabbitMQ instance.
 
     Args:

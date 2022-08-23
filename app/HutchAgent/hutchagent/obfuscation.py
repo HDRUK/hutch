@@ -60,6 +60,23 @@ def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Uni
     return result
 
 
+def rounding(value: Union[int, float], nearest: int = 10) -> int:
+    """Round the value to the nearest base number, e.g. 10.
+
+    Args:
+        value (Union[int, float]): The value to be rounded
+        nearest (int, optional): Round value to this base. Defaults to 10.
+
+    Returns:
+        int: _description_
+    """
+    logger = logging.getLogger(config.LOGGER_NAME)
+    logger.info("Applying Rounding.")
+    logger.info(f"The count is {value} before Rounding.")
+    result =  nearest * round(value / nearest)
+    logger.info(f"The count is {result} after Rounding.")
+    return result
+
 def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
     """Iterate over a list of filters from the Manager and apply them to the
     supplied value.
@@ -72,7 +89,8 @@ def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
         Union[int, float]: The filtered value.
     """
     actions = {
-        "Low Number Suppression": low_number_suppression
+        "Low Number Suppression": low_number_suppression,
+        "Rounding": rounding
     }
     result = value
     for f in filters:
