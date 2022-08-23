@@ -378,9 +378,9 @@ class RQuestQueryBuilder(BaseQueryBuilder):
         join_clause =lambda x, left, right: (
             # x is 0-indexed counter
             # aliasing comes in when x > 1 (2 or more addition subqueries)
-            left.c.main_person_id == right.c[f"person_id_{x}"]
+            left.c.main_person_id == right.c.person_id
             if x > 1 
-            else left.c.person_id == right.c[f"person_id_{x}"]
+            else left.c.person_id == right.c.person_id
         )
         for group in self.query.cohort.groups:
             if group.rules[0].type == "NUM":
@@ -418,7 +418,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                 # numeric rule
                 if group.rules[i].type == "NUM":
                     rule_stmnt = (
-                        select(base_num_stmnt.c.person_id.label(f"person_id_{i}"))
+                        base_num_stmnt
                         .where(
                             and_(
                                 Measurement.measurement_concept_id == group.rules[i].concept_id,
@@ -427,6 +427,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
@@ -436,7 +437,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                 # Text rules testing for inclusion
                 elif group.rules[i].type == "TEXT" and group.rules[i].oper == "=":
                     rule_stmnt = (
-                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
+                        base_txt_stmnt
                         .where(
                             or_(
                                 Person.ethnicity_concept_id == group.rules[i].concept_id,
@@ -450,6 +451,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
@@ -459,7 +461,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                 # Text rules testing for exclusion
                 elif group.rules[i].type == "TEXT" and group.rules[i].oper == "!=":
                     rule_stmnt = (
-                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
+                        base_txt_stmnt
                         .where(
                             or_(
                                 Person.ethnicity_concept_id != group.rules[i].concept_id,
@@ -473,6 +475,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
