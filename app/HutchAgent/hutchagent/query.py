@@ -533,9 +533,9 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         join_clause =lambda x, left, right: (
             # x is 0-indexed counter
             # aliasing comes in when x > 1 (2 or more addition subqueries)
-            left.c.main_person_id == right.c[f"person_id_{x}"]
+            left.c.main_person_id == right.c.person_id
             if x > 1 
-            else left.c.person_id == right.c[f"person_id_{x}"]
+            else left.c.person_id == right.c.person_id
         )
         for group in self.query.groups:
             if group.rules[0].min_value is not None and group.rules[0].max_value is not None:
@@ -573,7 +573,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 if group.rules[i].min_value is not None and group.rules[i].max_value is not None:
                     # numeric rule
                     rule_stmnt = (
-                        select(base_num_stmnt.c.person_id.label(f"person_id_{i}"))
+                        base_num_stmnt
                         .where(
                             and_(
                                 Measurement.measurement_concept_id == group.rules[i].value,
@@ -582,6 +582,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
@@ -591,7 +592,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 # Text rules testing for inclusion
                 elif group.rules[i].operator.value == "=":
                     rule_stmnt = (
-                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
+                        base_txt_stmnt
                         .where(
                             or_(
                                 Person.ethnicity_concept_id == group.rules[i].value,
@@ -605,6 +606,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
@@ -614,7 +616,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 # Text rules testing for exclusion
                 elif group.rules[i].operator.value == "!=":
                     rule_stmnt = (
-                        select(base_txt_stmnt.c.person_id.label(f"person_id_{i}"))
+                        base_txt_stmnt
                         .where(
                             or_(
                                 Person.ethnicity_concept_id != group.rules[i].value,
@@ -628,6 +630,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
@@ -638,8 +641,9 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
 
     def build_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
-        group_stmnt = self.subqueries[0]
-        for sq in self.subqueries[1:]:
+        group_stmnt = self.subqueries[0].alias("group_0")
+        for i, sq in enumerate(self.subqueries[1:]):
+            sq = sq.alias(f"group_{i + 1}")
             group_stmnt = group_stmnt.join(sq, full=self.query.group_operator.value == "OR")
         self.subqueries.clear()
         stmnt = select(func.count()).select_from(group_stmnt)
