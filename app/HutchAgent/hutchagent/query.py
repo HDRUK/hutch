@@ -486,8 +486,9 @@ class RQuestQueryBuilder(BaseQueryBuilder):
 
     def build_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
-        group_stmnt = self.subqueries[0]
-        for sq in self.subqueries[1:]:
+        group_stmnt = self.subqueries[0].alias("group_0")
+        for i, sq in enumerate(self.subqueries[1:]):
+            sq = sq.alias(f"group_{i + 1}")
             group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
         self.subqueries.clear()
         stmnt = select(func.count()).select_from(group_stmnt)
