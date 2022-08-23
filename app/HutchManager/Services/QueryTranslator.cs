@@ -32,6 +32,14 @@ public class QueryTranslator
         Value = job.JobId
       });
       
+      //Add Group Operator
+      graphs.Add(new ROCratesQuery.ROCratesGraph
+      {
+        Type = "PropertyValue",
+        Name = "groupOperator",
+        Value = job.Query.Combinator
+      });
+      
       foreach (var group in job.Query.Groups)
       {
         var graph = new ROCratesQuery.ROCratesGraph();
