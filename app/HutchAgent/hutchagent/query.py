@@ -648,9 +648,10 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         group_stmnt = self.subqueries[0].alias("group_0")
         for i, sq in enumerate(self.subqueries[1:]):
             sq = sq.alias(f"group_{i + 1}")
+            join_cols = (group_stmnt.c.keys()[0], sq.c.keys()[0])
             group_stmnt = group_stmnt.join(
                 sq,
-                group_stmnt.c.keys()[0] == sq.c.keys()[0],
+                group_stmnt.c[join_cols[0]] == sq.c[join_cols[1]],
                 full=self.query.group_operator.value == "OR"
             )
         self.subqueries.clear()
