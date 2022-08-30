@@ -29,7 +29,7 @@ services:
       - envs/msg_queue.prod.env  # placeholder until a better solution is found
 
   hutch.manager:
-    build: app/HutchManager  # placeholder until image storage arranged
+    image: # image for the manager
     restart: always
     ports:
       - 80:80
@@ -41,7 +41,7 @@ services:
       - envs/manager.prod.env  # placeholder until a better solution is found
 
   hutch.agent:
-    build: app/HutchAgent  # placeholder until image storage arranged
+    image: # image for the manager
     restart: always
     depends_on:
       - hutch.db
