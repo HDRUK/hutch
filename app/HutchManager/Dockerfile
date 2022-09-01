@@ -11,16 +11,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY . ./HutchManager
+COPY ./HutchManager ./HutchManager
 RUN dotnet restore "HutchManager/HutchManager.csproj"
 WORKDIR "/src/HutchManager"
 RUN dotnet build "HutchManager.csproj" -c Release -o /app/build
 
 FROM build AS publish
+COPY --from=spa_build /manager-frontend ../manager-frontend
 RUN dotnet publish "HutchManager.csproj" -c Release -o /app/publish
 
 FROM base AS final
-COPY --from=spa_build /manager-front-end .
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "HutchManager.dll"]
