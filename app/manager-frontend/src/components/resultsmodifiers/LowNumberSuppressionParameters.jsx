@@ -15,8 +15,8 @@ import {
 import React, { useState, useEffect } from "react";
 import { Form, Formik, useFormikContext } from "formik";
 import { FaArrowRight } from "react-icons/fa";
-import { FormikInput } from "./forms/FormikInput";
-import { FormikSelect } from "./forms/FormikSelect";
+import { FormikInput } from "../forms/FormikInput";
+import { FormikSelect } from "../forms/FormikSelect";
 
 export const LowNumberSuppressionParameters = ({ type }) => {
   const formikProps = useFormikContext();

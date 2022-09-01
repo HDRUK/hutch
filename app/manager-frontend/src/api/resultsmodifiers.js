@@ -3,8 +3,8 @@ import { useBackendApi } from "contexts/BackendApi";
 import useSWR from "swr";
 
 export const fetchKeys = {
-  resultsModifierList: "ResultsModifiers",
   modifierTypeList: "ResultsModifiers/Types",
+  modifierOrderList: (id, value) => `${id}/Order/${value}`
 };
 
 export const getResultsModifierApi = ({ api }) => ({
@@ -20,11 +20,13 @@ export const getResultsModifierApi = ({ api }) => ({
     api.delete(`ResultsModifiers/${id}`, {
       json: values,
     }),
+  putOrder: ({ value, id }) =>
+    api.put(`${id}/order/${value}`)
 });
 
-export const useResultsModifierList = () => {
+export const useResultsModifierOrderList = (id, value) => {
   const { apiFetcher } = useBackendApi();
-  return useSWR(fetchKeys.resultsModifierList, apiFetcher, { suspense: true });
+  return useSWR(fetchKeys.modifierOrderList(id, value), apiFetcher, { suspense: true });
 };
 
 export const useModifierTypeList = () => {
