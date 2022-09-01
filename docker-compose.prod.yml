@@ -7,7 +7,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     env_file:
-      - envs/db.prod.env  # placeholder until a better solution is found
+      - # .env file containing agent config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#database
 
   adminer:
     image: adminer
@@ -26,7 +26,7 @@ services:
     volumes:
       - queue_data:/var/lib/rabbitmq/mnesia/
     env_file:
-      - envs/msg_queue.prod.env  # placeholder until a better solution is found
+      - # .env file containing agent config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#message-queue
 
   hutch.manager:
     image: # image for the manager
@@ -38,7 +38,9 @@ services:
       - hutch.db
       - hutch.msg_queue
     env_file:
-      - envs/manager.prod.env  # placeholder until a better solution is found
+      - # .env file containing manager config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#manager
+    volumes:
+      - # <path to local .pem and .key dir>:/certs:ro
 
   hutch.agent:
     image: # image for the manager
@@ -48,7 +50,7 @@ services:
       - hutch.msg_queue
       - hutch.manager
     env_file:
-      - envs/agent.prod.env  # placeholder until a better solution is found
+      - # .env file containing agent config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#agent
 
 volumes:
   db_data:
