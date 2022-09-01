@@ -7,7 +7,7 @@ import {
   Alert,
   AlertIcon,
   useDisclosure,
-  HStack,
+  HStack
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Form, Formik } from "formik";
@@ -18,14 +18,17 @@ import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
+import { useActivitySourceResultsModifiersList } from "api/activitysources"
 import { useDataSourceList } from "api/datasource";
 import { getDateDaysAgo } from "helpers/dates";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
+import { ResultsModifiers } from "components/resultsmodifiers/ResultsModifiers";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
   const typeOptions = [{ id: "RQUEST" }];
   const { data: datasourceOptions } = useDataSourceList();
+  const { data: modifiers } = useActivitySourceResultsModifiersList(id);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
@@ -104,22 +107,22 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           initialValues={
             activitySource
               ? {
-                  DisplayName: activitySource.displayName,
-                  Host: activitySource.host,
-                  Type: activitySource.type,
-                  ResourceId: activitySource.resourceId,
-                  TargetDataSource:
-                    datasourceOptions.find(
-                      (item) => item.id === activitySource.targetDataSource
-                    )?.id ?? "",
-                }
+                DisplayName: activitySource.displayName,
+                Host: activitySource.host,
+                Type: activitySource.type,
+                ResourceId: activitySource.resourceId,
+                TargetDataSource:
+                  datasourceOptions.find(
+                    (item) => item.id === activitySource.targetDataSource
+                  )?.id ?? "",
+              }
               : {
-                  DisplayName: "",
-                  Host: "",
-                  Type: typeOptions[0].id,
-                  ResourceId: "",
-                  TargetDataSource: "",
-                }
+                DisplayName: "",
+                Host: "",
+                Type: typeOptions[0].id,
+                ResourceId: "",
+                TargetDataSource: "",
+              }
           }
           validationSchema={validationSchema()}
         >
@@ -178,6 +181,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           )}
         </Formik>
       </VStack>
+      <ResultsModifiers modifiers={modifiers}></ResultsModifiers>
       <DeleteModal
         title={`Delete Activity Source ${id}`}
         body="Are you sure you want to delete this activity source? You will not be able to reverse this"
