@@ -3,7 +3,8 @@ services:
     image: postgres
     restart: always
     ports:
-      - 5432:5432
+      # don't expose the port to the database to the host machine
+      - 5432
     volumes:
       - db_data:/var/lib/postgresql/data
     env_file:
@@ -13,7 +14,8 @@ services:
     image: rabbitmq:3.10.1-management
     restart: always
     ports:
-      - 5672:5672 # port for the queue
+      # don't expose the port to the msg queue to the host machine
+      - 5672 # port for the queue
       - 15672:15672 # port for the in-browser manager
     volumes:
       - queue_data:/var/lib/rabbitmq/mnesia/
