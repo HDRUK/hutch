@@ -1,8 +1,9 @@
 ﻿FROM node:lts-alpine as spa_build
+RUN npm install -g pnpm
 WORKDIR /manager-frontend
 COPY ../manager-frontend .
-RUN npm install
-RUN npm run build
+RUN pnpm install --frozen-lockfile
+RUN pnpm run build
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
