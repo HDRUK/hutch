@@ -16,6 +16,9 @@ services:
     ports:
       # don't expose the port to the msg queue to the host machine
       - 5672 # port for the queue
+      # Optionally don't expose the browser GUI
+      # or optionally prevent it from being accessible outside the host
+      # yourself using firewall rules etc.
       - 15672:15672 # port for the in-browser manager
     volumes:
       - queue_data:/var/lib/rabbitmq/mnesia/
