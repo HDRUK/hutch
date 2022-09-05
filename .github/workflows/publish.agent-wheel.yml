@@ -30,6 +30,9 @@ jobs:
       - name: Install agent deps
         working-directory: ${{ env.WORKDIR }}
         run: poetry install --no-dev
+      - name: Build dist
+        working-directory: ${{ env.WORKDIR }}
+        run: poetry build
       - name: Publish dist
         working-directory: ${{ env.WORKDIR }}
         uses: ncipollo/release-action@v1.10.0
