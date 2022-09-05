@@ -37,7 +37,7 @@ jobs:
         run: poetry build
       - uses: ncipollo/release-action@v1.10.0
         with:
-          artifacts: "./hutchagent*.tar.gz,./hutchagent*.whl"
+          artifacts: "${{ env.WORKDIR }}/hutchagent*.tar.gz,${{ env.WORKDIR }}/hutchagent*.whl"
           tag: hutchagent
 
 
