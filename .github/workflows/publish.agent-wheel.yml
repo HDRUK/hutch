@@ -8,8 +8,7 @@ on:
         required: true
         default: release
   push:
-    # branches: [main, support/*]
-    branches: [feature/agent-wheel-CI]  # remove this line when ready for merge to main
+    branches: [main]
 
 jobs:
   publish-wheel:
@@ -41,6 +40,3 @@ jobs:
           artifacts: "${{ env.WORKDIR }}/dist/hutchagent*.tar.gz,${{ env.WORKDIR }}/dist/hutchagent*.whl"
           tag: hutchagent
           omitBody: true
-
-
-
