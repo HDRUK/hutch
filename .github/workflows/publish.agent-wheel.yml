@@ -33,9 +33,7 @@ jobs:
       - name: Build dist
         working-directory: ${{ env.WORKDIR }}
         run: poetry build
-      - name: Publish dist
-        working-directory: ${{ env.WORKDIR }}
-        uses: ncipollo/release-action@v1.10.0
+      - uses: ncipollo/release-action@v1.10.0
         with:
           artifacts: ["./hutchagent*.tar.gz", "./hutchagent*.whl"]
           tag: hutchagent
