@@ -17,6 +17,7 @@ jobs:
     env:
       PYTHON_VERSION: "3.9"
       POETRY_VERSION: "1.1.14"
+      WORKDIR: "./app/HutchAgent"
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -24,5 +25,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install poetry
-        working-directory: ./app/HutchAgent
+        working-directory: ${{ env.WORKDIR }}
         run: pip install poetry==${{ env.POETRY_VERSION }}
+      - name: Install agent deps
+        working-directory: ${{ env.WORKDIR }}
+        run: poetry install --no-dev
