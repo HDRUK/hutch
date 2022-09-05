@@ -42,7 +42,7 @@ jobs:
           path: ${{ env.WORKDIR }}/dist
       - uses: ncipollo/release-action@v1.10.0
         with:
-          artifacts: "${{ env.WORKDIR }}/hutchagent*.tar.gz,${{ env.WORKDIR }}/hutchagent*.whl"
+          artifacts: "${{ env.WORKDIR }}/dist/hutchagent*.tar.gz,${{ env.WORKDIR }}/dist/hutchagent*.whl"
           tag: hutchagent
           omitBody: true
 
