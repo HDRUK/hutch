@@ -14,7 +14,7 @@ on:
 jobs:
   publish-wheel:
     permissions:
-      actions: write
+      contents: write
     runs-on: ubuntu-latest
     env:
       PYTHON_VERSION: "3.9"
