@@ -20,6 +20,7 @@ jobs:
       PYTHON_VERSION: "3.9"
       POETRY_VERSION: "1.1.14"
       WORKDIR: "./app/HutchAgent"
+      ARTIFACT_NAME: "hutchagent-dist"
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -35,10 +36,15 @@ jobs:
       - name: Build dist
         working-directory: ${{ env.WORKDIR }}
         run: poetry build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.WORKDIR }}/dist
       - uses: ncipollo/release-action@v1.10.0
         with:
           artifacts: "${{ env.WORKDIR }}/hutchagent*.tar.gz,${{ env.WORKDIR }}/hutchagent*.whl"
           tag: hutchagent
+          omitBody: true
 
 
 
