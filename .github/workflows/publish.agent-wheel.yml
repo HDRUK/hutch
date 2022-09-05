@@ -1,0 +1,27 @@
+name: Publish Agent Wheel
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      buildConfig:
+        description: Build Configuration
+        required: true
+        default: release
+  # push:
+  #   branches: [main, support/*]
+
+jobs:
+  publish-wheel:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: "3.9"
+      POETRY_VERSION: "1.1.14"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install poetry
+        working-directory: ./app/HutchAgent
+        run: pip install poetry==${{ env.POETRY_VERSION }}
