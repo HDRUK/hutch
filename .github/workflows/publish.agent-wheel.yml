@@ -8,7 +8,8 @@ on:
         required: true
         default: release
   push:
-    branches: [main]
+    # branches: [main]
+    branches: [feature/agent-wheel-CI]
 
 jobs:
   publish-wheel:
@@ -39,8 +40,3 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.WORKDIR }}/dist
-      - uses: ncipollo/release-action@v1.10.0
-        with:
-          artifacts: "${{ env.WORKDIR }}/dist/hutchagent*.tar.gz,${{ env.WORKDIR }}/dist/hutchagent*.whl"
-          tag: hutchagent
-          omitBody: true
