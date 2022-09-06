@@ -12,7 +12,7 @@ on:
     branches: [feature/agent-docker-CI]  # remove before merge to main
 
 jobs:
-  publish-sargassure:
+  publish-agent-docker:
     runs-on: ubuntu-latest
     env:
       WORKDIR: ./app/HutchAgent
