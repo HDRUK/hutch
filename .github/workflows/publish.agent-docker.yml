@@ -1,0 +1,12 @@
+name: Publish Agent Docker
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      buildConfig:
+        description: Build Configuration
+        required: true
+        default: release
+  push:
+    # branches: [main]
+    branches: [feature/agent-docker-CI]  # remove before merge to main
