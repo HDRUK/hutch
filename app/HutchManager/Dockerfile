@@ -1,16 +1,24 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+﻿FROM node:lts-alpine as spa_build
+RUN npm install -g pnpm
+WORKDIR /manager-frontend
+COPY ../manager-frontend .
+RUN pnpm install --frozen-lockfile
+RUN pnpm run build
+
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY . ./HutchManager
+COPY ./HutchManager ./HutchManager
 RUN dotnet restore "HutchManager/HutchManager.csproj"
 WORKDIR "/src/HutchManager"
 RUN dotnet build "HutchManager.csproj" -c Release -o /app/build
 
 FROM build AS publish
+COPY --from=spa_build /manager-frontend ../manager-frontend
 RUN dotnet publish "HutchManager.csproj" -c Release -o /app/publish
 
 FROM base AS final
