@@ -17,6 +17,8 @@ jobs:
     env:
       IMAGE: hutchagent:latest
       WORKDIR: ./app/HutchAgent
+    outputs:
+      artifact_name: ${{ env.IMAGE }}
     steps:
       - uses: actions/checkout@v2
       - name: Build and push Docker images
@@ -29,5 +31,3 @@ jobs:
         uses: ishworkh/docker-image-artifact-upload@v1
         with:
           image: ${{ env.IMAGE }}
-        outputs:
-          artifact_name: ${{ env.IMAGE }}
