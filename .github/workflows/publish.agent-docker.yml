@@ -8,8 +8,7 @@ on:
         required: true
         default: release
   push:
-    # branches: [main]
-    branches: [feature/agent-docker-CI]  # remove before merge to main
+    branches: [main]
 
 jobs:
   publish-agent-docker:
@@ -17,8 +16,6 @@ jobs:
     env:
       IMAGE: hutchagent:latest
       WORKDIR: ./app/HutchAgent
-    outputs:
-      artifact_name: ${{ env.IMAGE }}
     steps:
       - uses: actions/checkout@v2
       - name: Build and push Docker images
