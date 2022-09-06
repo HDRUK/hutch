@@ -8,8 +8,7 @@ on:
         required: true
         default: release
   push:
-    # branches: [main]
-    branches: [feature/agent-wheel-CI]
+    branches: [main]
 
 jobs:
   publish-wheel:
