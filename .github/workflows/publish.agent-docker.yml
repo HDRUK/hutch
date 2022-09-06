@@ -29,4 +29,5 @@ jobs:
         uses: ishworkh/docker-image-artifact-upload@v1
         with:
           image: ${{ env.IMAGE }}
+        outputs:
           artifact_name: ${{ env.IMAGE }}
