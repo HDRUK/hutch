@@ -35,6 +35,10 @@ jobs:
       - name: Build dist
         working-directory: ${{ env.WORKDIR }}
         run: poetry build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.WORKDIR }}/dist
       - uses: ncipollo/release-action@v1.10.0
         with:
           artifacts: "${{ env.WORKDIR }}/dist/hutchagent*.tar.gz,${{ env.WORKDIR }}/dist/hutchagent*.whl"
