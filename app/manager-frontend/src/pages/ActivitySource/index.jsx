@@ -88,7 +88,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
 
   return (
     <Container my={8} ref={scrollTarget}>
-      <VStack w="100%" align="stretch" spacing={4}>
+      <VStack w="100%" align="stretch" spacing={4} p={4} pb={10}>
         <Flex justify="space-between">
           <Heading>{headingText}</Heading>
           {id && (
@@ -181,7 +181,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           )}
         </Formik>
       </VStack>
-      <ResultsModifiers modifiers={modifiers}></ResultsModifiers>
+      <ResultsModifiers id={id} ></ResultsModifiers>
       <DeleteModal
         title={`Delete Activity Source ${id}`}
         body="Are you sure you want to delete this activity source? You will not be able to reverse this"

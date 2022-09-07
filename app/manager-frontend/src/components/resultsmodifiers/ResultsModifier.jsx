@@ -12,7 +12,7 @@ import {
 import { Link } from "react-router-dom";
 
 export const ResultsModifier = ({
-  title,
+  index,
   children,
   onDelete,
   onUpdate,
