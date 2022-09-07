@@ -1,5 +1,5 @@
 import {
-    StackDivider,
+    Heading,
     VStack,
     Grid,
     Box,
@@ -12,7 +12,8 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { useBackendApi } from "contexts/BackendApi";
 import { useActivitySourceResultsModifiersList } from "api/activitysources"
 import { useState } from "react";
-import { FaGripVertical } from "react-icons/fa";
+import { FaGripVertical, FaTrash, FaEdit, FaPlus } from "react-icons/fa";
+import { ConfigureResultsModifierModal } from "./ConfigureResultsModifierModal";
 
 
 
@@ -28,49 +29,48 @@ export const ResultsModifiers = ({
         if (!result.destination) {
             return;
         }
-
+        console.log(data)
         await resultsmodifier.putOrder({ position: result.destination.index + 1, id: result.draggableId })
-
         await mutate();
     };
 
 
-    // const {
-    //     isOpen: isDeleteOpen,
-    //     onOpen: onDeleteOpen,
-    //     onClose: onDeleteClose,
-    // } = useDisclosure();
-    // const {
-    //     isOpen: isUpdateOpen,
-    //     onOpen: onUpdateOpen,
-    //     onClose: onUpdateClose,
-    // } = useDisclosure();
+    const {
+        isOpen: isDeleteOpen,
+        onOpen: onDeleteOpen,
+        onClose: onDeleteClose,
+    } = useDisclosure();
+    const {
+        isOpen: isUpdateOpen,
+        onOpen: onUpdateOpen,
+        onClose: onUpdateClose,
+    } = useDisclosure();
 
-    // const [selected, setSelected] = useState();
+    const [selected, setSelected] = useState();
 
-    // const onDelete = async () => {
-    //     console.log()
-    //     await resultsmodifier.delete({ id: id });
-    //     await mutate();
-    //     setSelected(undefined);
-    //     onDeleteClose();
-    // };
-    // const onClickDelete = (item) => {
-    //     setSelected(item);
-    //     onDeleteOpen();
-    // };
-    // const closeDelete = () => {
-    //     onDeleteClose();
-    //     setSelected(undefined);
-    // };
-    // const closeUpdate = () => {
-    //     onUpdateClose();
-    //     setSelected(undefined);
-    // };
-    // const onClickUpdate = (item) => {
-    //     setSelected(item);
-    //     onUpdateOpen();
-    // };
+    const onDelete = async (id) => {
+        console.log(id)
+        await resultsmodifier.delete({ id: id });
+        await mutate();
+        setSelected(undefined);
+        onDeleteClose();
+    };
+    const onClickDelete = (item) => {
+        setSelected(item);
+        onDeleteOpen();
+    };
+    const closeDelete = () => {
+        onDeleteClose();
+        setSelected(undefined);
+    };
+    const closeUpdate = () => {
+        onUpdateClose();
+        setSelected(undefined);
+    };
+    const onClickUpdate = (item) => {
+        setSelected(item);
+        onUpdateOpen();
+    };
     return (
 
         <VStack
@@ -80,14 +80,21 @@ export const ResultsModifiers = ({
             borderRadius={5}
             h="100%"
             p={5}
-            align="stretch"
+
             // divider={<StackDivider borderColor='blackAlpha.700' />}
             spacing={4}
-            display='grid'
+            display='contents'
         >
-            <Text fontWeight={"bold"} pr={4}>
-                Results Modifiers:
-            </Text>
+            <Heading as="h3" size="lg">
+                Result Modifiers
+            </Heading>
+            <Button
+
+                colorScheme="green"
+                leftIcon={<FaPlus />}
+            >
+                New
+            </Button>
             <Grid
                 templateAreas={`"header header"
                 "nav main"
@@ -106,7 +113,7 @@ export const ResultsModifiers = ({
 
                             >
                                 <Grid
-                                    templateColumns={'repeat(3,1fr)'}
+                                    templateColumns={'repeat(4,1fr)'}
                                     display={'grid'}
                                     pb={2}
 
@@ -120,11 +127,14 @@ export const ResultsModifiers = ({
                                     <GridItem colStart={3} colSpan={1} area={'nav'} pl={5}>
                                         <Text fontWeight={'bold'} > Parameters </Text>
                                     </GridItem>
+                                    <GridItem colStart={4} colSpan={1} area={'nav'} pl={5} >
+
+                                    </GridItem>
                                 </Grid>
 
 
                                 {data.sort((item, index) => item.order - index.order).map((item, index) => (
-                                    <Draggable key={item.id} draggableId={String(item.id)} index={index} >
+                                    <Draggable key={item.id} draggableId={`${item.id}`} index={index} >
                                         {(provided, snapshot) => (
                                             <div
                                                 ref={provided.innerRef}
@@ -133,45 +143,65 @@ export const ResultsModifiers = ({
 
                                             >
                                                 <Grid
-                                                    templateColumns={'repeat(3,1fr)'}
+                                                    templateColumns={'repeat(4,1fr)'}
                                                     display={'grid'}
                                                     pb={2}
                                                     borderRadius={5}
+                                                    borderWidth={1}
+                                                    borderColor={snapshot.isDragging ? 'blue.500' : 'blue.10'}
+                                                    bg={snapshot.isDragging ? 'blue.50' : 'gray.50'}
+                                                    alignItems='center'
+
                                                 >
-
-
                                                     <GridItem
                                                         colStart={1}
                                                         colSpan={1}
-                                                        bg={snapshot.isDragging ? 'blue.100' : 'gray.100'}
-                                                        h='10'
                                                         pl={2}
+                                                        pt={1}
                                                         display='flex'
-
-
+                                                        alignItems='center'
                                                     >
-
-                                                        <FaGripVertical display={'flex'} /><Text display='flex'> {item.order} </Text>
+                                                        <FaGripVertical />
+                                                        <Text>  {item.order} </Text>
                                                     </GridItem>
 
                                                     <GridItem
                                                         colStart={2}
                                                         colSpan={1}
-                                                        bg={snapshot.isDragging ? 'blue.100' : 'gray.100'}
-                                                        h='10'
-                                                        pl={5}>
+                                                        pl={5}
+                                                        display='grid'>
 
                                                         <Text p={'1'}>{item.type.id}</Text>
-                                                    </GridItem>
+                                                    </GridItem> {Object.keys(item.parameters).map((key, value) =>
+                                                        <GridItem
+                                                            colStart={3}
+                                                            colSpan={1}
+                                                            pl={5}
+                                                            display='grid'>
+
+                                                            <Text p={'1'}>{key}: {item.parameters[key]}</Text>
+
+
+                                                        </GridItem>)}
+
                                                     <GridItem
-                                                        colStart={3}
+                                                        colStart={4}
                                                         colSpan={1}
-                                                        bg={snapshot.isDragging ? 'blue.100' : 'gray.100'}
-                                                        h='10'
-                                                        pl={5}>
-                                                        <Text p={'1'}>{item.parameters}</Text>
+                                                        pl={5}
+                                                        pt={1}
+                                                        display='-ms-inline-grid'>
+                                                        <Button style={{ backgroundColor: 'transparent' }}> <FaEdit color="darkslategray" onClick={() => onClickUpdate(item)} /></Button>
+                                                        <Button style={{ backgroundColor: 'transparent' }}> <FaTrash color="#cf222eed" onClick={() => onDelete(item.id)} /></Button>
+                                                        <ConfigureResultsModifierModal
+                                                            isOpen={isUpdateOpen}
+                                                            onClose={closeUpdate}
+                                                            action={selected ? resultsmodifier.update : resultsmodifier.create}
+                                                            initialData={selected}
+                                                            mutate={mutate}
+                                                        />
 
                                                     </GridItem>
+
 
 
                                                 </Grid>

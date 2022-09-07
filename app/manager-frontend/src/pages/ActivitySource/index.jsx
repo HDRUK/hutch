@@ -28,7 +28,6 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   // TODO: Get this from the backend
   const typeOptions = [{ id: "RQUEST" }];
   const { data: datasourceOptions } = useDataSourceList();
-  const { data: modifiers } = useActivitySourceResultsModifiersList(id);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
