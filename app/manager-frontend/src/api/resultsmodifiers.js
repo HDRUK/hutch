@@ -20,8 +20,9 @@ export const getResultsModifierApi = ({ api }) => ({
     api.delete(`ResultsModifiers/${id}`, {
       json: values,
     }),
-  putOrder: ({ value, id }) =>
-    api.put(`${id}/order/${value}`)
+  putOrder: ({ position, id }) =>
+    api.put(`ResultsModifiers/${id}/order/${position}`),
+
 });
 
 export const useResultsModifierOrderList = (id, value) => {
