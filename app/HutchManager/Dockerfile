@@ -1,5 +1,5 @@
 ﻿FROM node:lts-alpine as spa_build
-RUN npm install -g pnpm
+RUN npm install -g pnpm@7.1.0
 WORKDIR /manager-frontend
 COPY ./app/manager-frontend .
 COPY pnpm-lock.yaml .
