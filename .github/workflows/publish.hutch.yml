@@ -67,6 +67,7 @@ jobs:
       # 3. Publish migrations
       - name: dotnet ef migrations bundle
         run: >-
+          dotnet tool restore &&
           dotnet ef migrations bundle
           -p ${{ env.CI_dotnet-project }}
           -o ${{ env.CI_migrations-dir }}
