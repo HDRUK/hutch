@@ -25,7 +25,7 @@ jobs:
           push: false
           tags: ${{ env.IMAGE }}
           context: ${{ env.WORKDIR }}
-          file: ${{ env.WORKDIR }}/HutchManager/DockerFile
+          file: ${{ env.WORKDIR }}/HutchManager/Dockerfile
       - name: Docker Image Artifact Upload
         uses: ishworkh/docker-image-artifact-upload@v1
         with:
