@@ -1,9 +1,10 @@
 ﻿FROM node:lts-alpine as spa_build
-RUN npm install -g pnpm@7.1.0
-WORKDIR /manager-frontend
-COPY ./app/manager-frontend .
 COPY pnpm-lock.yaml .
 COPY pnpm-workspace.yaml .
+COPY package.json .
+COPY ./app/manager-frontend /manager-frontend
+RUN npm install -g pnpm
+RUN pnpm install
 RUN pnpm install --frozen-lockfile --filter manager-frontend
 RUN pnpm run build
 
