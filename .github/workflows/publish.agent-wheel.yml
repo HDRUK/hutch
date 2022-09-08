@@ -1,0 +1,42 @@
+name: Publish Agent Wheel
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      buildConfig:
+        description: Build Configuration
+        required: true
+        default: release
+  push:
+    branches: [main]
+
+jobs:
+  publish-wheel:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: "3.9"
+      POETRY_VERSION: "1.1.14"
+      WORKDIR: "./app/HutchAgent"
+      ARTIFACT_NAME: "hutchagent-dist"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+      - name: Install agent deps
+        working-directory: ${{ env.WORKDIR }}
+        run: poetry install --no-dev
+      - name: Build dist
+        working-directory: ${{ env.WORKDIR }}
+        run: poetry build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.WORKDIR }}/dist
