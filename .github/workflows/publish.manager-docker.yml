@@ -8,8 +8,7 @@ on:
         required: true
         default: release
   push:
-    # branches: [main]
-    branches: [feature/manager-docker-CI]
+    branches: [main]
 
 jobs:
   publish-agent-docker:

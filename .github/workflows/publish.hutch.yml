@@ -8,8 +8,7 @@ on:
         required: true
         default: release
   push:
-    # branches: [main, support/*]
-    branches: [feature/manager-docker-CI]
+    branches: [main, support/*]
 
 env:
   CI_build-config: ${{ github.event.inputs.buildConfig || 'release' }}
