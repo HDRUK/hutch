@@ -1,7 +1,9 @@
 ﻿FROM node:lts-alpine as spa_build
 RUN npm install -g pnpm
 WORKDIR /manager-frontend
-COPY ../manager-frontend .
+COPY ./app/HutchManager/manager-frontend .
+COPY pnpm-lock.yaml .
+COPY pnpm-workspace.yaml .
 RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 
@@ -12,7 +14,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ./HutchManager ./HutchManager
+COPY ./app/HutchManager ./HutchManager
 RUN dotnet restore "HutchManager/HutchManager.csproj"
 WORKDIR "/src/HutchManager"
 RUN dotnet build "HutchManager.csproj" -c Release -o /app/build

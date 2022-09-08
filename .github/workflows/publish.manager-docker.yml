@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE: hutch-manager:latest
-      WORKDIR: ./app
     steps:
       - uses: actions/checkout@v2
       - name: Build and push Docker images
@@ -24,8 +23,7 @@ jobs:
         with:
           push: false
           tags: ${{ env.IMAGE }}
-          context: ${{ env.WORKDIR }}
-          file: ${{ env.WORKDIR }}/HutchManager/Dockerfile
+          file: ./app/HutchManager/Dockerfile
       - name: Docker Image Artifact Upload
         uses: ishworkh/docker-image-artifact-upload@v1
         with:
