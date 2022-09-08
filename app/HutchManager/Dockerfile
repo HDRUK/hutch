@@ -4,9 +4,8 @@ COPY pnpm-workspace.yaml .
 COPY package.json .
 COPY ./app/manager-frontend /manager-frontend
 RUN npm install -g pnpm
-RUN pnpm install -r --frozen-lockfile
-WORKDIR /manager-frontend
-RUN pnpm run build
+RUN pnpm install --frozen-lockfile
+RUN pnpm --if-present run build
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
