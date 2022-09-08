@@ -75,7 +75,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ env.CI_migrations-name }}
-          path: ${{ env.CI_migrations-dir }}/${{ env.CI_migrations-name }}
+          path: ${{ env.CI_migrations-dir }}
 
       # 4. Upload the built artifact
       - uses: edgarrc/action-7z@v1.0.5
