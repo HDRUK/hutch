@@ -7,7 +7,8 @@ import {
   Alert,
   AlertIcon,
   useDisclosure,
-  HStack
+  HStack,
+  Text
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Form, Formik } from "formik";
@@ -164,6 +165,10 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   }
                   hasEmptyDefault
                 />
+                {isUpdate ? null : <Alert status='info'>
+                  <AlertIcon />
+                  Result Modifiers can be added after an Activity Source is created.
+                </Alert>}
                 <HStack>
                   <Button
                     w="200px"
@@ -182,7 +187,6 @@ export const ActivitySource = ({ activitySource, action, id }) => {
         </Formik>
       </VStack>
       {isUpdate ? <ResultsModifiers id={id} ></ResultsModifiers> : null}
-
       <DeleteModal
         title={`Delete Activity Source ${id}`}
         body="Are you sure you want to delete this activity source? You will not be able to reverse this"
