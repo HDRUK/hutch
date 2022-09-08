@@ -260,7 +260,19 @@ export const ConfigureResultsModifierModal = ({
                                             label: item.id,
                                         }))}
                                     />
-                                    <LowNumberSuppressionParameters type={values.Type} />
+                                    {(() => {
+                                        switch (values.Type) {
+                                            case "Type1":
+                                                return (
+                                                    <LowNumberSuppressionParameters type={values.Type} />
+                                                );
+                                            default:
+                                                return (
+                                                    <LowNumberSuppressionParameters type={values.Type} />
+                                                );
+                                        }
+                                    })()}
+
                                     <Button
                                         w="full"
                                         leftIcon={<FaArrowRight />}
