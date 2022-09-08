@@ -39,7 +39,7 @@ export const ActivitySourceSummary = ({
       <HStack>
         <Flex w="full">
           <LinkOverlay w="100%" as={Link} to={`${href}`}>
-            <Heading as="h3" size="md" _hoverGroup={{ color: "blue.500" }}>
+            <Heading as="h3" size="md" _hovergroup={{ color: "blue.500" }}>
               {title}
             </Heading>
           </LinkOverlay>
