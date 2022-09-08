@@ -4,7 +4,7 @@ WORKDIR /manager-frontend
 COPY ./app/manager-frontend .
 COPY pnpm-lock.yaml .
 COPY pnpm-workspace.yaml .
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter manager-frontend
 RUN pnpm run build
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
