@@ -37,7 +37,9 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   const headingText = !activitySource
     ? "Create a new Activity Source"
     : "Edit Activity Source";
-
+  const isUpdate = !activitySource
+    ? false
+    : true
   const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
     behavior: "smooth",
   });
@@ -179,8 +181,9 @@ export const ActivitySource = ({ activitySource, action, id }) => {
             </Form>
           )}
         </Formik>
+        {isUpdate ? <ResultsModifiers id={id} ></ResultsModifiers> : null}
       </VStack>
-      <ResultsModifiers id={id} ></ResultsModifiers>
+
       <DeleteModal
         title={`Delete Activity Source ${id}`}
         body="Are you sure you want to delete this activity source? You will not be able to reverse this"
