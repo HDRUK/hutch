@@ -64,12 +64,13 @@ public class RQuestPollingService
     {
       ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
       _jobQueue.SendMessage(queueName, roCratesQuery);
+      _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
     }
     else
     {
       _jobQueue.SendMessage(queueName, jobPayload);
+      _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(jobPayload));
     }
 
-    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(jobPayload));
   }
 }

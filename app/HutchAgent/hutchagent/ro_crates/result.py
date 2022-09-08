@@ -39,7 +39,7 @@ class Result:
                     "@context": "https://schema.org",
                     "@type": "PropertyValue",
                     "name": "count",
-                    "value": self.count,
+                    "value": str(self.count),  # stringify so Manager can decode.
                 },
             ],
         }
