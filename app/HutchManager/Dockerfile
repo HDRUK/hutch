@@ -1,7 +1,7 @@
 ﻿FROM node:lts-alpine as spa_build
 RUN npm install -g pnpm
 WORKDIR /manager-frontend
-COPY ./app/HutchManager/manager-frontend .
+COPY ./app/manager-frontend .
 COPY pnpm-lock.yaml .
 COPY pnpm-workspace.yaml .
 RUN pnpm install --frozen-lockfile
