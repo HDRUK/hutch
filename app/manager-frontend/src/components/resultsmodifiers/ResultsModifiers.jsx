@@ -14,6 +14,7 @@ import { useActivitySourceResultsModifiersList } from "api/activitysources"
 import { useState } from "react";
 import { FaGripVertical, FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import { ConfigureResultsModifierModal } from "./ConfigureResultsModifierModal";
+import { DeleteModal } from "components/DeleteModal";
 
 
 
@@ -21,19 +22,18 @@ export const ResultsModifiers = ({
     id
 }) => {
 
-    const { resultsmodifier } = useBackendApi();
+    const { resultsmodifier, activitysource } = useBackendApi();
     const { data, mutate } = useActivitySourceResultsModifiersList(id);
+    const [selected, setSelected] = useState();
 
     const onDragEnd = async (result) => {
         // dropped outside the list
         if (!result.destination) {
             return;
         }
-        console.log(data)
         await resultsmodifier.putOrder({ position: result.destination.index + 1, id: result.draggableId })
         await mutate();
     };
-
 
     const {
         isOpen: isDeleteOpen,
@@ -46,10 +46,7 @@ export const ResultsModifiers = ({
         onClose: onUpdateClose,
     } = useDisclosure();
 
-    const [selected, setSelected] = useState();
-
     const onDelete = async (id) => {
-        console.log(id)
         await resultsmodifier.delete({ id: id });
         await mutate();
         setSelected(undefined);
@@ -80,8 +77,6 @@ export const ResultsModifiers = ({
             borderRadius={5}
             h="100%"
             p={5}
-
-            // divider={<StackDivider borderColor='blackAlpha.700' />}
             spacing={4}
             display='contents'
         >
@@ -89,10 +84,18 @@ export const ResultsModifiers = ({
                 Result Modifiers
             </Heading>
             <Button
-
                 colorScheme="green"
                 leftIcon={<FaPlus />}
+                onClick={onUpdateOpen}
             >
+                <ConfigureResultsModifierModal
+                    isOpen={isUpdateOpen}
+                    onClose={closeUpdate}
+                    action={selected ? resultsmodifier.update : activitysource.createModifier}
+                    initialData={selected}
+                    mutate={mutate}
+                    activitySourceId={id}
+                />
                 New
             </Button>
             <Grid
@@ -191,13 +194,22 @@ export const ResultsModifiers = ({
                                                         pt={1}
                                                         display='-ms-inline-grid'>
                                                         <Button style={{ backgroundColor: 'transparent' }}> <FaEdit color="darkslategray" onClick={() => onClickUpdate(item)} /></Button>
-                                                        <Button style={{ backgroundColor: 'transparent' }}> <FaTrash color="#cf222eed" onClick={() => onDelete(item.id)} /></Button>
+                                                        <Button style={{ backgroundColor: 'transparent' }} onClick={onDeleteOpen} ><DeleteModal
+                                                            title={`Delete Results Modifier ${selected ? selected.id : ""}`}
+                                                            body="Are you sure you want to delete this results modifier? You will not be able to reverse this"
+                                                            isOpen={isDeleteOpen}
+                                                            onClose={closeDelete}
+                                                            id={selected ? selected.id : undefined}
+                                                            onDelete={() => onDelete(item.id)}
+                                                        /> <FaTrash color="#cf222eed" /></Button>
+
                                                         <ConfigureResultsModifierModal
                                                             isOpen={isUpdateOpen}
                                                             onClose={closeUpdate}
-                                                            action={selected ? resultsmodifier.update : resultsmodifier.create}
+                                                            action={selected ? resultsmodifier.update : activitysource.createModifier}
                                                             initialData={selected}
                                                             mutate={mutate}
+                                                            activitySourceId={id}
                                                         />
 
                                                     </GridItem>

@@ -18,7 +18,6 @@ import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
-import { useActivitySourceResultsModifiersList } from "api/activitysources"
 import { useDataSourceList } from "api/datasource";
 import { getDateDaysAgo } from "helpers/dates";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
@@ -181,8 +180,8 @@ export const ActivitySource = ({ activitySource, action, id }) => {
             </Form>
           )}
         </Formik>
-        {isUpdate ? <ResultsModifiers id={id} ></ResultsModifiers> : null}
       </VStack>
+      {isUpdate ? <ResultsModifiers id={id} ></ResultsModifiers> : null}
 
       <DeleteModal
         title={`Delete Activity Source ${id}`}

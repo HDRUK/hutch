@@ -22,9 +22,8 @@ import {
 } from "@chakra-ui/react";
 
 import React, { useState } from "react";
-import { Form, Formik, useField } from "formik";
+import { Form, Formik } from "formik";
 import { FaArrowRight } from "react-icons/fa";
-import { FormikInput } from "components/forms/FormikInput";
 import { FormikSelect } from "components/forms/FormikSelect";
 import { LowNumberSuppressionParameters } from "./LowNumberSuppressionParameters";
 import { validationSchema } from "pages/ResultsModifier/validation";
@@ -32,7 +31,7 @@ import { capitaliseObjectKeys } from "helpers/data-structures";
 import { objectStringsToNull } from "helpers/data-structures";
 import { objectsAreEqual } from "helpers/data-structures";
 import { useModifierTypeList } from "api/resultsmodifiers";
-import { useActivitySourceList } from "api/activitysources";
+import { useActivitySource } from "api/activitysources";
 
 export const ConfirmationModal = ({
     isOpen,
@@ -176,6 +175,7 @@ export const ConfigureResultsModifierModal = ({
     onClose,
     action,
     mutate,
+    activitySourceId
 }) => {
     const {
         isOpen: isConfirmOpen,
@@ -184,7 +184,7 @@ export const ConfigureResultsModifierModal = ({
     } = useDisclosure();
     const [feedback, setFeedback] = useState();
     const { data: typeOptions } = useModifierTypeList();
-    const { data: activitySourceOptions } = useActivitySourceList();
+    const { data: activitySource } = useActivitySource(activitySourceId);
     const onCloseHandler = () => {
         onClose();
         setFeedback(null);
@@ -194,13 +194,12 @@ export const ConfigureResultsModifierModal = ({
             // convert all empty strings to null
             const payload = objectStringsToNull(values);
             // post to the api
-            console.log(payload)
             await action({
                 values: {
                     ...payload,
                     ActivitySourceId: payload.ActivitySource,
                 },
-                id: initialData ? initialData.id : undefined,
+                id: initialData ? initialData.id : payload.ActivitySource,
             }).json();
             mutate();
             onConfirmClose();
@@ -219,7 +218,7 @@ export const ConfigureResultsModifierModal = ({
             <ModalOverlay />
             <ModalContent>
                 <ModalHeader>
-                    {initialData ? "Update Results Modifier" : "Create Results Modifier"}
+                    {initialData ? "Update Results Modifier" : `Create Results Modifier for: ${activitySource.displayName}`}
                 </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
@@ -228,17 +227,17 @@ export const ConfigureResultsModifierModal = ({
                         initialValues={
                             initialData
                                 ? {
-                                    Order: initialData.order,
+
                                     Type: initialData.type.id,
                                     // capitalise the object keys in the parameters object
                                     Parameters: capitaliseObjectKeys(initialData.parameters),
                                     ActivitySource: initialData.activitySource.id,
                                 }
                                 : {
-                                    Order: "0",
+
                                     Type: typeOptions[0].id,
                                     Parameters: {},
-                                    ActivitySource: activitySourceOptions[0].id,
+                                    ActivitySource: activitySource.id,
                                 }
                         }
                         validationSchema={validationSchema()}
@@ -252,7 +251,6 @@ export const ConfigureResultsModifierModal = ({
                                             {feedback}
                                         </Alert>
                                     )}
-                                    <FormikInput label="Order" name={"Order"} type="number" />
                                     <FormikSelect
                                         label="Type"
                                         name={"Type"}
@@ -260,15 +258,6 @@ export const ConfigureResultsModifierModal = ({
                                         options={typeOptions.map((item) => ({
                                             value: item.id,
                                             label: item.id,
-                                        }))}
-                                    />
-                                    <FormikSelect
-                                        label="Activity Source"
-                                        name={"ActivitySource"}
-                                        type="ActivitySource"
-                                        options={activitySourceOptions.map((item) => ({
-                                            value: item.id,
-                                            label: item.displayName,
                                         }))}
                                     />
                                     <LowNumberSuppressionParameters type={values.Type} />
@@ -291,9 +280,7 @@ export const ConfigureResultsModifierModal = ({
                                         initialData={initialData}
                                         newData={{
                                             ...values,
-                                            ActivitySource: activitySourceOptions.find(
-                                                (item) => item.id == values.ActivitySource
-                                            ),
+                                            ActivitySource: activitySource.id,
                                             Type: typeOptions.find((item) => item.id == values.Type),
                                         }}
                                     />
