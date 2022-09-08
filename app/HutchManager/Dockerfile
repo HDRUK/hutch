@@ -5,8 +5,8 @@ COPY package.json .
 COPY ./app/manager-frontend /manager-frontend
 RUN npm install -g pnpm
 RUN pnpm install
-RUN pnpm install --frozen-lockfile --filter manager-frontend
-RUN pnpm run --filter manager-frontend build
+RUN pnpm --filter manager-frontend install --frozen-lockfile
+RUN pnpm --filter manager-frontend run build
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
