@@ -1,0 +1,31 @@
+name: Publish Manager Docker
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      buildConfig:
+        description: Build Configuration
+        required: true
+        default: release
+  push:
+    branches: [main]
+
+jobs:
+  publish-agent-docker:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: hutch-manager:latest
+      WORKDIR: ./app
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3.1.1
+        with:
+          push: false
+          tags: ${{ env.IMAGE }}
+          context: ${{ env.WORKDIR }}
+          file: ${{ env.WORKDIR }}/HutchManager/DockerFile
+      - name: Docker Image Artifact Upload
+        uses: ishworkh/docker-image-artifact-upload@v1
+        with:
+          image: ${{ env.IMAGE }}
