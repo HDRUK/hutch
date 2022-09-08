@@ -4,8 +4,7 @@ COPY pnpm-workspace.yaml .
 COPY package.json .
 COPY ./app/manager-frontend /manager-frontend
 RUN npm install -g pnpm
-RUN pnpm install
-RUN pnpm --filter manager-frontend install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 WORKDIR /manager-frontend
 RUN pnpm run build
 
