@@ -262,13 +262,13 @@ export const ConfigureResultsModifierModal = ({
                                     />
                                     {(() => {
                                         switch (values.Type) {
-                                            case "Type1":
+                                            case "Low Number Suppression":
                                                 return (
                                                     <LowNumberSuppressionParameters type={values.Type} />
                                                 );
                                             default:
                                                 return (
-                                                    <LowNumberSuppressionParameters type={values.Type} />
+                                                    null
                                                 );
                                         }
                                     })()}
