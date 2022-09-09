@@ -7,8 +7,7 @@ import {
   Alert,
   AlertIcon,
   useDisclosure,
-  HStack,
-  Text
+  HStack
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Form, Formik } from "formik";
