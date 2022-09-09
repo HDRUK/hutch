@@ -66,7 +66,8 @@ def main():
         logger.info("Connecting to queue.")
         channel = mq.connect(
             queue=os.getenv("DATASOURCE_NAME"),
-            host=os.getenv("MSG_QUEUE_HOST", "localhost")
+            host=os.getenv("MSG_QUEUE_HOST", "localhost"),
+            heartbeat=300,
         )
         channel.basic_consume(
             os.getenv("DATASOURCE_NAME"),

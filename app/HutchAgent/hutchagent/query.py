@@ -348,6 +348,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
 
     def build_subqueries(self) -> None:
         """Build the subqueries for the main query."""
+        # base query for text rules
         base_txt_stmnt = (
             select(Person.person_id)
             .join(
@@ -371,9 +372,25 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                 full=True,
             )
         )
+        # base query for numeric rules
         base_num_stmnt = select(Measurement.person_id)
+        # make join clause
+        join_clause =lambda x, left, right: (
+            # x is 0-indexed counter
+            # aliasing comes in when x > 1 (2 or more addition subqueries)
+            left.c.main_person_id == right.c.person_id
+            if x > 1 
+            else left.c.person_id == right.c.person_id
+        )
         for group in self.query.cohort.groups:
-            if group.rules[0].type == "TEXT" and group.rules[0].oper == "=":
+            if group.rules[0].type == "NUM":
+                stmnt = base_num_stmnt.where(
+                    and_(
+                        Measurement.measurement_concept_id == group.rules[0].concept_id,
+                        Measurement.value_as_number.between(*group.rules[0].value)
+                    )
+                ).distinct().subquery().alias("main")
+            elif group.rules[0].type == "TEXT" and group.rules[0].oper == "=":
                 stmnt = base_txt_stmnt.where(
                     or_(
                         Person.ethnicity_concept_id == group.rules[0].concept_id,
@@ -384,7 +401,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         Observation.observation_concept_id == group.rules[0].concept_id,
                         DrugExposure.drug_concept_id == group.rules[0].concept_id,
                     )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
             elif group.rules[0].type == "TEXT" and group.rules[0].oper == "!=":
                 stmnt = base_txt_stmnt.where(
                     or_(
@@ -396,17 +413,29 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         Observation.observation_concept_id != group.rules[0].concept_id,
                         DrugExposure.drug_concept_id != group.rules[0].concept_id,
                     )
-                ).distinct().subquery()
-            else:
-                stmnt = base_num_stmnt.where(
-                    and_(
-                        Measurement.measurement_concept_id == group.rules[0].concept_id,
-                        Measurement.value_as_number.between(*group.rules[0].value)
-                    )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
             for i in range(1, len(group.rules[1:]) + 1):
+                # numeric rule
+                if group.rules[i].type == "NUM":
+                    rule_stmnt = (
+                        base_num_stmnt
+                        .where(
+                            and_(
+                                Measurement.measurement_concept_id == group.rules[i].concept_id,
+                                Measurement.value_as_number.between(*group.rules[i].value)
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                        .alias(f"rule_sq_{i}")
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        join_clause(i, stmnt, rule_stmnt),
+                        full=group.rules_oper == "OR",
+                    )
                 # Text rules testing for inclusion
-                if group.rules[i].type == "TEXT" and group.rules[i].oper == "=":
+                elif group.rules[i].type == "TEXT" and group.rules[i].oper == "=":
                     rule_stmnt = (
                         base_txt_stmnt
                         .where(
@@ -422,10 +451,11 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        join_clause(i, stmnt, rule_stmnt),
                         full=group.rules_oper == "OR",
                     )
                 # Text rules testing for exclusion
@@ -445,37 +475,26 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
-                    )
-                else:
-                    # numeric rule
-                    rule_stmnt = (
-                        base_num_stmnt
-                        .where(
-                            and_(
-                                Measurement.measurement_concept_id == group.rules[i].concept_id,
-                                Measurement.value_as_number.between(*group.rules[i].value)
-                            )
-                        )
-                        .distinct()
-                        .subquery()
-                    )
-                    stmnt = stmnt.join(
-                        rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
+                        join_clause(i, stmnt, rule_stmnt),
                         full=group.rules_oper == "OR",
                     )
             self.subqueries.append(stmnt)
 
     def build_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
-        group_stmnt = self.subqueries[0]
-        for sq in self.subqueries[1:]:
-            group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
+        group_stmnt = self.subqueries[0].alias("group_0")
+        for i, sq in enumerate(self.subqueries[1:]):
+            sq = sq.alias(f"group_{i + 1}")
+            join_cols = (group_stmnt.c.keys()[0], sq.c.keys()[0])
+            group_stmnt = group_stmnt.join(
+                sq,
+                group_stmnt.c[join_cols[0]] == sq.c[join_cols[1]],
+                full=self.query.cohort.groups_oper == "OR"
+            )
         self.subqueries.clear()
         stmnt = select(func.count()).select_from(group_stmnt)
         return stmnt
@@ -489,6 +508,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
 
     def build_subqueries(self) -> None:
         """Build the subqueries for the main query."""
+        # base query for text rules
         base_txt_stmnt = (
             select(Person.person_id)
             .join(
@@ -512,111 +532,129 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 full=True,
             )
         )
+        # base query for numeric rules
         base_num_stmnt = select(Measurement.person_id)
+        # make join clause
+        join_clause =lambda x, left, right: (
+            # x is 0-indexed counter
+            # aliasing comes in when x > 1 (2 or more addition subqueries)
+            left.c.main_person_id == right.c.person_id
+            if x > 1 
+            else left.c.person_id == right.c.person_id
+        )
         for group in self.query.groups:
-            if group.rules[0].value is not None and group.rules[0].operator == "=":
-                stmnt = base_txt_stmnt.where(
-                    or_(
-                        Person.ethnicity_concept_id == group.rules[0].name,
-                        Person.gender_concept_id == group.rules[0].name,
-                        Person.race_concept_id == group.rules[0].name,
-                        ProcedureOccurrence.procedure_concept_id == group.rules[0].name,
-                        ConditionOccurrence.condition_concept_id == group.rules[0].name,
-                        Observation.observation_concept_id == group.rules[0].name,
-                        DrugExposure.drug_concept_id == group.rules[0].name,
-                    )
-                ).distinct().subquery()
-            elif group.rules[0].value is not None and group.rules[0].operator == "!=":
-                stmnt = base_txt_stmnt.where(
-                    or_(
-                        Person.ethnicity_concept_id != group.rules[0].name,
-                        Person.gender_concept_id != group.rules[0].name,
-                        Person.race_concept_id != group.rules[0].name,
-                        ProcedureOccurrence.procedure_concept_id != group.rules[0].name,
-                        ConditionOccurrence.condition_concept_id != group.rules[0].name,
-                        Observation.observation_concept_id != group.rules[0].name,
-                        DrugExposure.drug_concept_id != group.rules[0].name,
-                    )
-                ).distinct().subquery()
-            else:
+            if group.rules[0].min_value is not None and group.rules[0].max_value is not None:
                 stmnt = base_num_stmnt.where(
                     and_(
-                        Measurement.measurement_concept_id == group.rules[0].name,
+                        Measurement.measurement_concept_id == group.rules[0].value,
                         Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
                     )
-                ).distinct().subquery()
+                ).distinct().subquery().alias("main")
+            elif group.rules[0].operator.value == "=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id == group.rules[0].value,
+                        Person.gender_concept_id == group.rules[0].value,
+                        Person.race_concept_id == group.rules[0].value,
+                        ProcedureOccurrence.procedure_concept_id == group.rules[0].value,
+                        ConditionOccurrence.condition_concept_id == group.rules[0].value,
+                        Observation.observation_concept_id == group.rules[0].value,
+                        DrugExposure.drug_concept_id == group.rules[0].value,
+                    )
+                ).distinct().subquery().alias("main")
+            elif group.rules[0].operator.value == "!=":
+                stmnt = base_txt_stmnt.where(
+                    or_(
+                        Person.ethnicity_concept_id != group.rules[0].value,
+                        Person.gender_concept_id != group.rules[0].value,
+                        Person.race_concept_id != group.rules[0].value,
+                        ProcedureOccurrence.procedure_concept_id != group.rules[0].value,
+                        ConditionOccurrence.condition_concept_id != group.rules[0].value,
+                        Observation.observation_concept_id != group.rules[0].value,
+                        DrugExposure.drug_concept_id != group.rules[0].value,
+                    )
+                ).distinct().subquery().alias("main")
             for i in range(1, len(group.rules[1:]) + 1):
-                # Text rules testing for inclusion
-                if group.rules[0].value is not None and group.rules[0].operator == "=":
-                    rule_stmnt = (
-                        base_txt_stmnt
-                        .where(
-                            or_(
-                                Person.ethnicity_concept_id == group.rules[i].name,
-                                Person.gender_concept_id == group.rules[i].name,
-                                Person.race_concept_id == group.rules[i].name,
-                                ProcedureOccurrence.procedure_concept_id == group.rules[i].name,
-                                ConditionOccurrence.condition_concept_id == group.rules[i].name,
-                                Observation.observation_concept_id == group.rules[i].name,
-                                DrugExposure.drug_concept_id == group.rules[i].name,
-                            )
-                        )
-                        .distinct()
-                        .subquery()
-                    )
-                    stmnt = stmnt.join(
-                        rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
-                    )
-                # Text rules testing for exclusion
-                elif group.rules[0].value is not None and group.rules[0].operator == "!=":
-                    rule_stmnt = (
-                        base_txt_stmnt
-                        .where(
-                            or_(
-                                Person.ethnicity_concept_id != group.rules[i].name,
-                                Person.gender_concept_id != group.rules[i].name,
-                                Person.race_concept_id != group.rules[i].name,
-                                ProcedureOccurrence.procedure_concept_id != group.rules[i].name,
-                                ConditionOccurrence.condition_concept_id != group.rules[i].name,
-                                Observation.observation_concept_id != group.rules[i].name,
-                                DrugExposure.drug_concept_id != group.rules[i].name,
-                            )
-                        )
-                        .distinct()
-                        .subquery()
-                    )
-                    stmnt = stmnt.join(
-                        rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
-                    )
-                else:
+                if group.rules[i].min_value is not None and group.rules[i].max_value is not None:
                     # numeric rule
                     rule_stmnt = (
                         base_num_stmnt
                         .where(
                             and_(
-                                Measurement.measurement_concept_id == group.rules[i].name,
+                                Measurement.measurement_concept_id == group.rules[i].value,
                                 Measurement.value_as_number.between(group.rules[i].min_value, group.rules[i].max_value)
                             )
                         )
                         .distinct()
                         .subquery()
+                        .alias(f"rule_sq_{i}")
                     )
                     stmnt = stmnt.join(
                         rule_stmnt,
-                        stmnt.c.person_id == rule_stmnt.c.person_id,
-                        full=group.rules_oper == "OR",
+                        join_clause(i, stmnt, rule_stmnt),
+                        full=group.rule_operator.value == "OR",
+                    )
+                # Text rules testing for inclusion
+                elif group.rules[i].operator.value == "=":
+                    rule_stmnt = (
+                        base_txt_stmnt
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id == group.rules[i].value,
+                                Person.gender_concept_id == group.rules[i].value,
+                                Person.race_concept_id == group.rules[i].value,
+                                ProcedureOccurrence.procedure_concept_id == group.rules[i].value,
+                                ConditionOccurrence.condition_concept_id == group.rules[i].value,
+                                Observation.observation_concept_id == group.rules[i].value,
+                                DrugExposure.drug_concept_id == group.rules[i].value,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                        .alias(f"rule_sq_{i}")
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        join_clause(i, stmnt, rule_stmnt),
+                        full=group.rule_operator.value == "OR",
+                    )
+                # Text rules testing for exclusion
+                elif group.rules[i].operator.value == "!=":
+                    rule_stmnt = (
+                        base_txt_stmnt
+                        .where(
+                            or_(
+                                Person.ethnicity_concept_id != group.rules[i].value,
+                                Person.gender_concept_id != group.rules[i].value,
+                                Person.race_concept_id != group.rules[i].value,
+                                ProcedureOccurrence.procedure_concept_id != group.rules[i].value,
+                                ConditionOccurrence.condition_concept_id != group.rules[i].value,
+                                Observation.observation_concept_id != group.rules[i].value,
+                                DrugExposure.drug_concept_id != group.rules[i].value,
+                            )
+                        )
+                        .distinct()
+                        .subquery()
+                        .alias(f"rule_sq_{i}")
+                    )
+                    stmnt = stmnt.join(
+                        rule_stmnt,
+                        join_clause(i, stmnt, rule_stmnt),
+                        full=group.rule_operator.value == "OR",
                     )
             self.subqueries.append(stmnt)
 
     def build_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
-        group_stmnt = self.subqueries[0]
-        for sq in self.subqueries[1:]:
-            group_stmnt = group_stmnt.join(sq, full=self.query.cohort.groups_oper == "OR")
+        group_stmnt = self.subqueries[0].alias("group_0")
+        for i, sq in enumerate(self.subqueries[1:]):
+            sq = sq.alias(f"group_{i + 1}")
+            join_cols = (group_stmnt.c.keys()[0], sq.c.keys()[0])
+            group_stmnt = group_stmnt.join(
+                sq,
+                group_stmnt.c[join_cols[0]] == sq.c[join_cols[1]],
+                full=self.query.group_operator.value == "OR"
+            )
         self.subqueries.clear()
         stmnt = select(func.count()).select_from(group_stmnt)
         return stmnt
