@@ -2,7 +2,6 @@ import {
     Heading,
     VStack,
     Grid,
-    Box,
     GridItem,
     Text,
     Button,
@@ -25,12 +24,15 @@ export const ResultsModifiers = ({
     const { resultsmodifier, activitysource } = useBackendApi();
     const { data, mutate } = useActivitySourceResultsModifiersList(id);
     const [selected, setSelected] = useState();
-
     const onDragEnd = async (result) => {
         // dropped outside the list
         if (!result.destination) {
             return;
         }
+        const reordered = Array.from(data);
+        const [removed] = reordered.splice(result.source.index, 1);
+        reordered.splice(result.destination.index, 0, removed);
+        mutate(reordered, false);
         await resultsmodifier.putOrder({ position: result.destination.index + 1, id: result.draggableId })
         await mutate();
     };
@@ -52,10 +54,7 @@ export const ResultsModifiers = ({
         setSelected(undefined);
         onDeleteClose();
     };
-    const onClickDelete = (item) => {
-        setSelected(item);
-        onDeleteOpen();
-    };
+
     const closeDelete = () => {
         onDeleteClose();
         setSelected(undefined);
@@ -71,33 +70,37 @@ export const ResultsModifiers = ({
     return (
 
         <VStack
+            w="100%"
+            align="stretch"
+            p={4}
+            pb={10}
             bg="whiteAlpha"
             borderColor="gray.300"
-            borderWidth={1}
-            borderRadius={5}
             h="100%"
-            p={5}
             spacing={4}
             display='contents'
         >
-            <Heading as="h3" size="lg">
+            <div><Heading as="h3" size="md">
                 Result Modifiers
             </Heading>
-            <Button
-                colorScheme="green"
-                leftIcon={<FaPlus />}
-                onClick={onUpdateOpen}
-            >
-                <ConfigureResultsModifierModal
-                    isOpen={isUpdateOpen}
-                    onClose={closeUpdate}
-                    action={selected ? resultsmodifier.update : activitysource.createModifier}
-                    initialData={selected}
-                    mutate={mutate}
-                    activitySourceId={id}
-                />
-                New
-            </Button>
+                <Button
+                    colorScheme="green"
+                    leftIcon={<FaPlus />}
+                    onClick={onUpdateOpen}
+
+                >
+                    <ConfigureResultsModifierModal
+                        isOpen={isUpdateOpen}
+                        onClose={closeUpdate}
+                        action={selected ? resultsmodifier.update : activitysource.createModifier}
+                        initialData={selected}
+                        mutate={mutate}
+                        activitySourceId={id}
+                    />
+                    New
+                </Button></div>
+
+
             <Grid
                 templateAreas={`"header header"
                 "nav main"
@@ -165,7 +168,7 @@ export const ResultsModifiers = ({
                                                         alignItems='center'
                                                     >
                                                         <FaGripVertical />
-                                                        <Text>  {item.order} </Text>
+                                                        <Text pl={2}>  {item.order} </Text>
                                                     </GridItem>
 
                                                     <GridItem
@@ -175,23 +178,20 @@ export const ResultsModifiers = ({
                                                         display='grid'>
 
                                                         <Text p={'1'}>{item.type.id}</Text>
-                                                    </GridItem> {Object.keys(item.parameters).map((key, value) =>
+                                                    </GridItem>
+                                                    {Object.keys(item.parameters).map((key, value) =>
                                                         <GridItem
                                                             colStart={3}
                                                             colSpan={1}
                                                             pl={5}
                                                             display='grid'>
-
                                                             <Text p={'1'}>{key}: {item.parameters[key]}</Text>
-
-
-                                                        </GridItem>)}
-
+                                                        </GridItem>
+                                                    )}
                                                     <GridItem
                                                         colStart={4}
                                                         colSpan={1}
                                                         pl={5}
-                                                        pt={1}
                                                         display='-ms-inline-grid'>
                                                         <Button style={{ backgroundColor: 'transparent' }}> <FaEdit color="darkslategray" onClick={() => onClickUpdate(item)} /></Button>
                                                         <Button style={{ backgroundColor: 'transparent' }} onClick={onDeleteOpen} ><DeleteModal
