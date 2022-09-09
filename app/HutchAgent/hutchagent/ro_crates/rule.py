@@ -41,9 +41,10 @@ class Rule(Thing):
         if self.operator is not None:
             dict_.update(additionalProperty=self.operator.to_dict())
         if self.value is not None:
-            dict_.update(value=self.value)
+            dict_.update(value=str(self.value))  # Manager expects a string
         elif (self.min_value is not None) and (self.max_value is not None):
-            dict_.update(minValue=self.min_value, maxValue=self.max_value)
+            # Manager expects a string
+            dict_.update(minValue=str(self.min_value), maxValue=str(self.max_value))
         return dict_
 
     @classmethod
