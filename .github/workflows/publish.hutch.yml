@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: generate-timestamp
     env:
-      APP_NAME: hutchmanager
+      APP_NAME: hutch-manager
       LATEST_TAG: latest
       TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
       REGISTRY: ghcr.io
