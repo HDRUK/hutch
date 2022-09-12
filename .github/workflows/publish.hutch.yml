@@ -21,8 +21,6 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
 
-  REGISTRY: ghcr.io
-
 jobs:
   generate-timestamp:
     runs-on: ubuntu-latest
@@ -41,6 +39,10 @@ jobs:
     env:
       LATEST_TAG: "hutchmanager:latest"
       TS_TAG: "hutchmanager:${{ needs.generate-timestamp.outputs.timestamp }}"
+      REGISTRY: ghcr.io
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v2
 
