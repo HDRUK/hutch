@@ -137,6 +137,7 @@ jobs:
           files: ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
           name: ${{ env.CI_release-name }}
           tag_name: ${{ needs.generate-timestamp.outputs.timestamp }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/upload-artifact@v2
         with:
