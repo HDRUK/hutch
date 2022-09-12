@@ -70,13 +70,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           file: ./app/HutchManager/Dockerfile
 
-  publish-sargassure:
+  publish-manager:
     runs-on: ubuntu-latest
+    needs: generate-timestamp
     env:
       CI_dotnet-project: ./app/HutchManager/HutchManager.csproj
-      CI_artifact-name: manager-dotnet-6
+      CI_release-name: hutch-manager-${{ needs.generate-timestamp.outputs.timestamp }}
       CI_client-package: manager-frontend
-      CI_migrations-name: manager-migrations
+      CI_migrations-name: hutch-manager-migrations-${{ needs.generate-timestamp.outputs.timestamp }}
     steps:
       - uses: actions/checkout@v2
 
@@ -125,11 +126,19 @@ jobs:
           name: ${{ env.CI_migrations-name }}
           path: ${{ env.CI_migrations-dir }}
 
-      # 4. Upload the built artifact
+      # 4. Upload the built release
       - uses: edgarrc/action-7z@v1.0.5
         with:
-          args: 7z a ${{ env.CI_publish-dir }}/${{ env.CI_artifact-name }}.zip ./${{ env.CI_publish-dir }}/*
+          args: 7z a ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip ./${{ env.CI_publish-dir }}/*
+      - name: GH Release
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          prerelease: true
+          files: ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
+          name: ${{ env.CI_release-name }}
+          tag_name: ${{ needs.generate-timestamp.outputs.timestamp }}
+
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.CI_artifact-name }}
-          path: ${{ env.CI_publish-dir }}/${{ env.CI_artifact-name }}.zip
+          name: ${{ env.CI_release-name }}
+          path: ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
