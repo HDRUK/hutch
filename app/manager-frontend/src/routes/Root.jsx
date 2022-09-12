@@ -12,7 +12,6 @@ import { useBackendConfig } from "contexts/Config";
 import CreateActivitySource from "pages/ActivitySource/create";
 import EditActivitySource from "pages/ActivitySource/edit";
 import { DataSourcesList } from "pages/DataSource/list";
-import { ResultsModifiersList } from "pages/ResultsModifier/list";
 
 const IndexRedirect = () => {
   const { user } = useUser();
@@ -40,7 +39,6 @@ export const Root = () => {
             element={<CreateActivitySource />}
           />
           <Route path="datasources" element={<DataSourcesList />} />
-          <Route path="resultsmodifiers" element={<ResultsModifiersList />} />
           <Route path="activitysources/:id" element={<EditActivitySource />} />
         </Route>
 

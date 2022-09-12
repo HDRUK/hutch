@@ -11,7 +11,7 @@ import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
 import { useSortingAndFiltering } from "helpers/hooks/useSortingAndFiltering";
 import { useActivitySourceList } from "api/activitysources";
-import { ActivitySourceSummary } from "components/ActivitySourceSummary";
+import { ActivitySourceSummary } from "components/activitysources/ActivitySourceSummary";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
