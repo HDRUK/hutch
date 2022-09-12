@@ -6,6 +6,9 @@ import {
   Input,
   HStack,
   Text,
+  InputGroup,
+  InputLeftElement,
+  Stack
 } from "@chakra-ui/react";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
@@ -16,7 +19,7 @@ import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
 import { Link } from "react-router-dom";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaSearch } from "react-icons/fa";
 
 export const UserHome = () => {
   const { user } = useUser();
@@ -49,27 +52,40 @@ export const UserHome = () => {
   };
 
   return (
-    <VStack align="stretch" px={8} w="100%" spacing={4} p={4}>
+    <Stack px={8} w="100%" spacing={4} p={4} alignItems='center'>
       <Heading as="h2" size="lg">
         {t("home.heading", { name: user?.fullName })}
       </Heading>
-      <VStack w="100%" align="stretch" spacing={4}>
-        <Heading as="h3" size="lg">
+      <Stack w="100%" spacing={4} alignItems='center'>
+        <Heading as="h3" size="md">
           Activity Sources
         </Heading>
-        <HStack>
+        <HStack maxW={'600'}
+          w={'100%'}
+          alignSelf={'center'}
+          borderRadius={'10px'}
+        >
+          <InputGroup>
+            <InputLeftElement
+              pointerEvents='none'
+              children={<FaSearch color='gray.300' />}
+            />
+            <Input size={'md'}
+              placeholder="Search Activity Sources"
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </InputGroup>
           <Button
             as={Link}
             to="/activitysources/new"
-            colorScheme="green"
+            colorScheme='green'
             leftIcon={<FaPlus />}
           >
-            New
+            <Text textTransform={'uppercase'}
+              fontWeight={700}
+              fontSize={'sm'}
+              letterSpacing={1.1}> New</Text>
           </Button>
-          <Input
-            placeholder="Search Activity Sources"
-            onChange={(e) => setFilter(e.target.value)}
-          />
         </HStack>
         {outputList &&
           outputList.map((item, index) => (
@@ -82,7 +98,7 @@ export const UserHome = () => {
               collectionId={item.resourceId}
             ></ActivitySourceSummary>
           ))}
-      </VStack>
+      </Stack>
       <DeleteModal
         title={`Delete Activity Source?`}
         body={
@@ -96,6 +112,6 @@ export const UserHome = () => {
         onClose={onClose}
         onDelete={onDeleteSource}
       />
-    </VStack>
+    </Stack >
   );
 };
