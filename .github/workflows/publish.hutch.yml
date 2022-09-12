@@ -32,9 +32,21 @@ jobs:
       uses: nanzm/get-time-action@v1.1
       with:
         format: "YYYYMMDDHHmmss"
-    - name: Show timestamp
-      run: |
-        echo "${{ steps.makestamp.outputs.time }}"
+
+  publish-manager-docker:
+    runs-on: ubuntu-latest
+    needs: generate-timestamp
+    env:
+      LATEST_TAG: "hutch-manager:latest"
+      TS_TAG: "hutch-manager:${{ needs.generate-timestamp.outputs.timestamp }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3.1.1
+        with:
+          push: false
+          tags: [${{ env.LATEST_TAG }}, ${{ env.TS_TAG }}]
+          file: ./app/HutchManager/Dockerfile
 
   publish-sargassure:
     runs-on: ubuntu-latest
