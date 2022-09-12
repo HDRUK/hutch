@@ -78,6 +78,8 @@ jobs:
       CI_release-name: hutch-manager-${{ needs.generate-timestamp.outputs.timestamp }}
       CI_client-package: manager-frontend
       CI_migrations-name: hutch-manager-migrations-${{ needs.generate-timestamp.outputs.timestamp }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
 
