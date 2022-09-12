@@ -68,7 +68,7 @@ public class ResultsModifierService
     var type = (await _db.ModifierTypes.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.Type) ??
                throw new InvalidOperationException($"Type {resultsModifier.Type} is not a valid ModifierType");
     var activitySource =
-      (await _db.ActivitySources.ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySourceId) ??
+      (await _db.ActivitySources.Include((x=>x.TargetDataSource)).Include(x=>x.Type).ToListAsync()).FirstOrDefault(x => x.Id == resultsModifier.ActivitySourceId) ??
       throw new InvalidOperationException(
         $"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
 

@@ -5,6 +5,7 @@ import useSWR from "swr";
 export const fetchKeys = {
   activitySourceList: "ActivitySources",
   activitySource: (id) => `ActivitySources/${id}`,
+  resultsModifiers: (id) => `ActivitySources/${id}/ResultsModifiers`
 };
 
 export const getActivitySourceApi = ({ api }) => ({
@@ -24,12 +25,28 @@ export const getActivitySourceApi = ({ api }) => ({
     api.delete(`ActivitySources/${id}`, {
       json: values,
     }),
+  createModifier: ({ values, id }) =>
+    api.post(`ActivitySources/${id}/ResultsModifiers`, {
+      json: values,
+    })
 });
 
 export const useActivitySourceList = () => {
   const { apiFetcher } = useBackendApi();
   return useSWR(
     fetchKeys.activitySourceList,
+    async (url) => {
+      const data = await apiFetcher(url);
+      return data;
+    },
+    { suspense: true }
+  );
+};
+
+export const useActivitySourceResultsModifiersList = (id) => {
+  const { apiFetcher } = useBackendApi();
+  return useSWR(
+    fetchKeys.resultsModifiers(id),
     async (url) => {
       const data = await apiFetcher(url);
       return data;

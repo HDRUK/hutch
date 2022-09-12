@@ -89,9 +89,6 @@ export const ActivitySourceSummary = ({
           </Stack>
         </Stack>
       </Box>
-      <HStack>
-
-      </HStack>
 
     </LinkBox >
   </Center >
