@@ -136,6 +136,6 @@ jobs:
             ${{ env.CI_migrations-name }}
 
           name: ${{ env.CI_release-name }}
-          tag_name: ${{ needs.generate-timestamp.outputs.timestamp }}
+          tag_name: ${{ env.CI_release-name }}
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
