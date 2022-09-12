@@ -34,7 +34,7 @@ jobs:
         format: "YYYYMMDDHHmmss"
     - name: Show timestamp
       run: |
-        echo "${{ steps.makestamp.ouputs.time }}"
+        echo "${{ steps.makestamp.outputs.time }}"
 
   publish-sargassure:
     runs-on: ubuntu-latest
