@@ -45,9 +45,7 @@ jobs:
         uses: docker/build-push-action@v3.1.1
         with:
           push: false
-          tags: 
-            - ${{ env.LATEST_TAG }}
-            - ${{ env.TS_TAG }}
+          tags: "${{ env.LATEST_TAG }},${{ env.TS_TAG }}"
           file: ./app/HutchManager/Dockerfile
 
   publish-sargassure:
