@@ -21,6 +21,8 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
 
+  REGISTRY: ghcr.io
+
 jobs:
   generate-timestamp:
     runs-on: ubuntu-latest
@@ -41,11 +43,19 @@ jobs:
       TS_TAG: "hutch-manager:${{ needs.generate-timestamp.outputs.timestamp }}"
     steps:
       - uses: actions/checkout@v2
+
+      - name: Docker Login
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push Docker images
         uses: docker/build-push-action@v3.1.1
         with:
-          push: false
-          tags: "${{ env.LATEST_TAG }},${{ env.TS_TAG }}"
+          push: true
+          tags: "${{ env.REGISTRY }}/${{ env.LATEST_TAG }},${{ env.REGISTRY }}/${{ env.TS_TAG }}"
           file: ./app/HutchManager/Dockerfile
 
   publish-sargassure:
