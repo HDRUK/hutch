@@ -16,7 +16,6 @@ env:
   CI_dotnet-version: 6.0.x
   CI_node-version: "16"
   CI_publish-dir: publish
-  CI_migrations-dir: migrations
 
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
@@ -122,11 +121,7 @@ jobs:
           dotnet tool restore &&
           dotnet ef migrations bundle
           -p ${{ env.CI_dotnet-project }}
-          -o ${{ env.CI_migrations-dir }}
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.CI_migrations-name }}
-          path: ${{ env.CI_migrations-dir }}
+          -o ${{ env.CI_migrations-name }}
 
       # 4. Upload the built release
       - uses: edgarrc/action-7z@v1.0.5
@@ -136,12 +131,10 @@ jobs:
         uses: softprops/action-gh-release@v0.1.14
         with:
           prerelease: true
-          files: ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
+          files: |
+            ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
+            ${{ env.CI_migrations-name }}
+
           name: ${{ env.CI_release-name }}
           tag_name: ${{ needs.generate-timestamp.outputs.timestamp }}
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ env.CI_release-name }}
-          path: ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
