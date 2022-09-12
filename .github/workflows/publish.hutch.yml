@@ -138,3 +138,4 @@ jobs:
           name: ${{ env.CI_release-name }}
           tag_name: ${{ needs.generate-timestamp.outputs.timestamp }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: false
