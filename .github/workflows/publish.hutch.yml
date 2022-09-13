@@ -8,7 +8,7 @@ on:
         required: true
         default: release
   push:
-    branches: [main, support/*]
+    branches: [main, support/*, feature/manager-CD]
 
 env:
   CI_build-config: ${{ github.event.inputs.buildConfig || 'release' }}
@@ -36,7 +36,7 @@ jobs:
     needs: generate-timestamp
     env:
       APP_NAME: hutch-manager
-      LATEST_TAG: latest
+      NEXT_TAG: next
       TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
       REGISTRY: ghcr.io
     permissions:
@@ -57,7 +57,9 @@ jobs:
         uses: docker/metadata-action@v4.0.1
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
-          tags: ${{ env.TS_TAG }}
+          tags: |
+            ${{ env.TS_TAG }}
+            ${{ env.NEXT_TAG }}
 
 
       - name: Build and push Docker images
