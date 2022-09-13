@@ -11,7 +11,7 @@ import {
   useColorModeValue,
   IconButton,
 } from "@chakra-ui/react";
-import { FaTrash, FaDesktop } from "react-icons/fa";
+import { FaTrash, FaDesktop, FaLeaf } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 export const ActivitySourceSummary = ({
@@ -22,12 +22,12 @@ export const ActivitySourceSummary = ({
   onDelete,
   ...p
 }) => (
-  <Center py={6}>
-    <LinkBox maxW={'800'}>
+  <Center py={4}>
+    <LinkBox width={'700px'}>
 
       <Box
-        maxW={'800'}
-        w={'full'}
+        width={'700px'}
+
         bg={useColorModeValue('white', 'gray.900')}
         boxShadow={'2xl'}
         rounded={'md'}
@@ -57,7 +57,6 @@ export const ActivitySourceSummary = ({
             icon={<FaTrash />}
             alignSelf={'flex-end'}
             style={{ background: 'transparent' }}
-            aria-label='Delete'
             color={'red.500'}
             onClick={onDelete} />
 
@@ -75,17 +74,28 @@ export const ActivitySourceSummary = ({
           <Stack direction={'column'} spacing={0} fontSize={'sm'} align='center' display={'block'}>
 
             {sourceURL && (
-
-              <Text fontWeight={'600'} display='inline-flex'>
-                <FaDesktop display={'flex'} />
-                Host: {sourceURL}
-              </Text>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <FaDesktop />
+                <Text fontWeight={'700'} p={1} letterSpacing={0.2} color={'blue.500'} textTransform={'uppercase'}>
+                  Host:
+                </Text>
+                <Text>
+                  {sourceURL}
+                </Text>
+              </div>
             )}
 
             {collectionId && (
-              <Text fontWeight={'600'}  >
-                Resource ID: {collectionId}
-              </Text>)}
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <FaLeaf />
+                <Text fontWeight={'700'} p={'1'} letterSpacing={0.2} color={'green.500'} textTransform={'uppercase'}>
+                  Resource ID:
+                </Text>
+                <Text>
+                  {collectionId}
+                </Text>
+              </div>
+            )}
           </Stack>
         </Stack>
       </Box>
