@@ -254,7 +254,6 @@ export const ConfigureResultsModifierModal = ({
                                     <FormikSelect
                                         label="Type"
                                         name={"Type"}
-                                        type="Type"
                                         options={typeOptions.map((item) => ({
                                             value: item.id,
                                             label: item.id,
@@ -264,7 +263,7 @@ export const ConfigureResultsModifierModal = ({
                                         switch (values.Type) {
                                             case "Low Number Suppression":
                                                 return (
-                                                    <LowNumberSuppressionParameters type={values.Type} />
+                                                    <LowNumberSuppressionParameters />
                                                 );
                                             default:
                                                 return (
