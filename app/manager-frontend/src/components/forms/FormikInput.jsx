@@ -39,7 +39,9 @@ export const FormikInput = ({
   };
 
   useEffect(() => {
-    helpers.setValue(debouncedValue);
+    const outputValue =
+      type === "number" ? parseFloat(debouncedValue) : debouncedValue;
+    helpers.setValue(outputValue);
   }, [debouncedValue]);
 
   useEffect(() => {
