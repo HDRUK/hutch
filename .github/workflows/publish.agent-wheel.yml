@@ -31,7 +31,7 @@ jobs:
       PYTHON_VERSION: "3.9"
       POETRY_VERSION: "1.1.14"
       WORKDIR: "./app/HutchAgent"
-      ARTIFACT_NAME: "hutchagent-dist"
+      RELEASE_NAME: hutchagent-${{ needs.generate-timestamp.outputs.timestamp }}
     needs: generate-timestamp
     steps:
       - uses: actions/checkout@v2
@@ -49,10 +49,16 @@ jobs:
       - name: Build dist
         working-directory: ${{ env.WORKDIR }}
         run: poetry build
-      - uses: actions/upload-artifact@v2
+      - name: GH Release
+        uses: softprops/action-gh-release@v0.1.14
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.WORKDIR }}/dist
+          prerelease: true
+          files: |
+            ${{ env.WORKDIR }}/dist/*
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.RELEASE_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
 
   publish-agent-docker:
     runs-on: ubuntu-latest
