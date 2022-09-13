@@ -129,7 +129,7 @@ jobs:
       - uses: edgarrc/action-7z@v1.0.5
         with:
           args: 7z a ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip ./${{ env.CI_publish-dir }}/*
-      - name: GH Release (timestamp)
+      - name: GH Release
         uses: softprops/action-gh-release@v0.1.14
         with:
           prerelease: true
@@ -139,17 +139,5 @@ jobs:
 
           name: ${{ env.CI_release-name }}
           tag_name: ${{ env.CI_release-name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          generate_release_notes: true
-      - name: GH Release (next)
-        uses: softprops/action-gh-release@v0.1.14
-        with:
-          prerelease: true
-          files: |
-            ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
-            ${{ env.CI_migrations-name }}
-
-          name: ${{ env.CI_next-tag }}
-          tag_name: ${{ env.CI_next-tag }}
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
