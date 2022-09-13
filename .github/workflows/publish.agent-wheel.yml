@@ -8,8 +8,7 @@ on:
         required: true
         default: release
   push:
-    # branches: [main]
-    branches: [feature/agent-CD]
+    branches: [main]
 
 jobs:
   generate-timestamp:
