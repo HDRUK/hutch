@@ -4,13 +4,14 @@ import {
   Text,
   LinkBox,
   LinkOverlay,
-  VStack,
   Box,
-  Button,
-  Flex,
-  Badge,
+  Divider,
+  Center,
+  Stack,
+  useColorModeValue,
+  IconButton,
 } from "@chakra-ui/react";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaDesktop, FaLeaf } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 export const ActivitySourceSummary = ({
@@ -21,51 +22,84 @@ export const ActivitySourceSummary = ({
   onDelete,
   ...p
 }) => (
-  <LinkBox>
-    <VStack
-      bg="gray.100"
-      borderColor="gray.300"
-      borderWidth={2}
-      borderRadius={5}
-      h="100%"
-      p={4}
-      align="stretch"
-      _hover={{
-        borderColor: "blue.500",
-        bg: "gray.50",
-      }}
-      {...p}
-    >
-      <HStack>
-        <Flex w="full">
-          <LinkOverlay w="100%" as={Link} to={`${href}`}>
-            <Heading as="h3" size="md" _hovergroup={{ color: "blue.500" }}>
-              {title}
-            </Heading>
-          </LinkOverlay>
-          <Button
-            colorScheme="red"
-            size="sm"
-            variant="outline"
-            onClick={onDelete}
-            leftIcon={<FaTrash />}
+  <Center py={4}>
+    <LinkBox width={'700px'}>
+
+      <Box
+        width={'700px'}
+
+        bg={useColorModeValue('white', 'gray.900')}
+        boxShadow={'2xl'}
+        rounded={'md'}
+        p={6}
+        overflow={'hidden'}
+        {...p}
+        _hover={{
+          transform: 'translateY(-2px)',
+          boxShadow: 'lg',
+        }}
+
+      >
+        <LinkOverlay as={Link} to={`${href}`} />
+        <Stack>
+          <Text
+            color={'blue.500'}
+            textTransform={'uppercase'}
+            fontWeight={800}
+            fontSize={'sm'}
+            letterSpacing={1.1}>Activity Source
+          </Text>
+          <Divider />
+          <IconButton
+            h={5}
+            w={5}
+            icon={<FaTrash />}
+            alignSelf={'flex-end'}
+            style={{ background: 'transparent' }}
+            color={'red.500'}
+            onClick={onDelete} />
+
+          <Heading
+            color={useColorModeValue('gray.700', 'white')}
+            fontSize={'2xl'}
+            fontFamily={'body'}
           >
-            Delete
-          </Button>
-        </Flex>
-      </HStack>
-      <HStack>
-        {sourceURL && (
-          <Badge p={1} colorScheme="cyan">
-            Source Host: {sourceURL}
-          </Badge>
-        )}
-        {collectionId && (
-          <Badge p={1} colorScheme="teal">
-            Resource ID: {collectionId}
-          </Badge>
-        )}
-      </HStack>
-    </VStack>
-  </LinkBox>
+            {title}
+
+          </Heading>
+
+        </Stack>
+        <Stack mt={6} direction={'row'} spacing={4} align={'center'}>
+
+          <Stack direction={'column'} spacing={0} fontSize={'sm'} align='center' display={'block'}>
+
+            {sourceURL && (
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <FaDesktop />
+                <Text fontWeight={'700'} p={1} letterSpacing={0.2} color={'blue.500'} textTransform={'uppercase'}>
+                  Host:
+                </Text>
+                <Text>
+                  {sourceURL}
+                </Text>
+              </div>
+            )}
+
+            {collectionId && (
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <FaLeaf />
+                <Text fontWeight={'700'} p={'1'} letterSpacing={0.2} color={'green.500'} textTransform={'uppercase'}>
+                  Resource ID:
+                </Text>
+                <Text>
+                  {collectionId}
+                </Text>
+              </div>
+            )}
+          </Stack>
+        </Stack>
+      </Box>
+
+    </LinkBox >
+  </Center >
 );

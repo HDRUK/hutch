@@ -6,25 +6,26 @@ import {
   Input,
   HStack,
   Text,
+  InputGroup,
+  InputLeftElement,
+  Stack,
+  Box
 } from "@chakra-ui/react";
-import { useUser } from "contexts/User";
-import { useTranslation } from "react-i18next";
 import { useSortingAndFiltering } from "helpers/hooks/useSortingAndFiltering";
 import { useActivitySourceList } from "api/activitysources";
 import { ActivitySourceSummary } from "components/activitysources/ActivitySourceSummary";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
-import { Link } from "react-router-dom";
-import { FaPlus } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { FaPlus, FaSearch, FaInfo, FaInfoCircle } from "react-icons/fa";
 
 export const UserHome = () => {
-  const { user } = useUser();
-  const { t } = useTranslation();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedActivitySource, setSelectedActivitySource] = useState();
   const { activitysource } = useBackendApi();
   const { data, mutate } = useActivitySourceList();
+  const navigate = useNavigate();
   const {
     sorting,
     setSorting,
@@ -35,6 +36,11 @@ export const UserHome = () => {
   } = useSortingAndFiltering(data, "displayName", {
     initialSort: {
       key: "displayName",
+    }, sorters: {
+      "displayName": {
+        sorter: (asc) => (a, b) =>
+          asc ? a.localeCompare(b) : b.localeCompare(a)
+      },
     },
   });
 
@@ -47,42 +53,72 @@ export const UserHome = () => {
     setSelectedActivitySource(activitySource);
     onOpen();
   };
-
   return (
-    <VStack align="stretch" px={8} w="100%" spacing={4} p={4}>
-      <Heading as="h2" size="lg">
-        {t("home.heading", { name: user?.fullName })}
-      </Heading>
-      <VStack w="100%" align="stretch" spacing={4}>
-        <Heading as="h3" size="lg">
-          Activity Sources
-        </Heading>
-        <HStack>
-          <Button
-            as={Link}
-            to="/activitysources/new"
-            colorScheme="green"
-            leftIcon={<FaPlus />}
+    <Stack px={8} w="100%" spacing={4} p={4} alignItems='center'>
+      {data.length > 0 ?
+        <Stack w="100%" spacing={4} >
+          <HStack maxW={'800'}
+            w={'100%'}
+            alignSelf={'center'}
+            borderRadius={'10px'}
           >
-            New
-          </Button>
-          <Input
-            placeholder="Search Activity Sources"
-            onChange={(e) => setFilter(e.target.value)}
-          />
-        </HStack>
-        {outputList &&
-          outputList.map((item, index) => (
-            <ActivitySourceSummary
-              key={index}
-              href={`/activitysources/${item.id}`}
-              onDelete={() => onClickDelete(item)}
-              title={item.displayName}
-              sourceURL={item.host}
-              collectionId={item.resourceId}
-            ></ActivitySourceSummary>
-          ))}
-      </VStack>
+            <InputGroup>
+              <InputLeftElement
+                pointerEvents='none'
+                children={<FaSearch color='gray.300' />}
+              />
+              <Input size={'md'}
+                placeholder="Search Activity Sources"
+                onChange={(e) => setFilter(e.target.value)}
+              />
+            </InputGroup>
+            <Button
+              onClick={() => navigate('/activitysources/new')}
+              colorScheme='green'
+              leftIcon={<FaPlus />}
+            >
+              <Text textTransform={'uppercase'}
+                fontWeight={700}
+                fontSize={'sm'}
+                letterSpacing={1.1}> New</Text>
+            </Button>
+          </HStack>
+
+          {outputList.map((item, index) => (
+            <>
+              <ActivitySourceSummary
+                key={index}
+                href={`/activitysources/${item.id}`}
+                onDelete={() => onClickDelete(item)}
+                title={item.displayName}
+                sourceURL={item.host}
+                collectionId={item.resourceId}
+              />
+            </>
+          ))
+          }
+        </Stack> :
+        <div>
+          <Box textAlign="center" py={10} px={6}>
+            <FaInfoCircle fontSize={'2em'} color='dodgerblue' style={{ display: 'inline' }} />
+            <Heading as="h2" size="xl" mb={2}>
+              No Activity Sources found.
+            </Heading>
+            <Button
+              onClick={() => navigate('/activitysources/new')}
+              colorScheme={'green'}
+              leftIcon={<FaPlus />}
+              width={'225'}
+            >
+              <Text textTransform={'uppercase'}
+                fontWeight={700}
+                fontSize={'sm'}
+                letterSpacing={1.1}> Create Activity Source</Text>
+            </Button>
+          </Box>
+
+        </div>
+      }
       <DeleteModal
         title={`Delete Activity Source?`}
         body={
@@ -96,6 +132,6 @@ export const UserHome = () => {
         onClose={onClose}
         onDelete={onDeleteSource}
       />
-    </VStack>
+    </Stack >
   );
 };
