@@ -76,6 +76,7 @@ jobs:
     env:
       CI_dotnet-project: ./app/HutchManager/HutchManager.csproj
       CI_release-name: hutch-manager-${{ needs.generate-timestamp.outputs.timestamp }}
+      CI_next-tag: hutch-manager-next
       CI_client-package: manager-frontend
       CI_migrations-name: hutch-manager-migrations-${{ needs.generate-timestamp.outputs.timestamp }}
     permissions:
@@ -128,7 +129,7 @@ jobs:
       - uses: edgarrc/action-7z@v1.0.5
         with:
           args: 7z a ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip ./${{ env.CI_publish-dir }}/*
-      - name: GH Release
+      - name: GH Release (timestamp)
         uses: softprops/action-gh-release@v0.1.14
         with:
           prerelease: true
@@ -138,5 +139,17 @@ jobs:
 
           name: ${{ env.CI_release-name }}
           tag_name: ${{ env.CI_release-name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+      - name: GH Release (timestamp)
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          prerelease: true
+          files: |
+            ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
+            ${{ env.CI_migrations-name }}
+
+          name: ${{ env.CI_next-tag }}
+          tag_name: ${{ env.CI_next-tag }}
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
