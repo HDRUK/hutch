@@ -141,7 +141,7 @@ jobs:
           tag_name: ${{ env.CI_release-name }}
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
-      - name: GH Release (timestamp)
+      - name: GH Release (next)
         uses: softprops/action-gh-release@v0.1.14
         with:
           prerelease: true
