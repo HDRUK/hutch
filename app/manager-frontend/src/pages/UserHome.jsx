@@ -93,7 +93,7 @@ export const UserHome = () => {
                 title={item.displayName}
                 sourceURL={item.host}
                 collectionId={item.resourceId}
-              ></ActivitySourceSummary>
+              />
             </>
           ))
           }

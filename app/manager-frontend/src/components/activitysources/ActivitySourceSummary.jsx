@@ -40,8 +40,7 @@ export const ActivitySourceSummary = ({
         }}
 
       >
-        <LinkOverlay as={Link} to={`${href}`}>
-        </LinkOverlay>
+        <LinkOverlay as={Link} to={`${href}`} />
         <Stack>
           <Text
             color={'blue.500'}
@@ -63,7 +62,8 @@ export const ActivitySourceSummary = ({
           <Heading
             color={useColorModeValue('gray.700', 'white')}
             fontSize={'2xl'}
-            fontFamily={'body'}>
+            fontFamily={'body'}
+          >
             {title}
 
           </Heading>
