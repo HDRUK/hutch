@@ -5,7 +5,7 @@ export const LowNumberSuppressionParameters = () => {
   return (
     <FormikInput
       label="Threshold"
-      name={"Parameters.Threshold"}
+      name={"Parameters.threshold"}
       type="number"
     />
   );
