@@ -8,9 +8,21 @@ on:
         required: true
         default: release
   push:
-    branches: [main]
+    # branches: [main]
+    branches: [feature/agent-CD]
 
 jobs:
+  generate-timestamp:
+    runs-on: ubuntu-latest
+    outputs:
+      timestamp: ${{ steps.makestamp.outputs.time }}
+    steps:
+    - name: Make Timestamp
+      id: makestamp
+      uses: nanzm/get-time-action@v1.1
+      with:
+        format: "YYYYMMDDHHmmss"
+
   publish-wheel:
     permissions:
       contents: write
@@ -20,6 +32,7 @@ jobs:
       POETRY_VERSION: "1.1.14"
       WORKDIR: "./app/HutchAgent"
       ARTIFACT_NAME: "hutchagent-dist"
+    needs: generate-timestamp
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
