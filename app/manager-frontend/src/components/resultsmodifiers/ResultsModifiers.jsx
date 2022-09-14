@@ -7,6 +7,8 @@ import {
   Button,
   HStack,
   useDisclosure,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useBackendApi } from "contexts/BackendApi";
@@ -84,6 +86,34 @@ export const ResultsModifiers = ({ id }) => {
       spacing={4}
       display="contents"
     >
+      <HStack p={2}>
+        <Heading size="lg">Result Modifiers</Heading>
+        <Button
+          colorScheme="green"
+          leftIcon={<FaPlus />}
+          onClick={onUpdateOpen}
+        >
+          <ConfigureResultsModifierModal
+            isOpen={isUpdateOpen}
+            onClose={closeUpdate}
+            action={
+              selected ? resultsmodifier.update : activitysource.createModifier
+            }
+            initialData={selected}
+            mutate={mutate}
+            activitySourceId={id}
+          />
+          <Text
+            textTransform={"uppercase"}
+            fontWeight={700}
+            fontSize={"sm"}
+            letterSpacing={1.1}
+          >
+            {" "}
+            New
+          </Text>
+        </Button>
+      </HStack>
       <Grid
         templateAreas={`"header header"
                 "nav main"
@@ -98,36 +128,6 @@ export const ResultsModifiers = ({ id }) => {
               <div {...provided.droppableProps} ref={provided.innerRef}>
                 {data.length > 0 ? (
                   <>
-                    <HStack p={2}>
-                      <Heading size="lg">Result Modifiers</Heading>
-                      <Button
-                        colorScheme="green"
-                        leftIcon={<FaPlus />}
-                        onClick={onUpdateOpen}
-                      >
-                        <ConfigureResultsModifierModal
-                          isOpen={isUpdateOpen}
-                          onClose={closeUpdate}
-                          action={
-                            selected
-                              ? resultsmodifier.update
-                              : activitysource.createModifier
-                          }
-                          initialData={selected}
-                          mutate={mutate}
-                          activitySourceId={id}
-                        />
-                        <Text
-                          textTransform={"uppercase"}
-                          fontWeight={700}
-                          fontSize={"sm"}
-                          letterSpacing={1.1}
-                        >
-                          {" "}
-                          New
-                        </Text>
-                      </Button>
-                    </HStack>
                     <Grid
                       templateColumns={"repeat(4,1fr)"}
                       display={"grid"}
@@ -263,38 +263,10 @@ export const ResultsModifiers = ({ id }) => {
                   </>
                 ) : (
                   <HStack p={2}>
-                    <FaInfoCircle color="dodgerblue" size={"1.5em"} />
-                    <Heading size={"md"} display="flex">
-                      No Results Modifiers defined for this ActivitySource
-                    </Heading>
-                    <Button
-                      colorScheme="green"
-                      leftIcon={<FaPlus />}
-                      onClick={onUpdateOpen}
-                      size="sm"
-                    >
-                      <ConfigureResultsModifierModal
-                        isOpen={isUpdateOpen}
-                        onClose={closeUpdate}
-                        action={
-                          selected
-                            ? resultsmodifier.update
-                            : activitysource.createModifier
-                        }
-                        initialData={selected}
-                        mutate={mutate}
-                        activitySourceId={id}
-                      />
-                      <Text
-                        textTransform={"uppercase"}
-                        fontWeight={700}
-                        fontSize={"sm"}
-                        letterSpacing={1.1}
-                      >
-                        {" "}
-                        New
-                      </Text>
-                    </Button>
+                    <Alert status="info">
+                      <AlertIcon />
+                      No Results Modifiers defined for this ActivitySource.
+                    </Alert>
                   </HStack>
                 )}
                 {provided.placeholder}
