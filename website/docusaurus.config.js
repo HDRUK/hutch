@@ -67,7 +67,7 @@ const config = {
           },
           {
             type: "doc",
-            docId: "devs/intro",
+            docId: "devs/index",
             position: "right",
             label: "For Developers",
           },
@@ -91,7 +91,7 @@ const config = {
               },
               {
                 label: "For Developers",
-                to: "/docs/devs/intro",
+                to: "/docs/devs",
               },
             ],
           },
