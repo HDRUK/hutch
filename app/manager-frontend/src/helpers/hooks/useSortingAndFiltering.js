@@ -61,11 +61,11 @@ const getFilteredLookup = (input, filter, filterer = "name") =>
   !filter
     ? input
     : input.filter(
-      typeof filterer === "string"
-        ? ({ [filterer]: keyProperty }) =>
-          new RegExp(filter, "i").test(keyProperty)
-        : (value) => filterer(value, filter)
-    );
+        typeof filterer === "string"
+          ? ({ [filterer]: keyProperty }) =>
+              new RegExp(filter, "i").test(keyProperty)
+          : (value) => filterer(value, filter)
+      );
 
 const storageKeyPrefix = "sargassure.sorting";
 
@@ -109,7 +109,6 @@ export const useSortingAndFiltering = (
       [key]: sorting.key === key ? !sorting[key] : sorting[key],
     });
   };
-
 
   return {
     sorting,
