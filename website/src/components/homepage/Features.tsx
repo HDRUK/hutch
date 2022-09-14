@@ -1,5 +1,13 @@
 import React from "react";
-import { Divider, Flex, HStack, Link, Text, VStack } from "@chakra-ui/react";
+import {
+  Divider,
+  Flex,
+  HStack,
+  Link,
+  Text,
+  useColorModeValue,
+  VStack,
+} from "@chakra-ui/react";
 
 export const Features = () => (
   <HStack p={5} justify="center" align="start" spacing={150}>
@@ -47,16 +55,23 @@ const Hdr = () => {
   );
 };
 
-const Secure = () => (
-  <Feature graphic={<Text fontSize={72}>🔒</Text>}>
-    Make your data discoverable{" "}
-    <Text as="span" color="green.300" fontWeight="medium">
-      safely
-    </Text>{" "}
-    and{" "}
-    <Text as="span" color="yellow.200" fontWeight="medium">
-      securely
-    </Text>
-    , without directly sharing it.
-  </Feature>
-);
+const Secure = () => {
+  const { green, yellow } = useColorModeValue(
+    { green: "green.400", yellow: "yellow.500" },
+    { green: "green.300", yellow: "yellow.200" }
+  );
+
+  return (
+    <Feature graphic={<Text fontSize={72}>🔒</Text>}>
+      Make your data discoverable{" "}
+      <Text as="span" color={green} fontWeight="bold">
+        safely
+      </Text>{" "}
+      and{" "}
+      <Text as="span" color={yellow} fontWeight="bold">
+        securely
+      </Text>
+      , without directly sharing it.
+    </Feature>
+  );
+};
