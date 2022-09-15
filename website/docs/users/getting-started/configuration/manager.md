@@ -1,3 +1,9 @@
+---
+sidebar_position: 1
+---
+
+# Hutch Manager
+
 Set the environment to `Production`:
 - `ASPNETCORE_ENVIRONMENT=Production`
 

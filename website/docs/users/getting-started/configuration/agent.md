@@ -1,3 +1,9 @@
+---
+sidebar_position: 2
+---
+
+# Hutch Agent
+
 Set up the logging DB:
 - `LOG_DB_HOST=<host>`
 - `LOG_DB_DATABASE=<db name>`
