@@ -23,7 +23,7 @@ For now, **do not** add foreign key constraints (see below).
 
 ## Data
 
-A sample dataset that can be used to test the Hutch stack in conjunction with a valid Activity Source (e.g. [💔BC|OS](#)) is provided as a downloadable asset via a GitHub Release.
+A sample dataset that can be used to test the Hutch stack in conjunction with a valid Activity Source (e.g. [BC|OS](/docs/users/detailed-overview/activity-sources#bcos-rquest)) is provided as a downloadable asset via a GitHub Release.
 
 This [Sample Data only] release contains OMOP CDM 5.3 Sample Data.
 
