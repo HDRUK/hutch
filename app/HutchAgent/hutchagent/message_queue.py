@@ -163,12 +163,12 @@ def ro_crates_callback(
         schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
     query_builder = ROCratesQueryBuilder(db_manager, query)
-    query_builder.build_subqueries()
     try:
         query_start = time.time()
-        res = db_manager.execute_and_fetch(query_builder.solve_sql())
+        query_builder.build_subqueries()
+        res = query_builder.solve_sql()
         query_end = time.time()
-        count_ = res[0][0]
+        count_ = res
         if int(os.getenv("USE_RESULTS_MODS", 0)):
             result_modifiers = get_results_modifiers(query.activity_source_id)
             count_ = apply_filters(count_, result_modifiers)
@@ -199,6 +199,14 @@ def ro_crates_callback(
         )
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
+        result = Result(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+    except Exception as e:
+        logger.error(str(e))
         result = Result(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
