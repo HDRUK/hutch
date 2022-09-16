@@ -545,13 +545,13 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 ).distinct()
                 drug_df = pd.read_sql_query(sql=drug_stmnt, con=self.db_manager.engine)
                 main_df = pd.concat(
-                    person_df,
+                    [person_df,
                     procedure_df,
                     condition_df,
                     observation_df,
-                    drug_df,
+                    drug_df]
                 )
-                main_df = main_df["person_id"].unique()
+                main_df = pd.DataFrame({"person_id": main_df["person_id"].unique()})
                 # remove now unused dfs
                 del person_df, procedure_df, condition_df, observation_df, drug_df
             elif group.rules[0].operator.value == "!=":
@@ -580,13 +580,13 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 ).distinct()
                 drug_df = pd.read_sql_query(sql=drug_stmnt, con=self.db_manager.engine)
                 main_df = pd.concat(
-                    person_df,
+                    [person_df,
                     procedure_df,
                     condition_df,
                     observation_df,
-                    drug_df,
+                    drug_df]
                 )
-                main_df = main_df["person_id"].unique()
+                main_df = pd.DataFrame({"person_id": main_df["person_id"].unique()})
                 # remove now unused dfs
                 del person_df, procedure_df, condition_df, observation_df, drug_df
             for i in range(1, len(group.rules[1:]) + 1):
@@ -594,20 +594,20 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     # numeric rule
                     rule_stmnt = select(Measurement.person_id.label(f"person_id_{i}")).where(
                         and_(
-                            Measurement.measurement_concept_id == group.rules[0].value,
-                            Measurement.value_as_number.between(group.rules[0].min_value, group.rules[0].max_value)
+                            Measurement.measurement_concept_id == group.rules[i].value,
+                            Measurement.value_as_number.between(group.rules[i].min_value, group.rules[1].max_value)
                         )
                     ).distinct()
                     rule_df = pd.read_sql_query(sql=rule_stmnt, con=self.db_manager.engine)
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rules[i].operator.value),
+                        how=merge_method(group.rule_operator.value),
                         left_on="person_id",
                         right_on=f"person_id_{i}"
                     )
                 # Text rules testing for inclusion
                 elif group.rules[i].operator.value == "=":
-                    person_stmnt = select(Person.person_id).where(
+                    person_stmnt = select(Person.person_id.label(f"person_id_{i}")).where(
                         or_(
                             Person.ethnicity_concept_id == group.rules[0].value,
                             Person.gender_concept_id == group.rules[0].value,
@@ -632,16 +632,16 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     ).distinct()
                     drug_df = pd.read_sql_query(sql=drug_stmnt, con=self.db_manager.engine)
                     rule_df = pd.concat(
-                        person_df,
+                        [person_df,
                         procedure_df,
                         condition_df,
                         observation_df,
-                        drug_df,
+                        drug_df]
                     )
-                    rule_df = rule_df["person_id"].unique()
+                    rule_df[f"person_id_{i}"] = pd.DataFrame({rule_df[f"person_id_{i}"].unique()})
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rules[i].operator.value),
+                        how=merge_method(group.rule_operator.value),
                         left_on="person_id",
                         right_on=f"person_id_{i}"
                     )
@@ -649,7 +649,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     del person_df, procedure_df, condition_df, observation_df, drug_df
                 # Text rules testing for exclusion
                 elif group.rules[i].operator.value == "!=":
-                    person_stmnt = select(Person.person_id).where(
+                    person_stmnt = select(Person.person_id.label(f"person_id_{i}")).where(
                         or_(
                             Person.ethnicity_concept_id != group.rules[0].value,
                             Person.gender_concept_id != group.rules[0].value,
@@ -674,16 +674,16 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     ).distinct()
                     drug_df = pd.read_sql_query(sql=drug_stmnt, con=self.db_manager.engine)
                     rule_df = pd.concat(
-                        person_df,
+                        [person_df,
                         procedure_df,
                         condition_df,
                         observation_df,
-                        drug_df,
+                        drug_df]
                     )
-                    rule_df = rule_df["person_id"].unique()
+                    rule_df = pd.DataFrame({rule_df[f"person_id_{i}"].unique()})
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rules[i].operator.value),
+                        how=merge_method(group.rule_operator.value),
                         left_on="person_id",
                         right_on=f"person_id_{i}"
                     )
@@ -695,4 +695,14 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         """Build and return the final SQL that can be used to query the database."""
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         group0_df = self.subqueries[0]
-        return group0_df.shape[0]
+        group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
+        for i, df in enumerate(self.subqueries[1:]):
+            df.rename({"person_id": f"person_id_{i + 1}"}, axis=1)
+            group0_df = group0_df.merge(
+                right=df,
+                how=merge_method(self.query.group_operator),
+                left_on="person_id_0",
+                right_on=f"person_id_{i + 1}"
+            )
+        self.subqueries.clear()
+        return group0_df.shape[0]  # the number of rows
