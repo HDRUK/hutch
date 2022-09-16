@@ -337,7 +337,7 @@ class BaseQueryBuilder:
     def build_subqueries(self) -> None:
         raise NotImplementedError
 
-    def build_sql(self) -> sql.selectable.Select:
+    def solve_sql(self) -> sql.selectable.Select:
         raise NotImplementedError
 
 
@@ -485,7 +485,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                     )
             self.subqueries.append(stmnt)
 
-    def build_sql(self) -> sql.selectable.Select:
+    def solve_sql(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
         group_stmnt = self.subqueries[0].alias("group_0")
         for i, sq in enumerate(self.subqueries[1:]):
@@ -691,17 +691,8 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     del person_df, procedure_df, condition_df, observation_df, drug_df
             self.subqueries.append(main_df)
 
-    def build_sql(self) -> sql.selectable.Select:
+    def solve_sql(self) -> int:
         """Build and return the final SQL that can be used to query the database."""
-        group_stmnt = self.subqueries[0].alias("group_0")
-        for i, sq in enumerate(self.subqueries[1:]):
-            sq = sq.alias(f"group_{i + 1}")
-            join_cols = (group_stmnt.c.keys()[0], sq.c.keys()[0])
-            group_stmnt = group_stmnt.join(
-                sq,
-                group_stmnt.c[join_cols[0]] == sq.c[join_cols[1]],
-                full=self.query.group_operator.value == "OR"
-            )
-        self.subqueries.clear()
-        stmnt = select(func.count()).select_from(group_stmnt)
-        return stmnt
+        merge_method = lambda x: "inner" if x == "AND" else "outer"
+        group0_df = self.subqueries[0]
+        return group0_df.shape[0]
