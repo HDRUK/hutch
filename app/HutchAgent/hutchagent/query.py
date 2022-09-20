@@ -696,13 +696,13 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         group0_df = self.subqueries[0]
         group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
-        for i, df in enumerate(self.subqueries[1:]):
-            df.rename({"person_id": f"person_id_{i + 1}"}, axis=1)
+        for i, df in enumerate(self.subqueries[1:], start=1):
+            df.rename({"person_id": f"person_id_{i}"}, axis=1)
             group0_df = group0_df.merge(
                 right=df,
                 how=merge_method(self.query.group_operator),
                 left_on="person_id_0",
-                right_on=f"person_id_{i + 1}"
+                right_on=f"person_id_{i}"
             )
         self.subqueries.clear()
         return group0_df.shape[0]  # the number of rows
