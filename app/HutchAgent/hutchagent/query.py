@@ -337,7 +337,7 @@ class BaseQueryBuilder:
     def solve_rules(self) -> None:
         raise NotImplementedError
 
-    def solve_sql(self) -> sql.selectable.Select:
+    def solve_groups(self) -> sql.selectable.Select:
         raise NotImplementedError
 
 
@@ -485,7 +485,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
                     )
             self.subqueries.append(stmnt)
 
-    def solve_sql(self) -> sql.selectable.Select:
+    def solve_groups(self) -> sql.selectable.Select:
         """Build and return the final SQL that can be used to query the database."""
         group_stmnt = self.subqueries[0].alias("group_0")
         for i, sq in enumerate(self.subqueries[1:]):
@@ -691,7 +691,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                     del person_df, procedure_df, condition_df, observation_df, drug_df
             self.subqueries.append(main_df)
 
-    def solve_sql(self) -> int:
+    def solve_groups(self) -> int:
         """Build and return the final SQL that can be used to query the database."""
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         group0_df = self.subqueries[0]

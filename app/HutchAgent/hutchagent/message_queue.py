@@ -87,7 +87,7 @@ def rquest_callback(
     try:
         query_start = time.time()
         query_builder.solve_rules()
-        res = query_builder.solve_sql()
+        res = query_builder.solve_groups()
         query_end = time.time()
         count_ = res
         if int(os.getenv("USE_RESULTS_MODS", 0)):
@@ -166,7 +166,7 @@ def ro_crates_callback(
     try:
         query_start = time.time()
         query_builder.solve_rules()
-        res = query_builder.solve_sql()
+        res = query_builder.solve_groups()
         query_end = time.time()
         count_ = res
         if int(os.getenv("USE_RESULTS_MODS", 0)):
