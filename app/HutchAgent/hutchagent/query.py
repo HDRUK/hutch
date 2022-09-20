@@ -508,7 +508,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         pass
 
     def solve_rules(self) -> None:
-        """Build the subqueries for the main query."""
+        """Find all rows that match the rules' criteria."""
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         for group in self.query.groups:
             if group.rules[0].min_value is not None and group.rules[0].max_value is not None:
@@ -692,7 +692,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
             self.subqueries.append(main_df)
 
     def solve_groups(self) -> int:
-        """Build and return the final SQL that can be used to query the database."""
+        """Merge the groups and return the number of rows that matched all criteria."""
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         group0_df = self.subqueries[0]
         group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
