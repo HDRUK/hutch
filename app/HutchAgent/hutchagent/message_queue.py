@@ -86,7 +86,7 @@ def rquest_callback(
     query_builder = RQuestQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
-        query_builder.build_subqueries()
+        query_builder.solve_rules()
         res = query_builder.solve_sql()
         query_end = time.time()
         count_ = res
@@ -165,7 +165,7 @@ def ro_crates_callback(
     query_builder = ROCratesQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
-        query_builder.build_subqueries()
+        query_builder.solve_rules()
         res = query_builder.solve_sql()
         query_end = time.time()
         count_ = res

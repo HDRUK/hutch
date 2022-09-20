@@ -334,7 +334,7 @@ class BaseQueryBuilder:
     def set_tables_and_columns(self) -> None:
         raise NotImplementedError
 
-    def build_subqueries(self) -> None:
+    def solve_rules(self) -> None:
         raise NotImplementedError
 
     def solve_sql(self) -> sql.selectable.Select:
@@ -347,7 +347,7 @@ class RQuestQueryBuilder(BaseQueryBuilder):
         """Set the tables and columns for the rules in the query."""
         pass
 
-    def build_subqueries(self) -> None:
+    def solve_rules(self) -> None:
         """Build the subqueries for the main query."""
         # base query for text rules
         base_txt_stmnt = (
@@ -507,7 +507,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
         """Set the tables and columns for the rules in the query."""
         pass
 
-    def build_subqueries(self) -> None:
+    def solve_rules(self) -> None:
         """Build the subqueries for the main query."""
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         for group in self.query.groups:
