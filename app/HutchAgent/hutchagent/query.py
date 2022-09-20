@@ -609,26 +609,26 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 elif group.rules[i].operator.value == "=":
                     person_stmnt = select(Person.person_id.label(f"person_id_{i}")).where(
                         or_(
-                            Person.ethnicity_concept_id == group.rules[0].value,
-                            Person.gender_concept_id == group.rules[0].value,
-                            Person.race_concept_id == group.rules[0].value,
+                            Person.ethnicity_concept_id == group.rules[i].value,
+                            Person.gender_concept_id == group.rules[i].value,
+                            Person.race_concept_id == group.rules[i].value,
                         )
                     ).distinct()
                     person_df = pd.read_sql_query(sql=person_stmnt, con=self.db_manager.engine)
                     procedure_stmnt = select(ProcedureOccurrence.person_id).where(
-                        ProcedureOccurrence.procedure_concept_id == group.rules[0].value,
+                        ProcedureOccurrence.procedure_concept_id == group.rules[i].value,
                     ).distinct()
                     procedure_df = pd.read_sql_query(sql=procedure_stmnt, con=self.db_manager.engine)
                     condition_stmnt = select(ConditionOccurrence.person_id).where(
-                        ConditionOccurrence.condition_concept_id == group.rules[0].value,
+                        ConditionOccurrence.condition_concept_id == group.rules[i].value,
                     ).distinct()
                     condition_df = pd.read_sql_query(sql=condition_stmnt, con=self.db_manager.engine)
                     observation_stmnt = select(Observation.person_id).where(
-                        Observation.observation_concept_id == group.rules[0].value,
+                        Observation.observation_concept_id == group.rules[i].value,
                     ).distinct()
                     observation_df = pd.read_sql_query(sql=observation_stmnt, con=self.db_manager.engine)
                     drug_stmnt = select(DrugExposure.person_id).where(
-                        DrugExposure.drug_concept_id == group.rules[0].value,
+                        DrugExposure.drug_concept_id == group.rules[i].value,
                     ).distinct()
                     drug_df = pd.read_sql_query(sql=drug_stmnt, con=self.db_manager.engine)
                     rule_df = pd.concat(
@@ -638,7 +638,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         observation_df,
                         drug_df]
                     )
-                    rule_df[f"person_id_{i}"] = pd.DataFrame({rule_df[f"person_id_{i}"].unique()})
+                    rule_df = pd.DataFrame({f"person_id_{i}": rule_df[f"person_id_{i}"].unique()})
                     main_df = main_df.merge(
                         right=rule_df,
                         how=merge_method(group.rule_operator.value),
@@ -651,26 +651,26 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                 elif group.rules[i].operator.value == "!=":
                     person_stmnt = select(Person.person_id.label(f"person_id_{i}")).where(
                         or_(
-                            Person.ethnicity_concept_id != group.rules[0].value,
-                            Person.gender_concept_id != group.rules[0].value,
-                            Person.race_concept_id != group.rules[0].value,
+                            Person.ethnicity_concept_id != group.rules[i].value,
+                            Person.gender_concept_id != group.rules[i].value,
+                            Person.race_concept_id != group.rules[i].value,
                         )
                     ).distinct()
                     person_df = pd.read_sql_query(sql=person_stmnt, con=self.db_manager.engine)
                     procedure_stmnt = select(ProcedureOccurrence.person_id).where(
-                        ProcedureOccurrence.procedure_concept_id != group.rules[0].value,
+                        ProcedureOccurrence.procedure_concept_id != group.rules[i].value,
                     ).distinct()
                     procedure_df = pd.read_sql_query(sql=procedure_stmnt, con=self.db_manager.engine)
                     condition_stmnt = select(ConditionOccurrence.person_id).where(
-                        ConditionOccurrence.condition_concept_id != group.rules[0].value,
+                        ConditionOccurrence.condition_concept_id != group.rules[i].value,
                     ).distinct()
                     condition_df = pd.read_sql_query(sql=condition_stmnt, con=self.db_manager.engine)
                     observation_stmnt = select(Observation.person_id).where(
-                        Observation.observation_concept_id != group.rules[0].value,
+                        Observation.observation_concept_id != group.rules[i].value,
                     ).distinct()
                     observation_df = pd.read_sql_query(sql=observation_stmnt, con=self.db_manager.engine)
                     drug_stmnt = select(DrugExposure.person_id).where(
-                        DrugExposure.drug_concept_id != group.rules[0].value,
+                        DrugExposure.drug_concept_id != group.rules[i].value,
                     ).distinct()
                     drug_df = pd.read_sql_query(sql=drug_stmnt, con=self.db_manager.engine)
                     rule_df = pd.concat(
@@ -680,7 +680,7 @@ class ROCratesQueryBuilder(BaseQueryBuilder):
                         observation_df,
                         drug_df]
                     )
-                    rule_df = pd.DataFrame({rule_df[f"person_id_{i}"].unique()})
+                    rule_df = pd.DataFrame({f"person_id_{i}": rule_df[f"person_id_{i}"].unique()})
                     main_df = main_df.merge(
                         right=rule_df,
                         how=merge_method(group.rule_operator.value),
