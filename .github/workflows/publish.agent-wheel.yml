@@ -8,7 +8,7 @@ on:
         required: true
         default: release
   push:
-    branches: [main]
+    branches: [main, feature/agent-CD]
 
 jobs:
   generate-timestamp:
@@ -67,6 +67,7 @@ jobs:
     env:
       APP_NAME: hutchagent
       WORKDIR: ./app/HutchAgent
+      NEXT_TAG: next
       TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
       REGISTRY: ghcr.io
     needs: generate-timestamp
@@ -85,7 +86,9 @@ jobs:
         uses: docker/metadata-action@v4.0.1
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
-          tags: ${{ env.TS_TAG }}
+          tags: |
+            ${{ env.TS_TAG }}
+            ${{ env.NEXT_TAG }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v3.1.1
