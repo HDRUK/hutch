@@ -30,7 +30,7 @@ jobs:
       PYTHON_VERSION: "3.9"
       POETRY_VERSION: "1.1.14"
       WORKDIR: "./app/HutchAgent"
-      RELEASE_NAME: hutchagent-${{ needs.generate-timestamp.outputs.timestamp }}
+      RELEASE_NAME: agent-${{ needs.generate-timestamp.outputs.timestamp }}
     needs: generate-timestamp
     steps:
       - uses: actions/checkout@v2
@@ -65,7 +65,7 @@ jobs:
       contents: read
       packages: write
     env:
-      APP_NAME: hutchagent
+      APP_NAME: agent
       WORKDIR: ./app/HutchAgent
       NEXT_TAG: next
       TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
