@@ -44,7 +44,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
           tags: |
-            latest
+            stable
             ${{ env.VERSION_TAG }}
 
       - name: Build and push Docker images
@@ -62,7 +62,7 @@ jobs:
       CI_dotnet-project: ./app/HutchManager/HutchManager.csproj
       CI_release-name: manager ${{ inputs.version_tag }}
       CI_client-package: manager-frontend
-      CI_migrations-name: manager-${{ inputs.version_tag }}-migrations
+      CI_migrations-name: manager-migrations-${{ inputs.version_tag }}
     permissions:
       contents: write
     steps:
