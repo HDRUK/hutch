@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: generate-timestamp
     env:
-      APP_NAME: hutch-manager
+      APP_NAME: manager
       NEXT_TAG: next
       TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
       REGISTRY: ghcr.io
@@ -75,10 +75,9 @@ jobs:
     needs: generate-timestamp
     env:
       CI_dotnet-project: ./app/HutchManager/HutchManager.csproj
-      CI_release-name: hutch-manager-${{ needs.generate-timestamp.outputs.timestamp }}
-      CI_next-tag: hutch-manager-next
+      CI_release-name: manager-${{ needs.generate-timestamp.outputs.timestamp }}
       CI_client-package: manager-frontend
-      CI_migrations-name: hutch-manager-migrations-${{ needs.generate-timestamp.outputs.timestamp }}
+      CI_migrations-name: manager-migrations-${{ needs.generate-timestamp.outputs.timestamp }}
     permissions:
       contents: write
     steps:
