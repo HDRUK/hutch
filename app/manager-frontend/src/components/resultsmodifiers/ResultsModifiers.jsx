@@ -14,13 +14,7 @@ import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useBackendApi } from "contexts/BackendApi";
 import { useActivitySourceResultsModifiersList } from "api/activitysources";
 import { useState } from "react";
-import {
-  FaGripVertical,
-  FaTrash,
-  FaEdit,
-  FaPlus,
-  FaInfoCircle,
-} from "react-icons/fa";
+import { FaGripVertical, FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import { ConfigureResultsModifierModal } from "./ConfigureResultsModifierModal";
 import { DeleteModal } from "components/DeleteModal";
 
@@ -86,11 +80,15 @@ export const ResultsModifiers = ({ id }) => {
       spacing={4}
       display="contents"
     >
-      <HStack p={2}>
-        <Heading size="lg">Result Modifiers</Heading>
+      <HStack p={2} spacing={4}>
+        <Text fontWeight={600} letterSpacing={0.7} fontSize={"2xl"}>
+          Result Modifiers
+        </Text>
+
         <Button
           colorScheme="green"
           leftIcon={<FaPlus />}
+          size="sm"
           onClick={onUpdateOpen}
         >
           <ConfigureResultsModifierModal
@@ -109,7 +107,6 @@ export const ResultsModifiers = ({ id }) => {
             fontSize={"sm"}
             letterSpacing={1.1}
           >
-            {" "}
             New
           </Text>
         </Button>
@@ -219,9 +216,7 @@ export const ResultsModifiers = ({ id }) => {
                                   <Button
                                     style={{ backgroundColor: "transparent" }}
                                   >
-                                    {" "}
                                     <FaEdit
-                                      color="darkslategray"
                                       onClick={() => onClickUpdate(item)}
                                     />
                                   </Button>
