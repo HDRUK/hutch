@@ -7,11 +7,12 @@ import {
   Alert,
   AlertIcon,
   useDisclosure,
-  HStack
+  HStack,
+  Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Form, Formik } from "formik";
-import { FaArrowRight, FaTrash } from "react-icons/fa";
+import { FaArrowRight, FaTrash, FaTimes } from "react-icons/fa";
 import { FormikInput } from "../../components/forms/FormikInput";
 import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
@@ -30,15 +31,36 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
-  const submitText = !activitySource
-    ? "Create Activity Source"
-    : "Save changes";
-  const headingText = !activitySource
-    ? "Create a new Activity Source"
-    : "Edit Activity Source";
-  const isUpdate = !activitySource
-    ? false
-    : true
+  const submitText = !activitySource ? "Create" : "Save";
+  const headingText = !activitySource ? (
+    <div>
+      <Text
+        color={"blue.500"}
+        fontWeight={600}
+        letterSpacing={1.1}
+        fontSize={"2xl"}
+        textTransform={"uppercase"}
+      >
+        Create Activity Source
+      </Text>
+    </div>
+  ) : (
+    <div style={{ display: "flex" }}>
+      <Text
+        color={"blue.500"}
+        fontWeight={600}
+        letterSpacing={1.1}
+        fontSize={"2xl"}
+        textTransform={"uppercase"}
+      >
+        Editing:
+      </Text>
+      <Text pl={1} fontWeight={600} letterSpacing={1.1} fontSize={"2xl"}>
+        {activitySource.displayName}
+      </Text>
+    </div>
+  );
+  const isUpdate = !activitySource ? false : true;
   const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
     behavior: "smooth",
   });
@@ -88,9 +110,9 @@ export const ActivitySource = ({ activitySource, action, id }) => {
 
   return (
     <Container my={8} ref={scrollTarget}>
-      <VStack w="100%" align="stretch" spacing={4} p={4} pb={10}>
+      <VStack align="stretch" spacing={4} p={4} pb={10}>
         <Flex justify="space-between">
-          <Heading>{headingText}</Heading>
+          {headingText}
           {id && (
             <Button
               leftIcon={<FaTrash />}
@@ -107,22 +129,22 @@ export const ActivitySource = ({ activitySource, action, id }) => {
           initialValues={
             activitySource
               ? {
-                DisplayName: activitySource.displayName,
-                Host: activitySource.host,
-                Type: activitySource.type,
-                ResourceId: activitySource.resourceId,
-                TargetDataSource:
-                  datasourceOptions.find(
-                    (item) => item.id === activitySource.targetDataSource
-                  )?.id ?? "",
-              }
+                  DisplayName: activitySource.displayName,
+                  Host: activitySource.host,
+                  Type: activitySource.type,
+                  ResourceId: activitySource.resourceId,
+                  TargetDataSource:
+                    datasourceOptions.find(
+                      (item) => item.id === activitySource.targetDataSource
+                    )?.id ?? "",
+                }
               : {
-                DisplayName: "",
-                Host: "",
-                Type: typeOptions[0].id,
-                ResourceId: "",
-                TargetDataSource: "",
-              }
+                  DisplayName: "",
+                  Host: "",
+                  Type: typeOptions[0].id,
+                  ResourceId: "",
+                  TargetDataSource: "",
+                }
           }
           validationSchema={validationSchema()}
         >
@@ -164,13 +186,15 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   }
                   hasEmptyDefault
                 />
-                {isUpdate ? null : <Alert status='info'>
-                  <AlertIcon />
-                  Result Modifiers can be added after an Activity Source is created.
-                </Alert>}
-                <HStack>
+                {isUpdate ? null : (
+                  <Alert status="info">
+                    <AlertIcon />
+                    Result Modifiers can be added after an Activity Source is
+                    created.
+                  </Alert>
+                )}
+                <HStack justify={"space-between"}>
                   <Button
-                    w="200px"
                     leftIcon={<FaArrowRight />}
                     colorScheme="blue"
                     type="submit"
@@ -179,20 +203,40 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   >
                     {submitText}
                   </Button>
+                  <Button
+                    leftIcon={<FaTimes />}
+                    variant="outline"
+                    colorScheme="red"
+                    onClick={() => navigate("/home")}
+                  >
+                    Cancel
+                  </Button>
                 </HStack>
               </VStack>
             </Form>
           )}
         </Formik>
       </VStack>
-      {isUpdate ? <ResultsModifiers id={id} ></ResultsModifiers> : null}
-      <DeleteModal
-        title={`Delete Activity Source ${id}`}
-        body="Are you sure you want to delete this activity source? You will not be able to reverse this"
-        isOpen={isOpen}
-        onClose={onClose}
-        onDelete={onDeleteSource}
-      />
+      {isUpdate ? (
+        <>
+          <ResultsModifiers id={id}></ResultsModifiers>
+          <DeleteModal
+            title={`Delete Activity Source ?`}
+            body={
+              <VStack>
+                <Text>
+                  Are you sure you want to delete this activity source:
+                </Text>
+                <Text fontWeight="bold">{activitySource.displayName}</Text>
+                <Text>You will not be able to reverse this!</Text>
+              </VStack>
+            }
+            isOpen={isOpen}
+            onClose={onClose}
+            onDelete={onDeleteSource}
+          />
+        </>
+      ) : null}
     </Container>
   );
 };
