@@ -24,7 +24,6 @@ import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { ResultsModifiers } from "components/resultsmodifiers/ResultsModifiers";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
-  // TODO: Get this from the backend
   const typeOptions = [{ id: "RQUEST" }];
   const { data: datasourceOptions } = useDataSourceList();
   const { isOpen, onOpen, onClose } = useDisclosure();
