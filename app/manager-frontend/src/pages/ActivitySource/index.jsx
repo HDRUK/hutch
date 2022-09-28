@@ -2,7 +2,6 @@ import {
   VStack,
   Flex,
   Button,
-  Heading,
   Container,
   Alert,
   AlertIcon,

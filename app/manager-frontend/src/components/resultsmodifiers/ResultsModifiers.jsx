@@ -1,5 +1,4 @@
 import {
-  Heading,
   VStack,
   Grid,
   GridItem,
