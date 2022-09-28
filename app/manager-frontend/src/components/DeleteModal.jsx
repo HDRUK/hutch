@@ -9,7 +9,14 @@ import {
 } from "@chakra-ui/react";
 import { FaTrash } from "react-icons/fa";
 
-export const DeleteModal = ({ title, body, isOpen, onClose, onDelete }) => (
+export const DeleteModal = ({
+  title,
+  body,
+  isOpen,
+  onClose,
+  onDelete,
+  isLoading,
+}) => (
   <AlertDialog isOpen={isOpen} onClose={onClose}>
     <AlertDialogOverlay />
     <AlertDialogContent>
@@ -25,6 +32,7 @@ export const DeleteModal = ({ title, body, isOpen, onClose, onDelete }) => (
           colorScheme="red"
           onClick={onDelete}
           ml={3}
+          isLoading={isLoading}
         >
           Delete
         </Button>
