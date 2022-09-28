@@ -31,6 +31,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
+  const [isLoading, setIsLoading] = useState();
   const submitText = !activitySource ? "Create" : "Save";
   const headingText = !activitySource ? (
     <div>
@@ -67,7 +68,9 @@ export const ActivitySource = ({ activitySource, action, id }) => {
 
   const navigate = useNavigate();
   const onDeleteSource = async () => {
+    setIsLoading(true);
     await activitysource.delete({ id: id });
+    setIsLoading(false);
     onClose();
     // redirect with a toast
     navigate("/", {
@@ -232,6 +235,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                 <Text>You will not be able to reverse this!</Text>
               </VStack>
             }
+            isLoading={isLoading}
             isOpen={isOpen}
             onClose={onClose}
             onDelete={onDeleteSource}

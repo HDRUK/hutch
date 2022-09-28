@@ -22,6 +22,7 @@ export const ResultsModifiers = ({ id }) => {
   const { resultsmodifier, activitysource } = useBackendApi();
   const { data, mutate } = useActivitySourceResultsModifiersList(id);
   const [selected, setSelected] = useState();
+  const [isLoading, setIsLoading] = useState();
   const onDragEnd = async (result) => {
     // dropped outside the list
     if (!result.destination) {
@@ -50,10 +51,12 @@ export const ResultsModifiers = ({ id }) => {
   } = useDisclosure();
 
   const onDelete = async (id) => {
+    setIsLoading(true);
     await resultsmodifier.delete({ id: id });
     await mutate();
     setSelected(undefined);
     onDeleteClose();
+    setIsLoading(false);
   };
 
   const closeDelete = () => {
@@ -233,7 +236,8 @@ export const ResultsModifiers = ({ id }) => {
                                       onClose={closeDelete}
                                       id={selected ? selected.id : undefined}
                                       onDelete={() => onDelete(item.id)}
-                                    />{" "}
+                                      isLoading={isLoading}
+                                    />
                                     <FaTrash color="#cf222eed" />
                                   </Button>
 
