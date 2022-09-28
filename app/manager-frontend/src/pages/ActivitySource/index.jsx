@@ -109,21 +109,20 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   };
 
   return (
-    <Container my={8} ref={scrollTarget}>
+    <Container my={8} ref={scrollTarget} style={{ maxWidth: "850px" }}>
       <VStack align="stretch" spacing={4} p={4} pb={10}>
         <Flex justify="space-between">
           {headingText}
-          {id && (
-            <Button
-              leftIcon={<FaTrash />}
-              variant="outline"
-              colorScheme="red"
-              onClick={onOpen}
-            >
-              Delete
-            </Button>
-          )}
+          <Button
+            leftIcon={<FaTimes />}
+            variant="outline"
+            colorScheme="red"
+            onClick={() => navigate("/home")}
+          >
+            Cancel
+          </Button>
         </Flex>
+
         <Formik
           onSubmit={handleSubmit}
           initialValues={
@@ -203,14 +202,16 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   >
                     {submitText}
                   </Button>
-                  <Button
-                    leftIcon={<FaTimes />}
-                    variant="outline"
-                    colorScheme="red"
-                    onClick={() => navigate("/home")}
-                  >
-                    Cancel
-                  </Button>
+                  {id && (
+                    <Button
+                      leftIcon={<FaTrash />}
+                      variant="outline"
+                      colorScheme="red"
+                      onClick={onOpen}
+                    >
+                      Delete
+                    </Button>
+                  )}
                 </HStack>
               </VStack>
             </Form>
