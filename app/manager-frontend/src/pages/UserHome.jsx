@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
 import { useNavigate } from "react-router-dom";
-import { FaPlus, FaSearch, FaInfo, FaInfoCircle } from "react-icons/fa";
+import { FaPlus, FaSearch, FaInfoCircle } from "react-icons/fa";
 
 export const UserHome = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
