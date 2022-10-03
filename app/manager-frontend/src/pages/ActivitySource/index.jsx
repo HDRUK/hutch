@@ -223,7 +223,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
         <>
           <ResultsModifiers id={id}></ResultsModifiers>
           <DeleteModal
-            title={`Delete Activity Source ?`}
+            title={`Delete Activity Source?`}
             body={
               <VStack>
                 <Text>
