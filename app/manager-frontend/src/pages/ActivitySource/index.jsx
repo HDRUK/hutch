@@ -32,7 +32,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   const [isLoading, setIsLoading] = useState();
   const submitText = !activitySource ? "Create" : "Save";
   const headingText = !activitySource ? (
-    <div>
+    <Flex>
       <Text
         color={"blue.500"}
         fontWeight={600}
@@ -42,9 +42,9 @@ export const ActivitySource = ({ activitySource, action, id }) => {
       >
         Create Activity Source
       </Text>
-    </div>
+    </Flex>
   ) : (
-    <div style={{ display: "flex" }}>
+    <Flex>
       <Text
         color={"blue.500"}
         fontWeight={600}
@@ -57,7 +57,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
       <Text pl={1} fontWeight={600} letterSpacing={1.1} fontSize={"2xl"}>
         {activitySource.displayName}
       </Text>
-    </div>
+    </Flex>
   );
   const isUpdate = !activitySource ? false : true;
   const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
