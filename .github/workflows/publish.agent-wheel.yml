@@ -11,7 +11,18 @@ on:
     branches: [main]
 
 jobs:
-  publish-wheel:
+  generate-timestamp:
+    runs-on: ubuntu-latest
+    outputs:
+      timestamp: ${{ steps.makestamp.outputs.time }}
+    steps:
+    - name: Make Timestamp
+      id: makestamp
+      uses: nanzm/get-time-action@v1.1
+      with:
+        format: "YYYYMMDDHHmmss"
+
+  publish-agent-wheel:
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -19,7 +30,8 @@ jobs:
       PYTHON_VERSION: "3.9"
       POETRY_VERSION: "1.1.14"
       WORKDIR: "./app/HutchAgent"
-      ARTIFACT_NAME: "hutchagent-dist"
+      RELEASE_NAME: agent-${{ needs.generate-timestamp.outputs.timestamp }}
+    needs: generate-timestamp
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -36,7 +48,52 @@ jobs:
       - name: Build dist
         working-directory: ${{ env.WORKDIR }}
         run: poetry build
-      - uses: actions/upload-artifact@v2
+      - name: GH Release
+        uses: softprops/action-gh-release@v0.1.14
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.WORKDIR }}/dist
+          prerelease: true
+          files: |
+            ${{ env.WORKDIR }}/dist/*
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.RELEASE_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+
+  publish-agent-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      APP_NAME: agent
+      WORKDIR: ./app/HutchAgent
+      NEXT_TAG: next
+      TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
+      REGISTRY: ghcr.io
+    needs: generate-timestamp
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Docker Login
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Metadata action
+        id: meta
+        uses: docker/metadata-action@v4.0.1
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
+          tags: |
+            ${{ env.TS_TAG }}
+            ${{ env.NEXT_TAG }}
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3.1.1
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          context: ${{ env.WORKDIR }}
