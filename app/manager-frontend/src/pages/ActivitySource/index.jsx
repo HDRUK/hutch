@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { Form, Formik } from "formik";
-import { FaArrowRight, FaTrash, FaTimes } from "react-icons/fa";
+import { FaArrowRight, FaTrash, FaTimes, FaRegSave } from "react-icons/fa";
 import { FormikInput } from "../../components/forms/FormikInput";
 import { FormikSelect } from "../../components/forms/FormikSelect";
 import { useNavigate } from "react-router-dom";
@@ -110,14 +110,14 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   };
 
   return (
-    <Container my={8} ref={scrollTarget} style={{ maxWidth: "850px" }}>
+    <Container my={8} ref={scrollTarget}>
       <VStack align="stretch" spacing={4} p={4} pb={10}>
         <Flex justify="space-between">
           {headingText}
           <Button
             leftIcon={<FaTimes />}
             variant="outline"
-            colorScheme="red"
+            colorScheme="gray"
             onClick={() => navigate("/home")}
           >
             Cancel
@@ -195,7 +195,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                 )}
                 <HStack justify={"space-between"}>
                   <Button
-                    leftIcon={<FaArrowRight />}
+                    leftIcon={isUpdate ? <FaRegSave /> : <FaArrowRight />}
                     colorScheme="blue"
                     type="submit"
                     disabled={isSubmitting}
