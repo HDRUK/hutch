@@ -8,6 +8,7 @@ import {
   useDisclosure,
   Alert,
   AlertIcon,
+  Flex,
 } from "@chakra-ui/react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useBackendApi } from "contexts/BackendApi";
@@ -69,6 +70,18 @@ export const ResultsModifiers = ({ id }) => {
   const onClickUpdate = (item) => {
     setSelected(item);
     onUpdateOpen();
+  };
+
+  const displayParameters = (key, parameter) => {
+    if (parameter === "") {
+      return null;
+    } else {
+      return (
+        <Flex p={"1"} textTransform={"capitalize"}>
+          {key}: {parameter}
+        </Flex>
+      );
+    }
   };
   return (
     <VStack
@@ -195,20 +208,23 @@ export const ResultsModifiers = ({ id }) => {
                                 >
                                   <Text p={"1"}>{item.type.id}</Text>
                                 </GridItem>
-                                {Object.keys(item.parameters).map(
-                                  (key, value) => (
-                                    <GridItem
-                                      colStart={3}
-                                      colSpan={1}
-                                      pl={5}
-                                      display="grid"
-                                    >
-                                      <Text p={"1"}>
-                                        {key}: {item.parameters[key]}
-                                      </Text>
-                                    </GridItem>
-                                  )
-                                )}
+                                <GridItem
+                                  colStart={3}
+                                  colSpan={1}
+                                  pl={5}
+                                  display="grid"
+                                >
+                                  {Object.keys(item.parameters).map(
+                                    (key, value) => (
+                                      <Flex>
+                                        {displayParameters(
+                                          key,
+                                          item.parameters[key]
+                                        )}
+                                      </Flex>
+                                    )
+                                  )}
+                                </GridItem>
                                 <GridItem
                                   colStart={4}
                                   colSpan={1}
