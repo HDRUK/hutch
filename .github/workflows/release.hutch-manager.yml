@@ -96,6 +96,7 @@ jobs:
           ${{ env.CI_dotnet-project }}
           -c ${{ env.CI_build-config }}
           -o ${{ env.CI_publish-dir }}
+          /p:Version=${{ inputs.version_tag }}
           /p:GitHash=${{ github.sha }}
 
       # TODO: binaries for db migrations during deployment?
