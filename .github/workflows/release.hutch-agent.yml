@@ -52,8 +52,7 @@ jobs:
     env:
       APP_NAME: agent
       WORKDIR: ./app/HutchAgent
-      NEXT_TAG: next
-      TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
+      VERSION_TAG: ${{ inputs.version_tag }}
       REGISTRY: ghcr.io
     needs: generate-timestamp
     steps:
@@ -72,8 +71,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
           tags: |
-            ${{ env.TS_TAG }}
-            ${{ env.NEXT_TAG }}
+            stable
+            ${{ env.VERSION_TAG }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v3.1.1
