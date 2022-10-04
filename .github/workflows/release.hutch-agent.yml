@@ -1,0 +1,11 @@
+name: Release Manager (stable)
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      version_tag:
+        description: Version tag
+        required: true
+
+jobs:
+  
