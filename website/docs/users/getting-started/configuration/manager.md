@@ -4,6 +4,54 @@ sidebar_position: 1
 
 # Hutch Manager
 
+The app can be configured in any standard way an ASP.NET Core application can. Typically from the Azure Portal (Environment variables) or an `appsettings.json`.
+
+## Available values and defaults
+
+```yaml
+ConnectionStrings:
+  Default: "" # the main application SQL Server database
+Serilog:
+  # ...
+OutboundEmail:
+  ServiceName: Hutch
+  FromName: No Reply
+  FromAddress: noreply@example.com
+  ReplyToAddress: ""
+  Provider: local
+
+  # If Provider == "local"
+  LocalPath: ~/temp
+
+  # If Provider == "sendgrid"
+  SendGridApiKey: ""
+
+ActivitySourcePolling:
+  PollingInterval: 5 # set to a negative value will disable polling altogether
+
+RquestTaskApi:
+  BaseEndpoint: "bcos-rest/api/task"
+  QueueStatusEndpoint: "queue"
+  FetchQueryEndpoint: "nextjob"
+  SubmitResultEndpoint: "result"
+  Username: ""
+  Password: ""
+
+JobQueue:
+  HostName: ""
+  Port: 5672
+  UserName: "guest"
+  Password: "guest"
+
+# Opt in feature flags
+# sometimes features here are works in progress
+FeatureManagement:
+  UseROCrates: false # WIP
+  AllowFreeRegistration: false # By default, the app uses an Allowlist for new account registration; setting this to `true` bypasses that.
+```
+
+## Sample Production Configuration guidance
+
 Set the environment to `Production`:
 - `ASPNETCORE_ENVIRONMENT=Production`
 
