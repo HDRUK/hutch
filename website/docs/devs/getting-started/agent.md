@@ -1,12 +1,5 @@
-# `hutchagent`
-## About
-This is the source code for the Hutch agent. The agent will:
-  - read data requests from a queue,
-  - find the data in a database,
-  - perform obfuscation, low count filtering, etc,
-  - place results in a results queue.
+# Hutch Agent
 
-## Development
 ### Installation
 First, make sure you install [`poetry`](https://python-poetry.org/docs/#installation).
 
