@@ -1,16 +1,6 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import {
-  Heading,
-  Stack,
-  Text,
-  SimpleGrid,
-  VStack,
-  Button,
-  Link,
-  Divider,
-  HStack,
-} from "@chakra-ui/react";
+import { Heading, Text, SimpleGrid, VStack, HStack } from "@chakra-ui/react";
 import { FaBook, FaDownload } from "react-icons/fa";
 import { Features } from "@site/src/components/homepage/Features";
 import LinkButton from "../components/LinkButton";
@@ -63,7 +53,7 @@ const HeroBanner = () => {
         <HeroButton
           colorScheme="green"
           leftIcon={<FaDownload />}
-          href="https://github.com/link-lite/hutch/releases"
+          href="https://github.com/hdruk/hutch/releases"
         >
           Download now
         </HeroButton>

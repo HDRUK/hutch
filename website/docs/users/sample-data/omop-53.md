@@ -42,4 +42,4 @@ Because of this, you **should not** add the foreign key constraints to the schem
   - extra `death_datetime` column
     - ignore it
 
-[Sample Data only]: https://github.com/link-lite/hutch/releases/tag/omop-5.3-sample-data
+[Sample Data only]: https://github.com/hdruk/hutch/releases/tag/omop-5.3-sample-data

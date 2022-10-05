@@ -16,7 +16,7 @@ However, it is possible to run it on a VM ion the Cloud, or since a Docker image
 
 ### Docker
 
-Docker images are available [here](https://github.com/link-lite/hutch/pkgs/container/hutch%2Fhutchagent) and can be configured by Environment Variables.
+Docker images are available [here](https://github.com/hdruk/hutch/pkgs/container/hutch%2Fhutchagent) and can be configured by Environment Variables.
 
 ## Network connectivity requirements
 It will need outbound connectivity on whatever ports any desired Activity Sources are running on; typically 443 (HTTPS)

@@ -17,7 +17,7 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "link-lite", // Usually your GitHub org/user name.
+  organizationName: "hdruk", // Usually your GitHub org/user name.
   projectName: "hutch", // Usually your repo name.
 
   // Even if you don't use internalization, you can use this field to set useful
@@ -37,7 +37,7 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/link-lite/hutch/tree/main/website/",
+          editUrl: "https://github.com/hdruk/hutch/tree/main/website/",
         },
         blog: false,
         theme: {
@@ -72,7 +72,7 @@ const config = {
             label: "For Developers",
           },
           {
-            href: "https://github.com/link-lite/hutch",
+            href: "https://github.com/hdruk/hutch",
             position: "right",
             className: "header-github-link",
             "aria-label": "GitHub repository",
@@ -126,7 +126,7 @@ const config = {
             items: [
               {
                 label: "GitHub",
-                href: "https://github.com/link-lite/hutch",
+                href: "https://github.com/hdruk/hutch",
               },
             ],
           },
