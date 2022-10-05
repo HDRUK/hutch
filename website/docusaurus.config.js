@@ -56,7 +56,11 @@ const config = {
         isCloseable: false,
       },
       navbar: {
-        title: "📤🐇 Hutch",
+        logo: {
+          src: "img/hutch_logo-mono-black.svg",
+          srcDark: "img/hutch_logo-mono-white.svg",
+          alt: "Hutch logo",
+        },
 
         items: [
           {

@@ -1,9 +1,18 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import { Heading, Text, SimpleGrid, VStack, HStack } from "@chakra-ui/react";
+import {
+  Heading,
+  Text,
+  SimpleGrid,
+  VStack,
+  HStack,
+  Flex,
+  Image,
+} from "@chakra-ui/react";
 import { FaBook, FaDownload } from "react-icons/fa";
 import { Features } from "@site/src/components/homepage/Features";
 import LinkButton from "../components/LinkButton";
+import HutchLogo from "@site/static/img/hutch_logo-color-white.svg";
 
 const HeroButton = (p) => (
   <LinkButton
@@ -36,7 +45,11 @@ const HeroBanner = () => {
       textShadow="2px 2px 2px rgba(0,0,0,.8)"
     >
       <Heading size="4xl">
-        <Text>📤🐇 Hutch</Text>
+        <HutchLogo
+          style={{ filter: "drop-shadow(2px 2px 2px rgba(0,0,0,.8))" }}
+          role="img"
+          width="400px"
+        />
       </Heading>
 
       <Heading

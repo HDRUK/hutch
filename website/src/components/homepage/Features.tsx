@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Divider,
   Flex,
   HStack,
   Link,
@@ -8,6 +7,7 @@ import {
   useColorModeValue,
   VStack,
 } from "@chakra-ui/react";
+import HdrLogo from "@site/static/img/hdruk_logo.svg";
 
 export const Features = () => (
   <HStack p={5} justify="center" align="start" spacing={150}>
@@ -34,12 +34,11 @@ const OpenSource = () => (
 );
 
 const Hdr = () => {
-  const Svg = require("@site/static/img/hdruk_logo.svg").default;
   return (
     <Feature
       graphic={
         <Link href="https://www.hdruk.ac.uk/" isExternal title="HDR UK">
-          <Svg role="img" />
+          <HdrLogo role="img" />
         </Link>
       }
     >
