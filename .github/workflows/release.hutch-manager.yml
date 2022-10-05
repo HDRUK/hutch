@@ -1,0 +1,126 @@
+name: Release Manager (stable)
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      version_tag:
+        description: Version tag
+        required: true
+  
+
+env:
+  CI_build-config: release
+  CI_dotnet-version: 6.0.x
+  CI_node-version: "16"
+  CI_publish-dir: publish
+
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  publish-manager-docker:
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: manager
+      VERSION_TAG: ${{ inputs.version_tag }}
+      REGISTRY: ghcr.io
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Docker Login
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Metadata action
+        id: meta
+        uses: docker/metadata-action@v4.0.1
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
+          tags: |
+            stable
+            ${{ env.VERSION_TAG }}
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3.1.1
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          file: ./app/HutchManager/Dockerfile
+
+  publish-manager:
+    runs-on: ubuntu-latest
+    env:
+      CI_dotnet-project: ./app/HutchManager/HutchManager.csproj
+      CI_release-name: manager ${{ inputs.version_tag }}
+      CI_client-package: manager-frontend
+      CI_migrations-name: manager-migrations-${{ inputs.version_tag }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
+
+      # 1. Build the client app
+      # TODO: could move to separate job to parallelise in future
+      # but not worth it until other parallel stuff is being done
+      # since the dotnet publish depends sequentially on the client app build
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.30.0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.CI_node-version }}
+          cache: pnpm
+      - run: >-
+          pnpm i
+          --filter ${{ env.CI_client-package }}
+          --frozen-lockfile
+      - run: >-
+          pnpm
+          --filter ${{ env.CI_client-package }}
+          build
+
+      # 2. Publish the dotnet app (with the built client app)
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.CI_dotnet-version }}
+      - name: dotnet publish
+        run: >-
+          dotnet publish
+          ${{ env.CI_dotnet-project }}
+          -c ${{ env.CI_build-config }}
+          -o ${{ env.CI_publish-dir }}
+          /p:Version=${{ inputs.version_tag }}
+          /p:GitHash=${{ github.sha }}
+
+      # TODO: binaries for db migrations during deployment?
+      # 3. Publish migrations
+      - name: dotnet ef migrations bundle
+        run: >-
+          dotnet tool restore &&
+          dotnet ef migrations bundle
+          -p ${{ env.CI_dotnet-project }}
+          -o ${{ env.CI_migrations-name }}
+
+      # 4. Upload the built release
+      - uses: edgarrc/action-7z@v1.0.5
+        with:
+          args: 7z a ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip ./${{ env.CI_publish-dir }}/*
+      - name: GH Release
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          prerelease: false
+          files: |
+            ${{ env.CI_publish-dir }}/${{ env.CI_release-name }}.zip
+            ${{ env.CI_migrations-name }}
+
+          name: ${{ env.CI_release-name }}
+          tag_name: ${{ env.CI_release-name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
