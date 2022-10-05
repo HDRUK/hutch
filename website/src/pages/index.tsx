@@ -1,14 +1,6 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import {
-  Heading,
-  Text,
-  SimpleGrid,
-  VStack,
-  HStack,
-  Flex,
-  Image,
-} from "@chakra-ui/react";
+import { Heading, Text, SimpleGrid, VStack, HStack } from "@chakra-ui/react";
 import { FaBook, FaDownload } from "react-icons/fa";
 import { Features } from "@site/src/components/homepage/Features";
 import LinkButton from "../components/LinkButton";
