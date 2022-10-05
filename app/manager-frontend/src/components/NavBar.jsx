@@ -32,7 +32,7 @@ const BrandLink = () => {
   const { t } = useTranslation();
   return (
     <Link to="/">
-      <Heading p={2} size="lg">
+      <Heading p={2} size="lg" textTransform={"uppercase"} letterSpacing={1.1}>
         {t("buttons.brand")}
       </Heading>
     </Link>

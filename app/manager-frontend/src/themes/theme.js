@@ -17,7 +17,7 @@ export const theme = extendTheme({
     },
     Container: {
       baseStyle: {
-        maxWidth: "100ch",
+        maxWidth: "850px",
       },
     },
     Heading: {
