@@ -2,11 +2,17 @@
 sidebar_position: 2
 ---
 
+import { SectionUnderConstruction } from "@site/src/components/admonitions/under-construction.tsx";
+
 # Hutch Agent
 
-The Hutch Manager is a .NET 6.x web application.
+<SectionUnderConstruction />
+
+The Hutch Agent is a Python application.
 
 ### Local installation
+
+    // TODO
 
 ### Cloud
 
@@ -16,7 +22,8 @@ However, it is possible to run it on a VM ion the Cloud, or since a Docker image
 
 ### Docker
 
-Docker images are available [here](https://github.com/hdruk/hutch/pkgs/container/hutch%2Fhutchagent) and can be configured by Environment Variables.
+Docker images are available [here](https://github.com/hdruk/hutch/pkgs/container/hutch%2Fagent) and can be configured by Environment Variables.
 
 ## Network connectivity requirements
+
 It will need outbound connectivity on whatever ports any desired Activity Sources are running on; typically 443 (HTTPS)
