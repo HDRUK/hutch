@@ -2,8 +2,6 @@ name: Deploy Docs Website
 
 on:
   workflow_dispatch: # manual trigger
-  pull_request:
-    branches: main # temporarily to test workflow
   push:
     branches: [main]
     paths:
