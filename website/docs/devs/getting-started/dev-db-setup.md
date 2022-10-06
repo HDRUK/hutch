@@ -34,7 +34,7 @@ psql -h <db host> -d <db name> -U <username> -f OMOPCDM_postgresql_5.3_constrain
 # enter the password for your database when prompted
 ```
 
-Before adding the indices, add the data to the database, as this is faster. Using [this script](https://github.com/HDRUK/hutch/blob/main/scripts/load_tables.sql), from the Hutch repo, in the same directory as the sample data files:
+Before adding the indices, add the data to the database, as this is faster. Download the [sample data](https://github.com/HDRUK/hutch/releases/tag/omop-5.3-sample-data) and [`load_tables.sql`](https://github.com/HDRUK/hutch/blob/main/scripts/load_tables.sql) for loading the data to the tables you just created in the previous steps. Unzip the sample data `cd` into the unzipped directory. Then run:
 
 4. Populate the tables in the database.
 ```bash
