@@ -7,6 +7,8 @@
   - app/HutchManager/**/*
 "Area: Agent":
   - app/HutchAgent/**/*
+"Area: Docs":
+  - website/**/*
 
 # label types of changes contained in a PR
 "Contains: Migrations":
