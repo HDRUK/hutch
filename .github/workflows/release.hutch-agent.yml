@@ -14,22 +14,43 @@ on:
     paths:
       - /app/HutchAgent/**
 
+env:
+  PYTHON_VERSION: "3.9"
+  POETRY_VERSION: "1.1.14"
+  WORKDIR: "./app/HutchAgent"
+
 jobs:
   get-version:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     id: get-version
-    run: |
-      echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 1 -d /)
+    steps:
+      run: |
+        echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 1 -d /)
+  
+  bump-version:
+    needs: get-version
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+      - name: Bump Agent Version
+        working-directory: ${{ env.WORKDIR }}
+        run: |
+          poetry version ${{ needs.get-version.outputs.VERSION_TAG }}
 
   publish-agent-wheel:
+    needs: bump-version
     permissions:
       contents: write
     runs-on: ubuntu-latest
     env:
-      PYTHON_VERSION: "3.9"
-      POETRY_VERSION: "1.1.14"
-      WORKDIR: "./app/HutchAgent"
       RELEASE_NAME: agent-${{ inputs.version_tag }}
     steps:
       - uses: actions/checkout@v2
@@ -59,6 +80,7 @@ jobs:
           generate_release_notes: true
 
   publish-agent-docker:
+    needs: bump-version
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -68,7 +90,6 @@ jobs:
       WORKDIR: ./app/HutchAgent
       VERSION_TAG: ${{ inputs.version_tag }}
       REGISTRY: ghcr.io
-    needs: generate-timestamp
     steps:
       - uses: actions/checkout@v2
 
