@@ -25,8 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     id: get-version
     steps:
-      run: |
-        echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 1 -d /)
+      - name: Get Version Tag
+        run: |
+          echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 1 -d /)
   
   bump-version:
     needs: get-version
