@@ -15,6 +15,13 @@ on:
       - /app/HutchAgent/**
 
 jobs:
+  get-version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    id: get-version
+    run: |
+      echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 1 -d /)
+
   publish-agent-wheel:
     permissions:
       contents: write
