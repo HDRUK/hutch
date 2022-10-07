@@ -6,6 +6,13 @@ on:
       version_tag:
         description: Version tag
         required: true
+  pull_request:
+    types:
+      - closed
+    branches:
+      - release/**
+    paths:
+      - /app/HutchAgent/**
 
 jobs:
   publish-agent-wheel:
