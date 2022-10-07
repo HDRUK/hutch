@@ -1,4 +1,4 @@
-name: Release Manager (stable)
+name: Release Agent (stable)
 
 on:
   workflow_dispatch: # manual trigger
