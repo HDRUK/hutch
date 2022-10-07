@@ -9,7 +9,7 @@ The SQL scripts to build an OMOP database can be found at https://github.com/OHD
 Unzipping the file, you'll get a folder called `output`. This contains sub-folders for each supported flavour of database (e.g. PostgreSQL, MySQL, etc.).
 
 Follow the instructions below to install for your database flavour:
-* [PostgreSQL](dev-db-setup.md)
+* [PostgreSQL](sample-postgres-setup.md)
 
 
 ## Sample Data
