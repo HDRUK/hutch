@@ -1,0 +1,29 @@
+---
+sidebar_position: 2
+---
+
+import { SectionUnderConstruction } from "@site/src/components/admonitions/under-construction.tsx";
+
+# Hutch Agent
+
+<SectionUnderConstruction />
+
+The Hutch Agent is a Python application.
+
+### Local installation
+
+    // TODO
+
+### Cloud
+
+Currently there is no supported "Cloud Native" approach to hosting the Hutch Agent.
+
+However, it is possible to run it on a VM ion the Cloud, or since a Docker image is available, Cloud container services (such as Azure Container Apps) should also work well.
+
+### Docker
+
+Docker images are available [here](https://github.com/hdruk/hutch/pkgs/container/hutch%2Fagent) and can be configured by Environment Variables.
+
+## Network connectivity requirements
+
+It will need outbound connectivity on whatever ports any desired Activity Sources are running on; typically 443 (HTTPS)
