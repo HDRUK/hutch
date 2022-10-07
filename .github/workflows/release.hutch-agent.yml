@@ -26,8 +26,13 @@ jobs:
     id: get-version
     steps:
       - name: Get Version Tag
+        if: ${{ input.version_tag }} == ''
         run: |
           echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 1 -d /)
+      - name: Get Version Tag (manual)
+        if: ${{ input.version_tag }} != ''
+        run: |
+          echo ::set-output name=VERSION_TAG::${{ input.version_tag }}
   
   bump-version:
     needs: get-version
@@ -52,7 +57,7 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     env:
-      RELEASE_NAME: agent-${{ inputs.version_tag }}
+      RELEASE_NAME: agent-${{ needs.get-version.outputs.VERSION_TAG }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -89,7 +94,7 @@ jobs:
     env:
       APP_NAME: agent
       WORKDIR: ./app/HutchAgent
-      VERSION_TAG: ${{ inputs.version_tag }}
+      VERSION_TAG: ${{ needs.get-version.outputs.VERSION_TAG || inputs.version_tag }}
       REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v2
