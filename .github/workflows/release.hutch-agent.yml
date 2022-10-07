@@ -94,7 +94,6 @@ jobs:
     env:
       APP_NAME: agent
       WORKDIR: ./app/HutchAgent
-      VERSION_TAG: ${{ needs.get-version.outputs.VERSION_TAG || inputs.version_tag }}
       REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v2
@@ -113,7 +112,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
           tags: |
             stable
-            ${{ env.VERSION_TAG }}
+            ${{ needs.get-version.outputs.VERSION_TAG }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v3.1.1
