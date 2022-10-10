@@ -49,8 +49,22 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.30.0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.CI_node-version }}
+          cache: pnpm
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.CI_dotnet-version }}
       - name: Bump Version
-        # Todo: bump version action
+        run: >- 
+          pnpm dlx dotnet-bump
+          ${{ needs.get-version.outputs.VERSION_TAG }}
+          --no-commit 
+          app/HutchManager/HutchManager.csproj
       - name: Add & Commit
         uses: EndBug/add-and-commit@v9.1.0
         with:
