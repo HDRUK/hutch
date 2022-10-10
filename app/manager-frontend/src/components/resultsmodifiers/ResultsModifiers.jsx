@@ -50,9 +50,9 @@ export const ResultsModifiers = ({ id }) => {
     onClose: onUpdateClose,
   } = useDisclosure();
 
-  const onDelete = async (id) => {
+  const onDelete = async () => {
     setIsLoading(true);
-    await resultsmodifier.delete({ id: id });
+    await resultsmodifier.delete({ id: selected.id });
     await mutate();
     setSelected(undefined);
     onDeleteClose();
@@ -71,9 +71,13 @@ export const ResultsModifiers = ({ id }) => {
     setSelected(item);
     onUpdateOpen();
   };
+  const onClickDelete = (item) => {
+    setSelected(item);
+    onDeleteOpen();
+  };
 
   const displayParameters = (key, parameter) => {
-    if (parameter === "") {
+    if ((parameter === null) | (parameter === "")) {
       return null;
     } else {
       return (
@@ -115,6 +119,7 @@ export const ResultsModifiers = ({ id }) => {
             initialData={selected}
             mutate={mutate}
             activitySourceId={id}
+            modifiers={data}
           />
           <Text
             textTransform={"uppercase"}
@@ -240,17 +245,17 @@ export const ResultsModifiers = ({ id }) => {
                                   </Button>
                                   <Button
                                     style={{ backgroundColor: "transparent" }}
-                                    onClick={onDeleteOpen}
+                                    onClick={() => onClickDelete(item)}
                                   >
                                     <DeleteModal
-                                      title={`Delete Results Modifier ${
-                                        selected ? selected.id : ""
-                                      }`}
+                                      title={`Delete: ${
+                                        selected ? selected.type.id : ""
+                                      } parameters?`}
                                       body="Are you sure you want to delete this results modifier? You will not be able to reverse this"
                                       isOpen={isDeleteOpen}
                                       onClose={closeDelete}
                                       id={selected ? selected.id : undefined}
-                                      onDelete={() => onDelete(item.id)}
+                                      onDelete={onDelete}
                                       isLoading={isLoading}
                                     />
                                     <FaTrash color="#cf222eed" />
@@ -267,6 +272,7 @@ export const ResultsModifiers = ({ id }) => {
                                     initialData={selected}
                                     mutate={mutate}
                                     activitySourceId={id}
+                                    modifiers={data}
                                   />
                                 </GridItem>
                               </Grid>

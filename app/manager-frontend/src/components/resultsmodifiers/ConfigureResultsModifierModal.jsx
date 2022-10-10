@@ -86,7 +86,7 @@ export const ConfirmationModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} size={"md"}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -175,6 +175,7 @@ export const ConfigureResultsModifierModal = ({
   action,
   mutate,
   activitySourceId,
+  modifiers,
 }) => {
   const {
     isOpen: isConfirmOpen,
@@ -188,6 +189,18 @@ export const ConfigureResultsModifierModal = ({
     onClose();
     setFeedback(null);
   };
+
+  const modifierLimit = (type) => {
+    let modifierTypes = modifiers.map((item) => item.type);
+    modifierTypes = [].concat.apply([], modifierTypes);
+    const count = modifierTypes.filter((item) => item.id == type).length;
+    const limit = modifierTypes.reduce(
+      (k, v) => ({ ...k, [v.id]: v.limit }),
+      {}
+    );
+    return count === limit[type];
+  };
+
   const handleSubmit = async (values, actions) => {
     try {
       // convert all empty strings to null
@@ -213,7 +226,7 @@ export const ConfigureResultsModifierModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onCloseHandler}>
+    <Modal isOpen={isOpen} onClose={onCloseHandler} size={"md"}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -222,7 +235,7 @@ export const ConfigureResultsModifierModal = ({
             : `Create Results Modifier for: ${activitySource.displayName}`}
         </ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
+        <ModalBody minH={"300px"}>
           <Formik
             onSubmit={handleSubmit}
             initialValues={
@@ -261,9 +274,31 @@ export const ConfigureResultsModifierModal = ({
                   {(() => {
                     switch (values.Type) {
                       case "Rounding":
-                        return <RoundingParameters />;
+                        if (modifierLimit(values.Type) && !initialData) {
+                          return (
+                            <Alert status="info">
+                              <AlertIcon />
+                              Reached max amount of {values.Type} parameters for
+                              this Activity Source.
+                            </Alert>
+                          );
+                        } else {
+                          return <RoundingParameters />;
+                        }
+
                       case "Low Number Suppression":
-                        return <LowNumberSuppressionParameters />;
+                        if (modifierLimit(values.Type) && !initialData) {
+                          return (
+                            <Alert status="info">
+                              <AlertIcon />
+                              Reached max amount of {values.Type} parameters for
+                              this Activity Source.
+                            </Alert>
+                          );
+                        } else {
+                          return <LowNumberSuppressionParameters />;
+                        }
+
                       default:
                         return null;
                     }
@@ -275,7 +310,9 @@ export const ConfigureResultsModifierModal = ({
                     colorScheme="blue"
                     type={initialData ? undefined : "submit"}
                     onClick={initialData ? onConfirmOpen : undefined}
-                    disabled={isSubmitting}
+                    disabled={
+                      initialData ? isSubmitting : modifierLimit(values.Type)
+                    }
                     isLoading={isSubmitting}
                   >
                     {initialData
