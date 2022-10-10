@@ -1,0 +1,35 @@
+name: Bump Agent Version
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      version_tag:
+        description: Version tag
+        required: true
+  pull_request:
+    types:
+      - opened
+    branches:
+      - release/**
+    paths:
+      - /app/HutchAgent/**
+
+env:
+  PYTHON_VERSION: "3.9"
+  POETRY_VERSION: "1.1.14"
+  WORKDIR: "./app/HutchAgent"
+
+jobs:
+  get-version:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    id: get-version
+    steps:
+      - name: Get Version Tag
+        if: ${{ input.version_tag }} == ''
+        run: |
+          echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 2 -d /)
+      - name: Get Version Tag (manual)
+        if: ${{ input.version_tag }} != ''
+        run: |
+          echo ::set-output name=VERSION_TAG::${{ input.version_tag }}
