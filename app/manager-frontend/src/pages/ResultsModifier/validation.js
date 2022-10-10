@@ -6,16 +6,16 @@ export const validationSchema = () =>
     Parameters: object().shape({
       threshold: object().when("Type", (type) => {
         if (type === "Low Number Suppression") {
-          return number().integer().moreThan(0).required();
+          return number().integer().moreThan(0);
         } else {
-          return string().nullable();
+          return number().integer().moreThan(0).nullable();
         }
       }),
       nearest: object().when("Type", (type) => {
         if (type === "Rounding") {
-          return number().integer().moreThan(0).required();
+          return number().integer().moreThan(0);
         } else {
-          return string().nullable();
+          return number().integer().moreThan(0).nullable();
         }
       }),
     }),

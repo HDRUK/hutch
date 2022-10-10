@@ -41,7 +41,7 @@ export const FormikInput = ({
   useEffect(() => {
     let outputValue =
       type === "number" ? parseFloat(debouncedValue) : debouncedValue;
-    if (isNaN(outputValue)) {
+    if (isNaN(outputValue) && type === "number") {
       outputValue = "";
     }
     helpers.setValue(outputValue);
