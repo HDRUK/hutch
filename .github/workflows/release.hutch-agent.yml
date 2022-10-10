@@ -28,7 +28,7 @@ jobs:
       - name: Get Version Tag
         if: ${{ input.version_tag }} == ''
         run: |
-          echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 1 -d /)
+          echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 2 -d /)
       - name: Get Version Tag (manual)
         if: ${{ input.version_tag }} != ''
         run: |
