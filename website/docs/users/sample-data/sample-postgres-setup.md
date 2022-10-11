@@ -22,7 +22,7 @@ psql -h <db host> -d <db name> -U <username> -f <script>
 
 ## Loading the data
 :::caution
-Due to the size of some of the files in the sample data, you may run out of memory trying to load the data through your favourite database softwere.
+Due to the size of some of the files in the sample data, you may run out of memory trying to load the data through your favourite database software.
 :::
 
 There is a script called `load_tables_postgresql.sql` to load the data in the assets of the [sample data release](https://github.com/hdruk/hutch/releases/tag/omop-5.3-sample-data) on Github.
