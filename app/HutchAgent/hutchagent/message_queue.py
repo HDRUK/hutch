@@ -84,9 +84,8 @@ def ro_crates_callback(
         res = query_builder.solve_groups()
         query_end = time.time()
         count_ = res
-        if int(os.getenv("USE_RESULTS_MODS", 0)):
-            result_modifiers = get_results_modifiers(query.activity_source_id)
-            count_ = apply_filters(count_, result_modifiers)
+        result_modifiers = get_results_modifiers(query.activity_source_id)
+        count_ = apply_filters(count_, result_modifiers)
         logger.info(
             f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
         )
