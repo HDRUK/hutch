@@ -42,7 +42,7 @@ public class RQuestPollingService
           return;
         }
 
-        await SendToQueue(job, activitySource.TargetDataSource.Id);
+        SendToQueue(job, activitySource.TargetDataSource.Id);
       }
       catch (Exception e)
       {
@@ -58,19 +58,10 @@ public class RQuestPollingService
     } while (job is null);
   }
 
-  public async Task SendToQueue(RquestQueryTask jobPayload, string queueName)
+  public void SendToQueue(RquestQueryTask jobPayload, string queueName)
   {
-    if (await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.UseROCrates)))
-    {
-      ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
-      _jobQueue.SendMessage(queueName, roCratesQuery);
-      _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
-    }
-    else
-    {
-      _jobQueue.SendMessage(queueName, jobPayload);
-      _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(jobPayload));
-    }
-
+    ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
+    _jobQueue.SendMessage(queueName, roCratesQuery);
+    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
   }
 }
