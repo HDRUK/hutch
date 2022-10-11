@@ -25,7 +25,7 @@ psql -h <db host> -d <db name> -U <username> -f <script>
 Due to the size of some of the files in the sample data, you may run out of memory trying to load the data through your favourite database software.
 :::
 
-There is a script called `load_tables_postgresql.sql` to load the data in the assets of the [sample data release](https://github.com/hdruk/hutch/releases/tag/omop-5.3-sample-data) on Github.
+There is a script for loading the data called `load_tables_postgresql.sql` in the assets of the [sample data release](https://github.com/hdruk/hutch/releases/tag/omop-5.3-sample-data) on Github.
 
 ```bash
 psql -h <db host> -d <db name> -U <username> -f load_tables_postgresql.sql
