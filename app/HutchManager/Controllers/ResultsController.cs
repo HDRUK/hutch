@@ -24,8 +24,7 @@ public class ResultsController: ControllerBase
   }
   
   /// <summary>
-  /// Endpoint for ROCrates results, returns 404 when UseROCrates is set to false
-  /// Default setting is false
+  /// Endpoint for ROCrates results.
   /// </summary>
   /// <param name="roCratesQueryResult"></param>
   /// <returns></returns>
