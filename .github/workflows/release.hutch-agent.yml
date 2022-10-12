@@ -19,7 +19,7 @@ env:
 
 jobs:
   get-version:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/agent-'
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/agent-')
     runs-on: ubuntu-latest
     outputs:
       VERSION_TAG: ${{ steps.get-tag-auto.outputs.VERSION_TAG || steps.get-tag-manual.outputs.VERSION_TAG}}
