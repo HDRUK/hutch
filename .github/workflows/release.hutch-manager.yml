@@ -95,7 +95,7 @@ jobs:
       # since the dotnet publish depends sequentially on the client app build
       - uses: pnpm/action-setup@v2.0.1
         with:
-          version: 6.30.0
+          version: 7.13.4
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ env.CI_node-version }}
