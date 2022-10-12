@@ -8,6 +8,7 @@ import {
   useDisclosure,
   Alert,
   AlertIcon,
+  Flex,
 } from "@chakra-ui/react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { useBackendApi } from "contexts/BackendApi";
@@ -49,9 +50,9 @@ export const ResultsModifiers = ({ id }) => {
     onClose: onUpdateClose,
   } = useDisclosure();
 
-  const onDelete = async (id) => {
+  const onDelete = async () => {
     setIsLoading(true);
-    await resultsmodifier.delete({ id: id });
+    await resultsmodifier.delete({ id: selected.id });
     await mutate();
     setSelected(undefined);
     onDeleteClose();
@@ -69,6 +70,22 @@ export const ResultsModifiers = ({ id }) => {
   const onClickUpdate = (item) => {
     setSelected(item);
     onUpdateOpen();
+  };
+  const onClickDelete = (item) => {
+    setSelected(item);
+    onDeleteOpen();
+  };
+
+  const displayParameters = (key, parameter) => {
+    if ((parameter === null) | (parameter === "")) {
+      return null;
+    } else {
+      return (
+        <Flex p={"1"} textTransform={"capitalize"}>
+          {key}: {parameter}
+        </Flex>
+      );
+    }
   };
   return (
     <VStack
@@ -102,6 +119,7 @@ export const ResultsModifiers = ({ id }) => {
             initialData={selected}
             mutate={mutate}
             activitySourceId={id}
+            modifiers={data}
           />
           <Text
             textTransform={"uppercase"}
@@ -195,20 +213,23 @@ export const ResultsModifiers = ({ id }) => {
                                 >
                                   <Text p={"1"}>{item.type.id}</Text>
                                 </GridItem>
-                                {Object.keys(item.parameters).map(
-                                  (key, value) => (
-                                    <GridItem
-                                      colStart={3}
-                                      colSpan={1}
-                                      pl={5}
-                                      display="grid"
-                                    >
-                                      <Text p={"1"}>
-                                        {key}: {item.parameters[key]}
-                                      </Text>
-                                    </GridItem>
-                                  )
-                                )}
+                                <GridItem
+                                  colStart={3}
+                                  colSpan={1}
+                                  pl={5}
+                                  display="grid"
+                                >
+                                  {Object.keys(item.parameters).map(
+                                    (key, value) => (
+                                      <Flex>
+                                        {displayParameters(
+                                          key,
+                                          item.parameters[key]
+                                        )}
+                                      </Flex>
+                                    )
+                                  )}
+                                </GridItem>
                                 <GridItem
                                   colStart={4}
                                   colSpan={1}
@@ -224,17 +245,17 @@ export const ResultsModifiers = ({ id }) => {
                                   </Button>
                                   <Button
                                     style={{ backgroundColor: "transparent" }}
-                                    onClick={onDeleteOpen}
+                                    onClick={() => onClickDelete(item)}
                                   >
                                     <DeleteModal
-                                      title={`Delete Results Modifier ${
-                                        selected ? selected.id : ""
-                                      }`}
+                                      title={`Delete: ${
+                                        selected ? selected.type.id : ""
+                                      } parameters?`}
                                       body="Are you sure you want to delete this results modifier? You will not be able to reverse this"
                                       isOpen={isDeleteOpen}
                                       onClose={closeDelete}
                                       id={selected ? selected.id : undefined}
-                                      onDelete={() => onDelete(item.id)}
+                                      onDelete={onDelete}
                                       isLoading={isLoading}
                                     />
                                     <FaTrash color="#cf222eed" />
@@ -251,6 +272,7 @@ export const ResultsModifiers = ({ id }) => {
                                     initialData={selected}
                                     mutate={mutate}
                                     activitySourceId={id}
+                                    modifiers={data}
                                   />
                                 </GridItem>
                               </Grid>

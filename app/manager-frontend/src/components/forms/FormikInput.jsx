@@ -39,8 +39,11 @@ export const FormikInput = ({
   };
 
   useEffect(() => {
-    const outputValue =
+    let outputValue =
       type === "number" ? parseFloat(debouncedValue) : debouncedValue;
+    if (isNaN(outputValue) && type === "number") {
+      outputValue = "";
+    }
     helpers.setValue(outputValue);
   }, [debouncedValue]);
 
