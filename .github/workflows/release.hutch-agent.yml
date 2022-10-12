@@ -10,9 +10,7 @@ on:
     types:
       - closed
     branches:
-      - release/**
-    paths:
-      - /app/HutchAgent/**
+      - main
 
 env:
   PYTHON_VERSION: "3.9"
@@ -23,13 +21,16 @@ jobs:
   get-version:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    id: get-version
+    outputs:
+      VERSION_TAG: ${{ steps.get-tag-auto.outputs.VERSION_TAG || steps.get-tag-manual.outputs.VERSION_TAG}}
     steps:
       - name: Get Version Tag
+        id: get-tag-auto
         if: ${{ input.version_tag }} == ''
         run: |
-          echo ::set-output name=VERSION_TAG::$(echo $GITHUB_REF_NAME | cut -f 2 -d /)
+          echo ::set-output name=VERSION_TAG::$(echo ${GITHUB_REF_NAME#release/agent-})
       - name: Get Version Tag (manual)
+        id: get-tag-manual
         if: ${{ input.version_tag }} != ''
         run: |
           echo ::set-output name=VERSION_TAG::${{ input.version_tag }}
