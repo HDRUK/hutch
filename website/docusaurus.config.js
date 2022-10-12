@@ -8,8 +8,8 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "Hutch",
   tagline: "Dinosaurs are cool",
-  url: "https://your-docusaurus-test-site.com",
-  baseUrl: "/",
+  url: "https://hdruk.github.io",
+  baseUrl: "/hutch/",
   trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "throw",
@@ -19,6 +19,7 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "hdruk", // Usually your GitHub org/user name.
   projectName: "hutch", // Usually your repo name.
+  deploymentBranch: "gh-pages",
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -137,7 +138,7 @@ const config = {
         ],
         logo: {
           alt: "University of Nottingham Logo",
-          src: "/img/uon_white_text_web.png",
+          src: "img/uon_white_text_web.png",
           href: "https://nottingham.ac.uk",
         },
         copyright: `Copyright © ${new Date().getFullYear()} University of Nottingham. Built with Docusaurus.`,
