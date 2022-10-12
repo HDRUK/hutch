@@ -41,12 +41,6 @@ MANAGER_VERIFY_SSL=0 # Disable SSL verification ONLY IN DEVELOPMENT to allow for
 # Check In schedule
 
 # CHECKIN_CRON="0 */1 * * *" # once every hour
-
-
-# Feature Flags
-
-# USE_RO_CRATES=0 # Use RO CRATES Query and Results Schema internally, instead of Rquest
-# USE_RESULTS_MODS=0 # Whether to run results modifiers or not when executing a query
 ```
 
 ### Currently supported SQLAlchemy drivers
