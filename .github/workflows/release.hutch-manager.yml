@@ -6,7 +6,11 @@ on:
       version_tag:
         description: Version tag
         required: true
-  
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 
 env:
   CI_build-config: release
@@ -18,11 +22,29 @@ env:
   DOTNET_NOLOGO: true
 
 jobs:
+  get-version:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/manager-')
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION_TAG: ${{ steps.get-tag-auto.outputs.VERSION_TAG || steps.get-tag-manual.outputs.VERSION_TAG}}
+    steps:
+      - name: Get Version Tag
+        id: get-tag-auto
+        if: ${{ inputs.version_tag }} == ''
+        run: |
+          echo ::set-output name=VERSION_TAG::$(echo ${GITHUB_REF_NAME#release/manager-})
+      - name: Get Version Tag (manual)
+        id: get-tag-manual
+        if: ${{ inputs.version_tag }} != ''
+        run: |
+          echo ::set-output name=VERSION_TAG::${{ inputs.version_tag }}
+
   publish-manager-docker:
     runs-on: ubuntu-latest
+    needs: get-version
     env:
       APP_NAME: manager
-      VERSION_TAG: ${{ inputs.version_tag }}
+      VERSION_TAG: ${{ needs.get-version.outputs.VERSION_TAG }}
       REGISTRY: ghcr.io
     permissions:
       contents: read
@@ -56,11 +78,12 @@ jobs:
 
   publish-manager:
     runs-on: ubuntu-latest
+    needs: get-version
     env:
       CI_dotnet-project: ./app/HutchManager/HutchManager.csproj
-      CI_release-name: manager ${{ inputs.version_tag }}
+      CI_release-name: manager ${{ needs.get-version.outputs.VERSION_TAG }}
       CI_client-package: manager-frontend
-      CI_migrations-name: manager-migrations-${{ inputs.version_tag }}
+      CI_migrations-name: manager-migrations-${{ needs.get-version.outputs.VERSION_TAG }}
     permissions:
       contents: write
     steps:
@@ -72,7 +95,7 @@ jobs:
       # since the dotnet publish depends sequentially on the client app build
       - uses: pnpm/action-setup@v2.0.1
         with:
-          version: 6.30.0
+          version: 7.13.4
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ env.CI_node-version }}
@@ -96,7 +119,7 @@ jobs:
           ${{ env.CI_dotnet-project }}
           -c ${{ env.CI_build-config }}
           -o ${{ env.CI_publish-dir }}
-          /p:Version=${{ inputs.version_tag }}
+          /p:Version=${{ needs.get-version.outputs.VERSION_TAG }}
           /p:GitHash=${{ github.sha }}
 
       # TODO: binaries for db migrations during deployment?
