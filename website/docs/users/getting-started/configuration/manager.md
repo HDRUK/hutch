@@ -46,7 +46,6 @@ JobQueue:
 # Opt in feature flags
 # sometimes features here are works in progress
 FeatureManagement:
-  UseROCrates: false # WIP
   AllowFreeRegistration: false # By default, the app uses an Allowlist for new account registration; setting this to `true` bypasses that.
 ```
 
