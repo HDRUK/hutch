@@ -30,14 +30,14 @@ jobs:
     steps:
       - name: Get Version Tag
         id: get-tag-auto
-        if: ${{ input.version_tag }} == ''
+        if: ${{ inputs.version_tag }} == ''
         run: |
           echo ::set-output name=VERSION_TAG::$(echo ${GITHUB_REF_NAME#release/manager-})
       - name: Get Version Tag (manual)
         id: get-tag-manual
-        if: ${{ input.version_tag }} != ''
+        if: ${{ inputs.version_tag }} != ''
         run: |
-          echo ::set-output name=VERSION_TAG::${{ input.version_tag }}
+          echo ::set-output name=VERSION_TAG::${{ inputs.version_tag }}
 
   publish-manager-docker:
     runs-on: ubuntu-latest
