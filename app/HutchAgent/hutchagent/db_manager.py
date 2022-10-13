@@ -1,10 +1,7 @@
-import asyncio
-import os
 from typing import Any
 
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import URL
-from sqlalchemy.ext.asyncio import create_async_engine
 
 
 class BaseDBManager:
@@ -119,57 +116,3 @@ class SyncDBManager(BaseDBManager):
 
     def list_tables(self) -> list:
         return self.inspector.get_table_names()
-
-
-class AsyncDBManager(BaseDBManager):
-    def __init__(
-        self,
-        username: str,
-        password: str,
-        host: str,
-        port: int,
-        database: str,
-        drivername: str,
-        schema: str = None,
-    ) -> None:
-        url = URL(
-            drivername=drivername,
-            username=username,
-            password=password,
-            host=host,
-            port=port,
-            database=database,
-        )
-
-        if schema is not None:
-            self.engine = create_async_engine(
-                url=url,
-                connect_args={"options": "-csearch_path={}".format(schema)},
-            )
-        else:
-            self.engine = create_async_engine(
-                url=url,
-            )
-
-        self.inspector = inspect(self.engine)
-
-    async def execute_and_fetch(self, stmnt: Any) -> list:
-        async with self.engine.begin() as conn:
-            result = await conn.execute(statement=stmnt)
-            rows = result.all()
-        # Need to call `dispose` - not automatic
-        await self.engine.dispose()
-        return rows
-
-    async def execute(self, stmnt: Any) -> None:
-        async with self.engine.begin() as conn:
-            await conn.execute(statement=stmnt)
-        # Need to call `dispose` - not automatic
-        await self.engine.dispose()
-
-    async def list_tables(self) -> list:
-        async with self.engine.connect() as conn:
-            tables = await conn.run_sync(self.inspector.get_table_names)
-        # Need to call `dispose` - not automatic
-        await self.engine.dispose()
-        return tables

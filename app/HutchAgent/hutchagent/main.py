@@ -10,11 +10,6 @@ from hutchagent.db_logging import SyncLogDBHandler
 from hutchagent.checkin import CheckIn
 
 
-async def async_main():
-    """An asynchronous version of the main function"""
-    pass
-
-
 def main():
     """The main method"""
     dotenv.load_dotenv()  # load .env values into environment
