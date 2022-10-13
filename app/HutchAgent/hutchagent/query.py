@@ -170,17 +170,13 @@ class ROCratesQueryBuilder:
                 # remove now unused dfs
                 del person_df, procedure_df, condition_df, observation_df, drug_df
             for i, rule in enumerate(group.rules[1:], start=1):
-                if (
-                    rule.min_value is not None
-                    and rule.max_value is not None
-                ):
+                if rule.min_value is not None and rule.max_value is not None:
                     # numeric rule
                     rule_stmnt = (
                         select(Measurement.person_id.label(f"person_id_{i}"))
                         .where(
                             and_(
-                                Measurement.measurement_concept_id
-                                == rule.value,
+                                Measurement.measurement_concept_id == rule.value,
                                 Measurement.value_as_number.between(
                                     rule.min_value, rule.max_value
                                 ),
@@ -216,8 +212,7 @@ class ROCratesQueryBuilder:
                     procedure_stmnt = (
                         select(ProcedureOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ProcedureOccurrence.procedure_concept_id
-                            == rule.value,
+                            ProcedureOccurrence.procedure_concept_id == rule.value,
                         )
                         .distinct()
                     )
@@ -227,8 +222,7 @@ class ROCratesQueryBuilder:
                     condition_stmnt = (
                         select(ConditionOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ConditionOccurrence.condition_concept_id
-                            == rule.value,
+                            ConditionOccurrence.condition_concept_id == rule.value,
                         )
                         .distinct()
                     )
@@ -288,8 +282,7 @@ class ROCratesQueryBuilder:
                     procedure_stmnt = (
                         select(ProcedureOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ProcedureOccurrence.procedure_concept_id
-                            != rule.value,
+                            ProcedureOccurrence.procedure_concept_id != rule.value,
                         )
                         .distinct()
                     )
@@ -299,8 +292,7 @@ class ROCratesQueryBuilder:
                     condition_stmnt = (
                         select(ConditionOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ConditionOccurrence.condition_concept_id
-                            != rule.value,
+                            ConditionOccurrence.condition_concept_id != rule.value,
                         )
                         .distinct()
                     )
