@@ -113,6 +113,5 @@ class SyncDBManager(BaseDBManager):
         # Need to call `dispose` - not automatic
         self.engine.dispose()
 
-
     def list_tables(self) -> list:
         return self.inspector.get_table_names()
