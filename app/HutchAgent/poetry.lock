@@ -201,7 +201,7 @@ name = "pika"
 version = "1.2.1"
 description = "Pika Python AMQP Client Library"
 category = "main"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.extras]
