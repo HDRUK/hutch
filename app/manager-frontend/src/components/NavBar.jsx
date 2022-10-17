@@ -27,14 +27,12 @@ import { LoadingModal } from "./LoadingModal";
 import Flags from "country-flag-icons/react/3x2";
 import { hasFlag } from "country-flag-icons";
 import { forwardRef } from "react";
+import { HutchLogo } from "./Logo"; //default logoMaxWidth is 50px, default logoFillColor is #fff
 
 const BrandLink = () => {
-  const { t } = useTranslation();
   return (
     <Link to="/">
-      <Heading p={2} size="lg" textTransform={"uppercase"} letterSpacing={1.1}>
-        {t("buttons.brand")}
-      </Heading>
+      <HutchLogo logoMaxWidth={"100px"} />
     </Link>
   );
 };
