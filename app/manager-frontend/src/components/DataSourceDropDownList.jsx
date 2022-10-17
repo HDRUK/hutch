@@ -26,7 +26,7 @@ const ChevronDown = (p) => (
   </svg>
 );
 
-export const DataSourceDropDown = ({
+export const DataSourceDropDownList = ({
   onSelection,
   label,
   options,
@@ -56,10 +56,12 @@ export const DataSourceDropDown = ({
       );
     },
   });
-  const [field, helpers] = useField(name, { type: "select" });
+  const [field,meta,helpers] = useField(name, { type: "select" });
   const [value, setValue] = useState(field.value);
   const handleChange = ({ target: { value } }) => {
+    console.log(field)
     setValue(value);
+    
     helpers.setValue(value);
   };
   return (
