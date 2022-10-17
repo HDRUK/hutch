@@ -10,11 +10,6 @@ from hutchagent.db_logging import SyncLogDBHandler
 from hutchagent.checkin import CheckIn
 
 
-async def async_main():
-    """An asynchronous version of the main function"""
-    pass
-
-
 def main():
     """The main method"""
     dotenv.load_dotenv()  # load .env values into environment
@@ -34,7 +29,7 @@ def main():
     # set up the db logger
     log_db_host = os.getenv("LOG_DB_HOST")
     log_db_port = os.getenv("LOG_DB_PORT")
-    
+
     logger = logging.getLogger(config.LOGGER_NAME)
     logger.setLevel(logging.INFO)
     if log_db_host is not None:
@@ -48,9 +43,9 @@ def main():
         )
         db_handler = SyncLogDBHandler(db_manager, config.BACKUP_LOGGER_NAME)
         db_handler.setFormatter(LOG_FORMAT)
-    
+
         logger.addHandler(db_handler)
-        
+
     logger.addHandler(console_handler)
 
     # set up check-in thread

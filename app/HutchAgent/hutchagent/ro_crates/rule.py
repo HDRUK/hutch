@@ -1,6 +1,5 @@
 import json
 from typing import Any, Union
-from sqlalchemy import column
 
 from hutchagent.ro_crates.operator import Operator
 from hutchagent.ro_crates.thing import Thing
@@ -69,44 +68,6 @@ class Rule(Thing):
             max_value=dict_.get("maxValue"),
             operator=operator,
         )
-
-    def _get_column_name(self, concept_id: Any) -> Union[str, None]:
-        """Get a column name associated with a concept ID.
-
-        Args:
-            concept_id (Any): The concept ID to turn into a column name.
-
-        Returns:
-            Union[str, None]: The column name associated with the given concept ID.
-        """
-        PERSON_LOOKUPS = {
-            "8532": "gender_concept_id",
-            "8507": "gender_concept_id",
-            "8515": "race_concept_id",
-            "8516": "race_concept_id",
-            "8527": "race_concept_id",
-        }
-        return PERSON_LOOKUPS.get(concept_id)
-
-    @property
-    def sql_clause(self):
-        """Return the SQL clause for the rule.
-
-        Raises:
-            ValueError: Raised when unable to parse SQL from rule.
-
-        Returns:
-            _type_: The SQL clause for the rule.
-        """
-        if (self.min_value is not None) and (self.max_value is not None):
-            return column(self._get_column_name(self.name)).between(
-                self.min_value, self.max_value
-            )
-        if self.value is not None:
-            if self.operator.value == "!=":
-                return column(self._get_column_name(self.value)) != self.value
-            return column(self._get_column_name(self.value)) == self.value
-        raise ValueError("Unable able to parse rule into SQL clause.")
 
     def __str__(self) -> str:
         """`Rule` as a JSON string.
