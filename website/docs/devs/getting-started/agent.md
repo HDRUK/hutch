@@ -5,9 +5,15 @@ First, make sure you install [`poetry`](https://python-poetry.org/docs/#installa
 
 Once you have `poetry` installed, run:
 ```shell
-poetry install
+poetry install -E rabbitmq
 ```
-and this will set up your environment.
+and this will set up your environment to use the agent with RabbitMQ.
+
+If you would like to set the agent up to work as an Azure Function, run:
+```shell
+poetry install -E azure-queue
+```
+and this will set it up to work with Azure Storage Queue.
 
 ### Running `hutchagent`
 To run `hutchagent`, run:
