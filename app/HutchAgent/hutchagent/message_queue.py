@@ -12,7 +12,7 @@ import hutchagent.config as config
 from hutchagent.ro_crates.result import Result
 from hutchagent.ro_crates.query import Query
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.query import ROCratesQueryBuilder
+from hutchagent.query_builders import ROCratesQueryBuilder
 
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
 

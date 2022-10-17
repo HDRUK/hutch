@@ -169,20 +169,16 @@ class ROCratesQueryBuilder:
                 main_df = pd.DataFrame({"person_id": main_df["person_id"].unique()})
                 # remove now unused dfs
                 del person_df, procedure_df, condition_df, observation_df, drug_df
-            for i in range(1, len(group.rules[1:]) + 1):
-                if (
-                    group.rules[i].min_value is not None
-                    and group.rules[i].max_value is not None
-                ):
+            for i, rule in enumerate(group.rules[1:], start=1):
+                if rule.min_value is not None and rule.max_value is not None:
                     # numeric rule
                     rule_stmnt = (
                         select(Measurement.person_id.label(f"person_id_{i}"))
                         .where(
                             and_(
-                                Measurement.measurement_concept_id
-                                == group.rules[i].value,
+                                Measurement.measurement_concept_id == rule.value,
                                 Measurement.value_as_number.between(
-                                    group.rules[i].min_value, group.rules[1].max_value
+                                    rule.min_value, rule.max_value
                                 ),
                             )
                         )
@@ -198,14 +194,14 @@ class ROCratesQueryBuilder:
                         right_on=f"person_id_{i}",
                     )
                 # Text rules testing for inclusion
-                elif group.rules[i].operator.value == "=":
+                elif rule.operator.value == "=":
                     person_stmnt = (
                         select(Person.person_id.label(f"person_id_{i}"))
                         .where(
                             or_(
-                                Person.ethnicity_concept_id == group.rules[i].value,
-                                Person.gender_concept_id == group.rules[i].value,
-                                Person.race_concept_id == group.rules[i].value,
+                                Person.ethnicity_concept_id == rule.value,
+                                Person.gender_concept_id == rule.value,
+                                Person.race_concept_id == rule.value,
                             )
                         )
                         .distinct()
@@ -214,10 +210,9 @@ class ROCratesQueryBuilder:
                         sql=person_stmnt, con=self.db_manager.engine
                     )
                     procedure_stmnt = (
-                        select(ProcedureOccurrence.person_id)
+                        select(ProcedureOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ProcedureOccurrence.procedure_concept_id
-                            == group.rules[i].value,
+                            ProcedureOccurrence.procedure_concept_id == rule.value,
                         )
                         .distinct()
                     )
@@ -225,10 +220,9 @@ class ROCratesQueryBuilder:
                         sql=procedure_stmnt, con=self.db_manager.engine
                     )
                     condition_stmnt = (
-                        select(ConditionOccurrence.person_id)
+                        select(ConditionOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ConditionOccurrence.condition_concept_id
-                            == group.rules[i].value,
+                            ConditionOccurrence.condition_concept_id == rule.value,
                         )
                         .distinct()
                     )
@@ -236,9 +230,9 @@ class ROCratesQueryBuilder:
                         sql=condition_stmnt, con=self.db_manager.engine
                     )
                     observation_stmnt = (
-                        select(Observation.person_id)
+                        select(Observation.person_id.label(f"person_id_{i}"))
                         .where(
-                            Observation.observation_concept_id == group.rules[i].value,
+                            Observation.observation_concept_id == rule.value,
                         )
                         .distinct()
                     )
@@ -246,9 +240,9 @@ class ROCratesQueryBuilder:
                         sql=observation_stmnt, con=self.db_manager.engine
                     )
                     drug_stmnt = (
-                        select(DrugExposure.person_id)
+                        select(DrugExposure.person_id.label(f"person_id_{i}"))
                         .where(
-                            DrugExposure.drug_concept_id == group.rules[i].value,
+                            DrugExposure.drug_concept_id == rule.value,
                         )
                         .distinct()
                     )
@@ -270,14 +264,14 @@ class ROCratesQueryBuilder:
                     # remove now unused dfs
                     del person_df, procedure_df, condition_df, observation_df, drug_df
                 # Text rules testing for exclusion
-                elif group.rules[i].operator.value == "!=":
+                elif rule.operator.value == "!=":
                     person_stmnt = (
                         select(Person.person_id.label(f"person_id_{i}"))
                         .where(
                             or_(
-                                Person.ethnicity_concept_id != group.rules[i].value,
-                                Person.gender_concept_id != group.rules[i].value,
-                                Person.race_concept_id != group.rules[i].value,
+                                Person.ethnicity_concept_id != rule.value,
+                                Person.gender_concept_id != rule.value,
+                                Person.race_concept_id != rule.value,
                             )
                         )
                         .distinct()
@@ -286,10 +280,9 @@ class ROCratesQueryBuilder:
                         sql=person_stmnt, con=self.db_manager.engine
                     )
                     procedure_stmnt = (
-                        select(ProcedureOccurrence.person_id)
+                        select(ProcedureOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ProcedureOccurrence.procedure_concept_id
-                            != group.rules[i].value,
+                            ProcedureOccurrence.procedure_concept_id != rule.value,
                         )
                         .distinct()
                     )
@@ -297,10 +290,9 @@ class ROCratesQueryBuilder:
                         sql=procedure_stmnt, con=self.db_manager.engine
                     )
                     condition_stmnt = (
-                        select(ConditionOccurrence.person_id)
+                        select(ConditionOccurrence.person_id.label(f"person_id_{i}"))
                         .where(
-                            ConditionOccurrence.condition_concept_id
-                            != group.rules[i].value,
+                            ConditionOccurrence.condition_concept_id != rule.value,
                         )
                         .distinct()
                     )
@@ -308,9 +300,9 @@ class ROCratesQueryBuilder:
                         sql=condition_stmnt, con=self.db_manager.engine
                     )
                     observation_stmnt = (
-                        select(Observation.person_id)
+                        select(Observation.person_id.label(f"person_id_{i}"))
                         .where(
-                            Observation.observation_concept_id != group.rules[i].value,
+                            Observation.observation_concept_id != rule.value,
                         )
                         .distinct()
                     )
@@ -318,9 +310,9 @@ class ROCratesQueryBuilder:
                         sql=observation_stmnt, con=self.db_manager.engine
                     )
                     drug_stmnt = (
-                        select(DrugExposure.person_id)
+                        select(DrugExposure.person_id.label(f"person_id_{i}"))
                         .where(
-                            DrugExposure.drug_concept_id != group.rules[i].value,
+                            DrugExposure.drug_concept_id != rule.value,
                         )
                         .distinct()
                     )

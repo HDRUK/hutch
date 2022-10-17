@@ -94,5 +94,5 @@ def test_sync_db_logger(spoof_db):
         expected_values
     ), "Did not retrieve the expected number of results"
     for row, exp in zip(res, expected_values):
-        assert row[1] == exp[0], "Message doesn't match expected message"
-        assert row[3] == exp[1], "Log level doesn't match expected log level"
+        assert row[3] == exp[0], "Message doesn't match expected message"
+        assert row[2] == exp[1], "Log level doesn't match expected log level"
