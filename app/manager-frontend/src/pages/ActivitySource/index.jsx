@@ -22,7 +22,7 @@ import { useDataSourceList } from "api/datasource";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { ResultsModifiers } from "components/resultsmodifiers/ResultsModifiers";
 import { getTimeHoursAgo } from "helpers/dates";
-import { DataSourceDropDownList } from "components/DataSourceDropDownList";
+import { DataSourceDropDown } from "components/DataSourceDropDown";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   const typeOptions = [{ id: "RQUEST" }];
@@ -173,7 +173,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                 />
                 <FormikInput label="Resource Id" name={"ResourceId"} />
                 <Text fontWeight={"450"}> Target Data Source</Text>
-                <DataSourceDropDownList
+                <DataSourceDropDown
                   selectedOption
                   name="TargetDataSource"
                   label={
@@ -193,7 +193,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                         : false,
                   }))}
                   onSelection={handleSelection}
-                ></DataSourceDropDownList>
+                ></DataSourceDropDown>
                 {isUpdate ? null : (
                   <Alert status="info">
                     <AlertIcon />

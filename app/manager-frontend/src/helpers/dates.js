@@ -20,13 +20,13 @@ const getDateString = (date, thisMonth = false, thisYear = false) => {
   }
 
   if (thisMonth) {
-    return `${prefomattedDate} at ${hours}:${minutes}`;
+    return `${thisMonth} at ${hours}:${minutes}`;
   }
 
   if (thisYear) {
     return `${month} ${day}  at ${hours}:${minutes}`;
   }
-  return `${month} ${day} ${year}, at ${hours}:${minutes}`;
+  return `${month} ${day} ${year}. at ${hours}:${minutes}`;
 };
 
 export const getTimeAgo = (date) => {
@@ -56,5 +56,5 @@ export const getTimeAgo = (date) => {
   } else if (isThisYear) {
     return getDateString(d, false, isThisYear);
   }
-  return getDateString(d);
+  return getDateString(d, false, false);
 };

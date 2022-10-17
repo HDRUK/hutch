@@ -26,7 +26,7 @@ const ChevronDown = (p) => (
   </svg>
 );
 
-export const DataSourceDropDownList = ({
+export const DataSourceDropDown = ({
   onSelection,
   label,
   options,
