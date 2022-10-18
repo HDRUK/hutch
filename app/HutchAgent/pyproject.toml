@@ -9,7 +9,10 @@ authors = [
     "Samuel Adejumo <Samuel.Adejumo1@nottingham.ac.uk>",
     "Jonathan Couldridge <Jonathan.Couldridge@nottingham.ac.uk>",
 ]
-include = ["hutchagent", "scripts"]
+packages = [
+  {include = "hutchagent"},
+  {include = "scripts"},
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
