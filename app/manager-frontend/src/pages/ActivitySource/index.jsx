@@ -19,9 +19,10 @@ import { validationSchema } from "./validation";
 import { useBackendApi } from "contexts/BackendApi";
 import { DeleteModal } from "components/DeleteModal";
 import { useDataSourceList } from "api/datasource";
-import { getDateDaysAgo } from "helpers/dates";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { ResultsModifiers } from "components/resultsmodifiers/ResultsModifiers";
+import { getTimeHoursAgo } from "helpers/dates";
+import { DataSourceDropDownList } from "components/DataSourceDropDownList";
 
 export const ActivitySource = ({ activitySource, action, id }) => {
   const typeOptions = [{ id: "RQUEST" }];
@@ -30,6 +31,7 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   const { activitysource } = useBackendApi();
   const [feedback, setFeedback] = useState();
   const [isLoading, setIsLoading] = useState();
+  const [selectedOption, setSelectedOption] = useState(null);
   const submitText = !activitySource ? "Create" : "Save";
   const headingText = !activitySource ? (
     <Flex>
@@ -63,7 +65,6 @@ export const ActivitySource = ({ activitySource, action, id }) => {
   const [scrollTarget, scrollTargetIntoView] = useScrollIntoView({
     behavior: "smooth",
   });
-
   const navigate = useNavigate();
   const onDeleteSource = async () => {
     setIsLoading(true);
@@ -81,6 +82,9 @@ export const ActivitySource = ({ activitySource, action, id }) => {
         },
       },
     });
+  };
+  const handleSelection = (option) => {
+    setSelectedOption(option);
   };
   const handleSubmit = async (values, actions) => {
     try {
@@ -168,24 +172,28 @@ export const ActivitySource = ({ activitySource, action, id }) => {
                   }))}
                 />
                 <FormikInput label="Resource Id" name={"ResourceId"} />
-                <FormikSelect
-                  label="Target Data Source"
+                <Text fontWeight={"450"}> Target Data Source</Text>
+                <DataSourceDropDownList
+                  selectedOption
                   name="TargetDataSource"
+                  label={
+                    activitySource
+                      ? datasourceOptions.find(
+                          (item) => item.id === activitySource.targetDataSource
+                        )?.id ?? ""
+                      : ""
+                  }
                   options={datasourceOptions.map((item) => ({
                     value: item.id,
-                    label:
-                      new Date(item.lastCheckin) > getDateDaysAgo(2)
-                        ? item.id
-                        : `${item.id} (Inactive)`,
+                    label: item.id,
+                    lastCheckIn: item.lastCheckin,
+                    status:
+                      new Date(item.lastCheckin) > getTimeHoursAgo(2)
+                        ? true
+                        : false,
                   }))}
-                  alert={
-                    datasourceOptions.length == 0 && {
-                      status: "error",
-                      message: `There are no Data Sources registered. Please "check in" an Agent with this Manager.`,
-                    }
-                  }
-                  hasEmptyDefault
-                />
+                  onSelection={handleSelection}
+                ></DataSourceDropDownList>
                 {isUpdate ? null : (
                   <Alert status="info">
                     <AlertIcon />
