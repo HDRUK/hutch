@@ -13,18 +13,9 @@ import {
   VStack,
   Tooltip,
 } from "@chakra-ui/react";
-import { FaCircle } from "react-icons/fa";
+import { FaCircle, FaAngleDown} from "react-icons/fa";
 import { useField } from "formik";
 import { getTimeAgo } from "helpers/dates";
-
-const ChevronDown = (p) => (
-  <svg fill="none" viewBox="0 0 24 24" height="1em" width="1em" {...p}>
-    <path
-      fill="currentColor"
-      d="M6.343 7.757L4.93 9.172 12 16.242l7.071-7.07-1.414-1.415L12 13.414 6.343 7.757z"
-    />
-  </svg>
-);
 
 export const DataSourceDropDownList = ({
   onSelection,
@@ -59,9 +50,7 @@ export const DataSourceDropDownList = ({
   const [field,meta,helpers] = useField(name, { type: "select" });
   const [value, setValue] = useState(field.value);
   const handleChange = ({ target: { value } }) => {
-    console.log(field)
     setValue(value);
-    
     helpers.setValue(value);
   };
   return (
@@ -82,7 +71,7 @@ export const DataSourceDropDownList = ({
         />
         <InputRightElement pointerEvents="none">
           <Flex boxSize="24px" align="center">
-            <ChevronDown />
+            <FaAngleDown size={'16px'}/>
           </Flex>
         </InputRightElement>
       </InputGroup>

@@ -8,9 +8,12 @@ export const getTimeHoursAgo = () => {
 };
 
 const getDateString = (date, thisMonth = false, thisYear = false) => {
-  const day = date.getDate();
-  const month = date.toLocaleString("default", { month: "long" }); // get month as string e.g "September"
-  const year = date.getFullYear();
+  const options = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  const dateString = date.toLocaleString("default", options);
   const hours = date.getHours();
   let minutes = date.getMinutes();
 
@@ -18,15 +21,13 @@ const getDateString = (date, thisMonth = false, thisYear = false) => {
     //add leading 0 to minutes
     minutes = `0${minutes}`;
   }
-
   if (thisMonth) {
     return `${thisMonth} at ${hours}:${minutes}`;
   }
-
   if (thisYear) {
-    return `${month} ${day}  at ${hours}:${minutes}`;
+    return `${dateString}  at ${hours}:${minutes}`;
   }
-  return `${month} ${day} ${year}. at ${hours}:${minutes}`;
+  return `${dateString}. at ${hours}:${minutes}`;
 };
 
 export const getTimeAgo = (date) => {

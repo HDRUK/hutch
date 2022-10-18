@@ -59,7 +59,7 @@ public class ActivitySourceService
     if (entity is null)
       throw new KeyNotFoundException(
         $"No ActivitySource with ID: {id}");
-    var dataSource= (await _db.DataSources.ToListAsync()).FirstOrDefault(x => x.Id == activitySource.TargetDataSource) ??
+    var dataSource = (await _db.DataSources.ToListAsync()).FirstOrDefault(x => x.Id == activitySource.TargetDataSource) ??
                     throw new InvalidOperationException($"TargetDataSource {activitySource.TargetDataSource} is not a valid Data Source");
     entity.TargetDataSource = dataSource;
     entity.Host = activitySource.Host;
