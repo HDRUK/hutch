@@ -35,8 +35,7 @@ rabbitmq = ["pika"]
 azure-queue = ["azure-storage-queue"]
 
 [tool.poetry.scripts]
-hutchagent = "scripts.main:main"
-hutchagent-az = "scripts.az_queue:main"
+hutchagent = {callable = "scripts.main:main", extras=["rabbitmq"]}
 build-log-db = "hutchagent.db_logging:create_log_table"
 
 [build-system]
