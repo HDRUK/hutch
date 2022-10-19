@@ -5,7 +5,7 @@ First, make sure you install [`poetry`](https://python-poetry.org/docs/#installa
 
 Once you have `poetry` installed, run:
 ```shell
-poetry install -E rabbitmq
+poetry install
 ```
 and this will set up your environment to use the agent with RabbitMQ.
 

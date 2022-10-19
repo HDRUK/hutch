@@ -17,7 +17,7 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
 SQLAlchemy = "^1.4.36"
-pika = {version="^1.2.1", optional=true}
+pika = "^1.2.1"
 requests = "^2.27.1"
 croniter = "^1.3.5"
 python-dotenv = "^0.20.0"
@@ -35,7 +35,7 @@ rabbitmq = ["pika"]
 azure-queue = ["azure-storage-queue"]
 
 [tool.poetry.scripts]
-hutchagent = {callable = "scripts.main:main", extras=["rabbitmq"]}
+hutchagent = "scripts.main:main"
 build-log-db = "hutchagent.db_logging:create_log_table"
 
 [build-system]
