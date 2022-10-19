@@ -3,6 +3,6 @@ WORKDIR /HutchAgent
 COPY . .
 RUN pip install --upgrade pip
 RUN pip install poetry==1.1.14
-RUN poetry install --no-dev
+RUN poetry install -E rabbitmq --no-dev
 EXPOSE 3030
 CMD ["poetry", "run", "hutchagent"]
