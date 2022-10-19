@@ -526,12 +526,11 @@ python-versions = "*"
 
 [extras]
 azure-queue = ["azure-storage-queue"]
-rabbitmq = ["pika"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "66b3c69fa2f4ba0b3c5bb40beb5947533d9a3f8da00d2e83292a6b66e730c934"
+content-hash = "e57abe93c276f9caeec8c819c0ee3d931219cc2b1fca4e94351a099bae32534c"
 
 [metadata.files]
 atomicwrites = []
