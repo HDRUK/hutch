@@ -4,6 +4,7 @@ import logging
 import time
 import requests, requests.exceptions as req_exc
 import hutchagent.config as config
+from typing import Union
 from sqlalchemy import exc as sql_exc
 from hutchagent.ro_crates.result import Result
 from hutchagent.ro_crates.query import Query
@@ -12,12 +13,12 @@ from hutchagent.query_builders import ROCratesQueryBuilder
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
 
 
-def az_queue_callback(msg: str):
+def az_queue_callback(msg: Union[str, bytes]):
     """Decode the `body` of an Azure Queue storage message, query the database
     and return the results to the manager.
 
     Args:
-        msg (str): 
+        msg (Union[str, bytes]): 
             The `body` of an `azure.functions.QueueMessage`
             containing the RO-Crates formatted query.
     """
