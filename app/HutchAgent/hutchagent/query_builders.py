@@ -43,18 +43,16 @@ class ROCratesQueryBuilder:
                 concept_ids.add(rule.value)
         concept_query = (
             select(Concept.domain_id)
-            .where(Concept.domain_id.in_(concept_ids))
+            .where(Concept.concept_id.in_(concept_ids))
             .distinct()
         )
-        concepts = (
-            pd.read_sql_query(concept_query, con=self.db_manager.engine)
-            .to_numpy()
-            .tolist()
-        )
-        return concepts
+        concepts = pd.read_sql_query(concept_query, con=self.db_manager.engine)
+        return concepts["domain_id"].to_list()
 
     def solve_rules(self) -> None:
         """Find all rows that match the rules' criteria."""
+        concepts = self._find_concepts()
+        print(f"Concepts: {concepts}")
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         for group in self.query.groups:
             if (
