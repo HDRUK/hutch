@@ -22,6 +22,15 @@ dotenv.load_dotenv()
 
 class ROCratesQueryBuilder:
     subqueries = list()
+    concept_table_map = {
+        "Ethnicity": Person,
+        "Drug": DrugExposure,
+        "Gender": Person,
+        "Race": Person,
+        "Measurement": Measurement,
+        "Observations": Observation,
+        "Procedure": ProcedureOccurrence,
+    }
 
     def __init__(self, db_manager: SyncDBManager, query: Query) -> None:
         self.db_manager = db_manager
