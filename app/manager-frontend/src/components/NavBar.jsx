@@ -27,7 +27,7 @@ import { LoadingModal } from "./LoadingModal";
 import Flags from "country-flag-icons/react/3x2";
 import { hasFlag } from "country-flag-icons";
 import { forwardRef } from "react";
-import { HutchLogo } from "./Logo"; //default logoMaxWidth is 50px, default logoFillColor is #fff
+import { HutchLogo } from "./Logo"; //default logoMaxWidth is 50px, default logoFillColor is #fff, logoColor true/false (true generates colored logo)
 
 const BrandLink = () => {
   return (
