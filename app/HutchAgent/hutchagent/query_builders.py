@@ -7,6 +7,7 @@ from sqlalchemy import (
 )
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.entities import (
+    Concept,
     ConditionOccurrence,
     Measurement,
     Observation,
@@ -25,6 +26,23 @@ class ROCratesQueryBuilder:
     def __init__(self, db_manager: SyncDBManager, query: Query) -> None:
         self.db_manager = db_manager
         self.query = query
+
+    def _find_concepts(self) -> list:
+        concept_ids = set()
+        for group in self.query.groups:
+            for rule in group.rules:
+                concept_ids.add(rule.value)
+        concept_query = (
+            select(Concept.domain_id)
+            .where(Concept.domain_id.in_(concept_ids))
+            .distinct()
+        )
+        concepts = (
+            pd.read_sql_query(concept_query, con=self.db_manager.engine)
+            .to_numpy()
+            .tolist()
+        )
+        return concepts
 
     def solve_rules(self) -> None:
         """Find all rows that match the rules' criteria."""
