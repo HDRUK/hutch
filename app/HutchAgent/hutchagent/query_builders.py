@@ -125,7 +125,7 @@ class ROCratesQueryBuilder:
                 numeric_rule_col = self.numeric_rule_map.get(concept)
                 if rule.min_value is not None and rule.max_value is not None:
                     # numeric rule
-                    rule_stmnt = (
+                    stmnt = (
                         select(concept_table.person_id.label(f"person_id_{i}"))
                         .where(
                             and_(
@@ -138,7 +138,7 @@ class ROCratesQueryBuilder:
                         .distinct()
                     )
                     rule_df = pd.read_sql_query(
-                        sql=rule_stmnt, con=self.db_manager.engine
+                        sql=stmnt, con=self.db_manager.engine
                     )
                     main_df = main_df.merge(
                         right=rule_df,
