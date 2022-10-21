@@ -31,6 +31,15 @@ class ROCratesQueryBuilder:
         "Observations": Observation,
         "Procedure": ProcedureOccurrence,
     }
+    concept_time_column_map = {
+        "Ethnicity": Person.birth_datetime,
+        "Drug": DrugExposure.drug_exposure_start_date,
+        "Gender": Person.birth_datetime,
+        "Race": Person.birth_datetime,
+        "Measurement": Measurement.value_as_number,
+        "Observations": Observation.value_as_number,
+        "Procedure": ProcedureOccurrence.procedure_date,
+    }
 
     def __init__(self, db_manager: SyncDBManager, query: Query) -> None:
         self.db_manager = db_manager
