@@ -79,7 +79,6 @@ class ROCratesQueryBuilder:
     def solve_rules(self) -> None:
         """Find all rows that match the rules' criteria."""
         concepts = self._find_concepts()
-        print(concepts)
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         for group in self.query.groups:
             concept = concepts.get(group.rules[0].value)
