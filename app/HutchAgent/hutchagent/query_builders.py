@@ -23,6 +23,7 @@ dotenv.load_dotenv()
 class ROCratesQueryBuilder:
     subqueries = list()
     concept_table_map = {
+        "Condition": ConditionOccurrence,
         "Ethnicity": Person,
         "Drug": DrugExposure,
         "Gender": Person,
@@ -32,6 +33,7 @@ class ROCratesQueryBuilder:
         "Procedure": ProcedureOccurrence,
     }
     concept_time_column_map = {
+        "Condition": ConditionOccurrence.condition_start_date,
         "Ethnicity": Person.birth_datetime,
         "Drug": DrugExposure.drug_exposure_start_date,
         "Gender": Person.birth_datetime,
@@ -45,6 +47,7 @@ class ROCratesQueryBuilder:
         "Observation": Observation.value_as_number,
     }
     boolean_rule_map = {
+        "Condition": ConditionOccurrence.condition_concept_id,
         "Ethnicity": Person.ethnicity_concept_id,
         "Drug": DrugExposure.drug_concept_id,
         "Gender": Person.gender_concept_id,
