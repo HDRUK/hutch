@@ -2,7 +2,6 @@ import dotenv
 import pandas as pd
 from sqlalchemy import (
     and_,
-    or_,
     select,
 )
 from hutchagent.db_manager import SyncDBManager
