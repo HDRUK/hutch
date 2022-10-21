@@ -71,8 +71,7 @@ class ROCratesQueryBuilder:
         )
         concepts_df = pd.read_sql_query(concept_query, con=self.db_manager.engine)
         concept_dict = {
-            str(concept_id): domain_id 
-            for concept_id, domain_id in concepts_df.values
+            str(concept_id): domain_id for concept_id, domain_id in concepts_df.values
         }
         return concept_dict
 
@@ -108,18 +107,14 @@ class ROCratesQueryBuilder:
                     .where(boolean_rule_col == group.rules[0].value)
                     .distinct()
                 )
-                main_df = pd.read_sql_query(
-                    sql=stmnt, con=self.db_manager.engine
-                )
+                main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
             elif group.rules[0].operator.value == "!=":
                 stmnt = (
                     select(concept_table.person_id)
                     .where(boolean_rule_col != group.rules[0].value)
                     .distinct()
                 )
-                main_df = pd.read_sql_query(
-                    sql=stmnt, con=self.db_manager.engine
-                )
+                main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
             for i, rule in enumerate(group.rules[1:], start=1):
                 concept = concepts.get(rule.value)
                 concept_table = self.concept_table_map.get(concept)
@@ -155,9 +150,7 @@ class ROCratesQueryBuilder:
                         .where(boolean_rule_col == rule.value)
                         .distinct()
                     )
-                    rule_df = pd.read_sql_query(
-                        sql=stmnt, con=self.db_manager.engine
-                    )
+                    rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
                     main_df = main_df.merge(
                         right=rule_df,
                         how=merge_method(group.rule_operator.value),
@@ -171,9 +164,7 @@ class ROCratesQueryBuilder:
                         .where(boolean_rule_col != rule.value)
                         .distinct()
                     )
-                    rule_df = pd.read_sql_query(
-                        sql=stmnt, con=self.db_manager.engine
-                    )
+                    rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
                     main_df = main_df.merge(
                         right=rule_df,
                         how=merge_method(group.rule_operator.value),
