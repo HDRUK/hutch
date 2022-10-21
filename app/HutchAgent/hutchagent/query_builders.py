@@ -28,7 +28,7 @@ class ROCratesQueryBuilder:
         "Gender": Person,
         "Race": Person,
         "Measurement": Measurement,
-        "Observations": Observation,
+        "Observation": Observation,
         "Procedure": ProcedureOccurrence,
     }
     concept_time_column_map = {
@@ -37,12 +37,12 @@ class ROCratesQueryBuilder:
         "Gender": Person.birth_datetime,
         "Race": Person.birth_datetime,
         "Measurement": Measurement.measurement_date,
-        "Observations": Observation.observation_date,
+        "Observation": Observation.observation_date,
         "Procedure": ProcedureOccurrence.procedure_date,
     }
     numeric_rule_map = {
         "Measurement": Measurement.value_as_number,
-        "Observations": Observation.value_as_number,
+        "Observation": Observation.value_as_number,
     }
     boolean_rule_map = {
         "Ethnicity": Person.ethnicity_concept_id,
@@ -50,7 +50,7 @@ class ROCratesQueryBuilder:
         "Gender": Person.gender_concept_id,
         "Race": Person.race_concept_id,
         "Measurement": Measurement.measurement_concept_id,
-        "Observations": Observation.observation_concept_id,
+        "Observation": Observation.observation_concept_id,
         "Procedure": ProcedureOccurrence.procedure_concept_id,
     }
 
@@ -79,6 +79,7 @@ class ROCratesQueryBuilder:
     def solve_rules(self) -> None:
         """Find all rows that match the rules' criteria."""
         concepts = self._find_concepts()
+        print(concepts)
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         for group in self.query.groups:
             concept = concepts.get(group.rules[0].value)
