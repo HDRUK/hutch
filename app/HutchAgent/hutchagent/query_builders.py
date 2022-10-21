@@ -36,9 +36,22 @@ class ROCratesQueryBuilder:
         "Drug": DrugExposure.drug_exposure_start_date,
         "Gender": Person.birth_datetime,
         "Race": Person.birth_datetime,
+        "Measurement": Measurement.measurement_date,
+        "Observations": Observation.observation_date,
+        "Procedure": ProcedureOccurrence.procedure_date,
+    }
+    numeric_rule_map = {
         "Measurement": Measurement.value_as_number,
         "Observations": Observation.value_as_number,
-        "Procedure": ProcedureOccurrence.procedure_date,
+    }
+    boolean_rule_map = {
+        "Ethnicity": Person.ethnicity_concept_id,
+        "Drug": DrugExposure.drug_concept_id,
+        "Gender": Person.gender_concept_id,
+        "Race": Person.race_concept_id,
+        "Measurement": Measurement.measurement_concept_id,
+        "Observations": Observation.observation_concept_id,
+        "Procedure": ProcedureOccurrence.procedure_concept_id,
     }
 
     def __init__(self, db_manager: SyncDBManager, query: Query) -> None:
