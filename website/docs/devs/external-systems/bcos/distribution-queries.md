@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 5
 ---
 # Distribution Queries
 
@@ -7,7 +7,7 @@ sidebar_position: 2
 
 Endpoint: `/link_connector_api/task/nextjob/{collectionId}.b`
 
-:::note
+:::tip
 Don't forget the `.b` after your collection ID.
 :::
 
@@ -16,3 +16,14 @@ If your collection ID is `myCollection`:
 
 `/link_connector_api/task/nextjob/myCollection.b`
 :::
+
+### Sample return value
+```json
+{
+"owner" : "user1",
+"code" : "GENERIC",
+"analysis" : "DISTRIBUTION",
+"uuid" : "77d85e8e-0f9d-4452-a554-8caf4c96682a",
+"collection" : "myCollection"
+}
+```
