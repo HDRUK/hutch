@@ -27,6 +27,10 @@ If your collection ID is `myCollection`:
 "collection" : "myCollection"
 }
 ```
+The code field can be one of the following:
+- DEMOGRAPHICS
+- ICD-MAN
+- GENERIC
 
 ## Uploading results for distribution queries
 There are two endpoints for uploading distirbution query results:
@@ -70,9 +74,13 @@ The body of the `POST` request should take the following form:
 ```
 The `file_name` parameter can be one of the following:
 - code.distribution
+  - used when the query code is **GENERIC**
 - demographics.distribution
+  - used when the query code is **DEMOGRAPHICS**
 - icd_level1.distribution
+  - used when the query code is **ICD-MAN**
 - icd_level2.distribution
+  - used when the query code is **ICD-MAN**
 
 The choice depends on the type of distribution analysis being requested.
 
