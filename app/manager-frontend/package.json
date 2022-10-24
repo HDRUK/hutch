@@ -36,6 +36,7 @@
     "react-router-dom": "^6.2.1",
     "remark-gfm": "^3.0.1",
     "swr": "^1.2.0",
+    "vite-plugin-svgr": "^2.2.2",
     "yup": "^0.32.11"
   },
   "devDependencies": {
