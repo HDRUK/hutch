@@ -95,3 +95,14 @@ The body of the `POST` request should take the following form:
   "message": null,
   "collection_id": "myCollection"
 }
+```
+:::tip
+The body of this `POST` request is essentially the same as in Step 1. but the `files` field is an empty array (`[]`).
+:::
+
+### Uploading large/sensitive data
+There is a single step process for uploading small/not sensitive data.
+
+:::caution Coming soon
+We don't have information on this yet.
+:::
