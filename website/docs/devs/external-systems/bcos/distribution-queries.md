@@ -27,3 +27,71 @@ If your collection ID is `myCollection`:
 "collection" : "myCollection"
 }
 ```
+
+## Uploading results for distribution queries
+There are two endpoints for uploading distirbution query results:
+1. `/link_connector_api/task/resultfile/{uuid}/{collectionId}`
+2. `/task/result/{uuid}/{collectionId}`
+
+where `uuid` is the UUID that come with the distribution query and `collectionID` is the collection ID.
+
+Use **endpoint 1.** is when you want to upload large files and/or sensitive data. **Endpoint 2.** is for when your data are small and/or not sensitive.
+
+### Uploading large/sensitive data
+There is a 2-step process for uploading large/sensitive data.
+
+#### Step 1.
+`POST` to **endpoint 1.**
+
+The body of the `POST` request should take the following form:
+```json
+{
+  "status": "ok",
+  "protocolVersion": "v2",
+  "uuid": "308e1f8d-520c-47fa-9dee-fb99cfd770aa",
+  "queryResult": {
+    "count": 0,
+    "datasetsCount": 0,
+    "files": [
+      {
+        "file_name": "{fileName}",
+        "file_data": "QklPQkFOSwlDT0RFCURFU0NSSVBUSU9OCUNPVU5UCU1JTglR ...",
+        "file_description": null,
+        "file_size": 0,
+        "file_type": "BCOS",
+        "file_sensitive": false,
+        "file_reference": ""
+      }
+    ]
+  },
+  "message": null,
+  "collection_id": "myCollection"
+}
+```
+The `file_name` parameter can be one of the following:
+- code.distribution
+- demographics.distribution
+- icd_level1.distribution
+- icd_level2.distribution
+
+The choice depends on the type of distribution analysis being requested.
+
+The `file_data` field needs to the body a file encoded as base-64.
+
+#### Step 2.
+`POST` to **endpoint 2.**
+
+The body of the `POST` request should take the following form:
+```json
+{
+  "status": "ok",
+  "protocolVersion": "v2",
+  "uuid": "308e1f8d-520c-47fa-9dee-fb99cfd770aa",
+  "queryResult": {
+    "count": 0,
+    "datasetsCount": 0,
+    "files": []
+  },
+  "message": null,
+  "collection_id": "myCollection"
+}
