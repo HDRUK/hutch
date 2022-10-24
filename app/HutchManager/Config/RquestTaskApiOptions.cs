@@ -15,7 +15,7 @@
         ///
         /// <para>Actual requests will go to `https://my-rquest.com:12345/bcos-rest/task/&lt;endpoint&gt;`</para>
         /// </summary>
-        public string EndpointBase { get; set; } = "bcos-rest/api/task";
+        public string EndpointBase { get; set; } = "link_connector_api/task";
 
         /// <summary>
         /// Queue Status Endpoint
