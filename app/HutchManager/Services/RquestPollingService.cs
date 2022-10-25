@@ -33,7 +33,7 @@ public class RQuestPollingService
     {
       try
       {
-        job = await _taskApi.FetchQuery(activitySource);
+        job = await _taskApi.FetchQuery<RquestQueryTask>(activitySource);
         if (job is null)
         {
           _logger.LogInformation(
