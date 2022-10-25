@@ -71,7 +71,6 @@ def test_rule():
     rule = Rule.from_dict(RULE_DICT)
     assert rule.to_dict() == RULE_DICT
     assert isinstance(rule.operator, Operator)
-    assert str(rule.sql_clause) == "gender_concept_id = :gender_concept_id_1"
 
 
 def test_group():
@@ -81,13 +80,6 @@ def test_group():
         assert isinstance(element, Rule)
     assert isinstance(group.rule_operator, Operator)
     assert group.to_dict() == GROUP_DICT
-    assert str(group.sql_clause) == " AND ".join(
-        [
-            "gender_concept_id = :gender_concept_id_1",
-            "gender_concept_id = :gender_concept_id_2",
-            "gender_concept_id = :gender_concept_id_3",
-        ]
-    )
 
 
 def test_query():
@@ -98,13 +90,6 @@ def test_query():
     assert query.activity_source_id == ACTIVITY_SOURCE_ID_DICT.get("value")
     assert query.job_id == JOB_ID_DICT.get("value")
     assert query.to_dict() == QUERY_DICT
-    assert (
-        str(query.to_sql())
-        == """SELECT count(*) AS count_1 
-FROM (SELECT DISTINCT person.person_id AS person_id 
-FROM person JOIN condition_occurrence ON person.person_id = condition_occurrence.person_id JOIN measurement ON person.person_id = measurement.person_id JOIN observation ON person.person_id = observation.person_id 
-WHERE gender_concept_id = :gender_concept_id_1 AND gender_concept_id = :gender_concept_id_2 AND gender_concept_id = :gender_concept_id_3) AS anon_1"""
-    )
 
 
 def test_result():
@@ -139,7 +124,7 @@ def test_result():
                 "@context": "https://schema.org",
                 "@type": "PropertyValue",
                 "name": "count",
-                "value": 100,
+                "value": "100",
             },
         ],
     }

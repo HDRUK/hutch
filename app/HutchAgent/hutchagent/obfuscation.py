@@ -20,13 +20,17 @@ def get_results_modifiers(activity_source_id: int) -> list:
     """
     logger = logging.getLogger(config.LOGGER_NAME)
     try:
-        logger.info(f"Getting results modifiers for activity source {activity_source_id}.")
+        logger.info(
+            f"Getting results modifiers for activity source {activity_source_id}."
+        )
         res = requests.get(
             f"{os.getenv('MANAGER_URL')}/api/activitysources/{activity_source_id}/resultsmodifiers",
             verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
         modifiers = res.json()
-        logger.info(f"Retrieved {len(modifiers)} modifiers for activity source {activity_source_id}.")
+        logger.info(
+            f"Retrieved {len(modifiers)} modifiers for activity source {activity_source_id}."
+        )
         return modifiers
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
@@ -42,7 +46,9 @@ def get_results_modifiers(activity_source_id: int) -> list:
         return list()
 
 
-def low_number_suppression(value: Union[int, float], threshold: int = 10) -> Union[int, float]:
+def low_number_suppression(
+    value: Union[int, float], threshold: int = 10
+) -> Union[int, float]:
     """Suppress values that fall below a given threshold.
 
     Args:
@@ -73,9 +79,10 @@ def rounding(value: Union[int, float], nearest: int = 10) -> int:
     logger = logging.getLogger(config.LOGGER_NAME)
     logger.info("Applying Rounding.")
     logger.info(f"The count is {value} before Rounding.")
-    result =  nearest * round(value / nearest)
+    result = nearest * round(value / nearest)
     logger.info(f"The count is {result} after Rounding.")
     return result
+
 
 def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
     """Iterate over a list of filters from the Manager and apply them to the
@@ -88,10 +95,7 @@ def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
     Returns:
         Union[int, float]: The filtered value.
     """
-    actions = {
-        "Low Number Suppression": low_number_suppression,
-        "Rounding": rounding
-    }
+    actions = {"Low Number Suppression": low_number_suppression, "Rounding": rounding}
     result = value
     for f in filters:
         if action := actions.get(f["type"]["id"]):

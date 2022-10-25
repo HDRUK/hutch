@@ -32,9 +32,7 @@ class Group(Thing):
             dict: `Group` as a `dict`.
         """
         item_list_element = [self.rule_operator.to_dict()]
-        item_list_element.extend(
-            [element.to_dict() for element in self.rules]
-        )
+        item_list_element.extend([element.to_dict() for element in self.rules])
         return {
             "@context": self.context,
             "@type": self.type_,

@@ -9,11 +9,14 @@ authors = [
     "Samuel Adejumo <Samuel.Adejumo1@nottingham.ac.uk>",
     "Jonathan Couldridge <Jonathan.Couldridge@nottingham.ac.uk>",
 ]
+packages = [
+  {include = "hutchagent"},
+  {include = "scripts"},
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
 SQLAlchemy = "^1.4.36"
-asyncpg = "^0.25.0"
 pika = "^1.2.1"
 requests = "^2.27.1"
 croniter = "^1.3.5"
@@ -23,12 +26,14 @@ pandas = "^1.4.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
-pyinstaller = "^5.0.1"
 tox = "^3.25.0"
 psycopg2-binary = "^2.9.3"
 
+[tool.poetry.extras]
+azure-queue = ["azure-storage-queue"]
+
 [tool.poetry.scripts]
-hutchagent = "hutchagent.main:main"
+hutchagent = "scripts.main:main"
 build-log-db = "hutchagent.db_logging:create_log_table"
 
 [build-system]

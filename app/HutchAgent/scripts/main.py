@@ -4,15 +4,10 @@ import logging
 import hutchagent.config as config
 import pika
 import dotenv
-import hutchagent.message_queue as mq
+import hutchagent.message_queues.rmq_queue as rmq
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.db_logging import SyncLogDBHandler
 from hutchagent.checkin import CheckIn
-
-
-async def async_main():
-    """An asynchronous version of the main function"""
-    pass
 
 
 def main():
@@ -34,7 +29,7 @@ def main():
     # set up the db logger
     log_db_host = os.getenv("LOG_DB_HOST")
     log_db_port = os.getenv("LOG_DB_PORT")
-    
+
     logger = logging.getLogger(config.LOGGER_NAME)
     logger.setLevel(logging.INFO)
     if log_db_host is not None:
@@ -48,9 +43,9 @@ def main():
         )
         db_handler = SyncLogDBHandler(db_manager, config.BACKUP_LOGGER_NAME)
         db_handler.setFormatter(LOG_FORMAT)
-    
+
         logger.addHandler(db_handler)
-        
+
     logger.addHandler(console_handler)
 
     # set up check-in thread
@@ -64,7 +59,7 @@ def main():
     try:
         check_in_thread.start()
         logger.info("Connecting to queue.")
-        channel = mq.connect(
+        channel = rmq.connect(
             queue=os.getenv("DATASOURCE_NAME"),
             host=os.getenv("MSG_QUEUE_HOST", "localhost"),
             heartbeat=300,
@@ -72,9 +67,9 @@ def main():
         channel.basic_consume(
             os.getenv("DATASOURCE_NAME"),
             on_message_callback=(
-                mq.ro_crates_callback
+                rmq.ro_crates_callback
                 if int(os.getenv("USE_RO_CRATES", 0))
-                else mq.rquest_callback
+                else rmq.rquest_callback
             ),
             auto_ack=True,
         )
@@ -86,7 +81,7 @@ def main():
         # shut down on Ctrl+C
         logger.info("Disconnecting from queue...")
         if channel.connection.is_open:
-            mq.disconnect(channel)
+            rmq.disconnect(channel)
 
     if check_in_thread.is_alive():
         # stop check-in thred
