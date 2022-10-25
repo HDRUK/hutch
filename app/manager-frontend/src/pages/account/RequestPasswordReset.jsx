@@ -2,6 +2,7 @@ import {
   Alert,
   AlertIcon,
   Button,
+  Center,
   Container,
   Heading,
   VStack,
@@ -18,6 +19,7 @@ import {
 } from "components/forms/EmailField";
 import { object } from "yup";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
+import { HutchLogo } from "components/Logo";
 
 const validationSchema = (t) => object().shape(emailSchema(t));
 
@@ -86,8 +88,15 @@ export const RequestPasswordReset = () => {
   };
 
   return (
-    <Container ref={scrollTarget} key={key} my={8}>
+    <Container maxWidth="md" ref={scrollTarget} key={key} my={8}>
       <VStack align="stretch" spacing={4}>
+        <Center>
+          <HutchLogo
+            logoColor={true}
+            logoMaxWidth="170px"
+            logoFillColor="#000"
+          />
+        </Center>
         <Heading as="h2" size="lg">
           {t("requestPasswordReset.heading")}
         </Heading>

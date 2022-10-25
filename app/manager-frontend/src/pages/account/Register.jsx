@@ -2,6 +2,7 @@ import {
   Alert,
   AlertIcon,
   Button,
+  Center,
   Container,
   Heading,
   HStack,
@@ -10,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { Form, Formik } from "formik";
 import { Link as RouterLink, useLocation } from "react-router-dom";
-import { FaUserPlus } from "react-icons/fa";
+import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { object, string } from "yup";
 import { useResetState } from "helpers/hooks/useResetState";
@@ -26,6 +27,7 @@ import {
   validationSchema as pwSchema,
 } from "components/forms/PasswordField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
+import { HutchLogo } from "components/Logo";
 
 export const validationSchema = (t) =>
   object().shape({
@@ -96,8 +98,15 @@ export const Register = () => {
   };
 
   return (
-    <Container ref={scrollTarget} key={key} my={8}>
+    <Container maxWidth="md" ref={scrollTarget} key={key} my={8}>
       <VStack align="stretch" spacing={4}>
+        <Center>
+          <HutchLogo
+            logoColor={true}
+            logoMaxWidth="170px"
+            logoFillColor="#000"
+          />
+        </Center>
         <Heading as="h2" size="lg">
           {t("register.heading")}
         </Heading>
@@ -139,7 +148,7 @@ export const Register = () => {
 
                 <HStack justify="space-between">
                   <Button
-                    w="200px"
+                    w="150px"
                     colorScheme="blue"
                     leftIcon={<FaUserPlus />}
                     type="submit"
@@ -149,9 +158,15 @@ export const Register = () => {
                     {t("buttons.register")}
                   </Button>
 
-                  <Link as={RouterLink} to="/account/login">
-                    {t("register.links.login")}
-                  </Link>
+                  <Button
+                    colorScheme="blue"
+                    variant="link"
+                    leftIcon={<FaSignInAlt />}
+                  >
+                    <Link as={RouterLink} to="/account/login">
+                      {t("register.links.login")}
+                    </Link>
+                  </Button>
                 </HStack>
               </VStack>
             </Form>
