@@ -1,3 +1,4 @@
+import { Box } from "@chakra-ui/react";
 import React from "react";
 import { ReactComponent as ColorLogo } from "/public/assets/Hutch-color.svg";
 import { ReactComponent as MonoLogo } from "/public/assets/Hutch-mono.svg";
@@ -12,5 +13,9 @@ export const HutchLogo = ({ logoColor, logoMaxWidth, logoFillColor }) => {
     <MonoLogo style={{ color: logoColorFill }} />
   );
 
-  return <div style={{ maxWidth: logoSize, padding: "5px 2px" }}>{logo}</div>;
+  return (
+    <Box maxW={logoSize} p={"5px 2px"}>
+      {logo}
+    </Box>
+  );
 };
