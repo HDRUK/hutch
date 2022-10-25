@@ -4,11 +4,12 @@ import { config as loadEnv } from "dotenv";
 import { env } from "process";
 import tsconfigPaths from "vite-tsconfig-paths";
 import pluginRaw from "vite-plugin-raw";
+import svgr from "vite-plugin-svgr";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const config = {
-    plugins: [react(), tsconfigPaths(), pluginRaw({ match: /\.md$/ })],
+    plugins: [react(), svgr(), tsconfigPaths(), pluginRaw({ match: /\.md$/ })],
   };
 
   switch (mode) {
