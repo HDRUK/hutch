@@ -5,7 +5,7 @@ namespace HutchManager.Dto
     /// <summary>
     /// Task payload returned from RQUEST Task API /query endpoint
     /// </summary>
-    public class RquestQueryTask
+    public class RquestQueryTask : IRquestTask
     {   /// <summary>
         /// UUid sets JobId using "uuid" as the property name
         /// This is due to the incoming RQuest query using "uuid" as the key name.
