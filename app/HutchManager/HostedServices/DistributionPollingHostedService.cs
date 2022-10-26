@@ -18,11 +18,11 @@ public class DistributionPollingHostedService: BackgroundService
   public DistributionPollingHostedService(
     ILogger<DistributionPollingHostedService> logger,
     IServiceProvider serviceProvider,
-    ActivitySourcePollingOptions config)
+    IOptions<ActivitySourcePollingOptions> config)
   {
     _logger = logger;
     _serviceProvider = serviceProvider;
-    _config = config;
+    _config = config.Value;
   }
 
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
