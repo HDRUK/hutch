@@ -59,7 +59,7 @@ public class RquestDistributionPollingService
   
   public void SendToQueue(RquestDistributionQueryTask jobPayload, string queueName)
   {
-    ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
+    ROCratesQuery roCratesQuery = new QueryTranslator.RquestDistributionQueryTranslator().Translate(jobPayload);
     _jobQueue.SendMessage(queueName, roCratesQuery);
     _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
   }
