@@ -135,6 +135,9 @@ public class QueryTranslator
         Value = job.Analysis
       });
       
+      // Add the graph to the query
+      roCratesQuery.Graphs = graphs;
+      
       return roCratesQuery;
     }
   }
