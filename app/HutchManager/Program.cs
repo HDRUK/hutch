@@ -70,6 +70,7 @@ b.Services
   .Configure<JobQueueOptions>(b.Configuration.GetSection("JobQueue"))
   .Configure<RQuestTaskApiOptions>(b.Configuration.GetSection("RQuestTaskApi"))
   .Configure<ActivitySourcePollingOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
+  .Configure<DistributionPollingOptions>(b.Configuration.GetSection("DistributionPolling"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()
