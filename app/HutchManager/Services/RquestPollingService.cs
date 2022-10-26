@@ -6,7 +6,7 @@ using Microsoft.FeatureManagement;
 
 namespace HutchManager.Services;
 
-public class RQuestPollingService: IRquestPollingService<RquestQueryTask>
+public class RQuestPollingService
 {
   private readonly RQuestTaskApiClient _taskApi;
   private readonly ILogger<RQuestPollingService> _logger;
