@@ -22,7 +22,7 @@ import {
   FaUserCircle,
   FaUserPlus,
 } from "react-icons/fa";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LoadingModal } from "./LoadingModal";
 import Flags from "country-flag-icons/react/3x2";
 import { hasFlag } from "country-flag-icons";
@@ -159,27 +159,7 @@ const LanguageMenu = () => {
   );
 };
 
-const DefaultNav = () => {
-  // default Nav bar item
-  return (
-    <>
-      <BrandLink />
-      <HStack spacing={0} flexGrow={1} justify="end">
-        {/* TODO: more links */}
-        <UserMenu />
-      </HStack>
-    </>
-  );
-};
-
 export const NavBar = () => {
-  const location = useLocation();
-  //hide or unhide default nav bar item based on the criteria below
-  const isDefaultNavHidden =
-    location.pathname.startsWith("/account/") &&
-    !location.pathname.startsWith("/account/password/")
-      ? true
-      : false;
   const { user } = useUser();
 
   return (
@@ -189,9 +169,12 @@ export const NavBar = () => {
       zIndex={1000}
       bgGradient="radial(circle 400px at top left, cyan.600, blue.900)"
       color="white"
-      h={isDefaultNavHidden && 5} // display solid line with if default nav bar item is hidden
     >
-      {!isDefaultNavHidden && <DefaultNav />}
+      <BrandLink />
+      <HStack spacing={0} flexGrow={1} justify="end">
+        {/* TODO: more links */}
+        <UserMenu />
+      </HStack>
     </Flex>
   );
 };
