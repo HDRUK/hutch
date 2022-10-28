@@ -8,7 +8,7 @@ public class QueryTranslator
 {
   public interface IQueryTranslator<T>
   { 
-    ROCratesQuery Translate(T input);
+    ROCratesQuery Translate(T job);
   }
   public class RquestQueryTranslator: IQueryTranslator<RquestQueryTask>{
     public ROCratesQuery Translate(RquestQueryTask job)
@@ -93,6 +93,51 @@ public class QueryTranslator
         graphs.Add(graph);
       }
       roCratesQuery.Graphs = graphs;
+      return roCratesQuery;
+    }
+  }
+  
+  public class RquestDistributionQueryTranslator: IQueryTranslator<RquestDistributionQueryTask>
+  {
+    public ROCratesQuery Translate(RquestDistributionQueryTask job)
+    {
+      ROCratesQuery roCratesQuery = new();
+      var graphs = new ROCratesQuery().Graphs;
+      //Add ActivitySourceID
+      graphs.Add(new ROCratesQuery.ROCratesGraph
+      {
+        Type = "PropertyValue",
+        Name = "activity_source_id",
+        Value = job.ActivitySourceId.ToString()
+      });
+      
+      // Add Job ID
+      graphs.Add(new ROCratesQuery.ROCratesGraph
+      {
+        Type = "PropertyValue",
+        Name = "job_id",
+        Value = job.JobId
+      });
+      
+      // Add analysis code
+      graphs.Add(new ROCratesQuery.ROCratesGraph
+      {
+        Type = "PropertyValue",
+        Name = "code",
+        Value = job.Code
+      });
+      
+      // Add analysis type
+      graphs.Add(new ROCratesQuery.ROCratesGraph
+      {
+        Type = "PropertyValue",
+        Name = "analysis",
+        Value = job.Analysis
+      });
+      
+      // Add the graph to the query
+      roCratesQuery.Graphs = graphs;
+      
       return roCratesQuery;
     }
   }

@@ -1,39 +1,38 @@
 using System.Text.Json;
-using HutchManager.Constants;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
 using Microsoft.FeatureManagement;
 
 namespace HutchManager.Services;
 
-public class RQuestPollingService
+public class RquestDistributionPollingService
 {
   private readonly RQuestTaskApiClient _taskApi;
-  private readonly ILogger<RQuestPollingService> _logger;
+  private readonly ILogger<RquestDistributionPollingService> _logger;
   private readonly IFeatureManager _featureManager;
   private readonly JobQueueService _jobQueue;
 
-  public RQuestPollingService(
+  public RquestDistributionPollingService(
     RQuestTaskApiClient taskApi,
-    ILogger<RQuestPollingService> logger,
+    ILogger<RquestDistributionPollingService> logger,
     IFeatureManager featureManager,
     JobQueueService jobQueue)
   {
-    _logger = logger;
     _taskApi = taskApi;
+    _logger = logger;
     _featureManager = featureManager;
     _jobQueue = jobQueue;
   }
-
+  
   public async Task Poll(ActivitySource activitySource)
   {
-    RquestQueryTask? job = null;
+    RquestDistributionQueryTask? job = null;
 
     do
     {
       try
       {
-        job = await _taskApi.FetchQuery<RquestQueryTask>(activitySource);
+        job = await _taskApi.FetchQuery<RquestDistributionQueryTask>(activitySource);
         if (job is null)
         {
           _logger.LogInformation(
@@ -57,10 +56,10 @@ public class RQuestPollingService
       }
     } while (job is null);
   }
-
-  public void SendToQueue(RquestQueryTask jobPayload, string queueName)
+  
+  public void SendToQueue(RquestDistributionQueryTask jobPayload, string queueName)
   {
-    ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
+    ROCratesQuery roCratesQuery = new QueryTranslator.RquestDistributionQueryTranslator().Translate(jobPayload);
     _jobQueue.SendMessage(queueName, roCratesQuery);
     _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
   }
