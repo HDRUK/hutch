@@ -2,6 +2,7 @@ import {
   Alert,
   AlertIcon,
   Button,
+  Center,
   Container,
   Heading,
   Text,
@@ -23,6 +24,7 @@ import {
   validationSchema as pwSchema,
 } from "components/forms/PasswordField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
+import { HutchLogo } from "components/Logo";
 
 const validationSchema = (t) => object().shape(pwSchema(t));
 
@@ -150,8 +152,15 @@ export const ResetPassword = () => {
   };
 
   return (
-    <Container ref={scrollTarget} key={key} my={8}>
+    <Container maxWidth="md" ref={scrollTarget} key={key} my={8}>
       <VStack align="stretch" spacing={4}>
+        <Center>
+          <HutchLogo
+            logoColor={true}
+            logoMaxWidth="170px"
+            logoFillColor="#000"
+          />
+        </Center>
         <Heading as="h2" size="lg">
           {t("resetPassword.heading")}
         </Heading>

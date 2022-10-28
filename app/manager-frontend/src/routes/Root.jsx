@@ -17,7 +17,7 @@ const IndexRedirect = () => {
   const { user } = useUser();
   const navigate = useNavigate();
   useEffect(() => {
-    const targetPath = user ? "/home" : "/about";
+    const targetPath = user ? "/home" : "/account/login";
     navigate(targetPath, { replace: true });
   }, [user]);
 
