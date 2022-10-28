@@ -8,7 +8,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     env_file:
-      - # .env file containing agent config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#database
+      -  # .env file containing agent config variables; see https://hdruk.github.io/hutch/docs/users/getting-started/configuration/agent
 
   hutch.msg_queue:
     image: rabbitmq:3.10.1-management
@@ -23,7 +23,7 @@ services:
     volumes:
       - queue_data:/var/lib/rabbitmq/mnesia/
     env_file:
-      - # .env file containing agent config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#message-queue
+      -  # .env file containing agent config variables; see https://hdruk.github.io/hutch/docs/users/getting-started/configuration/agent
 
   hutch.manager:
     image: # image for the manager
@@ -35,9 +35,9 @@ services:
       - hutch.db
       - hutch.msg_queue
     env_file:
-      - # .env file containing manager config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#manager
+      -  # .env file containing manager config variables; see https://hdruk.github.io/hutch/docs/users/getting-started/configuration/manager
     volumes:
-      - # <path to local .pem and .key dir>:/certs:ro
+      -  # <path to local .pem and .key dir>:/certs:ro
 
   hutch.agent:
     image: # image for the manager
@@ -47,7 +47,7 @@ services:
       - hutch.msg_queue
       - hutch.manager
     env_file:
-      - # .env file containing agent config variables; see https://github.com/link-lite/hutch/wiki/Configuration-(Production)#agent
+      -  # .env file containing agent config variables; see https://hdruk.github.io/hutch/docs/users/getting-started/configuration/agent
 
 volumes:
   db_data:
