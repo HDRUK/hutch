@@ -6,14 +6,16 @@
     public class RQuestTaskApiOptions
     {
         /// <summary>
-        /// <para>The Base Path of the Task API endpoints, which will be added to an RQuest Activity Source's Host URI</para>
-        ///
+        /// <para>
+        /// The Base Path of the Task API endpoints, which will be added to an RQuest Activity Source's Host URI</para>
         /// <para>
         /// e.g.</para>
         /// <para>Host URI configured as `https://my-rquest.com:12345`</para>
         /// <para>EndpointBase of `bcos-rest/task`</para>
         ///
-        /// <para>Actual requests will go to `https://my-rquest.com:12345/bcos-rest/task/&lt;endpoint&gt;`</para>
+        /// <para>
+        /// Actual requests will go to `https://my-rquest.com:12345/bcos-rest/link_connector_api/task/&lt;endpoint&gt;`
+        /// </para>
         /// </summary>
         public string EndpointBase { get; set; } = "link_connector_api/task";
 
@@ -41,5 +43,21 @@
         /// Password for the RQuest API. To be used in the Basic Auth header.
         /// </summary>
         public string Password { get; set; } = string.Empty;
+        
+        
+        /*
+         * Distribution Query Options
+         */
+
+        /// <summary>
+        /// Endpoint for sending large/sensitive files.
+        /// </summary>
+        public string ResultFileEndpoint { get; set; } = "resultfile";
+
+        /// <summary>
+        /// Base URL to send small/non-sensitive files.
+        /// Use in combination with `RQuestTaskApiOptions.SubmitResultEndpoint`.
+        /// </summary>
+        public string SmallFileUrl { get; set; } = "task";
     }
 }
