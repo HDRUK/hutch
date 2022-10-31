@@ -28,7 +28,7 @@ public class ResultsController: ControllerBase
   /// </summary>
   /// <param name="roCratesQueryResult"></param>
   /// <returns></returns>
-  [HttpPost]
+  [HttpPost("availability")]
   public async Task<IActionResult> PostRoCrates([FromBody] ROCratesQueryResult roCratesQueryResult)
   {
     QueryResult result = new ResultsTranslator.RoCratesQueryTranslator().TranslateRoCrates(roCratesQueryResult);

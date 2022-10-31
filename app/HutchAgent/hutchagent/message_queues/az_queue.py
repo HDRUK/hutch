@@ -94,7 +94,7 @@ def az_queue_callback(msg: Union[str, bytes]):
 
     try:
         requests.post(
-            f"{os.getenv('MANAGER_URL')}/api/results",
+            f"{os.getenv('MANAGER_URL')}/api/results/availability",
             json=result.to_dict(),
             verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
         )
