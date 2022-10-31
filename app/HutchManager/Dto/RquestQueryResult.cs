@@ -82,6 +82,10 @@ namespace HutchManager.Dto
       public string JobId { get; set; }
     }
 
+    /// <summary>
+    /// Representation of the `queryResult` section of an RQuest
+    /// Distribution Query result object.
+    /// </summary>
     public class DistributionQueryResult
     {
       /// <summary>
@@ -102,6 +106,9 @@ namespace HutchManager.Dto
       public List<FileObject> Files { get; set; } = new();
     }
 
+    /// <summary>
+    /// Representation of a file JSON object in the `queryResult.files` array.
+    /// </summary>
     public class FileObject
     {
       /// <summary>
