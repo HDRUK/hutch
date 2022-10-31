@@ -150,5 +150,25 @@ namespace HutchManager.Services
 
       return;
     }
+
+    public async Task DistributionResultsEndpoint(int activitySourceId, string jobId)
+    {
+      /*
+       * TODO:
+       * 1. get activitySourceId (X)
+       * 2. make URL for the file endpoint
+       * 3. send data to the file endpoint
+       * 4. make URL for the second endpoint
+       * 5. send request to second endpoint
+       * 6. return Ok of everything worked
+       */
+      
+      var activitySource = await _db.ActivitySources
+        .FirstOrDefaultAsync(x => x.Id == activitySourceId);
+
+      if (activitySource is null)
+        throw new KeyNotFoundException(
+          $"No ActivitySource with ID: {activitySourceId}");
+    }
   }
 }
