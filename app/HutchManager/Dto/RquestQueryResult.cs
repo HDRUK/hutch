@@ -122,7 +122,7 @@ namespace HutchManager.Dto
       
       /// <summary>
       /// The name of the file.
-      /// Can be one of the follwoing:
+      /// Can be one of the following:
       ///   "code.distribution"
       ///   "demographics.distribution"
       ///   "icd_level1.distribution"
