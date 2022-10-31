@@ -2,6 +2,7 @@ import {
   Alert,
   AlertIcon,
   Button,
+  Center,
   Container,
   Heading,
   HStack,
@@ -9,7 +10,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { FaSignInAlt } from "react-icons/fa";
+import { FaSignInAlt, FaUserPlus } from "react-icons/fa";
 import { PasswordField } from "components/forms/PasswordField";
 import { Form, Formik } from "formik";
 import { useTranslation } from "react-i18next";
@@ -20,6 +21,7 @@ import { ResendConfirmAlert } from "components/account/ResendConfirmAlert";
 import { useBackendApi } from "contexts/BackendApi";
 import { EmailField } from "components/forms/EmailField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
+import { HutchLogo } from "components/Logo";
 
 const validationSchema = (t) =>
   object().shape({
@@ -91,8 +93,16 @@ export const Login = () => {
   };
 
   return (
-    <Container ref={scrollTarget} key={key} my={8}>
+    <Container maxWidth="md" ref={scrollTarget} key={key} my={8}>
       <VStack align="stretch" spacing={4}>
+        <Center>
+          <HutchLogo
+            logoColor={true}
+            logoMaxWidth="170px"
+            logoFillColor="#000"
+          />
+        </Center>
+
         <Heading as="h2" size="lg">
           {t("login.heading")}
         </Heading>
@@ -139,9 +149,15 @@ export const Login = () => {
                   >
                     {t("buttons.login")}
                   </Button>
-                  <Link as={RouterLink} to="/account/register">
-                    {t("login.links.register")}
-                  </Link>
+                  <Button
+                    colorScheme="blue"
+                    variant="link"
+                    leftIcon={<FaUserPlus />}
+                  >
+                    <Link as={RouterLink} to="/account/register">
+                      {t("login.links.register")}
+                    </Link>
+                  </Button>
                 </HStack>
               </VStack>
             </Form>

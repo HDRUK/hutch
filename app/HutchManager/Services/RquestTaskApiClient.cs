@@ -55,14 +55,21 @@ namespace HutchManager.Services
     /// </summary>
     /// <param name="activitySource"> ActivitySource</param>
     /// <returns>A Task DTO containing a Query to run, or null if none are waiting</returns>
-    public async Task<RquestQueryTask?> FetchQuery(ActivitySource activitySource)
+    public async Task<T?> FetchQuery<T>(ActivitySource activitySource) where T: class, IRquestTask, new()
     {
+      var typeSuffix = new T() switch
+      {
+        RquestQueryTask _ => RQuestJobTypeSuffixes.AvailabilityQuery,
+        RquestDistributionQueryTask _ => RQuestJobTypeSuffixes.Distribution,
+        _ => string.Empty
+        
+      };
       var requestUri = Url.Combine(
         activitySource.Host,
         _apiOptions.EndpointBase,
         _apiOptions.FetchQueryEndpoint,
         // Currently this method only looks for "Availability Queries""
-        activitySource.ResourceId + RQuestJobTypeSuffixes.AvailabilityQuery);
+        activitySource.ResourceId + typeSuffix);
       var result = await _client.GetAsync(
         requestUri);
 
@@ -78,7 +85,7 @@ namespace HutchManager.Services
 
         try
         {
-          var job = await result.Content.ReadFromJsonAsync<RquestQueryTask>();
+          var job = await result.Content.ReadFromJsonAsync<T>();
 
           // a null job is impossible because the necessary JSON payload
           // to achieve it would fail deserialization
