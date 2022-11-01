@@ -7,10 +7,10 @@ public class ResultsTranslator
   
   public interface IResultsTranslator<T>
   {
-    QueryResult TranslateRoCrates(T input);
+    T TranslateRoCrates(ROCratesQueryResult input);
   }
   
-  public class RoCratesQueryTranslator : IResultsTranslator<ROCratesQueryResult>
+  public class RoCratesQueryTranslator : IResultsTranslator<QueryResult>
   {
 
     public  QueryResult TranslateRoCrates(ROCratesQueryResult job)
@@ -37,6 +37,13 @@ public class ResultsTranslator
       }
       return rquestQueryResult ;
     }
+  }
 
+  public class RoCratesToDistribution : IResultsTranslator<DistributionQueryTaskResult>
+  {
+    public DistributionQueryTaskResult TranslateRoCrates(ROCratesQueryResult input)
+    {
+      throw new NotImplementedException();
+    }
   }
 }
