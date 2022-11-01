@@ -24,7 +24,7 @@ public class ResultsController: ControllerBase
   }
   
   /// <summary>
-  /// Endpoint for ROCrates results.
+  /// Endpoint for ROCrates availability results.
   /// </summary>
   /// <param name="roCratesQueryResult"></param>
   /// <returns></returns>
@@ -33,6 +33,19 @@ public class ResultsController: ControllerBase
   {
     QueryResult result = new ResultsTranslator.RoCratesQueryTranslator().TranslateRoCrates(roCratesQueryResult);
     await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Results);
+    return Ok(_apiClient);
+  }
+  
+  /// <summary>
+  /// Endpoint for ROCrates distribution results.
+  /// </summary>
+  /// <param name="roCratesQueryResult"></param>
+  /// <returns></returns>
+  [HttpPost("distribution")]
+  public async Task<IActionResult> PostDistributionResults([FromBody] ROCratesQueryResult roCratesQueryResult)
+  {
+    DistributionQueryTaskResult result = new();
+    await _apiClient.DistributionResultsEndpoint(result.ActivitySourceId, result.JobId, result);
     return Ok(_apiClient);
   }
 }
