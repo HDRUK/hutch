@@ -44,8 +44,24 @@ public class ResultsController: ControllerBase
   [HttpPost("distribution")]
   public async Task<IActionResult> PostDistributionResults([FromBody] ROCratesQueryResult roCratesQueryResult)
   {
-    DistributionQueryTaskResult result = new();
-    await _apiClient.DistributionResultsEndpoint(result.ActivitySourceId, result.JobId, result);
-    return Ok(_apiClient);
+    DistributionQueryTaskResult result =
+      new ResultsTranslator.RoCratesToDistribution().TranslateRoCrates(roCratesQueryResult);
+    
+    // Get activitySourceId from results
+    int? activitySourceId = null;
+    foreach (var g in roCratesQueryResult.Graphs)
+    {
+      if (g.Name != "activity_source_id") continue;
+      activitySourceId = int.Parse(g.Value);
+      break;
+    }
+
+    if (activitySourceId != null)
+    {
+      await _apiClient.DistributionResultsEndpoint(activitySourceId.Value, result.JobId, result);
+      return Ok(_apiClient);
+    }
+    
+    return BadRequest(_apiClient);
   }
 }
