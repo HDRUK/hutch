@@ -151,24 +151,54 @@ namespace HutchManager.Services
       return;
     }
 
-    public async Task DistributionResultsEndpoint(int activitySourceId, string jobId)
+    public async Task DistributionResultsEndpoint(
+      int activitySourceId,
+      string jobId,
+      DistributionQueryTaskResult distributionQueryTaskResult)
     {
-      /*
-       * TODO:
-       * 1. get activitySourceId (X)
-       * 2. make URL for the file endpoint
-       * 3. send data to the file endpoint
-       * 4. make URL for the second endpoint
-       * 5. send request to second endpoint
-       * 6. return Ok of everything worked
-       */
-      
+      // Get activitySource
       var activitySource = await _db.ActivitySources
         .FirstOrDefaultAsync(x => x.Id == activitySourceId);
 
       if (activitySource is null)
         throw new KeyNotFoundException(
           $"No ActivitySource with ID: {activitySourceId}");
+
+      // Make URL to send the file
+      var fileUrl = Url.Combine(
+        activitySource.Host,
+        _apiOptions.EndpointBase,
+        _apiOptions.ResultFileEndpoint,
+        jobId,
+        activitySource.ResourceId);
+
+      // Send the file
+      var fileUploadResponse = (await _client.PostAsync(
+          fileUrl, AsHttpJsonString(distributionQueryTaskResult))
+        ).EnsureSuccessStatusCode();
+
+      // Check it worked
+      var fileUploadBody = fileUploadResponse.Content.ReadAsStringAsync();
+      // Todo: Check the response is okay.
+
+      // Make URL for step 2 in results submission
+      var secondStepUrl = Url.Combine(
+        activitySource.Host,
+        _apiOptions.EndpointBase,
+        _apiOptions.SubmitResultEndpoint,
+        jobId,
+        activitySource.ResourceId);
+      
+      // Remove the files before uploading the results to the second endpoint
+      distributionQueryTaskResult.QueryResult.Files.Clear();
+      
+      var secondStepResponse = (await _client.PostAsync(
+          secondStepUrl, AsHttpJsonString(distributionQueryTaskResult))
+        ).EnsureSuccessStatusCode();
+      
+      // Check it worked
+      var secondStepBody = secondStepResponse.Content.ReadAsStringAsync();
+      // Todo: Check the response is okay.
     }
   }
 }
