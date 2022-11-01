@@ -53,11 +53,5 @@
         /// Endpoint for sending large/sensitive files.
         /// </summary>
         public string ResultFileEndpoint { get; set; } = "resultfile";
-
-        /// <summary>
-        /// Base URL to send small/non-sensitive files.
-        /// Use in combination with `RQuestTaskApiOptions.SubmitResultEndpoint`.
-        /// </summary>
-        public string SmallFileUrl { get; set; } = "task";
     }
 }
