@@ -49,17 +49,11 @@ namespace HutchManager.Dto
     /// </summary>
     public class DistributionQueryTaskResult
     {
-      public DistributionQueryTaskResult(string collectionId, string jobId)
-      {
-        CollectionId = collectionId;
-        JobId = jobId;
-      }
-
       /// <summary>
       /// The unique ID for the collection the query is run against.
       /// </summary>
       [JsonPropertyName("collection_id")]
-      public string CollectionId { get; set; }
+      public string CollectionId { get; set; } = string.Empty;
 
       [JsonPropertyName("message")] 
       public string? Message { get; set; } = null;
@@ -79,7 +73,7 @@ namespace HutchManager.Dto
       /// The unique ID of the job being run.
       /// </summary>
       [JsonPropertyName("uuid")]
-      public string JobId { get; set; }
+      public string JobId { get; set; } = string.Empty;
     }
 
     /// <summary>
