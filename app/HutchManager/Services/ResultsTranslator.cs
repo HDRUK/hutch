@@ -41,9 +41,29 @@ public class ResultsTranslator
 
   public class RoCratesToDistribution : IResultsTranslator<DistributionQueryTaskResult>
   {
-    public DistributionQueryTaskResult TranslateRoCrates(ROCratesQueryResult input)
+    public DistributionQueryTaskResult TranslateRoCrates(ROCratesQueryResult job)
     {
-      throw new NotImplementedException();
+      var rquestQueryResult = new DistributionQueryTaskResult();
+      foreach (var graph in job.Graphs)
+      {
+        switch (graph.Name)
+        {
+          case "collection_id":
+            rquestQueryResult.CollectionId = graph.Value;
+            break;
+          case "status":
+            rquestQueryResult.Status = graph.Value;
+            break;
+          case "job_id":
+            rquestQueryResult.JobId = graph.Value;
+            break;
+          case "files":
+            // Todo: convert files from RO-Crates to RQuest
+            break;
+        }
+
+      }
+      return rquestQueryResult ;
     }
   }
 }
