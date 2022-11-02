@@ -2,7 +2,6 @@ using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.InteropServices;
 
 namespace HutchManager.Services;
 
@@ -93,12 +92,12 @@ public class ResultsModifierService
       .Include(x => x.Type)
       .Include(x => x.ActivitySource)
       .FirstOrDefaultAsync(x => x.Id == resultsModifierId);
-
+    
     if (entity is null)
       throw new KeyNotFoundException(
         $"No Results Modifier with ID: {resultsModifierId}");
     _db.ResultsModifier.Remove(entity);
-    await UpdateOrder(entity); // Only pass entity, rest are optional
+    await UpdateOrderOnDelete(entity); // Update the order
     await _db.SaveChangesAsync();
   }
 
@@ -112,22 +111,67 @@ public class ResultsModifierService
   /// <exception cref="InvalidOperationException"></exception>
   public async Task<ResultsModifierModel> SetOrder(int id, int newPosition)
   {
-    var entity = await _db.ResultsModifier
-         .Include(x => x.Type)
-         .Include(x => x.ActivitySource)
-         .ThenInclude(x => x.TargetDataSource)
-         .Include(x => x.ActivitySource)
-         .ThenInclude(x => x.Type)
-         .FirstOrDefaultAsync(x => x.Id == id) ?? throw new KeyNotFoundException($"No ResultsModifier with ID: {id}");
+        var entity = await _db.ResultsModifier
+      .Include(x => x.Type)
+      .Include(x => x.ActivitySource)
+      .ThenInclude(x => x.TargetDataSource)
+      .Include(x => x.ActivitySource)
+      .ThenInclude(x => x.Type)
+      .FirstOrDefaultAsync(x => x.Id == id) ?? throw new KeyNotFoundException($"No ResultsModifier with ID: {id}");
+
+    var activitySourceModifiers = (await _db.ResultsModifier
+                                    .Include(x => x.Type)
+                                    .Include(x => x.ActivitySource)
+                                    .ToListAsync())
+                                    .Where(x => x.ActivitySource.Id == entity.ActivitySource.Id)
+                                    .ToList() ??
+                                  throw new KeyNotFoundException($"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
+
+    if (newPosition <= 0) newPosition = 1; // Set to 1 if newPosition is 0 or negative
+
+    if (newPosition > activitySourceModifiers.Count()) newPosition = activitySourceModifiers.Count(); // Set to last position if newPosition is higher than the count 
 
     if (newPosition == entity.Order) return new(entity); // Make no changes if newPosition is the same as current one
 
-    await UpdateOrder(entity, newPosition, true); // Pass entity, newPosition and true 
+    activitySourceModifiers = activitySourceModifiers.OrderBy(o => o.Order).ToList(); // Match order to list index
+
+    if (newPosition < entity.Order)
+    {
+      // moving upwards:
+      // 1. Insert the updated ResultsModifier record later
+      // 2. Delete the old record
+      var i = activitySourceModifiers.IndexOf(entity);
+      entity.Order = newPosition;
+      activitySourceModifiers.Insert(newPosition - 1, entity);
+      activitySourceModifiers.RemoveAt(i + 1);
+    }
+    else
+    {
+      // moving downwards:
+      // 1. Delete the old record
+      // 2. Insert the updated ResultsModifier at the new position
+      activitySourceModifiers.Remove(entity);
+      entity.Order = newPosition;
+      activitySourceModifiers.Insert(newPosition - 1, entity);
+    }
+    
+    // Change the Order for the rest of the resultsModifiers in the ActivitySource
+    var index = 0;
+    foreach (var resultsModifier in activitySourceModifiers)
+    {
+      resultsModifier.Order = index + 1;
+      index++;
+    }
+    
     await _db.SaveChangesAsync();
     return new(entity);
   }
-
-  private async Task UpdateOrder(ResultsModifier entity, [Optional] int newPosition, [Optional] bool isNewPosition)
+  
+  /// <summary>
+  /// Update the ResultsModifiers order based on the removed ResultsModifier item
+  /// </summary>
+  /// <param name="entity"></param>
+  private async Task UpdateOrderOnDelete(ResultsModifier entity)
   {
     var activitySourceModifiers = (await _db.ResultsModifier
                                     .Include(x => x.Type)
@@ -135,50 +179,12 @@ public class ResultsModifierService
                                     .ToListAsync())
                                   .Where(x => x.ActivitySource.Id == entity.ActivitySource.Id)
                                   .ToList() ??
-                                  throw new KeyNotFoundException(
-                                    $"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
-
-    activitySourceModifiers = activitySourceModifiers.OrderBy(o => o.Order).ToList(); // Match order to list index
-
-    if (isNewPosition) // Only proceed the following if newPosition value is available
-    {
-      if (newPosition <= 0) newPosition = 1; // Set to 1 if newPosition is 0 or negative
-
-      if (newPosition > activitySourceModifiers.Count()) newPosition = activitySourceModifiers.Count(); // Set to last position if newPosition is higher than the count 
-
-      if (newPosition < entity.Order)
-      {
-        // moving upwards:
-        // 1. Insert the updated ResultsModifier record later
-        // 2. Delete the old record
-        var i = activitySourceModifiers.IndexOf(entity);
-        var newEntity = entity;
-        newEntity.Order = newPosition;
-        activitySourceModifiers.Insert(newPosition - 1, newEntity);
-        activitySourceModifiers.RemoveAt(i + 1);
-      }
-      else
-      {
-        // moving downwards:
-        // 1. Delete the old record
-        // 2. Insert the updated ResultsModifier at the new position
-        activitySourceModifiers.Remove(entity);
-        var newEntity = entity;
-        newEntity.Order = newPosition;
-        activitySourceModifiers.Insert(newPosition - 1, newEntity);
-      }
-    }
-    else
-    { // remove the deleted record
-      activitySourceModifiers.Remove(entity);
-    }
-
-    // Change the Order for the rest of the resultsModifiers in the ActivitySource
-    int index = 0;
+                                  throw new KeyNotFoundException($"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
+    
     foreach (var resultsModifier in activitySourceModifiers)
     {
-      resultsModifier.Order = index + 1;
-      index++;
+      if (resultsModifier.Order > entity.Order) // Only update the order that are below the deleted item
+        resultsModifier.Order = resultsModifier.Order - 1; // Update the order by substracting their original order value by 1
     }
   }
 }
