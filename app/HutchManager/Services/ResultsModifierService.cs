@@ -2,6 +2,7 @@ using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 
 namespace HutchManager.Services;
 
@@ -97,7 +98,7 @@ public class ResultsModifierService
       throw new KeyNotFoundException(
         $"No Results Modifier with ID: {resultsModifierId}");
     _db.ResultsModifier.Remove(entity);
-    await UpdateOrder(entity, new int[] { });
+    await UpdateOrder(entity); // Only pass entity, rest are optional
     await _db.SaveChangesAsync();
   }
 
@@ -121,12 +122,12 @@ public class ResultsModifierService
 
     if (newPosition == entity.Order) return new(entity); // Make no changes if newPosition is the same as current one
 
-    await UpdateOrder(entity, new int[] { newPosition });
+    await UpdateOrder(entity, newPosition, true); // Pass entity, newPosition and true 
     await _db.SaveChangesAsync();
     return new(entity);
   }
 
-  private async Task UpdateOrder(ResultsModifier entity, int[] newPosition)
+  private async Task UpdateOrder(ResultsModifier entity, [Optional] int newPosition, [Optional] bool isNewPosition)
   {
     var activitySourceModifiers = (await _db.ResultsModifier
                                     .Include(x => x.Type)
@@ -134,26 +135,26 @@ public class ResultsModifierService
                                     .ToListAsync())
                                   .Where(x => x.ActivitySource.Id == entity.ActivitySource.Id)
                                   .ToList() ??
-                                  throw new KeyNotFoundException($"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
+                                  throw new KeyNotFoundException(
+                                    $"Activity Source {entity.ActivitySource.Id} is not a valid Activity Source");
 
-    var i = activitySourceModifiers.IndexOf(entity);
+    activitySourceModifiers = activitySourceModifiers.OrderBy(o => o.Order).ToList(); // Match order to list index
 
-    if (newPosition.Count() > 0)
+    if (isNewPosition) // Only proceed the following if newPosition value is available
     {
-      var itemPositionNew = newPosition[0];
-      if (itemPositionNew <= 0) itemPositionNew = 1; // Set to 1 if newPosition is 0 or negative
-      if (itemPositionNew > activitySourceModifiers.Count())
-        itemPositionNew = activitySourceModifiers.Count(); // Set to last position if newPosition is higher than the count 
+      if (newPosition <= 0) newPosition = 1; // Set to 1 if newPosition is 0 or negative
 
-      var newEntity = entity;
+      if (newPosition > activitySourceModifiers.Count()) newPosition = activitySourceModifiers.Count(); // Set to last position if newPosition is higher than the count 
 
-      if (itemPositionNew < entity.Order)
+      if (newPosition < entity.Order)
       {
         // moving upwards:
         // 1. Insert the updated ResultsModifier record later
         // 2. Delete the old record
-        newEntity.Order = itemPositionNew;
-        activitySourceModifiers.Insert(itemPositionNew - 1, newEntity);
+        var i = activitySourceModifiers.IndexOf(entity);
+        var newEntity = entity;
+        newEntity.Order = newPosition;
+        activitySourceModifiers.Insert(newPosition - 1, newEntity);
         activitySourceModifiers.RemoveAt(i + 1);
       }
       else
@@ -162,26 +163,22 @@ public class ResultsModifierService
         // 1. Delete the old record
         // 2. Insert the updated ResultsModifier at the new position
         activitySourceModifiers.Remove(entity);
-        newEntity.Order = itemPositionNew;
-        activitySourceModifiers.Insert(itemPositionNew - 1, newEntity);
+        var newEntity = entity;
+        newEntity.Order = newPosition;
+        activitySourceModifiers.Insert(newPosition - 1, newEntity);
       }
     }
     else
-    {
-      // remove the deleted record
-      activitySourceModifiers.RemoveAt(i);
+    { // remove the deleted record
+      activitySourceModifiers.Remove(entity);
     }
 
-    //Change the Order for the rest of the resultsModifiers in the ActivitySource
-    var modifiers = activitySourceModifiers.Select((x, index) =>
+    // Change the Order for the rest of the resultsModifiers in the ActivitySource
+    int index = 0;
+    foreach (var resultsModifier in activitySourceModifiers)
     {
-      x.Order = index + 1;
-      return x;
-    });
-
-    foreach (var resultsModifier in modifiers)
-    {
-      resultsModifier.Order = resultsModifier.Order;
+      resultsModifier.Order = index + 1;
+      index++;
     }
   }
 }
