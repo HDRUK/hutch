@@ -12,7 +12,7 @@ import hutchagent.config as config
 from hutchagent.ro_crates.result import Result
 from hutchagent.ro_crates.query import Query
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.query_builders import ROCratesQueryBuilder
+from hutchagent.query_builders import AvailibilityQueryBuilder
 
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
 
@@ -77,7 +77,7 @@ def ro_crates_callback(
         drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
         schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
-    query_builder = ROCratesQueryBuilder(db_manager, query)
+    query_builder = AvailibilityQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
         query_builder.solve_rules()

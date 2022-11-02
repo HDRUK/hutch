@@ -19,7 +19,7 @@ from hutchagent.ro_crates.query import Query
 dotenv.load_dotenv()
 
 
-class ROCratesQueryBuilder:
+class AvailibilityQueryBuilder:
     subqueries = list()
     concept_table_map = {
         "Condition": ConditionOccurrence,
