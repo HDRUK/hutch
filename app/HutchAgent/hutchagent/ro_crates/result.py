@@ -1,3 +1,6 @@
+from typing import Union
+
+
 class AvailabilityResult:
     def __init__(
         self,
@@ -43,3 +46,30 @@ class AvailabilityResult:
                 },
             ],
         }
+
+
+class DistributionResult:
+    """
+    This class represents the result of an RQuest distribution query
+    in RO-Crates common transfer format.
+    """
+    
+    def __init__(
+        self,
+        activity_source_id: str,
+        job_id: str,
+        status: str,
+        count: int,
+        datasets_count: Union[int, None],
+        files: list,
+        context: str = "https://w3id.org/ro/crate/1.1/context",
+        message: str = ""
+    ) -> None:
+        self.activity_source_id = activity_source_id
+        self.job_id = job_id
+        self.status = status
+        self.count = count
+        self.datasets_count = datasets_count
+        self.files = files
+        self.context = context
+        self.message = message
