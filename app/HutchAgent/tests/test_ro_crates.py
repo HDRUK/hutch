@@ -2,7 +2,7 @@ import pytest
 from hutchagent.ro_crates.group import Group
 from hutchagent.ro_crates.operator import Operator
 from hutchagent.ro_crates.query import Query
-from hutchagent.ro_crates.result import Result
+from hutchagent.ro_crates.result import AvailabilityResult
 from hutchagent.ro_crates.rule import Rule
 
 ACTIVITY_SOURCE_ID_DICT = {
@@ -93,7 +93,7 @@ def test_query():
 
 
 def test_result():
-    result = Result(
+    result = AvailabilityResult(
         activity_source_id="fake_activity_source",
         job_id="fake_job_id",
         status="ok",

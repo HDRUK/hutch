@@ -1,4 +1,4 @@
-class Result:
+class AvailabilityResult:
     def __init__(
         self,
         activity_source_id: str,

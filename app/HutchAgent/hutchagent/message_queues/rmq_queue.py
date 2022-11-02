@@ -9,7 +9,7 @@ from pika.spec import Basic, BasicProperties
 import requests, requests.exceptions as req_exc
 from sqlalchemy import exc as sql_exc
 import hutchagent.config as config
-from hutchagent.ro_crates.result import Result
+from hutchagent.ro_crates.result import AvailabilityResult
 from hutchagent.ro_crates.query import Query
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query_builders import AvailibilityQueryBuilder
@@ -89,7 +89,7 @@ def ro_crates_callback(
         logger.info(
             f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
         )
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="ok",
@@ -97,7 +97,7 @@ def ro_crates_callback(
         )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",
@@ -105,7 +105,7 @@ def ro_crates_callback(
         )
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(str(column_error))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",
@@ -113,7 +113,7 @@ def ro_crates_callback(
         )
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",
@@ -121,7 +121,7 @@ def ro_crates_callback(
         )
     except Exception as e:
         logger.error(str(e))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",
