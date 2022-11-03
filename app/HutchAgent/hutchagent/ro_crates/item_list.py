@@ -1,4 +1,7 @@
+from typing import List, Union
 from hutchagent.ro_crates.thing import Thing
+from hutchagent.ro_crates.property_value import PropertyValue
+from hutchagent.ro_crates.quantitative_value import QuantitativeValue
 
 class ItemList(Thing):
     
@@ -6,7 +9,7 @@ class ItemList(Thing):
         self,
         context: str,
         type_: str,
-        item_list_element: list,
+        item_list_element: List[Union[PropertyValue, QuantitativeValue, None]],
         name: str = "",
         **kwargs
     ) -> None:
@@ -20,7 +23,7 @@ class ItemList(Thing):
             "@type": self.type_,
             "name": self.name,
             "numberOfItems": self.number_of_items,
-            "itemListElement": self.item_list_element,
+            "itemListElement": [item.to_dict() for item in  self.item_list_element],
         }
 
     @classmethod
