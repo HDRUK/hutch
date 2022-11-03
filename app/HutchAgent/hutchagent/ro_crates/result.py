@@ -1,4 +1,5 @@
 from typing import Union
+from hutchagent.ro_crates.item_list import ItemList
 
 
 class AvailabilityResult:
@@ -61,7 +62,7 @@ class DistributionResult:
         status: str,
         count: int,
         datasets_count: Union[int, None],
-        files: list,
+        files: ItemList,
         context: str = "https://w3id.org/ro/crate/1.1/context",
         message: str = "",
     ) -> None:
@@ -109,5 +110,6 @@ class DistributionResult:
                     "name": "message",
                     "value": self.message,
                 },
+                self.files.to_dict()
             ],
         }
