@@ -14,7 +14,7 @@ from hutchagent.entities import (
     DrugExposure,
     ProcedureOccurrence,
 )
-from hutchagent.ro_crates.query import Query
+from hutchagent.ro_crates.query import AvailabilityQuery
 
 dotenv.load_dotenv()
 
@@ -56,7 +56,7 @@ class AvailibilityQueryBuilder:
         "Procedure": ProcedureOccurrence.procedure_concept_id,
     }
 
-    def __init__(self, db_manager: SyncDBManager, query: Query) -> None:
+    def __init__(self, db_manager: SyncDBManager, query: AvailabilityQuery) -> None:
         self.db_manager = db_manager
         self.query = query
 
@@ -190,3 +190,7 @@ class AvailibilityQueryBuilder:
             )
         self.subqueries.clear()
         return group0_df.shape[0]  # the number of rows
+
+
+class CodeDistributionQueryBuilder:
+    pass

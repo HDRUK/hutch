@@ -1,7 +1,7 @@
 import pytest
 from hutchagent.ro_crates.group import Group
 from hutchagent.ro_crates.operator import Operator
-from hutchagent.ro_crates.query import Query
+from hutchagent.ro_crates.query import AvailabilityQuery
 from hutchagent.ro_crates.result import AvailabilityResult
 from hutchagent.ro_crates.rule import Rule
 
@@ -83,7 +83,7 @@ def test_group():
 
 
 def test_query():
-    query = Query.from_dict(QUERY_DICT)
+    query = AvailabilityQuery.from_dict(QUERY_DICT)
     for g in query.groups:
         assert isinstance(g, Group)
     assert isinstance(query.group_operator, Operator)

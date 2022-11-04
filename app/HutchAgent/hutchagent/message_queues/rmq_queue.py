@@ -10,7 +10,7 @@ import requests, requests.exceptions as req_exc
 from sqlalchemy import exc as sql_exc
 import hutchagent.config as config
 from hutchagent.ro_crates.result import AvailabilityResult
-from hutchagent.ro_crates.query import Query
+from hutchagent.ro_crates.query import AvailabilityQuery
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query_builders import AvailibilityQueryBuilder
 
@@ -62,7 +62,7 @@ def ro_crates_callback(
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(body)
-        query = Query.from_dict(body_json)
+        query = AvailabilityQuery.from_dict(body_json)
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")

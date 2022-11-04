@@ -7,7 +7,7 @@ import hutchagent.config as config
 from typing import Union
 from sqlalchemy import exc as sql_exc
 from hutchagent.ro_crates.result import AvailabilityResult
-from hutchagent.ro_crates.query import Query
+from hutchagent.ro_crates.query import AvailabilityQuery
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query_builders import AvailibilityQueryBuilder
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
@@ -26,7 +26,7 @@ def az_queue_callback(msg: Union[str, bytes]):
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(msg)
-        query = Query.from_dict(body_json)
+        query = AvailabilityQuery.from_dict(body_json)
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")

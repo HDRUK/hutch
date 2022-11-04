@@ -4,7 +4,7 @@ from hutchagent.ro_crates.group import Group
 from hutchagent.ro_crates.operator import Operator
 
 
-class Query:
+class AvailabilityQuery:
     """Python representation of a query based on RO-Crate"""
 
     def __init__(
