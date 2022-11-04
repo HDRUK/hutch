@@ -23,10 +23,10 @@ class AvailabilityQuery:
         self.activity_source_id = activity_source_id
 
     def to_dict(self) -> dict:
-        """Convert `Query` to `dict`.
+        """Convert `AvailabilityQuery` to `dict`.
 
         Returns:
-            dict: `Query` as a `dict`.
+            dict: `AvailabilityQuery` as a `dict`.
         """
         return {
             "@context": self.context,
@@ -50,13 +50,13 @@ class AvailabilityQuery:
 
     @classmethod
     def from_dict(cls, dict_: dict):
-        """Create a `Query` from RO-Crate JSON.
+        """Create a `AvailabilityQuery` from RO-Crate JSON.
 
         Args:
-            dict_ (dict): Mapping containing the `Query`'s attributes.
+            dict_ (dict): Mapping containing the `AvailabilityQuery`'s attributes.
 
         Returns:
-            Self: `Query` object.
+            Self: `AvailabilityQuery` object.
         """
         job_id = ""
         activity_source_id = ""
@@ -100,6 +100,11 @@ class DistributionQuery:
         self.context = context
 
     def to_dict(self) -> dict:
+        """Convert `DistributionQuery` to `dict`.
+
+        Returns:
+            dict: `DistributionQuery` as a `dict`.
+        """
         return {
             "@context": self.context,
             "@graph": [
@@ -132,6 +137,14 @@ class DistributionQuery:
 
     @classmethod
     def from_dict(cls, dict_: dict):
+        """Create a `DistributionQuery` from RO-Crate JSON.
+
+        Args:
+            dict_ (dict): Mapping containing the `DistributionQuery`'s attributes.
+
+        Returns:
+            Self: `DistributionQuery` object.
+        """
         activity_source_id = ""
         analysis = ""
         code = ""
