@@ -2,6 +2,7 @@ import json
 from typing import List
 from hutchagent.ro_crates.group import Group
 from hutchagent.ro_crates.operator import Operator
+from hutchagent.ro_crates.property_value import PropertyValue
 
 
 class AvailabilityQuery:
@@ -81,3 +82,73 @@ class AvailabilityQuery:
 
     def __str__(self) -> str:
         return json.dumps(self.to_dict(), indent=2)
+
+
+class DistributionQuery:
+    def __init__(
+        self,
+        activity_source_id: str,
+        analysis: str,
+        code: str,
+        job_id: str,
+        context: str = "https://w3id.org/ro/crate/1.1/context",
+    ) -> None:
+        self.activity_source_id = activity_source_id
+        self.analysis = analysis
+        self.code = code
+        self.job_id = job_id
+        self.context = context
+
+    def to_dict(self) -> dict:
+        return {
+            "@context": self.context,
+            "@graph": [
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="activity_source_id",
+                    value=self.activity_source_id,
+                ).to_dict(),
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="analysis",
+                    value=self.analysis,
+                ).to_dict(),
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="code",
+                    value=self.code,
+                ).to_dict(),
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="job_id",
+                    value=self.job_id,
+                ).to_dict()
+            ]
+        }
+
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        activity_source_id = ""
+        analysis = ""
+        code = ""
+        job_id = ""
+        for g in dict_.get("@graph", []):
+            if g.get("name") == "activity_source_id":
+                activity_source_id = g.get("value")
+            elif g.get("name") == "analysis":
+                analysis = g.get("value")
+            elif g.get("name") == "code":
+                code = g.get("value")
+            elif g.get("name") == "job_id":
+                job_id = g.get("value")
+        
+        return cls(
+            activity_source_id=activity_source_id,
+            analysis=analysis,
+            code=code,
+            job_id=job_id,
+        )
