@@ -203,6 +203,23 @@ class CodeDistributionQueryBuilder:
         "Observation": Observation,
         "Procedure": ProcedureOccurrence,
     }
+    output_cols = [
+        "BIOBANK",
+        "CODE",
+        "COUNT",
+        "DESCRIPTION",
+        "MIN",
+        "Q1",
+        "MEDIAN",
+        "MEAN",
+        "Q3",
+        "MAX",
+        "ALTERNATIVES",
+        "DATASET",
+        "OMOP",
+        "OMOP_DESCR",
+        "CATEGORY"
+    ]
 
     def __init__(self, db_manager: SyncDBManager, query: DistributionQuery) -> None:
         self.db_manager = db_manager
@@ -222,5 +239,10 @@ class CodeDistributionQueryBuilder:
         concepts_df = pd.read_sql_query(concept_query, con=self.db_manager.engine)
 
         # Pre-populate the results table with concept IDs, descriptions and domains
+        df = pd.DataFrame(columns=self.output_cols)
+        df["OMOP"] = concepts_df["concept_id"].copy()
+        df["OMOP_DESCR"] = concepts_df["concept_name"].copy()
+        df["CATEGORY"] = concepts_df["domain_id"].copy()
+        df["CODE"] = concepts_df["concept_id"].apply(lambda x: f"OMOP:{x}")
 
         # Get the counts for each concept ID
