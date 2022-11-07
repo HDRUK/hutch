@@ -39,6 +39,14 @@ public class QueryTranslator
         Name = "groupOperator",
         Value = job.Query.Combinator
       });
+
+      //Add query type
+      graphs.Add(new ROCratesQuery.ROCratesGraph
+      {
+        Type = "PropertyValue",
+        Name = "query_type",
+        Value = "RQuestAvailability"
+      });
       
       foreach (var group in job.Query.Groups)
       {
@@ -133,6 +141,14 @@ public class QueryTranslator
         Type = "PropertyValue",
         Name = "analysis",
         Value = job.Analysis
+      });
+
+      //Add query type
+      graphs.Add(new ROCratesQuery.ROCratesGraph
+      {
+        Type = "PropertyValue",
+        Name = "query_type",
+        Value = "RQuestDistribution"
       });
       
       // Add the graph to the query
