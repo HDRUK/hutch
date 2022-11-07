@@ -1,3 +1,4 @@
+import os
 import dotenv
 import pandas as pd
 from sqlalchemy import (
@@ -268,5 +269,9 @@ class CodeDistributionQueryBuilder:
         df["COUNT"] = counts
 
         # Convert df to tab separated string
-            
+        results = list(["\t".join(df.columns)])
+        for _, row in df.iterrows():
+            results.append("\t".join(row))
+        
+        return os.linesep.join(results)
 
