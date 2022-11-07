@@ -14,7 +14,7 @@ from hutchagent.entities import (
     DrugExposure,
     ProcedureOccurrence,
 )
-from hutchagent.ro_crates.query import AvailabilityQuery
+from hutchagent.ro_crates.query import AvailabilityQuery, DistributionQuery
 
 dotenv.load_dotenv()
 
@@ -193,4 +193,34 @@ class AvailibilityQueryBuilder:
 
 
 class CodeDistributionQueryBuilder:
-    pass
+    allowed_domains = {
+        "Condition": ConditionOccurrence,
+        "Ethnicity": Person,
+        "Drug": DrugExposure,
+        "Gender": Person,
+        "Race": Person,
+        "Measurement": Measurement,
+        "Observation": Observation,
+        "Procedure": ProcedureOccurrence,
+    }
+
+    def __init__(self, db_manager: SyncDBManager, query: DistributionQuery) -> None:
+        self.db_manager = db_manager
+        self.query = query
+
+    def solve_query(self) -> str:
+        """Build the table for the code distribution query and return as a string.
+
+        Returns:
+            str: the code distribution table as a string.
+        """
+        # Get concepts and descriptions
+        concept_query = (
+            select([Concept.concept_id, Concept.concept_name, Concept.domain_id])
+            .where(Concept.domain_id.in_(self.allowed_domains.keys()))
+        )
+        concepts_df = pd.read_sql_query(concept_query, con=self.db_manager.engine)
+
+        # Pre-populate the results table with concept IDs, descriptions and domains
+
+        # Get the counts for each concept ID
