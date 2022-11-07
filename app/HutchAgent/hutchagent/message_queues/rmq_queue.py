@@ -6,15 +6,14 @@ import pika
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
-import requests, requests.exceptions as req_exc
 from sqlalchemy import exc as sql_exc
 import hutchagent.config as config
 from hutchagent.ro_crates.result import AvailabilityResult
 from hutchagent.ro_crates.query import AvailabilityQuery
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query_builders import AvailibilityQueryBuilder
-
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
+from hutchagent.message_queues.helpers import send_to_manager
 
 
 def connect(queue: str, host, **kwargs) -> BlockingChannel:
@@ -128,16 +127,4 @@ def ro_crates_callback(
             count=0,
         )
 
-    try:
-        requests.post(
-            f"{os.getenv('MANAGER_URL')}/api/results",
-            json=result.to_dict(),
-            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
-        )
-        logger.info("Sent results to manager.")
-    except req_exc.ConnectionError as connection_error:
-        logger.error(str(connection_error))
-    except req_exc.Timeout as timeout_error:
-        logger.error(str(timeout_error))
-    except req_exc.MissingSchema as missing_schema_error:
-        logger.error(str(missing_schema_error))
+    send_to_manager(result=result, endpoint="api/results")
