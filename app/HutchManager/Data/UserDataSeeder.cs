@@ -36,14 +36,15 @@ or the environment variable DOTNET_Hosted_AdminPassword");
             }
 
             // Add the user if they don't exist, else update them,
-            var superAdmin = await users.FindByEmailAsync(config["Root:EmailAddress"]);
+            var email = config["Root:EmailAddress"] ?? "admin@local"; //use 'admin@local' as email if Root:EmailAddress id not configured
+            var superAdmin = await users.FindByEmailAsync(email);
             if (superAdmin is null)
             {
                 var user = new ApplicationUser
                 {
                     UserName = username,
                     FullName = "Super Admin",
-                    Email = config["Root:EmailAddress"],
+                    Email = email,
                     EmailConfirmed = true
                 };
 
