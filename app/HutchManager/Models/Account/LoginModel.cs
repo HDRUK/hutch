@@ -5,7 +5,7 @@ namespace HutchManager.Models.Account;
 
 public record LoginModel(
   [Required]
-  [Username]
+  [UsernameOrEmail]
   string Username,
 
   [Required]
@@ -14,10 +14,11 @@ public record LoginModel(
 );
 
 /// <summary>
-/// Custom validation attributes to allow valid email and
+/// Custom validation attribute (UsernameOrEmailAttribute) to allow log in
+/// for valid email and
 /// username (DECSYS style "@admin" usernames)
 /// </summary>
-public class UsernameAttribute : ValidationAttribute 
+public class UsernameOrEmailAttribute : ValidationAttribute 
 {
   protected override ValidationResult? IsValid(
     object? value, ValidationContext validationContext)
