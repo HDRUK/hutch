@@ -3,6 +3,7 @@ import pandas as pd
 from sqlalchemy import (
     and_,
     select,
+    func,
 )
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.entities import (
@@ -193,7 +194,7 @@ class AvailibilityQueryBuilder:
 
 
 class CodeDistributionQueryBuilder:
-    allowed_domains = {
+    allowed_domains_map = {
         "Condition": ConditionOccurrence,
         "Ethnicity": Person,
         "Drug": DrugExposure,
@@ -202,6 +203,16 @@ class CodeDistributionQueryBuilder:
         "Measurement": Measurement,
         "Observation": Observation,
         "Procedure": ProcedureOccurrence,
+    }
+    domain_concept_id_map = {
+        "Condition": ConditionOccurrence.condition_concept_id,
+        "Ethnicity": Person.ethnicity_concept_id,
+        "Drug": DrugExposure.drug_concept_id,
+        "Gender": Person.gender_concept_id,
+        "Race": Person.race_concept_id,
+        "Measurement": Measurement.measurement_concept_id,
+        "Observation": Observation.observation_concept_id,
+        "Procedure": ProcedureOccurrence.procedure_concept_id,
     }
     output_cols = [
         "BIOBANK",
@@ -234,7 +245,7 @@ class CodeDistributionQueryBuilder:
         # Get concepts and descriptions
         concept_query = (
             select([Concept.concept_id, Concept.concept_name, Concept.domain_id])
-            .where(Concept.domain_id.in_(self.allowed_domains.keys()))
+            .where(Concept.domain_id.in_(self.allowed_domains_map.keys()))
         )
         concepts_df = pd.read_sql_query(concept_query, con=self.db_manager.engine)
 
@@ -246,3 +257,16 @@ class CodeDistributionQueryBuilder:
         df["CODE"] = concepts_df["concept_id"].apply(lambda x: f"OMOP:{x}")
 
         # Get the counts for each concept ID
+        counts = list()
+        for _, row in df.iterrows():
+            table = self.allowed_domains_map.get(row["CATEGORY"])
+            concept_col = self.domain_concept_id_map.get(row["CATEGORY"])
+            stmnt = select(func.count(table.person_id)).where(concept_col == row["OMOP"])
+            res = self.db_manager.execute_and_fetch(stmnt)
+            counts.append(res[0][0])
+
+        df["COUNT"] = counts
+
+        # Convert df to tab separated string
+            
+
