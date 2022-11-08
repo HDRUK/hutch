@@ -70,7 +70,7 @@ class AvailabilityQuery:
                 job_id = g.get("value")
             elif g.get("name") == "activity_source_id":
                 activity_source_id = g.get("value")
-            else:
+            elif g.get("name") == "group":
                 groups.append(Group.from_dict(g))
 
         return cls(

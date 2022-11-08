@@ -65,7 +65,6 @@ def ro_crates_callback(
         # Can't get query type
         else:
             raise json.decoder.JSONDecodeError
-        query = AvailabilityQuery.from_dict(body_json)
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
