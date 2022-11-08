@@ -59,6 +59,7 @@ public class SmtpEmailSender : IEmailSender
       await _smtpClient.ConnectAsync(_config.SmtpHost, _config.SmtpPort,
         secureSocketOption[_config.SmtpSecureSocketEnum]);
       await _smtpClient.AuthenticateAsync(_config.SmtpUsername, _config.SmtpPassword);
+      await _smtpClient.SendAsync(message);
 
     }
     catch (Exception ex)
