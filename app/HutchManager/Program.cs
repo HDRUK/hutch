@@ -95,10 +95,14 @@ using (var scope = app.Services.CreateScope())
   var db = scope.ServiceProvider
     .GetRequiredService<ApplicationDbContext>();
 
-  var seeder = new DataSeeder(db);
+  var dataSeeder = new DataSeeder(db);
 
-  await seeder.SeedSourceTypes();
-  await seeder.SeedModifierTypes();
+  await dataSeeder.SeedSourceTypes();
+  await dataSeeder.SeedModifierTypes();
+
+  await UserDataSeeder.Seed(scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
+    scope.ServiceProvider.GetRequiredService<IPasswordHasher<ApplicationUser>>(),
+    scope.ServiceProvider.GetRequiredService<IConfiguration>());
 }
 
 #region Configure Pipeline
