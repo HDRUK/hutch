@@ -1,19 +1,13 @@
 import json
 import logging
-import os
-import time
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
-from sqlalchemy import exc as sql_exc
 import hutchagent.config as config
-from hutchagent.ro_crates.result import AvailabilityResult
-from hutchagent.ro_crates.query import AvailabilityQuery
-from hutchagent.db_manager import SyncDBManager
-from hutchagent.query_builders import AvailibilityQueryBuilder
-from hutchagent.obfuscation import get_results_modifiers, apply_filters
+from hutchagent.ro_crates.query import AvailabilityQuery, DistributionQuery
 from hutchagent.message_queues.helpers import send_to_manager
+from hutchagent.message_queues.rquest_solvers import solve_availability, solve_distribution
 
 
 def connect(queue: str, host, **kwargs) -> BlockingChannel:
@@ -59,72 +53,32 @@ def ro_crates_callback(
     """
     logger = logging.getLogger(config.LOGGER_NAME)
     logger.info("Received message from the Queue. Processing...")
+
+    # Try to find the query type
+    query_type = None
     try:
         body_json = json.loads(body)
+        for g in body_json.get("@graph", list()):
+            if g.get("name") == "query_type":
+                query_type = g.get("value")
+                break
+        # Can't get query type
+        else:
+            raise json.decoder.JSONDecodeError
         query = AvailabilityQuery.from_dict(body_json)
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
+        return  # exit the callback
 
-    datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
-    db_manager = SyncDBManager(
-        username=os.getenv("DATASOURCE_DB_USERNAME"),
-        password=os.getenv("DATASOURCE_DB_PASSWORD"),
-        host=os.getenv("DATASOURCE_DB_HOST"),
-        port=int(datasource_db_port) if datasource_db_port is not None else None,
-        database=os.getenv("DATASOURCE_DB_DATABASE"),
-        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
-        schema=os.getenv("DATASOURCE_DB_SCHEMA"),
-    )
-    query_builder = AvailibilityQueryBuilder(db_manager, query)
-    try:
-        query_start = time.time()
-        query_builder.solve_rules()
-        res = query_builder.solve_groups()
-        query_end = time.time()
-        count_ = res
-        result_modifiers = get_results_modifiers(query.activity_source_id)
-        count_ = apply_filters(count_, result_modifiers)
-        logger.info(
-            f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
-        )
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
-            status="ok",
-            count=count_,
-        )
-    except sql_exc.NoSuchTableError as table_error:
-        logger.error(str(table_error))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
-            status="error",
-            count=0,
-        )
-    except sql_exc.NoSuchColumnError as column_error:
-        logger.error(str(column_error))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
-            status="error",
-            count=0,
-        )
-    except sql_exc.ProgrammingError as programming_error:
-        logger.error(str(programming_error))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
-            status="error",
-            count=0,
-        )
-    except Exception as e:
-        logger.error(str(e))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
-            status="error",
-            count=0,
-        )
+    if query_type == "RQuestAvailability":
+        query = AvailabilityQuery.from_dict(body_json)
+        result = solve_availability(query)
+    elif query_type == "RQuestDistribution":
+        query = DistributionQuery.from_dict(body_json)
+        result = solve_distribution(query)
+    else:
+        logger.error(f"Unsupported query type: '{query_type}'.")
+        return  # exit the callback
 
     send_to_manager(result=result, endpoint="api/results")
