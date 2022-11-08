@@ -21,7 +21,7 @@ class File:
 
     def to_dict(self) -> dict:
         return {
-            "@context": self.context,
+            "@context": "https://w3id.org/ro/crate/1.1/context",
             "@graph": [
                 PropertyValue(
                     context="https://schema.org",
