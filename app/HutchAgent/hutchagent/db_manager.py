@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, pool
 from sqlalchemy.engine import URL
 
 
@@ -66,6 +66,14 @@ class BaseDBManager:
         """
         raise NotImplementedError
 
+    def dispose(self) -> None:
+        """Dispose of the engine's connection pool.
+
+        Raises:
+            NotImplementedError: Raised when this method has not been implemented in subclass.
+        """
+        raise NotImplementedError
+
 
 class SyncDBManager(BaseDBManager):
     def __init__(
@@ -91,10 +99,12 @@ class SyncDBManager(BaseDBManager):
             self.engine = create_engine(
                 url=url,
                 connect_args={"options": "-csearch_path={}".format(schema)},
+                poolclass=pool.QueuePool,
             )
         else:
             self.engine = create_engine(
                 url=url,
+                poolclass=pool.QueuePool,
             )
 
         self.inspector = inspect(self.engine)
@@ -103,15 +113,14 @@ class SyncDBManager(BaseDBManager):
         with self.engine.begin() as conn:
             result = conn.execute(statement=stmnt)
             rows = result.all()
-        # Need to call `dispose` - not automatic
-        self.engine.dispose()
         return rows
 
     def execute(self, stmnt: Any) -> None:
         with self.engine.begin() as conn:
             conn.execute(statement=stmnt)
-        # Need to call `dispose` - not automatic
-        self.engine.dispose()
 
     def list_tables(self) -> list:
         return self.inspector.get_table_names()
+
+    def dispose(self) -> None:
+        self.engine.dispose()
