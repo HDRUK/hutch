@@ -17,8 +17,10 @@ namespace HutchManager.Extensions
       var emailProvider = c["OutboundEmail:Provider"] ?? string.Empty;
 
       var useSendGrid = emailProvider.Equals("sendgrid", StringComparison.InvariantCultureIgnoreCase);
+      var useSmtp = emailProvider.Equals("smtp", StringComparison.InvariantCultureIgnoreCase);
 
       if (useSendGrid) s.Configure<SendGridOptions>(c.GetSection("OutboundEmail"));
+      else if (useSmtp) s.Configure<SmtpOptions>(c.GetSection("OutboundEmail"));
       else s.Configure<LocalDiskEmailOptions>(c.GetSection("OutboundEmail"));
 
       s
@@ -28,6 +30,7 @@ namespace HutchManager.Extensions
               .TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
       if (useSendGrid) s.AddTransient<IEmailSender, SendGridEmailSender>();
+      else if (useSmtp) s.AddTransient<IEmailSender, SmtpEmailSender>();
       else s.AddTransient<IEmailSender, LocalDiskEmailSender>();
 
       return s;

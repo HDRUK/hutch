@@ -26,6 +26,23 @@ OutboundEmail:
   # If Provider == "sendgrid"
   SendGridApiKey: ""
 
+  # If Provider == "smtp"
+  SmtpHost: "" # SMTP host name
+  SmtpPort:    # SMTP port
+  SmtpUsername: "" # SMTP username
+  SmtpPassword: "" # SMTP password
+  SmtpSecureSocketEnum: # for example, assign 2 to implement SslOnConnect
+  # Secure socket options
+  # 1 - Auto
+  # 2 - SslOnConnect
+  # 3 - StartTls
+  # 4 - StartTlsWhenAvailable
+
+  # More information can be found here
+  # http://www.mimekit.net/docs/html/T_MailKit_Security_SecureSocketOptions.htm
+
+  
+
 ActivitySourcePolling:
   PollingInterval: 5 # set to a negative value will disable polling altogether
 
