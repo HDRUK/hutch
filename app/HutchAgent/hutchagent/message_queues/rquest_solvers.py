@@ -111,10 +111,8 @@ def solve_distribution(query: DistributionQuery) -> DistributionResult:
     query_builder = CodeDistributionQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
-        res = query_builder.solve_query()
+        res, count_ = query_builder.solve_query()
         query_end = time.time()
-        result_modifiers = get_results_modifiers(query.activity_source_id)
-        count_ = apply_filters(count_, result_modifiers)
         logger.info(
             f"Collected results from query in {(query_end - query_start):.3f}s."
         )
