@@ -243,35 +243,43 @@ class CodeDistributionQueryBuilder:
         Returns:
             str: the code distribution table as a string.
         """
-        # Get concepts and descriptions
-        concept_query = (
-            select([Concept.concept_id, Concept.concept_name, Concept.domain_id])
-            .where(Concept.domain_id.in_(self.allowed_domains_map.keys()))
-        )
-        concepts_df = pd.read_sql_query(concept_query, con=self.db_manager.engine)
-
-        # Pre-populate the results table with concept IDs, descriptions and domains
+        # Prepare the empty results data frame
         df = pd.DataFrame(columns=self.output_cols)
-        df["OMOP"] = concepts_df["concept_id"].copy()
-        df["OMOP_DESCR"] = concepts_df["concept_name"].copy()
-        df["CATEGORY"] = concepts_df["domain_id"].copy()
-        df["CODE"] = concepts_df["concept_id"].apply(lambda x: f"OMOP:{x}")
 
         # Get the counts for each concept ID
         counts = list()
-        for _, row in df.iterrows():
-            table = self.allowed_domains_map.get(row["CATEGORY"])
-            concept_col = self.domain_concept_id_map.get(row["CATEGORY"])
-            stmnt = select(func.count(table.person_id)).where(concept_col == row["OMOP"])
-            res = self.db_manager.execute_and_fetch(stmnt)
-            counts.append(res[0][0])
+        concepts = list()
+        categories = list()
+        for k in self.allowed_domains_map:
+            table = self.allowed_domains_map[k]
+            concept_col = self.domain_concept_id_map[k]
+            stmnt = (
+                select([func.count(table.person_id), concept_col])
+                .group_by(concept_col)
+            )
+            res = pd.read_sql(stmnt, self.db_manager.engine)
+            counts.extend(res.iloc[:, 0])
+            concepts.extend(res.iloc[:, 1])
+            categories.extend([k] * len(res))
 
         df["COUNT"] = counts
+        df["OMOP"] = concepts
+        df["CATEGORY"] = categories
+        df["CODE"] = df["OMOP"].apply(lambda x: f"OMOP:{x}")
+
+        # Get descriptions
+        concept_query = (
+            select([Concept.concept_id, Concept.concept_name])
+            .where(Concept.concept_id.in_(concepts))
+        )
+        concepts_df = pd.read_sql_query(concept_query, con=self.db_manager.engine)
+        for _, row in concepts_df.iterrows():
+            df.loc[df["OMOP"] == row["concept_id"], "OMOP_DESCR"] = row["concept_name"]
 
         # Convert df to tab separated string
         results = list(["\t".join(df.columns)])
         for _, row in df.iterrows():
-            results.append("\t".join(row))
+            results.append("\t".join([str(r) for r in row.values]))
         
         return os.linesep.join(results)
 
