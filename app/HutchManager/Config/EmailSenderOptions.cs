@@ -26,8 +26,8 @@ namespace HutchManager.Config
   public record SmtpOptions : BaseEmailSenderOptions
   {
     public string SmtpHost { get; init; } = string.Empty;
-    public int SmtpPort { get; init; } = 0;
-    public int SmtpSecureSocketEnum { get; init; } = 1; // 1 - Auto
+    public int SmtpPort { get; init; }
+    public int SmtpSecureSocketEnum { get; init; }
     
     public string SmtpUsername { get; init; } = string.Empty;
     public string SmtpPassword { get; init; } = string.Empty;
