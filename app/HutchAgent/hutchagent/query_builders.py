@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 import dotenv
 import pandas as pd
 from sqlalchemy import (
@@ -237,11 +238,12 @@ class CodeDistributionQueryBuilder:
         self.db_manager = db_manager
         self.query = query
 
-    def solve_query(self) -> str:
-        """Build the table for the code distribution query and return as a string.
+    def solve_query(self) -> Tuple[str, int]:
+        """Build table of distribution query and return as a TAB separated string
+        along with the number of rows.
 
         Returns:
-            str: the code distribution table as a string.
+            Tuple[str, int]: The table as a string and the number of rows.
         """
         # Prepare the empty results data frame
         df = pd.DataFrame(columns=self.output_cols)
@@ -281,5 +283,5 @@ class CodeDistributionQueryBuilder:
         for _, row in df.iterrows():
             results.append("\t".join([str(r) for r in row.values]))
         
-        return os.linesep.join(results)
+        return os.linesep.join(results), len(df)
 
