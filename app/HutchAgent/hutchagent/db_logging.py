@@ -72,9 +72,6 @@ class SyncLogDBHandler(Handler):
             self.db_manager.execute(log_stmnt)
         except Exception as e:
             self.backup_logger.error(str(e))
-        
-        # close db connection
-        self.db_manager.dispose()
 
 
 def create_log_table():

@@ -92,9 +92,6 @@ def az_queue_callback(msg: Union[str, bytes]):
             count=0,
         )
 
-    # close db connection
-    db_manager.dispose()
-
     try:
         requests.post(
             f"{os.getenv('MANAGER_URL')}/api/results",
