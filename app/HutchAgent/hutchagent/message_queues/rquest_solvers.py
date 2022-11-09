@@ -83,6 +83,9 @@ def solve_availability(query: AvailabilityQuery) -> AvailabilityResult:
             count=0,
         )
 
+    # close db connection
+    db_manager.dispose()
+
     return result
 
 
@@ -207,4 +210,7 @@ def solve_distribution(query: DistributionQuery) -> DistributionResult:
             ),
         )
 
+    # close db connection
+    db_manager.dispose()
+    
     return result
