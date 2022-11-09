@@ -1,6 +1,5 @@
 import json
 from typing import List
-from sqlalchemy import and_, or_
 
 from hutchagent.rquest.operator import Operator
 from hutchagent.rquest.rule import Rule
