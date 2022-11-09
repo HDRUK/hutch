@@ -1,7 +1,7 @@
 import json
 from typing import List
-from hutchagent.ro_crates.group import Group
-from hutchagent.ro_crates.operator import Operator
+from hutchagent.rquest.group import Group
+from hutchagent.rquest.operator import Operator
 from hutchagent.ro_crates.property_value import PropertyValue
 
 

@@ -3,7 +3,7 @@ import os
 from typing import Union
 import requests, requests.exceptions as req_exc
 import hutchagent.config as config
-from hutchagent.ro_crates.result import AvailabilityResult, DistributionResult
+from hutchagent.rquest.result import AvailabilityResult, DistributionResult
 
 
 def send_to_manager(

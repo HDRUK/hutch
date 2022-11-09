@@ -1,9 +1,9 @@
 import pytest
-from hutchagent.ro_crates.group import Group
-from hutchagent.ro_crates.operator import Operator
-from hutchagent.ro_crates.query import AvailabilityQuery
-from hutchagent.ro_crates.result import AvailabilityResult
-from hutchagent.ro_crates.rule import Rule
+from hutchagent.rquest.group import Group
+from hutchagent.rquest.operator import Operator
+from hutchagent.rquest.query import AvailabilityQuery
+from hutchagent.rquest.result import AvailabilityResult
+from hutchagent.rquest.rule import Rule
 
 ACTIVITY_SOURCE_ID_DICT = {
     "@context": "https://schema.org",

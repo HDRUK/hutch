@@ -2,15 +2,15 @@ import base64
 import logging
 import os
 import time
-from hutchagent.ro_crates.file import File
+from hutchagent.rquest.file import File
 from hutchagent.ro_crates.item_list import ItemList
 from sqlalchemy import exc as sql_exc
 import hutchagent.config as config
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
 from hutchagent.query_builders import AvailibilityQueryBuilder, CodeDistributionQueryBuilder
-from hutchagent.ro_crates.query import AvailabilityQuery, DistributionQuery
-from hutchagent.ro_crates.result import AvailabilityResult, DistributionResult
+from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
+from hutchagent.rquest.result import AvailabilityResult, DistributionResult
 
 def solve_availability(query: AvailabilityQuery) -> AvailabilityResult:
     """_summary_

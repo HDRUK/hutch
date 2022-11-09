@@ -17,7 +17,7 @@ from hutchagent.entities import (
     DrugExposure,
     ProcedureOccurrence,
 )
-from hutchagent.ro_crates.query import AvailabilityQuery, DistributionQuery
+from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
 
 dotenv.load_dotenv()
 

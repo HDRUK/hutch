@@ -2,8 +2,8 @@ import json
 from typing import List
 from sqlalchemy import and_, or_
 
-from hutchagent.ro_crates.operator import Operator
-from hutchagent.ro_crates.rule import Rule
+from hutchagent.rquest.operator import Operator
+from hutchagent.rquest.rule import Rule
 from hutchagent.ro_crates.thing import Thing
 
 

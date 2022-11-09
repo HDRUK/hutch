@@ -6,8 +6,8 @@ import requests, requests.exceptions as req_exc
 import hutchagent.config as config
 from typing import Union
 from sqlalchemy import exc as sql_exc
-from hutchagent.ro_crates.result import AvailabilityResult
-from hutchagent.ro_crates.query import AvailabilityQuery
+from hutchagent.rquest.result import AvailabilityResult
+from hutchagent.rquest.query import AvailabilityQuery
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.query_builders import AvailibilityQueryBuilder
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
