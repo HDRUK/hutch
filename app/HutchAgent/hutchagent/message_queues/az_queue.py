@@ -6,10 +6,10 @@ import requests, requests.exceptions as req_exc
 import hutchagent.config as config
 from typing import Union
 from sqlalchemy import exc as sql_exc
-from hutchagent.ro_crates.result import Result
-from hutchagent.ro_crates.query import Query
+from hutchagent.rquest.result import AvailabilityResult
+from hutchagent.rquest.query import AvailabilityQuery
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.query_builders import ROCratesQueryBuilder
+from hutchagent.query_builders import AvailibilityQueryBuilder
 from hutchagent.obfuscation import get_results_modifiers, apply_filters
 
 
@@ -26,7 +26,7 @@ def az_queue_callback(msg: Union[str, bytes]):
     logger.info("Received message from the Queue. Processing...")
     try:
         body_json = json.loads(msg)
-        query = Query.from_dict(body_json)
+        query = AvailabilityQuery.from_dict(body_json)
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
@@ -41,7 +41,7 @@ def az_queue_callback(msg: Union[str, bytes]):
         drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
         schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
-    query_builder = ROCratesQueryBuilder(db_manager, query)
+    query_builder = AvailibilityQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
         query_builder.solve_rules()
@@ -53,7 +53,7 @@ def az_queue_callback(msg: Union[str, bytes]):
         logger.info(
             f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
         )
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="ok",
@@ -61,7 +61,7 @@ def az_queue_callback(msg: Union[str, bytes]):
         )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",
@@ -69,7 +69,7 @@ def az_queue_callback(msg: Union[str, bytes]):
         )
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(str(column_error))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",
@@ -77,7 +77,7 @@ def az_queue_callback(msg: Union[str, bytes]):
         )
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",
@@ -85,7 +85,7 @@ def az_queue_callback(msg: Union[str, bytes]):
         )
     except Exception as e:
         logger.error(str(e))
-        result = Result(
+        result = AvailabilityResult(
             activity_source_id=query.activity_source_id,
             job_id=query.job_id,
             status="error",

@@ -1,9 +1,8 @@
 import json
 from typing import List
-from sqlalchemy import and_, or_
 
-from hutchagent.ro_crates.operator import Operator
-from hutchagent.ro_crates.rule import Rule
+from hutchagent.rquest.operator import Operator
+from hutchagent.rquest.rule import Rule
 from hutchagent.ro_crates.thing import Thing
 
 
@@ -68,12 +67,6 @@ class Group(Thing):
             rules=rules,
             rule_operator=operator,
         )
-
-    @property
-    def sql_clause(self):
-        if self.rule_operator.value == "AND":
-            return and_(*[rule.sql_clause for rule in self.rules])
-        return or_(*[rule.sql_clause for rule in self.rules])
 
     def __str__(self) -> str:
         """`Group` as a JSON string.

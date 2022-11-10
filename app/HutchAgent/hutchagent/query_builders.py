@@ -1,8 +1,11 @@
+import os
+from typing import Tuple
 import dotenv
 import pandas as pd
 from sqlalchemy import (
     and_,
     select,
+    func,
 )
 from hutchagent.db_manager import SyncDBManager
 from hutchagent.entities import (
@@ -14,12 +17,12 @@ from hutchagent.entities import (
     DrugExposure,
     ProcedureOccurrence,
 )
-from hutchagent.ro_crates.query import Query
+from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
 
 dotenv.load_dotenv()
 
 
-class ROCratesQueryBuilder:
+class AvailibilityQueryBuilder:
     subqueries = list()
     concept_table_map = {
         "Condition": ConditionOccurrence,
@@ -56,7 +59,7 @@ class ROCratesQueryBuilder:
         "Procedure": ProcedureOccurrence.procedure_concept_id,
     }
 
-    def __init__(self, db_manager: SyncDBManager, query: Query) -> None:
+    def __init__(self, db_manager: SyncDBManager, query: AvailabilityQuery) -> None:
         self.db_manager = db_manager
         self.query = query
 
@@ -190,3 +193,95 @@ class ROCratesQueryBuilder:
             )
         self.subqueries.clear()
         return group0_df.shape[0]  # the number of rows
+
+
+class CodeDistributionQueryBuilder:
+    allowed_domains_map = {
+        "Condition": ConditionOccurrence,
+        "Ethnicity": Person,
+        "Drug": DrugExposure,
+        "Gender": Person,
+        "Race": Person,
+        "Measurement": Measurement,
+        "Observation": Observation,
+        "Procedure": ProcedureOccurrence,
+    }
+    domain_concept_id_map = {
+        "Condition": ConditionOccurrence.condition_concept_id,
+        "Ethnicity": Person.ethnicity_concept_id,
+        "Drug": DrugExposure.drug_concept_id,
+        "Gender": Person.gender_concept_id,
+        "Race": Person.race_concept_id,
+        "Measurement": Measurement.measurement_concept_id,
+        "Observation": Observation.observation_concept_id,
+        "Procedure": ProcedureOccurrence.procedure_concept_id,
+    }
+    output_cols = [
+        "BIOBANK",
+        "CODE",
+        "COUNT",
+        "DESCRIPTION",
+        "MIN",
+        "Q1",
+        "MEDIAN",
+        "MEAN",
+        "Q3",
+        "MAX",
+        "ALTERNATIVES",
+        "DATASET",
+        "OMOP",
+        "OMOP_DESCR",
+        "CATEGORY"
+    ]
+
+    def __init__(self, db_manager: SyncDBManager, query: DistributionQuery) -> None:
+        self.db_manager = db_manager
+        self.query = query
+
+    def solve_query(self) -> Tuple[str, int]:
+        """Build table of distribution query and return as a TAB separated string
+        along with the number of rows.
+
+        Returns:
+            Tuple[str, int]: The table as a string and the number of rows.
+        """
+        # Prepare the empty results data frame
+        df = pd.DataFrame(columns=self.output_cols)
+
+        # Get the counts for each concept ID
+        counts = list()
+        concepts = list()
+        categories = list()
+        for k in self.allowed_domains_map:
+            table = self.allowed_domains_map[k]
+            concept_col = self.domain_concept_id_map[k]
+            stmnt = (
+                select([func.count(table.person_id), concept_col])
+                .group_by(concept_col)
+            )
+            res = pd.read_sql(stmnt, self.db_manager.engine)
+            counts.extend(res.iloc[:, 0])
+            concepts.extend(res.iloc[:, 1])
+            categories.extend([k] * len(res))
+
+        df["COUNT"] = counts
+        df["OMOP"] = concepts
+        df["CATEGORY"] = categories
+        df["CODE"] = df["OMOP"].apply(lambda x: f"OMOP:{x}")
+
+        # Get descriptions
+        concept_query = (
+            select([Concept.concept_id, Concept.concept_name])
+            .where(Concept.concept_id.in_(concepts))
+        )
+        concepts_df = pd.read_sql_query(concept_query, con=self.db_manager.engine)
+        for _, row in concepts_df.iterrows():
+            df.loc[df["OMOP"] == row["concept_id"], "OMOP_DESCR"] = row["concept_name"]
+
+        # Convert df to tab separated string
+        results = list(["\t".join(df.columns)])
+        for _, row in df.iterrows():
+            results.append("\t".join([str(r) for r in row.values]))
+        
+        return os.linesep.join(results), len(df)
+
