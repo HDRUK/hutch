@@ -63,7 +63,7 @@ export const Register = () => {
       setFeedback({
         status: "success",
         message: t("register.feedback.success"),
-        confirmationRequired: response.status == 202, // True if email confirmation required else False
+        confirmationRequired: response.status === 202, // True if email confirmation required else False
       });
 
       // when we reset, untouch fields so that clicking away from an input
