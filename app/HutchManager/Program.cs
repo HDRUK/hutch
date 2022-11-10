@@ -57,7 +57,7 @@ b.Services
 // Identity
 b.Services
   .AddIdentity<ApplicationUser, IdentityRole>(
-    o => o.SignIn.RequireConfirmedEmail = true)
+    o => o.SignIn.RequireConfirmedEmail = b.Configuration.GetValue<bool>("UserAccounts:RequireConfirmedEmail")) // default is false
   .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>()
   .AddEntityFrameworkStores<ApplicationDbContext>()
   .AddDefaultTokenProviders();
