@@ -48,8 +48,9 @@ public class ResultsTranslator
       {
         switch (graph.Name)
         {
-          case "collection_id":
-            rquestQueryResult.CollectionId = graph.Value;
+          case "activity_source_id":
+            int activitySourceId = Int32.Parse(graph.Value);
+            rquestQueryResult.ActivitySourceId = activitySourceId;
             break;
           case "status":
             rquestQueryResult.Status = graph.Value;

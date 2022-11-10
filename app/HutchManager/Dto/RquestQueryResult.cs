@@ -52,8 +52,8 @@ namespace HutchManager.Dto
       /// <summary>
       /// The unique ID for the collection the query is run against.
       /// </summary>
-      [JsonPropertyName("collection_id")]
-      public string CollectionId { get; set; } = string.Empty;
+      [JsonPropertyName("activity_source_id")]
+      public int ActivitySourceId { get; set; }
 
       [JsonPropertyName("message")] 
       public string? Message { get; set; } = null;
