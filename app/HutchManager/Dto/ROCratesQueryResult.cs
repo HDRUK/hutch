@@ -27,3 +27,18 @@ public class ROCratesGraph
   public string Value { get; set; } = string.Empty;
 
 }
+
+public class ItemList
+{
+  [JsonPropertyName("@context")]
+  public string Context { get; set; } = "https://schema.org";
+    
+  [JsonPropertyName("@type")]
+  public string Type { get; set; } = string.Empty;
+  
+  [JsonPropertyName("numberOfItems")]
+  public int? NumberOfItems { get; set;}
+  
+  [JsonPropertyName("itemListElement")] 
+  public IEnumerable<ROCratesGraph> ItemListElement { get; set;} = null!;
+}
