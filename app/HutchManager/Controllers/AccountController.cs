@@ -61,8 +61,10 @@ public class AccountController : ControllerBase
       var result = await _users.CreateAsync(user, model.Password);
       if (result.Succeeded)
       {
-        if(_users.Options.SignIn.RequireConfirmedEmail) await _tokens.SendAccountConfirmation(user); // only send confirmation if Email confirmation required is true 
-        return NoContent();
+        if (!_users.Options.SignIn.RequireConfirmedEmail) return NoContent(); // 204 status
+        
+        await _tokens.SendAccountConfirmation(user); // If email confirmation required is true, then only send confirmation 
+        return Accepted(); // 202 status 
       }
 
       foreach (var e in result.Errors)

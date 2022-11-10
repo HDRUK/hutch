@@ -58,11 +58,12 @@ export const Register = () => {
     if (document?.activeElement) document.activeElement.blur();
 
     try {
-      await register(values);
+      const response = await register(values);
 
       setFeedback({
         status: "success",
         message: t("register.feedback.success"),
+        confirmationRequired: response.status == 202, // True if email confirmation required else False
       });
 
       // when we reset, untouch fields so that clicking away from an input
@@ -117,7 +118,7 @@ export const Register = () => {
             {feedback.message}
           </Alert>
         )}
-        {feedback?.status === "success" && (
+        {feedback?.confirmationRequired && (
           <TitledAlert title={t("register.feedback.confirm_title")}>
             {t("register.feedback.confirm_message")}
           </TitledAlert>
