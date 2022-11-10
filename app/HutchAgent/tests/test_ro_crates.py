@@ -1,9 +1,9 @@
 import pytest
-from hutchagent.ro_crates.group import Group
-from hutchagent.ro_crates.operator import Operator
-from hutchagent.ro_crates.query import Query
-from hutchagent.ro_crates.result import Result
-from hutchagent.ro_crates.rule import Rule
+from hutchagent.rquest.group import Group
+from hutchagent.rquest.operator import Operator
+from hutchagent.rquest.query import AvailabilityQuery
+from hutchagent.rquest.result import AvailabilityResult
+from hutchagent.rquest.rule import Rule
 
 ACTIVITY_SOURCE_ID_DICT = {
     "@context": "https://schema.org",
@@ -83,7 +83,7 @@ def test_group():
 
 
 def test_query():
-    query = Query.from_dict(QUERY_DICT)
+    query = AvailabilityQuery.from_dict(QUERY_DICT)
     for g in query.groups:
         assert isinstance(g, Group)
     assert isinstance(query.group_operator, Operator)
@@ -93,7 +93,7 @@ def test_query():
 
 
 def test_result():
-    result = Result(
+    result = AvailabilityResult(
         activity_source_id="fake_activity_source",
         job_id="fake_job_id",
         status="ok",

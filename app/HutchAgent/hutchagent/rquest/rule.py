@@ -1,7 +1,7 @@
 import json
 from typing import Any, Union
 
-from hutchagent.ro_crates.operator import Operator
+from hutchagent.rquest.operator import Operator
 from hutchagent.ro_crates.thing import Thing
 
 
