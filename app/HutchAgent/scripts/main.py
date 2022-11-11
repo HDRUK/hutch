@@ -66,11 +66,7 @@ def main():
         )
         channel.basic_consume(
             os.getenv("DATASOURCE_NAME"),
-            on_message_callback=(
-                rmq.ro_crates_callback
-                if int(os.getenv("USE_RO_CRATES", 0))
-                else rmq.rquest_callback
-            ),
+            on_message_callback=rmq.ro_crates_callback,
             auto_ack=True,
         )
         logger.info("Successfully connected to queue. Press Ctrl+C to exit.")
