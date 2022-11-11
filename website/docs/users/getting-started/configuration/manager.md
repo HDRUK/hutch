@@ -41,7 +41,8 @@ OutboundEmail:
   # More information can be found here
   # http://www.mimekit.net/docs/html/T_MailKit_Security_SecureSocketOptions.htm
 
-  
+UserAccounts: 
+  RequireConfirmedEmail: # true or false. Send confirmation email for user accounts if true.
 
 ActivitySourcePolling:
   PollingInterval: 5 # set to a negative value will disable polling altogether
