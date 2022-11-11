@@ -16,8 +16,9 @@ public class ResultsTranslator
     public  QueryResult TranslateRoCrates(ROCratesQueryResult job)
     {
       var rquestQueryResult = new QueryResult();
-      foreach (var graph in job.Graphs)
+      foreach (var o in job.Graphs)
       {
+        var graph = (ROCratesGraph)o;
         switch (graph.Name)
         {
           case "activity_source_id":
@@ -33,7 +34,6 @@ public class ResultsTranslator
             rquestQueryResult.Results.Count = count;
             break;
         }
-
       }
       return rquestQueryResult ;
     }
@@ -46,17 +46,18 @@ public class ResultsTranslator
       var rquestQueryResult = new DistributionQueryTaskResult();
       foreach (var graph in job.Graphs)
       {
+        var g = (ROCratesGraph)graph;
         switch (graph.Name)
         {
           case "activity_source_id":
-            int activitySourceId = Int32.Parse(graph.Value);
+            int activitySourceId = Int32.Parse(g.Value);
             rquestQueryResult.ActivitySourceId = activitySourceId;
             break;
           case "status":
-            rquestQueryResult.Status = graph.Value;
+            rquestQueryResult.Status = g.Value;
             break;
           case "job_id":
-            rquestQueryResult.JobId = graph.Value;
+            rquestQueryResult.JobId = g.Value;
             break;
           case "files":
             // Todo: convert files from RO-Crates to RQuest
