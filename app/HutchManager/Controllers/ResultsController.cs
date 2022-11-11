@@ -49,8 +49,9 @@ public class ResultsController: ControllerBase
     
     // Get activitySourceId from results
     int? activitySourceId = null;
-    foreach (var g in roCratesQueryResult.Graphs)
+    foreach (var o in roCratesQueryResult.Graphs)
     {
+      var g = (ROCratesGraph)o;
       if (g.Name != "activity_source_id") continue;
       activitySourceId = int.Parse(g.Value);
       break;
