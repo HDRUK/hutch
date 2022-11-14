@@ -73,7 +73,7 @@ def ro_crates_callback(
     if query_type == "RQuestAvailability":
         query = AvailabilityQuery.from_dict(body_json)
         result = solve_availability(query)
-        send_to_manager(result=result, endpoint="api/results")
+        send_to_manager(result=result, endpoint="api/results/availability")
     elif query_type == "RQuestDistribution":
         query = DistributionQuery.from_dict(body_json)
         result = solve_distribution(query)
