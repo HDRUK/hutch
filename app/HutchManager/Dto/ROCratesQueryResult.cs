@@ -12,7 +12,7 @@ public class ROCratesQueryResult
 
 }
 
-public class ROCratesGraph : ISchemaOrgObject
+public class PropertyValue : ISchemaOrgObject
 {
   [JsonPropertyName("@context")]
   public string Context { get; set; } = "https://schema.org";

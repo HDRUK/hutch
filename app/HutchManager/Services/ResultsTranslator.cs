@@ -18,7 +18,7 @@ public class ResultsTranslator
       var rquestQueryResult = new QueryResult();
       foreach (var o in job.Graphs)
       {
-        var graph = (ROCratesGraph)o;
+        var graph = (PropertyValue)o;
         switch (graph.Name)
         {
           case "activity_source_id":
@@ -46,7 +46,7 @@ public class ResultsTranslator
       var rquestQueryResult = new DistributionQueryTaskResult();
       foreach (var graph in job.Graphs)
       {
-        var g = (ROCratesGraph)graph;
+        var g = (PropertyValue)graph;
         switch (graph.Name)
         {
           case "activity_source_id":
@@ -60,7 +60,7 @@ public class ResultsTranslator
             rquestQueryResult.JobId = g.Value;
             break;
           case "files":
-            var fileList = (ItemList<ItemList<ROCratesGraph>>)graph;
+            var fileList = (ItemList<ItemList<PropertyValue>>)graph;
             // Iterate over files
             foreach (var f in fileList.ItemListElement)
             {
