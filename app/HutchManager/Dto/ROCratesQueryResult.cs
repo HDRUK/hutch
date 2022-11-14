@@ -28,7 +28,7 @@ public class ROCratesGraph : ISchemaOrgObject
 
 }
 
-public class ItemList : ISchemaOrgObject
+public class ItemList<T> : ISchemaOrgObject
 {
   [JsonPropertyName("@context")]
   public string Context { get; set; } = "https://schema.org";
@@ -43,5 +43,5 @@ public class ItemList : ISchemaOrgObject
   public int? NumberOfItems { get; set;}
   
   [JsonPropertyName("itemListElement")] 
-  public IEnumerable<ROCratesGraph> ItemListElement { get; set;} = null!;
+  public IEnumerable<T> ItemListElement { get; set;} = null!;
 }
