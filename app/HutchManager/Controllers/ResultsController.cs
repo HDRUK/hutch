@@ -46,23 +46,7 @@ public class ResultsController: ControllerBase
   {
     DistributionQueryTaskResult result =
       new ResultsTranslator.RoCratesToDistribution().TranslateRoCrates(roCratesQueryResult);
-    
-    // Get activitySourceId from results
-    int? activitySourceId = null;
-    foreach (var o in roCratesQueryResult.Graphs)
-    {
-      var g = (ROCratesGraph)o;
-      if (g.Name != "activity_source_id") continue;
-      activitySourceId = int.Parse(g.Value);
-      break;
-    }
-
-    if (activitySourceId != null)
-    {
-      await _apiClient.DistributionResultsEndpoint(activitySourceId.Value, result.JobId, result);
+      await _apiClient.DistributionResultsEndpoint(result.ActivitySourceId, result.JobId, result);
       return Ok(_apiClient);
-    }
-    
-    return BadRequest(_apiClient);
   }
 }
