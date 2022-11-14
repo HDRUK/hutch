@@ -110,6 +110,18 @@ class DistributionResult:
                     "name": "message",
                     "value": self.message,
                 },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "count",
+                    "value": str(self.count),  # stringify for manager
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "datasetCount",
+                    "value": str(self.datasets_count),  # stringify for manager
+                },
                 self.files.to_dict()
             ],
         }
