@@ -35,6 +35,7 @@
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.5.1" />
     <PackageReference Include="Npgsql" Version="6.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
+    <PackageReference Include="Schema.NET" Version="11.0.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
     <PackageReference Include="Serilog.Sinks.Postgresql.Alternative" Version="3.4.2" />
     <PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
