@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HutchManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20221115143220_AgentEntity")]
+    [Migration("20221115151121_AgentEntity")]
     partial class AgentEntity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -84,7 +84,7 @@ namespace HutchManager.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agent");
+                    b.ToTable("Agents");
                 });
 
             modelBuilder.Entity("HutchManager.Data.Entities.DataSource", b =>
@@ -240,7 +240,7 @@ namespace HutchManager.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("ResultsModifier");
+                    b.ToTable("ResultsModifiers");
                 });
 
             modelBuilder.Entity("HutchManager.Data.Entities.SourceType", b =>

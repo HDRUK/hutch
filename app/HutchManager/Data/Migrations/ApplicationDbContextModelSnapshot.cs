@@ -82,7 +82,7 @@ namespace HutchManager.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Agent");
+                    b.ToTable("Agents");
                 });
 
             modelBuilder.Entity("HutchManager.Data.Entities.DataSource", b =>
@@ -238,7 +238,7 @@ namespace HutchManager.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("ResultsModifier");
+                    b.ToTable("ResultsModifiers");
                 });
 
             modelBuilder.Entity("HutchManager.Data.Entities.SourceType", b =>

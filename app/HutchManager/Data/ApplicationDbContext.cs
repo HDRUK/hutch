@@ -22,9 +22,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
   public DbSet<ModifierType> ModifierTypes => Set<ModifierType>();
 
-  public DbSet<ResultsModifier> ResultsModifier => Set<ResultsModifier>();
+  public DbSet<ResultsModifier> ResultsModifiers => Set<ResultsModifier>();
   
-  public DbSet<Agent> Agent => Set<Agent>();
+  public DbSet<Agent> Agents => Set<Agent>();
 
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)

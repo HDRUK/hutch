@@ -36,7 +36,7 @@ public class ResultsModifierService
       throw new KeyNotFoundException(
         $"Activity Source {resultsModifier.ActivitySourceId} is not a valid Activity Source");
 
-    var limitCheck = (await _db.ResultsModifier.ToListAsync())
+    var limitCheck = (await _db.ResultsModifiers.ToListAsync())
       .Where(x => x.ActivitySource.Id == activitySourceId && x.Type.Id == type.Id);
 
     if (limitCheck.Count() >= type.Limit)
@@ -45,20 +45,20 @@ public class ResultsModifierService
         $"Cannot create any more modifiers of type {type.Id} for the activity source {activitySource.DisplayName}");
     }
 
-    var activitySourceModifiers = (await _db.ResultsModifier.Include(x => x.ActivitySource).ToListAsync())
+    var activitySourceModifiers = (await _db.ResultsModifiers.Include(x => x.ActivitySource).ToListAsync())
       .Where(x => x.ActivitySource.Id == activitySourceId)
       .ToList();
 
     var order = activitySourceModifiers.Count() + 1;//Set to be the last one
     var entity = resultsModifier.ToEntity(type, activitySource, order);
-    await _db.ResultsModifier.AddAsync(entity);
+    await _db.ResultsModifiers.AddAsync(entity);
     await _db.SaveChangesAsync();
     return new(entity);
   }
 
   public async Task<ResultsModifierModel> Set(int id, UpdateResultsModifier resultsModifier)
   {
-    var entity = await _db.ResultsModifier
+    var entity = await _db.ResultsModifiers
       .Include(x => x.Type)
       .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -87,7 +87,7 @@ public class ResultsModifierService
   /// <exception cref="KeyNotFoundException"></exception>
   public async Task Delete(int resultsModifierId)
   {
-    var entity = await _db.ResultsModifier
+    var entity = await _db.ResultsModifiers
       .AsNoTracking()
       .Include(x => x.Type)
       .Include(x => x.ActivitySource)
@@ -96,7 +96,7 @@ public class ResultsModifierService
     if (entity is null)
       throw new KeyNotFoundException(
         $"No Results Modifier with ID: {resultsModifierId}");
-    _db.ResultsModifier.Remove(entity);
+    _db.ResultsModifiers.Remove(entity);
     await UpdateOrderOnDelete(entity); // Update the order
     await _db.SaveChangesAsync();
   }
@@ -111,7 +111,7 @@ public class ResultsModifierService
   /// <exception cref="InvalidOperationException"></exception>
   public async Task<ResultsModifierModel> SetOrder(int id, int newPosition)
   {
-        var entity = await _db.ResultsModifier
+        var entity = await _db.ResultsModifiers
       .Include(x => x.Type)
       .Include(x => x.ActivitySource)
       .ThenInclude(x => x.TargetDataSource)
@@ -119,7 +119,7 @@ public class ResultsModifierService
       .ThenInclude(x => x.Type)
       .FirstOrDefaultAsync(x => x.Id == id) ?? throw new KeyNotFoundException($"No ResultsModifier with ID: {id}");
 
-    var activitySourceModifiers = (await _db.ResultsModifier
+    var activitySourceModifiers = (await _db.ResultsModifiers
                                     .Include(x => x.Type)
                                     .Include(x => x.ActivitySource)
                                     .ToListAsync())
@@ -173,7 +173,7 @@ public class ResultsModifierService
   /// <param name="entity"></param>
   private async Task UpdateOrderOnDelete(ResultsModifier entity)
   {
-    var activitySourceModifiers = (await _db.ResultsModifier
+    var activitySourceModifiers = (await _db.ResultsModifiers
                                     .Include(x => x.Type)
                                     .Include(x => x.ActivitySource)
                                     .ToListAsync())
