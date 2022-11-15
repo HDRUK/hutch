@@ -83,8 +83,6 @@ export const useSortingAndFiltering = (
     }
   );
 
-  console.log(sorting);
-
   const [sortedList, setSortedList] = useState([]);
   const [filter, setFilter] = useState("");
   const [outputList, setOutputList] = useState([]);

@@ -27,7 +27,7 @@ export const ActionCard = ({ icon, title, href, active, children, ...p }) => (
       }}
       {...p}
     >
-      <HStack lineHeight="80%">
+      <HStack>
         {icon && <Icon as={icon} />}
         <LinkOverlay w="100%" as={Link} to={href}>
           <Heading as="h3" size="md">
