@@ -10,12 +10,15 @@ public class AgentModel
 
   public string ClientSecretHash { get; set; }
   
+  public List<Data.Entities.DataSource> DataSources { get; set; }
+
   public AgentModel(Data.Entities.Agent entity)
     {
       Id = entity.Id;
       Name = entity.Name;
       ClientId = entity.ClientId;
       ClientSecretHash = entity.ClientSecretHash;
+      DataSources = entity.DataSources;
     }
 }
 
