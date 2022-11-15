@@ -24,6 +24,7 @@ export const AgentList = () => {
   const [selectedAgent, setSelectedAgent] = useState();
   const [isLoading, setIsLoading] = useState();
   const navigate = useNavigate();
+  console.log(data);
   const {
     sorting,
     setSorting,
@@ -41,7 +42,10 @@ export const AgentList = () => {
           asc ? a.localeCompare(b) : b.localeCompare(a),
       },
     },
+    storageKey: "agent",
   });
+
+  console.log(outputList);
 
   const onDeleteSource = async () => {
     setIsLoading(true);

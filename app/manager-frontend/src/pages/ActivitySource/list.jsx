@@ -26,6 +26,7 @@ export const ActivitySourceList = () => {
   const [isLoading, setIsLoading] = useState();
   const { activitysource } = useBackendApi();
   const { data, mutate } = useActivitySourceList();
+  console.log(data);
   const navigate = useNavigate();
   const {
     sorting,
@@ -44,8 +45,10 @@ export const ActivitySourceList = () => {
           asc ? a.localeCompare(b) : b.localeCompare(a),
       },
     },
+    storageKey: "activitySource",
   });
 
+  console.log(outputList);
   const onDeleteSource = async () => {
     setIsLoading(true);
     await activitysource.delete({ id: selectedActivitySource.id });
