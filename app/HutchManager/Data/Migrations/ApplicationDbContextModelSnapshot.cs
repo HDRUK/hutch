@@ -90,10 +90,15 @@ namespace HutchManager.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
+                    b.Property<int?>("AgentId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTimeOffset>("LastCheckin")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AgentId");
 
                     b.ToTable("DataSources");
                 });
@@ -397,6 +402,13 @@ namespace HutchManager.Migrations
                     b.Navigation("Type");
                 });
 
+            modelBuilder.Entity("HutchManager.Data.Entities.DataSource", b =>
+                {
+                    b.HasOne("HutchManager.Data.Entities.Agent", null)
+                        .WithMany("DataSources")
+                        .HasForeignKey("AgentId");
+                });
+
             modelBuilder.Entity("HutchManager.Data.Entities.ResultsModifier", b =>
                 {
                     b.HasOne("HutchManager.Data.Entities.ActivitySource", "ActivitySource")
@@ -465,6 +477,11 @@ namespace HutchManager.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HutchManager.Data.Entities.Agent", b =>
+                {
+                    b.Navigation("DataSources");
                 });
 #pragma warning restore 612, 618
         }
