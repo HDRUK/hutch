@@ -9,6 +9,10 @@ The app can be configured in any standard way an ASP.NET Core application can. T
 ## Available values and defaults
 
 ```yaml
+
+Root:
+  Password: "" # password for the username @admin
+
 ConnectionStrings:
   Default: "" # the main application SQL Server database
 Serilog:
