@@ -16,9 +16,8 @@ public class ResultsTranslator
     public  QueryResult TranslateRoCrates(ROCratesQueryResult job)
     {
       var rquestQueryResult = new QueryResult();
-      foreach (var o in job.Graphs)
+      foreach (var graph in job.Graphs)
       {
-        var graph = (PropertyValue)o;
         switch (graph.Name)
         {
           case "activity_source_id":
@@ -60,39 +59,7 @@ public class ResultsTranslator
             rquestQueryResult.JobId = g.Value;
             break;
           case "files":
-            var fileList = (ItemList<ItemList<PropertyValue>>)graph;
-            // Iterate over files
-            foreach (var f in fileList.ItemListElement)
-            {
-              var fileObject = new FileObject();
-              // Iterate over file properties
-              foreach (var prop in f.ItemListElement)
-              {
-                switch (prop.Name)
-                {
-                  case "fileData":
-                    fileObject.Data = prop.Value;
-                    break;
-                  case "fileDescription":
-                    fileObject.Description = prop.Value;
-                    break;
-                  case "fileName":
-                    fileObject.Name = prop.Value;
-                    break;
-                  case "fileReference":
-                    fileObject.Reference = prop.Value;
-                    break;
-                  case "fileSensitive":
-                    fileObject.Sensitive = prop.Value == "True";
-                    break;
-                  case "fileSize":
-                    fileObject.Size = float.Parse(prop.Value);
-                    break;
-                }
-              }
-              // Add file to list
-              rquestQueryResult.QueryResult.Files.Add(fileObject);
-            }
+            // Todo: handle files
             break;
           case "count":
             rquestQueryResult.QueryResult.Count = int.Parse(g.Value);
