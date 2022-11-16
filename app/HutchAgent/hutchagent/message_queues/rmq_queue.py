@@ -73,11 +73,11 @@ def ro_crates_callback(
     if query_type == "RQuestAvailability":
         query = AvailabilityQuery.from_dict(body_json)
         result = solve_availability(query)
-        send_to_manager(result=result, endpoint="api/results/availability")
+        send_to_manager(result=result, endpoint=config.RQUEST_AVAILABILITY_ENDPOINT)
     elif query_type == "RQuestDistribution":
         query = DistributionQuery.from_dict(body_json)
         result = solve_distribution(query)
-        # send_to_manager(result=result, endpoint="api/results")
+        send_to_manager(result=result, endpoint=config.RQUEST_DISTRIBUTION_ENDPOINT)
     else:
         logger.error(f"Unsupported query type: '{query_type}'.")
         return  # exit the callback
