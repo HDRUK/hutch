@@ -1,9 +1,9 @@
 import { HStack, Text, Stack } from "@chakra-ui/react";
 import { ActionCard } from "components/ActionCard";
-import { ActivitySourceList } from "./ActivitySource/list";
+import { ActivitySourcesList } from "./ActivitySource/list";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { AgentList } from "./Agent/list";
+import { AgentsList } from "./Agent/list";
 
 export const UserHome = () => {
   const homepageActions = [
@@ -56,9 +56,9 @@ export const UserHome = () => {
       {
         // conditional loading of the list based on listname
         listname === "activitysourcelist" ? (
-          <ActivitySourceList /> // load Activity Source list if listname(params) is 'activitysourcelist'
+          <ActivitySourcesList /> // load Activity Source list if listname(params) is 'activitysourcelist'
         ) : (
-          listname === "agentlist" && <AgentList /> // load Agent list if listname(params) is 'agentlist'
+          listname === "agentlist" && <AgentsList /> // load Agent list if listname(params) is 'agentlist'
         )
       }
     </Stack>
