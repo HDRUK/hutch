@@ -1,14 +1,24 @@
 import { HStack, Text, Stack } from "@chakra-ui/react";
 import { ActionCard } from "components/ActionCard";
-import { useTranslation } from "react-i18next";
 import { ActivitySourceList } from "./ActivitySource/list";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AgentList } from "./Agent/list";
 
 export const UserHome = () => {
-  const { t, i18n, ready } = useTranslation();
-  const homepageActions = t("homepageActions", { returnObjects: true }); // get homepage actions item
+  const homepageActions = [
+    {
+      title: "Activity Source",
+      description: "Activity Source description",
+      href: "/activitysourcelist",
+    },
+    {
+      title: "Agents",
+      description: "Agents description",
+      href: "/agentlist",
+    },
+  ];
+
   const { listname } = useParams(); // grab listname from url
   const navigate = useNavigate();
 

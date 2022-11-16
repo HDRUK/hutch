@@ -28,25 +28,22 @@ export const ActivitySourceList = () => {
   const { data, mutate } = useActivitySourceList();
 
   const navigate = useNavigate();
-  const {
-    sorting,
-    setSorting,
-    onSort: handleSort,
-    filter,
-    setFilter,
-    outputList,
-  } = useSortingAndFiltering(data, "displayName", {
-    initialSort: {
-      key: "displayName",
-    },
-    sorters: {
-      displayName: {
-        sorter: (asc) => (a, b) =>
-          asc ? a.localeCompare(b) : b.localeCompare(a),
+  const { setFilter, outputList } = useSortingAndFiltering(
+    data,
+    "displayName",
+    {
+      initialSort: {
+        key: "displayName",
       },
-    },
-    storageKey: "activitySource",
-  });
+      sorters: {
+        displayName: {
+          sorter: (asc) => (a, b) =>
+            asc ? a.localeCompare(b) : b.localeCompare(a),
+        },
+      },
+      storageKey: "activitySource",
+    }
+  );
 
   const onDeleteSource = async () => {
     setIsLoading(true);

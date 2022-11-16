@@ -25,17 +25,8 @@ export const AgentList = () => {
   const [isLoading, setIsLoading] = useState();
   const navigate = useNavigate();
 
-  const {
-    sorting,
-    setSorting,
-    onSort: handleSort,
-    filter,
-    setFilter,
-    outputList,
-  } = useSortingAndFiltering(data, "agentName", {
-    initialSort: {
-      key: "agentName",
-    },
+  const { setFilter, outputList } = useSortingAndFiltering(data, "agentName", {
+    initialSort: { key: "agentName" },
     sorters: {
       agentName: {
         sorter: (asc) => (a, b) =>
