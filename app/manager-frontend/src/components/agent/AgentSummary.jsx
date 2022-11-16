@@ -9,6 +9,9 @@ import {
   Stack,
   useColorModeValue,
   IconButton,
+  Flex,
+  HStack,
+  VStack,
 } from "@chakra-ui/react";
 import { FaTrash, FaDesktop, FaDatabase } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -67,16 +70,10 @@ export const AgentSummary = ({
             {agentName}
           </Heading>
         </Stack>
-        <Stack mt={6} direction={"row"} spacing={4} align={"center"}>
-          <Stack
-            direction={"column"}
-            spacing={0}
-            fontSize={"sm"}
-            align="center"
-            display={"block"}
-          >
-            {dataSourceId && (
-              <div style={{ display: "flex", alignItems: "center" }}>
+        <HStack mt={6} spacing={4} align={"center"}>
+          <VStack spacing={0} fontSize={"sm"} align="center" display={"block"}>
+            {clientId && (
+              <Flex alignItems={"center"}>
                 <FaDesktop />
                 <Text
                   fontWeight={"700"}
@@ -88,11 +85,10 @@ export const AgentSummary = ({
                   Client Id:
                 </Text>
                 <Text>{clientId}</Text>
-              </div>
+              </Flex>
             )}
-
             {dataSourceId && (
-              <div style={{ display: "flex", alignItems: "center" }}>
+              <Flex alignItems={"center"}>
                 <FaDatabase />
                 <Text
                   fontWeight={"700"}
@@ -104,10 +100,10 @@ export const AgentSummary = ({
                   Datasource ID:
                 </Text>
                 <Text>{dataSourceId}</Text>
-              </div>
+              </Flex>
             )}
-          </Stack>
-        </Stack>
+          </VStack>
+        </HStack>
       </Box>
     </LinkBox>
   </Center>
