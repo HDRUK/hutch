@@ -106,33 +106,31 @@ export const ActivitySourceList = () => {
           ))}
         </Stack>
       ) : (
-        <div>
-          <Box textAlign="center" py={10} px={6}>
-            <FaInfoCircle
-              fontSize="2em"
-              color="dodgerblue"
-              style={{ display: "inline" }}
-            />
-            <Heading as="h2" size="xl" mb={2}>
-              No Activity Sources found.
-            </Heading>
-            <Button
-              onClick={() => navigate("/activitysources/new")}
-              colorScheme="green"
-              leftIcon={<FaPlus />}
-              width="225"
+        <Box textAlign="center" py={10} px={6}>
+          <FaInfoCircle
+            fontSize="2em"
+            color="dodgerblue"
+            style={{ display: "inline" }}
+          />
+          <Heading as="h2" size="xl" mb={2}>
+            No Activity Sources found.
+          </Heading>
+          <Button
+            onClick={() => navigate("/activitysources/new")}
+            colorScheme="green"
+            leftIcon={<FaPlus />}
+            width="225"
+          >
+            <Text
+              textTransform="uppercase"
+              fontWeight={700}
+              fontSize="sm"
+              letterSpacing={1.1}
             >
-              <Text
-                textTransform="uppercase"
-                fontWeight={700}
-                fontSize="sm"
-                letterSpacing={1.1}
-              >
-                Create Activity Source
-              </Text>
-            </Button>
-          </Box>
-        </div>
+              Create Activity Source
+            </Text>
+          </Button>
+        </Box>
       )}
       <DeleteModal
         title={`Delete Activity Source?`}

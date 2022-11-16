@@ -35,7 +35,7 @@ export const UserHome = () => {
               key={index}
               title={action.title}
               href={`/home${action.href}`}
-              active={listname === action.href.replace("/", "") && true}
+              active={listname === action.href.replace("/", "")}
             >
               <Text color="gray.600" fontSize="sm">
                 {action.description}

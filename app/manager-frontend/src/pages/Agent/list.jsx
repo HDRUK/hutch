@@ -17,7 +17,7 @@ import { useState } from "react";
 import { DeleteModal } from "components/DeleteModal";
 import { useNavigate } from "react-router-dom";
 import { FaPlus, FaSearch, FaInfoCircle } from "react-icons/fa";
-import { data } from "./AgentsList"; // Mock data for Agents list
+import { data } from "./DummyAgentsList"; // Mock data for Agents list
 
 export const AgentList = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -105,33 +105,31 @@ export const AgentList = () => {
           ))}
         </Stack>
       ) : (
-        <div>
-          <Box textAlign="center" py={10} px={6}>
-            <FaInfoCircle
-              fontSize="2em"
-              color="dodgerblue"
-              style={{ display: "inline" }}
-            />
-            <Heading as="h2" size="xl" mb={2}>
-              No Agent found.
-            </Heading>
-            <Button
-              onClick={() => navigate("/agent/new")}
-              colorScheme="green"
-              leftIcon={<FaPlus />}
-              width={"225"}
+        <Box textAlign="center" py={10} px={6}>
+          <FaInfoCircle
+            fontSize="2em"
+            color="dodgerblue"
+            style={{ display: "inline" }}
+          />
+          <Heading as="h2" size="xl" mb={2}>
+            No Agent found.
+          </Heading>
+          <Button
+            onClick={() => navigate("/agent/new")}
+            colorScheme="green"
+            leftIcon={<FaPlus />}
+            width={"225"}
+          >
+            <Text
+              textTransform="uppercase"
+              fontWeight={700}
+              fontSize="sm"
+              letterSpacing={1.1}
             >
-              <Text
-                textTransform="uppercase"
-                fontWeight={700}
-                fontSize="sm"
-                letterSpacing={1.1}
-              >
-                Register an Agent
-              </Text>
-            </Button>
-          </Box>
-        </div>
+              Register an Agent
+            </Text>
+          </Button>
+        </Box>
       )}
       <DeleteModal
         title={`Delete an Agent ?`}
