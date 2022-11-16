@@ -39,19 +39,18 @@ export const UserHome = () => {
         borderBottomWidth={2}
         borderBottomRadius={5}
       >
-        {homepageActions &&
-          homepageActions.map((action, index) => (
-            <ActionCard
-              key={index}
-              title={action.title}
-              href={`/home${action.href}`}
-              active={listname === action.href.replace("/", "")}
-            >
-              <Text color="gray.600" fontSize="sm">
-                {action.description}
-              </Text>
-            </ActionCard>
-          ))}
+        {homepageActions.map((action, index) => (
+          <ActionCard
+            key={index}
+            title={action.title}
+            href={`/home${action.href}`}
+            active={listname === action.href.replace("/", "")}
+          >
+            <Text color="gray.600" fontSize="sm">
+              {action.description}
+            </Text>
+          </ActionCard>
+        ))}
       </HStack>
       {
         // conditional loading of the list based on listname
