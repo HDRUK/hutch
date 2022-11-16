@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HutchManager.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20221115160607_AgentEntity")]
+    [Migration("20221116101518_AgentEntity")]
     partial class AgentEntity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

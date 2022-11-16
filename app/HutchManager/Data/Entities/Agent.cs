@@ -12,5 +12,5 @@ public class Agent
 
   [Required] public string ClientSecretHash { get; set; } = string.Empty;
 
-  public List<DataSource> DataSources { get; set; } = null!;
+  public List<DataSource> DataSources { get; set; } = new();
 }
