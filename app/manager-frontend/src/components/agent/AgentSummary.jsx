@@ -40,7 +40,7 @@ export const AgentSummary = ({
           boxShadow: "md",
         }}
       >
-        <LinkOverlay as={Link} to={`${href}`} />
+        <LinkOverlay as={Link} to={href} />
         <Stack>
           <Box
             display="flex"
