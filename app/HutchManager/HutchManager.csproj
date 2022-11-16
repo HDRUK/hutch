@@ -33,6 +33,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="6.0.1" />
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.5.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.25.0" />
     <PackageReference Include="Npgsql" Version="6.0.4" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />

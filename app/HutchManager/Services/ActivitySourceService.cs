@@ -94,7 +94,7 @@ public class ActivitySourceService
   /// <returns></returns>
   public async Task<List<Models.ResultsModifierModel>> GetActivitySourceResultsModifiers(int activitySourceId)
   {
-    var resultsModifierList = await _db.ResultsModifier
+    var resultsModifierList = await _db.ResultsModifiers
       .AsNoTracking()
       .Include(x => x.Type)
       .Include(x => x.ActivitySource)
