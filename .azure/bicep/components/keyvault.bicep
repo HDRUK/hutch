@@ -1,5 +1,5 @@
 param env string = 'dev'
-param keyVaultName string = 'sargassure-${env}-kv'
+param keyVaultName string = 'hutch-${env}-kv'
 param tenantId string
 
 param location string = resourceGroup().location

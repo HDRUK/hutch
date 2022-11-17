@@ -4,21 +4,21 @@ var env = 'uat'
 
 var appHostnames = [
   // TODO when a real prod environment is added, we should subdomain UAT
-  'sargassure.com'
-  'sargassure.net'
-  'sargassure.co.uk'
-  // 'sargassure.org'
+  'hutch.com'
+  'hutch.net'
+  'hutch.co.uk'
+  // 'hutch.org'
 ]
 
 var aspName = 'nonprod-asp' // shared by all non prod apps
-var apiBaseUrl = 'https://sargassure.com/api'
+var apiBaseUrl = 'https://hutch.com/api'
 
 resource kv 'Microsoft.KeyVault/vaults@2020-04-01-preview' existing = {
-  name: 'sargassure-${env}-kv'
+  name: 'hutch-${env}-kv'
 }
 
 module web 'web.bicep' = {
-  name: 'sargassure-web-${uniqueString(env)}'
+  name: 'hutch-web-${uniqueString(env)}'
   params: {
     location: location
     env: env
@@ -33,7 +33,7 @@ module web 'web.bicep' = {
 
 // Worker Functions App
 module worker 'worker.bicep' = {
-  name: 'sargassure-worker-${uniqueString(env)}'
+  name: 'hutch-worker-${uniqueString(env)}'
   params: {
     location: location
     env: env

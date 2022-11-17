@@ -6,10 +6,10 @@ param appSettings object = {}
 var secretRef = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName='
 
 var sharedSettings = {
-  OutboundEmail__FromName: 'SargAssure'
+  OutboundEmail__FromName: 'hutch'
   OutboundEmail__Provider: 'sendgrid'
   OutboundEmail__SendGridApiKey: '${secretRef}sendgrid-api-key)'
-  OutboundEmail__FromAddress: 'noreply@sargassure.com'
+  OutboundEmail__FromAddress: 'noreply@hutch.com'
   Planet__ApiKey: '${secretRef}planet-api-key)'
   Worker__ApiKey: '${secretRef}worker-api-key)'
   Worker__AoiAssetContainer: 'aoiassets'

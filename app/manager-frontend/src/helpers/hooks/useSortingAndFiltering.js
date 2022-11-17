@@ -67,7 +67,7 @@ const getFilteredLookup = (input, filter, filterer = "name") =>
           : (value) => filterer(value, filter)
       );
 
-const storageKeyPrefix = "sargassure.sorting";
+const storageKeyPrefix = "hutch.sorting";
 
 export const useSortingAndFiltering = (
   sourceList,

@@ -53,7 +53,7 @@ public static class AuthConfiguration
     {
       // This is used when no specific authorisation details are specified
       // (e.g. [Authorize] or [AllowAnonymous])
-      // Nothing in SargAssure (at this time) should use [AllowAnonymous]
+      // Nothing in hutch (at this time) should use [AllowAnonymous]
       b.FallbackPolicy = AuthPolicies.IsClientApp;
 
       // This is used when `[Authorize]` is provided with no specific policy / config

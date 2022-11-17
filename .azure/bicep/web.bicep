@@ -12,8 +12,8 @@ param appHostnames array = []
 
 param location string = resourceGroup().location
 
-var appName = '${env}-sargassure-web'
-var logAnalyticsWorkspaceName = 'sargassure-la-ws'
+var appName = '${env}-hutch-web'
+var logAnalyticsWorkspaceName = 'hutch-la-ws'
 
 var secretRef = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName='
 

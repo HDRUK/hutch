@@ -13,8 +13,8 @@ param webApiBaseUrl string
 
 param location string = resourceGroup().location
 
-var appName = '${env}-sargassure-worker'
-var logAnalyticsWorkspaceName = 'sargassure-la-ws'
+var appName = '${env}-hutch-worker'
+var logAnalyticsWorkspaceName = 'hutch-la-ws'
 
 // create backing storage account
 module workerStorage 'components/storage-account.bicep' = {

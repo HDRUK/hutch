@@ -3,19 +3,19 @@ param location string = resourceGroup().location
 var env = 'dev'
 
 var appHostnames = [
-  'dev.sargassure.com'
+  'dev.hutch.com'
 ]
 
 var aspName = 'nonprod-asp' // shared by all non prod apps
-var apiBaseUrl = 'https://dev.sargassure.com/api'
+var apiBaseUrl = 'https://dev.hutch.com/api'
 
 resource kv 'Microsoft.KeyVault/vaults@2020-04-01-preview' existing = {
-  name: 'sargassure-${env}-kv'
+  name: 'hutch-${env}-kv'
 }
 
 // Web App
 module web 'web.bicep' = {
-  name: 'sargassure-web-${uniqueString(env)}'
+  name: 'hutch-web-${uniqueString(env)}'
   params: {
     location: location
     env: env
@@ -30,7 +30,7 @@ module web 'web.bicep' = {
 
 // Worker Functions App
 module worker 'worker.bicep' = {
-  name: 'sargassure-worker-${uniqueString(env)}'
+  name: 'hutch-worker-${uniqueString(env)}'
   params: {
     location: location
     env: env
