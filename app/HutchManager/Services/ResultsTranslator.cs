@@ -14,14 +14,21 @@ public class ResultsTranslator
   
   public class RoCratesQueryTranslator : IResultsTranslator<QueryResult>
   {
-
+    /// <summary>
+    /// Translate the results of an availability query from RO-Crates format to RQuest.
+    /// </summary>
+    /// <param name="job"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidDataException">Thrown when RO-Crate object cannot be deserialized.</exception>
     public QueryResult TranslateRoCrates(ROCratesQueryResult job)
     {
       var rquestQueryResult = new QueryResult();
       foreach (var graph in job.Graphs)
       {
+        // Try to deserialize property value or throw exception
         var property = SchemaSerializer.DeserializeObject<PropertyValue>(graph.ToString());
         if (property == null) throw new InvalidDataException();
+        // assign values to appropriate fields in result
         switch (property.Name)
         {
           case "activity_source_id":
@@ -44,15 +51,24 @@ public class ResultsTranslator
 
   public class RoCratesToDistribution : IResultsTranslator<DistributionQueryTaskResult>
   {
+    /// <summary>
+    /// Translate the results of a distribution query from RO-Crates format to RQuest.
+    /// </summary>
+    /// <param name="job"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidDataException">Thrown when RO-Crate object cannot be deserialized.</exception>
     public DistributionQueryTaskResult TranslateRoCrates(ROCratesQueryResult job)
     {
       var rquestQueryResult = new DistributionQueryTaskResult();
       foreach (var graph in job.Graphs)
       {
+        // Try to get the `@type` property of the JSON object. 
         if (graph.TryGetProperty("@type", out var type))
         {
+          // Determine the type of the JSON object.
           switch (type.ToString())
           {
+            // If it is a PropertyValue, it represents non-file attributes of the query result.
             case "PropertyValue":
               var property = SchemaSerializer.DeserializeObject<PropertyValue>(graph.ToString());
               if (property == null) throw new InvalidDataException();
@@ -76,6 +92,7 @@ public class ResultsTranslator
                   break;
               }
               break;
+            // If it is an ItemList, it represents a file object.
             case "ItemList":
               var itemList = SchemaSerializer.DeserializeObject<ItemList>(graph.ToString());
               if (itemList == null) throw new InvalidDataException();
@@ -111,6 +128,11 @@ public class ResultsTranslator
               }
               break;
           }
+        }
+        // No `@type`, cannot parse.
+        else
+        {
+          throw new InvalidDataException();
         }
       }
       return rquestQueryResult;
