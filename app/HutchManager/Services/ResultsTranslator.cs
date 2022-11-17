@@ -1,4 +1,3 @@
-using System.Text.Json;
 using HutchManager.Dto;
 using Schema.NET;
 
@@ -99,7 +98,8 @@ public class ResultsTranslator
               var fileObject = new FileObject();
               foreach (var item in itemList.ItemListElement)
               {
-                var fileProperty = SchemaSerializer.DeserializeObject<PropertyValue>(item.ToString());
+                if (item == null) continue;
+                var fileProperty = SchemaSerializer.DeserializeObject<PropertyValue>(item.ToString()!);
                 if (fileProperty == null) throw new InvalidDataException();
                 switch (fileProperty.Name)
                 {
