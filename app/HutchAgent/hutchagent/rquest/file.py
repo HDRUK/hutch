@@ -50,13 +50,13 @@ class File:
                     context="https://schema.org",
                     type_="PropertyValue",
                     name="fileSensitive",
-                    value=str(self.sensitive),  # stringify for manager
+                    value=self.sensitive,
                 ),
                 PropertyValue(
                     context="https://schema.org",
                     type_="PropertyValue",
                     name="fileSize",
-                    value=str(self.size),  # stringify for manager
+                    value=self.size,
                 ),
                 PropertyValue(
                     context="https://schema.org",
