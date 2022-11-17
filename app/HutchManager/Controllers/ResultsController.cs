@@ -31,8 +31,16 @@ public class ResultsController: ControllerBase
   [HttpPost("availability")]
   public async Task<IActionResult> PostRoCrates([FromBody] ROCratesQueryResult roCratesQueryResult)
   {
-    QueryResult result = new ResultsTranslator.RoCratesQueryTranslator().TranslateRoCrates(roCratesQueryResult);
-    await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Results);
+    try
+    {
+      QueryResult result = new ResultsTranslator.RoCratesQueryTranslator().TranslateRoCrates(roCratesQueryResult);
+      await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Results);
+    }
+    catch (InvalidDataException)
+    {
+      _logger.LogError("Unable to translate availability query. Data invalid");
+      return BadRequest(_apiClient);
+    }
     return Ok(_apiClient);
   }
   
@@ -44,9 +52,17 @@ public class ResultsController: ControllerBase
   [HttpPost("distribution")]
   public async Task<IActionResult> PostDistributionResults([FromBody] ROCratesQueryResult roCratesQueryResult)
   {
-    DistributionQueryTaskResult result =
-      new ResultsTranslator.RoCratesToDistribution().TranslateRoCrates(roCratesQueryResult);
+    try
+    {
+      DistributionQueryTaskResult result =
+        new ResultsTranslator.RoCratesToDistribution().TranslateRoCrates(roCratesQueryResult);
       await _apiClient.DistributionResultsEndpoint(result.ActivitySourceId, result.JobId, result);
-      return Ok(_apiClient);
+    }
+    catch (InvalidDataException)
+    {
+      _logger.LogError("Unable to translate distribution query. Data invalid");
+      return BadRequest(_apiClient);
+    }
+    return Ok(_apiClient);
   }
 }
