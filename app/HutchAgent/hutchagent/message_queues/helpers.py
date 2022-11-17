@@ -22,7 +22,7 @@ def send_to_manager(
             f"{os.getenv('MANAGER_URL')}/{endpoint}",
             json=result.to_dict(),
             verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
-        )
+        ).raise_for_status()
         logger.info("Sent results to manager.")
     except req_exc.ConnectionError as connection_error:
         logger.error(str(connection_error))
@@ -30,3 +30,5 @@ def send_to_manager(
         logger.error(str(timeout_error))
     except req_exc.MissingSchema as missing_schema_error:
         logger.error(str(missing_schema_error))
+    except req_exc.HTTPError as http_error:
+        logger.error(str(http_error))
