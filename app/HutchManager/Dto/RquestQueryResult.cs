@@ -132,7 +132,7 @@ namespace HutchManager.Dto
       public double Size { get; set; } = 0;
 
       [JsonPropertyName("file_type")] 
-      public string Type = "BCOS";
+      public string Type { get; set; } = "BCOS";
 
       [JsonPropertyName("file_sensitive")] 
       public bool Sensitive { get; set; } = false;
