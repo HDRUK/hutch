@@ -39,7 +39,6 @@ export const ActivitySourcesList = () => {
     setIsLoading(false);
   };
   const onClickDelete = (activitySource) => {
-    console.log(activitySource);
     setSelectedActivitySource(activitySource);
     onOpen();
   };
