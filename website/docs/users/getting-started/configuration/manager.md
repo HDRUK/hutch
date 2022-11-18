@@ -9,6 +9,12 @@ The app can be configured in any standard way an ASP.NET Core application can. T
 ## Available values and defaults
 
 ```yaml
+
+Root:
+  Username: "" # Super Admin username. Prefix '@' will be added to the username. If not supplied, 'admin' will be used, which becomes '@admin'.
+  Password: "" # Super Admin password
+  EmailAddress: "" # If not supplied, 'admin@local' will be used.
+
 ConnectionStrings:
   Default: "" # the main application SQL Server database
 Serilog:
