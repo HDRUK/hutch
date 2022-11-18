@@ -10,9 +10,6 @@ var sharedSettings = {
   OutboundEmail__Provider: 'sendgrid'
   OutboundEmail__SendGridApiKey: '${secretRef}sendgrid-api-key)'
   OutboundEmail__FromAddress: 'noreply@hutch.com'
-  Planet__ApiKey: '${secretRef}planet-api-key)'
-  Worker__ApiKey: '${secretRef}worker-api-key)'
-  Worker__AoiAssetContainer: 'aoiassets'
   // Environment for deployment (Development or Production)
   ASPNETCORE_ENVIRONMENT: '${secretRef}ASPNETCORE_ENVIRONMENT)'
   // Paths to SSL certificates
