@@ -8,20 +8,22 @@ import {
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-export const ActionCard = ({ icon, title, href, children, ...p }) => (
+export const ActionCard = ({ icon, title, href, isActive, children, ...p }) => (
   <LinkBox>
     <VStack
-      bg="gray.100"
-      borderColor="gray.300"
-      borderWidth={2}
+      spacing={1}
+      minW={250}
+      bg={isActive && "gray.200"}
+      color={isActive && "blue.900"}
+      borderColor={!isActive && "gray.300"}
+      borderWidth={1}
       borderRadius={5}
       h="100%"
-      p={4}
+      p={2.5}
       align="stretch"
       _hover={{
-        borderColor: "blue.500",
-        color: "blue.500",
-        bg: "gray.50",
+        borderColor: `${!isActive && "blue.500"}`,
+        transition: "0.45s",
       }}
       {...p}
     >
