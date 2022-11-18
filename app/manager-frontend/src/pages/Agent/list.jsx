@@ -45,7 +45,7 @@ export const AgentsList = () => {
         body={
           <VStack>
             <Text>Are you sure you want to delete this Agent:</Text>
-            <Text fontWeight="bold">{selectedAgent?.agentName}</Text>
+            <Text fontWeight="bold">{selectedAgent?.name}</Text>
           </VStack>
         }
         isOpen={isOpen}
@@ -74,7 +74,7 @@ export const AgentsList = () => {
               onDelete={() => onClickDelete(item)}
               agentName={item.name}
               clientId={item.clientId}
-              dataSourceIds={item.dataSources}
+              dataSourceId={item.dataSources}
             />
           </>
         ))}
