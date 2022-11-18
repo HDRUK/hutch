@@ -27,6 +27,8 @@ var sharedSettings = {
   // Manager related settings
   MANAGER_URL: '${secretRef}MANAGER_URL)'
   MANAGER_VERIFY_SSL: '${secretRef}MANAGER_VERIFY_SSL)'
+  // Agent check-in cron string
+  CHECKIN_CRON: '${secretRef}CHECKIN_CRON)'
 }
 
 var fnSettings = {
