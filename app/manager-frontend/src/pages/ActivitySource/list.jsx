@@ -4,7 +4,7 @@ import { useActivitySourceList } from "api/activitysources";
 import { ActivitySourceSummary } from "components/activitysources/ActivitySourceSummary";
 import { useState } from "react";
 import { useBackendApi } from "contexts/BackendApi";
-import { ActivitySourcesOrAgentsList } from "components/ActivitySourcesOrAgentsList";
+import { ActionList } from "components/ActionList";
 import { DeleteModal } from "components/DeleteModal";
 
 export const ActivitySourcesList = () => {
@@ -43,7 +43,7 @@ export const ActivitySourcesList = () => {
     onOpen();
   };
 
-  const Delete = () => {
+  const ModalDelete = () => {
     return (
       <DeleteModal
         title={`Delete Activity Source?`}
@@ -63,26 +63,27 @@ export const ActivitySourcesList = () => {
   };
 
   return (
-    <ActivitySourcesOrAgentsList
-      data={data}
+    <ActionList
+      data={outputList.length > 0}
       setFilter={setFilter}
       href="/activitysources"
-      actionName="Activity Source"
-      newItemCaption="Create Activity Source"
-      deleteModal={Delete}
+      actionTitle="Activity Source"
+      actionNewTitle="Create Activity Source"
+      modalDelete={ModalDelete}
     >
-      {outputList.map((item, index) => (
-        <>
-          <ActivitySourceSummary
-            key={index}
-            href={`/activitysources/${item.id}`}
-            onDelete={() => onClickDelete(item)}
-            title={item.displayName}
-            sourceURL={item.host}
-            collectionId={item.resourceId}
-          />
-        </>
-      ))}
-    </ActivitySourcesOrAgentsList>
+      {outputList.length > 0 &&
+        outputList.map((item, index) => (
+          <>
+            <ActivitySourceSummary
+              key={index}
+              href={`/activitysources/${item.id}`}
+              onDelete={() => onClickDelete(item)}
+              title={item.displayName}
+              sourceURL={item.host}
+              collectionId={item.resourceId}
+            />
+          </>
+        ))}
+    </ActionList>
   );
 };

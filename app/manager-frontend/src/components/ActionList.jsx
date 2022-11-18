@@ -12,30 +12,29 @@ import {
 import { useNavigate } from "react-router-dom";
 import { FaPlus, FaSearch, FaInfoCircle } from "react-icons/fa";
 
-export const ActivitySourcesOrAgentsList = ({
+export const ActionList = ({
   data,
   setFilter,
   href,
-  actionName,
-  newItemCaption,
-  deleteModal: Delete,
+  actionTitle,
+  actionNewTitle,
+  modalDelete: ModalDelete,
   children,
 }) => {
   const navigate = useNavigate();
 
   return (
     <>
-      {data.length > 0 ? (
+      {data ? (
         <Stack w="100%" spacing={4}>
           <HStack maxW="800" w="100%" alignSelf="center" borderRadius="10px">
             <InputGroup>
-              <InputLeftElement
-                pointerEvents="none"
-                children={<FaSearch color="gray.300" />}
-              />
+              <InputLeftElement pointerEvents="none">
+                <FaSearch color="gray.300" />
+              </InputLeftElement>
               <Input
                 size="md"
-                placeholder={`Search ${actionName}`}
+                placeholder={`Search ${actionTitle}`}
                 onChange={(e) => setFilter(e.target.value)}
               />
             </InputGroup>
@@ -55,8 +54,8 @@ export const ActivitySourcesOrAgentsList = ({
               </Text>
             </Button>
           </HStack>
-
           {children}
+          <ModalDelete />
         </Stack>
       ) : (
         <Box textAlign="center" py={10} px={6}>
@@ -66,7 +65,7 @@ export const ActivitySourcesOrAgentsList = ({
             style={{ display: "inline" }}
           />
           <Heading as="h2" size="xl" mb={2}>
-            No {actionName} found.
+            No {actionTitle} found.
           </Heading>
           <Button
             onClick={() => navigate(`${href}/new`)}
@@ -80,12 +79,11 @@ export const ActivitySourcesOrAgentsList = ({
               fontSize="sm"
               letterSpacing={1.1}
             >
-              {newItemCaption}
+              {actionNewTitle}
             </Text>
           </Button>
         </Box>
       )}
-      <Delete />
     </>
   );
 };
