@@ -13,6 +13,17 @@ var sharedSettings = {
   Planet__ApiKey: '${secretRef}planet-api-key)'
   Worker__ApiKey: '${secretRef}worker-api-key)'
   Worker__AoiAssetContainer: 'aoiassets'
+  // Environment for deployment (Development or Production)
+  ASPNETCORE_ENVIRONMENT: '${secretRef}ASPNETCORE_ENVIRONMENT)'
+  // Paths to SSL certificates
+  ASPNETCORE_Kestrel__Certificates__Default__Path: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__Path)'
+  ASPNETCORE_Kestrel__Certificates__Default__KeyPath: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__KeyPath)'
+  // Connection string to database
+  ASPNETCORE_ConnectionStrings__Default: '${secretRef}ASPNETCORE_ConnectionStrings__Default)'
+  // Credentials for RabbitMQ queue
+  ASPNETCORE_JobQueue__HostName: '${secretRef}ASPNETCORE_JobQueue__HostName)'
+  ASPNETCORE_JobQueue__UserName: '${secretRef}ASPNETCORE_JobQueue__UserName)'
+  ASPNETCORE_JobQueue__Password: '${secretRef}ASPNETCORE_JobQueue__Password)'
 }
 
 resource appinsights 'microsoft.insights/components@2020-02-02-preview' existing = {
