@@ -78,7 +78,7 @@ module workerAppSettings 'config/worker-app-settings.bicep' = {
     appInsightsName: app.outputs.appInsightsName
     workerStorageConnectionStringSecret: workerStorage.outputs.connectionStringSecret
     appSettings: union(appSettings, {
-      SargAssureApiUrl: webApiBaseUrl
+      ManagerApiUrl: webApiBaseUrl
     })
   }
 }
