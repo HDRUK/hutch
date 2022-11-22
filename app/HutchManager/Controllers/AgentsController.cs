@@ -1,3 +1,4 @@
+using HutchManager.Data;
 using HutchManager.Models;
 using HutchManager.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,10 +11,12 @@ namespace HutchManager.Controllers;
 [AllowAnonymous]
 public class AgentsController : ControllerBase
 {
+  private readonly AgentService _agents;
   private readonly DataSourceService _dataSources;
-  public AgentsController(DataSourceService dataSources)
+  public AgentsController(AgentService agents,DataSourceService dataSources)
   {
     _dataSources = dataSources;
+    _agents = agents;
   }
 
   [HttpPost("checkin")]
@@ -21,8 +24,10 @@ public class AgentsController : ControllerBase
   {
     foreach (var ds in payload.DataSources) 
       await _dataSources.CreateOrUpdate(new() { Id = ds });
-
     return Accepted();
   }
 
+  [HttpPost]
+  public async Task<AgentModel> Create(ManageAgent manageAgent)
+    => await _agents.Create(manageAgent);
 }
