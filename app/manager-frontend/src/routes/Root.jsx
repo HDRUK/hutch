@@ -34,6 +34,7 @@ export const Root = () => {
         <Route path="about" element={<ContentPage contentKey={"about"} />} />
         <Route path="/" element={<ProtectedRoutes />}>
           <Route path="home" element={<UserHome />} />
+          <Route path="home/:listname" element={<UserHome />} />
           <Route
             path="activitysources/new"
             element={<CreateActivitySource />}
