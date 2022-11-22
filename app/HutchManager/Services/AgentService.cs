@@ -1,4 +1,6 @@
 using HutchManager.Data;
+using HutchManager.Data.Entities;
+using HutchManager.Extensions;
 
 namespace HutchManager.Services;
 
@@ -11,12 +13,17 @@ public class AgentService
     _db = db;
   }
   
-  public async Task<Models.AgentModel> Create(Models.ManageAgent agent)
+  public async Task<Models.AgentModel> Create(Models.ManageAgent manageAgent)
   {
-    var entity = agent.ToEntity();
+    Agent agent = new Agent()
+    {
+      Name = manageAgent.Name,
+      ClientId = manageAgent.ClientId,
+      ClientSecretHash = manageAgent.ClientSecretHash.Sha256()
+    };
     
-    await _db.Agents.AddAsync(entity);
+    await _db.Agents.AddAsync(agent);
     await _db.SaveChangesAsync();
-    return new(entity);
+    return new(agent);
   }
 }
