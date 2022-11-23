@@ -36,7 +36,7 @@ public class AgentsController : ControllerBase
   /// </summary>
   /// <returns></returns>
   [HttpGet]
-  public async Task<List<AgentDataSource>> List()
+  public async Task<List<AgentSummary>> List()
     => await _agents.List();
   
   /// <summary>
@@ -45,6 +45,6 @@ public class AgentsController : ControllerBase
   /// <param name="id"></param>
   /// <returns></returns>
   [HttpGet("{id}")]
-  public async Task<ActionResult<AgentDataSource>> Get(int id)
+  public async Task<ActionResult<AgentSummary>> Get(int id)
     => await _agents.Get(id);
 }

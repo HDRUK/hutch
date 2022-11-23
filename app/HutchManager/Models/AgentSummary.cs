@@ -1,8 +1,6 @@
-using System.Text.Json.Serialization;
-
 namespace HutchManager.Models;
 
-public class AgentDataSource
+public class AgentSummary
 {
   public int Id { get; set; }
 

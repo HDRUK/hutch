@@ -32,12 +32,12 @@ public class AgentService
   /// Get all Agents
   /// </summary>
   /// <returns></returns>
-  public async Task<List<AgentDataSource>> List()
+  public async Task<List<AgentSummary>> List()
   {
     var list = await _db.Agents
       .AsNoTracking()
       .Include(x => x.DataSources)
-      .Select(x=> new AgentDataSource()
+      .Select(x=> new AgentSummary()
       {
         Id = x.Id,
         Name = x.Name,
@@ -54,13 +54,13 @@ public class AgentService
   /// <param name="agentId"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public async Task<AgentDataSource> Get(int agentId)
+  public async Task<AgentSummary> Get(int agentId)
   {
     var agent = await _db.Agents
                   .AsNoTracking()
                   .Include(x => x.DataSources)
                   .Where(x => x.Id == agentId)
-                  .Select(x => new AgentDataSource()
+                  .Select(x => new AgentSummary()
                   {
                     Id = x.Id,
                     Name = x.Name,
