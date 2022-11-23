@@ -1,5 +1,5 @@
 using HutchManager.Data;
-using HutchManager.Data.Entities;
+using HutchManager.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace HutchManager.Services;
@@ -17,14 +17,21 @@ public class AgentService
   /// Get all Agents
   /// </summary>
   /// <returns></returns>
-  public async Task<List<Models.AgentResultsModel>> List()
+  public async Task<List<AgentDataSource>> List()
   {
     var list = await _db.Agents
       .AsNoTracking()
       .Include(x => x.DataSources)
+      .Select(x=> new AgentDataSource()
+      {
+        Id = x.Id,
+        Name = x.Name,
+        ClientId = x.ClientId,
+        DataSources = x.DataSources.Select(y=>y.Id).ToList(),
+      })
       .ToListAsync();
     
-    return list.ConvertAll<Models.AgentResultsModel>(x => new(x));
+    return list;
   }
   
   /// <summary>
@@ -33,13 +40,20 @@ public class AgentService
   /// <param name="agentId"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public async Task<Models.AgentResultsModel> Get(int agentId)
+  public async Task<AgentDataSource> Get(int agentId)
   {
     var agent = await _db.Agents
                   .AsNoTracking()
                   .Include(x => x.DataSources)
-                  .SingleOrDefaultAsync(x => x.Id == agentId)
+                  .Where(x=> x.Id ==agentId)
+                  .Select(x=> new AgentDataSource()
+                  {
+                    Id = x.Id,
+                    Name = x.Name,
+                    ClientId = x.ClientId,
+                    DataSources = x.DataSources.Select(y=>y.Id).ToList(),
+                  }).SingleOrDefaultAsync() 
                 ?? throw new KeyNotFoundException();
-    return new(agent);
+    return agent;
   }
 }

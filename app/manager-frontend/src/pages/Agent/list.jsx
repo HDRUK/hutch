@@ -74,7 +74,7 @@ export const AgentsList = () => {
               onDelete={() => onClickDelete(item)}
               agentName={item.name}
               clientId={item.clientId}
-              dataSourceId={item.dataSources}
+              dataSources={item.dataSources}
             />
           </>
         ))}

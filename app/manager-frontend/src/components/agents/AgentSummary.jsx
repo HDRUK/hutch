@@ -20,7 +20,7 @@ export const AgentSummary = ({
   agentName,
   href,
   clientId,
-  dataSourceId,
+  dataSources,
   onDelete,
   ...p
 }) => (
@@ -87,8 +87,8 @@ export const AgentSummary = ({
                 <Text>{clientId}</Text>
               </Flex>
             )}
-            {dataSourceId.length > 0 &&
-              dataSourceId.map((item, index) => (
+            {dataSources.length > 0 &&
+              dataSources.map((item, index) => (
                 <Flex key={index} alignItems={"center"}>
                   <FaDatabase />
                   <Text
@@ -100,7 +100,7 @@ export const AgentSummary = ({
                   >
                     Datasource ID:
                   </Text>
-                  <Text>{item.id}</Text>
+                  <Text>{item}</Text>
                 </Flex>
               ))}
           </VStack>
