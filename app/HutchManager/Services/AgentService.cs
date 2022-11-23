@@ -1,4 +1,6 @@
 using HutchManager.Data;
+using HutchManager.Data.Entities;
+using HutchManager.Extensions;
 using HutchManager.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +13,20 @@ public class AgentService
   public AgentService(ApplicationDbContext db)
   {
     _db = db;
+  }
+  
+  public async Task<Models.AgentModel> Create(Models.ManageAgent manageAgent)
+  {
+    Agent agent = new Agent()
+    {
+      Name = manageAgent.Name,
+      ClientId = manageAgent.ClientId,
+      ClientSecretHash = manageAgent.ClientSecretHash.Sha256()
+    };
+    
+    await _db.Agents.AddAsync(agent);
+    await _db.SaveChangesAsync();
+    return new(agent);
   }
 
   /// <summary>
@@ -33,7 +49,7 @@ public class AgentService
     
     return list;
   }
-  
+
   /// <summary>
   /// Get an Agent by ID
   /// </summary>
@@ -45,15 +61,17 @@ public class AgentService
     var agent = await _db.Agents
                   .AsNoTracking()
                   .Include(x => x.DataSources)
-                  .Where(x=> x.Id ==agentId)
-                  .Select(x=> new AgentDataSource()
+                  .Where(x => x.Id == agentId)
+                  .Select(x => new AgentDataSource()
                   {
                     Id = x.Id,
                     Name = x.Name,
                     ClientId = x.ClientId,
-                    DataSources = x.DataSources.Select(y=>y.Id).ToList(),
-                  }).SingleOrDefaultAsync() 
+                    DataSources = x.DataSources.Select(y => y.Id).ToList(),
+                  }).SingleOrDefaultAsync()
                 ?? throw new KeyNotFoundException();
     return agent;
   }
+
+
 }
