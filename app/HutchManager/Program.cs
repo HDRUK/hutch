@@ -75,6 +75,7 @@ b.Services
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()
   .AddTransient<ActivitySourceService>()
+  .AddTransient<AgentService>()
   .AddTransient<DataSourceService>()
   .AddTransient<ResultsModifierService>()
   .AddTransient<AgentService>()

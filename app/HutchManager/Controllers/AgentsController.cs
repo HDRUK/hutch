@@ -18,7 +18,7 @@ public class AgentsController : ControllerBase
     _dataSources = dataSources;
     _agents = agents;
   }
-
+  
   [HttpPost("checkin")]
   public async Task<IActionResult> CheckIn(AgentCheckInModel payload)
   {
@@ -30,4 +30,21 @@ public class AgentsController : ControllerBase
   [HttpPost]
   public async Task<AgentModel> Create(ManageAgent manageAgent)
     => await _agents.Create(manageAgent);
+  
+  /// <summary>
+  /// Get a Agents list
+  /// </summary>
+  /// <returns></returns>
+  [HttpGet]
+  public async Task<List<AgentSummary>> List()
+    => await _agents.List();
+  
+  /// <summary>
+  /// Get an Agent by ID
+  /// </summary>
+  /// <param name="id"></param>
+  /// <returns></returns>
+  [HttpGet("{id}")]
+  public async Task<ActionResult<AgentSummary>> Get(int id)
+    => await _agents.Get(id);
 }
