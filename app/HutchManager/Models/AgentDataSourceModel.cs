@@ -11,7 +11,6 @@ public class AgentDataSource
   public string ClientId { get; set; } = string.Empty;
 
   public List<string> DataSources { get; set; } = new();
-
 }
 
 

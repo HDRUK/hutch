@@ -9,7 +9,6 @@ namespace HutchManager.Services;
 public class AgentService
 {
   private readonly ApplicationDbContext _db;
-
   public AgentService(ApplicationDbContext db)
   {
     _db = db;
@@ -46,7 +45,6 @@ public class AgentService
         DataSources = x.DataSources.Select(y=>y.Id).ToList(),
       })
       .ToListAsync();
-    
     return list;
   }
 

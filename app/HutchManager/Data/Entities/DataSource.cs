@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace HutchManager.Data.Entities;
 
 public class DataSource
