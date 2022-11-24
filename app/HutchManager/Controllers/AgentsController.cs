@@ -47,4 +47,18 @@ public class AgentsController : ControllerBase
   [HttpGet("{id}")]
   public async Task<ActionResult<AgentSummary>> Get(int id)
     => await _agents.Get(id);
+  
+  [HttpPut("{id}")]
+  public async Task<IActionResult> Set(int id, [FromBody] ManageAgent agent)
+  {
+    try
+    {
+      return Ok(await _agents.Set(id, agent));
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
+  
 }
