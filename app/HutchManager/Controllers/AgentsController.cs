@@ -23,7 +23,7 @@ public class AgentsController : ControllerBase
   public async Task<IActionResult> CheckIn(AgentCheckInModel payload)
   {
     foreach (var ds in payload.DataSources) 
-      await _dataSources.CreateOrUpdate(new() { Id = ds });
+      await _dataSources.CreateOrUpdate(new() { Id = ds },payload.Agents);
     return Accepted();
   }
 
