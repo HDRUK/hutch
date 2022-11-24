@@ -61,4 +61,8 @@ public class AgentsController : ControllerBase
     }
   }
   
+  [HttpGet("generate/{generateNew}")]
+  public ManageAgent Generate(bool generateNew)
+    =>  _agents.Generate(generateNew);
+  
 }

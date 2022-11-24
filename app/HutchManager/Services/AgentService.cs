@@ -1,6 +1,7 @@
 using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Extensions;
+using HutchManager.Helpers;
 using HutchManager.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -92,7 +93,26 @@ public class AgentService
     await _db.SaveChangesAsync();
     return new (entity);
   }
+  
+  /// <summary>
+  /// Generate a new client id and secret 
+  /// </summary>
+  /// <param name="generateNew"></param>
+  /// <returns></returns>
+  /// <exception cref="KeyNotFoundException"></exception>
+  public ManageAgent Generate(bool generateNew)
+  {
+    var clientId = Crypto.GenerateId();
+    var clientSecret = Crypto.GenerateId();
 
-
-
+    if (!generateNew)
+      return new ManageAgent() { ClientSecretHash = clientSecret.Sha256() };
+    
+    return new ManageAgent() {
+      ClientId = clientId,
+      ClientSecretHash = clientSecret.Sha256()
+    };
+    
+  }
+  
 }
