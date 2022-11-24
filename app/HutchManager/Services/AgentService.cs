@@ -71,5 +71,28 @@ public class AgentService
     return agent;
   }
 
+  /// <summary>
+  /// Modify an Agent by id
+  /// </summary>
+  /// <param name="id"></param>
+  /// <param name="agent"></param>
+  /// <returns></returns>
+  /// <exception cref="KeyNotFoundException"></exception>
+  public async Task<AgentModel> Set(int id, ManageAgent agent)
+  {
+    var entity = await _db.Agents
+                   .SingleOrDefaultAsync(x => x.Id == id)
+                 ?? throw new KeyNotFoundException($"No Agent with ID: {id}");
+    entity.Name = agent.Name;
+    entity.ClientId = agent.ClientId;
+    if (agent.ClientSecretHash != "")
+    {
+      entity.ClientSecretHash = agent.ClientSecretHash.Sha256();
+    }
+    await _db.SaveChangesAsync();
+    return new (entity);
+  }
+
+
 
 }
