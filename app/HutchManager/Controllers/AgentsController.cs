@@ -23,7 +23,7 @@ public class AgentsController : ControllerBase
   public async Task<IActionResult> CheckIn(AgentCheckInModel payload)
   {
     foreach (var ds in payload.DataSources) 
-      await _dataSources.CreateOrUpdate(new() { Id = ds });
+      await _dataSources.CreateOrUpdate(new() { Id = ds },payload.Agents);
     return Accepted();
   }
 
@@ -48,6 +48,19 @@ public class AgentsController : ControllerBase
   public async Task<ActionResult<AgentSummary>> Get(int id)
     => await _agents.Get(id);
 
+  [HttpPut("{id}")]
+  public async Task<IActionResult> Set(int id, [FromBody] ManageAgent agent)
+  {
+    try
+    {
+      return Ok(await _agents.Set(id, agent));
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
+  
   /// <summary>
   /// Delete an Agent by ID
   /// </summary>
