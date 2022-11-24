@@ -31,19 +31,10 @@ public class AgentsController : ControllerBase
   public async Task<AgentModel> Create(ManageAgent manageAgent)
     => await _agents.Create(manageAgent);
   
-  /// <summary>
-  /// Get a Agents list
-  /// </summary>
-  /// <returns></returns>
   [HttpGet]
   public async Task<List<AgentSummary>> List()
     => await _agents.List();
   
-  /// <summary>
-  /// Get an Agent by ID
-  /// </summary>
-  /// <param name="id"></param>
-  /// <returns></returns>
   [HttpGet("{id}")]
   public async Task<ActionResult<AgentSummary>> Get(int id)
     => await _agents.Get(id);
@@ -61,8 +52,8 @@ public class AgentsController : ControllerBase
     }
   }
   
-  [HttpGet("generate/{generateNew}")]
-  public ManageAgent Generate(bool generateNew)
-    =>  _agents.Generate(generateNew);
+  [HttpGet("generate")] //api/generate?isNew=true or false
+  public async Task<ManageAgent> Generate (bool isNew)
+    =>  await _agents.Generate(isNew);
   
 }

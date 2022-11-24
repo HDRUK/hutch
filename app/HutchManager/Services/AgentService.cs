@@ -68,7 +68,7 @@ public class AgentService
                     ClientId = x.ClientId,
                     DataSources = x.DataSources.Select(y => y.Id).ToList(),
                   }).SingleOrDefaultAsync()
-                ?? throw new KeyNotFoundException();
+                    ?? throw new KeyNotFoundException();
     return agent;
   }
 
@@ -97,20 +97,29 @@ public class AgentService
   /// <summary>
   /// Generate a new client id and secret 
   /// </summary>
-  /// <param name="generateNew"></param>
+  /// <param name="isNew"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public ManageAgent Generate(bool generateNew)
+  public async Task<ManageAgent> Generate (bool isNew)
   {
-    var clientId = Crypto.GenerateId();
-    var clientSecret = Crypto.GenerateId();
-
-    if (!generateNew)
-      return new ManageAgent() { ClientSecretHash = clientSecret.Sha256() };
+    // Generate a unique Client Id
+    var clientId = string.Empty;
+    var isClientIdUnique = false;
+    while (!isClientIdUnique)
+    {
+      var uniqueClientId = Crypto.GenerateId();
+      var existingClientIds = await _db.Agents.AnyAsync(x => x.ClientId == uniqueClientId);
+      if (existingClientIds) continue;
+      clientId = uniqueClientId;
+      isClientIdUnique = true;
+    }
     
-    return new ManageAgent() {
+    if (!isNew) // check if request is for an existing Agent. Only send secret.
+      return new ManageAgent() { ClientSecretHash = Crypto.GenerateId().Sha256() };
+    
+    return new ManageAgent() {// if request is for a new Agent registration, send both
       ClientId = clientId,
-      ClientSecretHash = clientSecret.Sha256()
+      ClientSecretHash = Crypto.GenerateId().Sha256()
     };
     
   }
