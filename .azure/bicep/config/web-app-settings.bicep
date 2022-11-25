@@ -10,8 +10,6 @@ var sharedSettings = {
   OutboundEmail__Provider: 'sendgrid'
   OutboundEmail__SendGridApiKey: '${secretRef}sendgrid-api-key)'
   OutboundEmail__FromAddress: 'noreply@hutch.com'
-  // Environment for deployment (Development or Production)
-  ASPNETCORE_ENVIRONMENT: '${secretRef}ASPNETCORE_ENVIRONMENT)'
   // Paths to SSL certificates
   ASPNETCORE_Kestrel__Certificates__Default__Path: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__Path)'
   ASPNETCORE_Kestrel__Certificates__Default__KeyPath: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__KeyPath)'
