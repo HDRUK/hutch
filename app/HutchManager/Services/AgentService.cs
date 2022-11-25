@@ -92,7 +92,22 @@ public class AgentService
     await _db.SaveChangesAsync();
     return new (entity);
   }
-
-
-
+  
+  /// <summary>
+  /// Delete an Agent by ID
+  /// </summary>
+  /// <param name="agentId"></param>
+  /// <exception cref="KeyNotFoundException"></exception>
+  public async Task Delete(int agentId)
+  {
+    var entity = await _db.Agents
+      .AsNoTracking()
+      .Include(x => x.DataSources)
+      .FirstOrDefaultAsync(x => x.Id == agentId);
+    if (entity is null)
+      throw new KeyNotFoundException(
+        $"No Agent with ID: {agentId}");
+    _db.Agents.Remove(entity);
+    await _db.SaveChangesAsync();
+  }
 }

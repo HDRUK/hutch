@@ -14,7 +14,6 @@ export const AgentsList = () => {
   const { agent } = useBackendApi();
   const { data, mutate } = useAgentList();
 
-  console.log(data);
   const { setFilter, outputList } = useSortingAndFiltering(data, "name", {
     initialSort: { key: "name" },
     sorters: {
