@@ -10,25 +10,25 @@ var secretRef = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName='
 var sharedSettings = {
   AzureWebJobsStorage: '${secretRef}${workerStorageConnectionStringSecret})'
   // Log database settings
-  LOG_DB_DRIVERNAME: '${secretRef}LOG_DB_DRIVERNAME)'
-  LOG_DB_PORT: '${secretRef}LOG_DB_PORT)'
-  LOG_DB_HOST: '${secretRef}LOG_DB_HOST)'
-  LOG_DB_DATABASE: '${secretRef}LOG_DB_DATABASE)'
-  LOG_DB_USERNAME: '${secretRef}LOG_DB_USERNAME)'
-  LOG_DB_PASSWORD: '${secretRef}LOG_DB_PASSWORD)'
+  'log-db-drivername': '${secretRef}log-db-drivername)'
+  'log-db-port': '${secretRef}log-db-port)'
+  'log-db-host': '${secretRef}log-db-host)'
+  'log-db-database': '${secretRef}log-db-database)'
+  'log-db-username': '${secretRef}log-db-username)'
+  'log-db-password': '${secretRef}log-db-password)'
   // Data source database settings
-  DATASOURCE_NAME: '${secretRef}DATASOURCE_NAME)'
-  DATASOURCE_DB_DRIVERNAME: '${secretRef}DATASOURCE_DB_DRIVERNAME)'
-  DATASOURCE_DB_PORT: '${secretRef}DATASOURCE_DB_PORT)'
-  DATASOURCE_DB_HOST: '${secretRef}DATASOURCE_DB_HOST)'
-  DATASOURCE_DB_USERNAME: '${secretRef}DATASOURCE_DB_USERNAME)'
-  DATASOURCE_DB_PASSWORD: '${secretRef}DATASOURCE_DB_PASSWORD)'
-  DATASOURCE_DB_SCHEMA: '${secretRef}DATASOURCE_DB_SCHEMA)'
+  'datasource-name': '${secretRef}datasource-name)'
+  'datasource-db-drivername': '${secretRef}datasource-db-drivername)'
+  'datasource-db-port': '${secretRef}datasource-db-port)'
+  'datasource-db-host': '${secretRef}datasource-db-host)'
+  'datasource-db-username': '${secretRef}datasource-db-username)'
+  'datasource-db-password': '${secretRef}datasource-db-password)'
+  'datasource-db-schema': '${secretRef}datasource-db-schema)'
   // Manager related settings
-  MANAGER_URL: '${secretRef}MANAGER_URL)'
-  MANAGER_VERIFY_SSL: '${secretRef}MANAGER_VERIFY_SSL)'
+  'manager-url': '${secretRef}manager-url)'
+  'manager-verify-ssl': '${secretRef}manager-verify-ssl)'
   // Agent check-in cron string
-  CHECKIN_CRON: '${secretRef}CHECKIN_CRON)'
+  'checkin-cron': '${secretRef}checkin-cron)'
 }
 
 var fnSettings = {
