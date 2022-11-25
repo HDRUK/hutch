@@ -15,10 +15,9 @@ var sharedSettings = {
   ASPNETCORE_Kestrel__Certificates__Default__KeyPath: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__KeyPath)'
   // Connection string to database
   ASPNETCORE_ConnectionStrings__Default: '${secretRef}ASPNETCORE_ConnectionStrings__Default)'
-  // Credentials for RabbitMQ queue
-  ASPNETCORE_JobQueue__HostName: '${secretRef}ASPNETCORE_JobQueue__HostName)'
-  ASPNETCORE_JobQueue__UserName: '${secretRef}ASPNETCORE_JobQueue__UserName)'
-  ASPNETCORE_JobQueue__Password: '${secretRef}ASPNETCORE_JobQueue__Password)'
+  // Connection string to storage queue
+  // https://learn.microsoft.com/en-us/azure/storage/queues/storage-tutorial-queues?tabs=dotnet%2Cenvironment-variable-windows#configure-your-storage-connection-string
+  AZURE_STORAGE_CONNECTION_STRING: '${secretRef}AZURE_STORAGE_CONNECTION_STRING)'
 }
 
 resource appinsights 'microsoft.insights/components@2020-02-02-preview' existing = {
