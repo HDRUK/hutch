@@ -38,7 +38,7 @@ public class AgentsController : ControllerBase
   [HttpGet("{id}")]
   public async Task<ActionResult<AgentSummary>> Get(int id)
     => await _agents.Get(id);
-  
+
   [HttpPut("{id}")]
   public async Task<IActionResult> Set(int id, [FromBody] ManageAgent agent)
   {
@@ -50,6 +50,20 @@ public class AgentsController : ControllerBase
     {
       return NotFound();
     }
+  }
+  
+  [HttpDelete("{id}")]
+  public async Task<IActionResult> Delete(int id)
+  {
+    try
+    {
+      await _agents.Delete(id);
+    }
+    catch (KeyNotFoundException)
+    {
+
+    }
+    return NoContent();
   }
   
   [HttpGet("generate")] //api/generate?isNew=true or false
