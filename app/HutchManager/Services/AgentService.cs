@@ -114,12 +114,12 @@ public class AgentService
       isClientIdUnique = true;
     }
     
-    if (!isNew) // check if request is for an existing Agent. Only send secret.
-      return new ManageAgent() { ClientSecretHash = Crypto.GenerateId().Sha256() };
+    if (!isNew) // check if request is for an existing Agent. Only send Client secret.
+      return new ManageAgent() { ClientSecret = Crypto.GenerateId() };
     
     return new ManageAgent() {// if request is for a new Agent registration, send both
       ClientId = clientId,
-      ClientSecretHash = Crypto.GenerateId().Sha256()
+      ClientSecret = Crypto.GenerateId()
     };
     
   }

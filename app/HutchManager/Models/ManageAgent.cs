@@ -10,4 +10,6 @@ public class ManageAgent
 
   public string ClientSecretHash { get; set; } = string.Empty;
   
+  public string ClientSecret { get; set; } = string.Empty;
+  
 }
