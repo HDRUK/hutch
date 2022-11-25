@@ -68,7 +68,7 @@ public class AgentService
                     ClientId = x.ClientId,
                     DataSources = x.DataSources.Select(y => y.Id).ToList(),
                   }).SingleOrDefaultAsync()
-                    ?? throw new KeyNotFoundException();
+                ?? throw new KeyNotFoundException();
     return agent;
   }
 
