@@ -26,13 +26,6 @@ module app 'components/web-app-service.bicep' = {
     appName: appName
     appHostnames: appHostnames
     logAnalyticsWorkspaceName: logAnalyticsWorkspaceName
-    connectionStrings: [
-      {
-        name: 'Default'
-        type: 'SQLServer'
-        connectionString: '${secretRef}db-connection-string)'
-      }
-    ]
     tags: {
       Environment: env
     }
