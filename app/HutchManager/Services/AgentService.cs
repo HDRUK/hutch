@@ -86,9 +86,9 @@ public class AgentService
                  ?? throw new KeyNotFoundException($"No Agent with ID: {id}");
     entity.Name = agent.Name;
     entity.ClientId = agent.ClientId;
-    if (agent.ClientSecretHash != "")
+    if (agent.ClientSecret != "") 
     {
-      entity.ClientSecretHash = agent.ClientSecretHash.Sha256();
+      entity.ClientSecretHash = agent.ClientSecret.Sha256(); // hash the secret
     }
     await _db.SaveChangesAsync();
     return new (entity);
