@@ -120,14 +120,14 @@ public class AgentService
   /// <param name="isNew"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public async Task<ManageAgent> Generate (bool isNew)
+  public Task<ManageAgent> Generate (bool isNew)
   {
     if (!isNew) // check if request is for an existing Agent. Only send Client secret.
-      return new ManageAgent() { ClientSecret = Crypto.GenerateId() };
+      return Task.FromResult(new ManageAgent() { ClientSecret = Crypto.GenerateId() });
     
-    return new ManageAgent() {// if request is for a new Agent registration, send both
+    return Task.FromResult(new ManageAgent() {// if request is for a new Agent registration, send both
       ClientId = Crypto.GenerateId(),
       ClientSecret = Crypto.GenerateId()
-    };
+    });
   }
 }
