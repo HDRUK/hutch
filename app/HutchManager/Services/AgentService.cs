@@ -15,18 +15,21 @@ public class AgentService
     _db = db;
   }
   
-  public async Task<Models.AgentModel> Create(Models.ManageAgent manageAgent)
+  public async Task<Models.AgentSummary> Create(Models.ManageAgent manageAgent)
   {
     Agent agent = new Agent()
     {
       Name = manageAgent.Name,
       ClientId = manageAgent.ClientId,
-      ClientSecretHash = manageAgent.ClientSecretHash.Sha256()
+      ClientSecretHash = manageAgent.ClientSecret.Sha256() // Has the secret
     };
     
     await _db.Agents.AddAsync(agent);
     await _db.SaveChangesAsync();
-    return new(agent);
+    return new AgentSummary() // return agent summary
+    {
+      Name=agent.Name, ClientId = agent.ClientId
+    };
   }
 
   /// <summary>
@@ -79,7 +82,7 @@ public class AgentService
   /// <param name="agent"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public async Task<AgentModel> Set(int id, ManageAgent agent)
+  public async Task<AgentSummary> Set(int id, ManageAgent agent)
   {
     var entity = await _db.Agents
                    .SingleOrDefaultAsync(x => x.Id == id)
@@ -91,7 +94,7 @@ public class AgentService
       entity.ClientSecretHash = agent.ClientSecret.Sha256(); // hash the secret
     }
     await _db.SaveChangesAsync();
-    return new (entity);
+    return await Get(id); // return a summary of the updated Agent
   }
   /// <summary>
   /// Delete an Agent by ID
@@ -139,6 +142,4 @@ public class AgentService
       ClientSecret = Crypto.GenerateId()
     };
   }
-
-
 }

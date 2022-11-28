@@ -28,7 +28,7 @@ public class AgentsController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<AgentModel> Create(ManageAgent manageAgent)
+  public async Task<AgentSummary> Create(ManageAgent manageAgent)
     => await _agents.Create(manageAgent);
   
   [HttpGet]
