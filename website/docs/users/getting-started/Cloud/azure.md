@@ -5,15 +5,15 @@ sidebar_position: 1
 # Azure
 An Azure build of Hutch deploys the Manager as a web app using Azure Web Apps, accompanied by Azure Queue Storage as the message queue, rather than RabbitMQ. An Agent can be ran as an Azure Functions App with a queue trigger.
 
-You can use [Bicep](bicep-intro) to create the resources for Hutch in Azure. We provide Bicep files in the [repository](hutch-repo). To deploy these, you will need:
-- [Azure CLI](azure-cli)
-- [Bicep](install-bicep)
-- [A resource group](create-resource-group)
+You can use [Bicep][bicep-intro] to create the resources for Hutch in Azure. We provide Bicep files in the [repository][hutch-repo]. To deploy these, you will need:
+- [Azure CLI][azure-cli]
+- [Bicep][install-bicep]
+- [A resource group][create-resource-group]
 
 Now you can create the parameter files for the Agent and Manager.
 
 ## Agent
-Create a JSON file called `agent-settings.json`. The keys will be the setting names from [Hutch Agent](/docs/users/getting-started/configuration/agent.md) and you will set the values as appropriate. Set the Azure Queue Storage [connection string](/docs/users/getting-started/installation/message-queue.md) as well.
+Create a JSON file called `agent-settings.json`. The keys will be the setting names from [Hutch Agent][/docs/users/getting-started/configuration/agent.md] and you will set the values as appropriate. Set the Azure Queue Storage [connection string](/docs/users/getting-started/installation/message-queue.md) as well.
 
 ## Manager
 Create a similar JSON file called `manager-settings.json` and populate it with [Manager settings](docs/users/getting-started/configuration/manager.md). Set the Azure Queue Storage [connection string](/docs/users/getting-started/installation/message-queue.md) as well.

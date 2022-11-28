@@ -16,7 +16,7 @@ An easy way can be to use [Docker][rabbitmq-docker], configured via environment 
 
 # Azure Queue Storage
 
-Alternatively, you can use [Azure Queue Storage](azure-queue-storage) as your message queue. Add the connection string to the environment:
+Alternatively, you can use [Azure Queue Storage][azure-queue-storage] as your message queue. Add the connection string to the environment:
 - `AZURE_QUEUE_STORAGE_STRING=<connection_string>
 
 [RabbitMQ]: https://www.rabbitmq.com/
