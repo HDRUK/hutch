@@ -28,7 +28,7 @@ public class AgentsController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<AgentSummary> Create(ManageAgent manageAgent)
+  public async Task<ManageAgent> Create(Models.ManageAgent manageAgent)
     => await _agents.Create(manageAgent);
   
   /// <summary>
@@ -80,8 +80,8 @@ public class AgentsController : ControllerBase
     return NoContent();
   }
   
-  [HttpGet("generate")] //api/generate?isNew=true or false
-  public async Task<ManageAgent> Generate (bool isNew)
-    =>  await _agents.Generate(isNew);
+  [HttpPut("{id}/secret")] //api/agents/{id}/secret
+  public async Task<ManageAgent> Set (int id)
+    =>  await _agents.GenerateNewSecret(id);
   
 }

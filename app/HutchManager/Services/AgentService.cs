@@ -15,20 +15,22 @@ public class AgentService
     _db = db;
   }
   
-  public async Task<Models.AgentSummary> Create(Models.ManageAgent manageAgent)
+  public async Task<Models.ManageAgent> Create(Models.ManageAgent manageAgent)
   {
+    var clientId = Crypto.GenerateId();
+    var clientSecret = Crypto.GenerateId();
     Agent agent = new Agent()
     {
       Name = manageAgent.Name,
-      ClientId = manageAgent.ClientId,
-      ClientSecretHash = manageAgent.ClientSecret.Sha256() // Has the secret
+      ClientId = clientId,
+      ClientSecretHash = clientSecret.Sha256() // Hash the secret
     };
     
     await _db.Agents.AddAsync(agent);
     await _db.SaveChangesAsync();
-    return new AgentSummary() // return agent summary
+    return new ManageAgent() // return newly created agent
     {
-      Name = agent.Name, ClientId = agent.ClientId
+      Name = agent.Name, ClientId = agent.ClientId, ClientSecret = clientSecret
     };
   }
 
@@ -88,11 +90,6 @@ public class AgentService
                    .SingleOrDefaultAsync(x => x.Id == id)
                  ?? throw new KeyNotFoundException($"No Agent with ID: {id}");
     entity.Name = agent.Name;
-    entity.ClientId = agent.ClientId;
-    if (agent.ClientSecret != "") 
-    {
-      entity.ClientSecretHash = agent.ClientSecret.Sha256(); // hash the secret
-    }
     await _db.SaveChangesAsync();
     return await Get(id); // return a summary of the updated Agent
   }
@@ -115,19 +112,22 @@ public class AgentService
   }
 
   /// <summary>
-  /// Generate a new client id and secret 
+  /// Generate a new client secret and update the existing one
   /// </summary>
-  /// <param name="isNew"></param>
+  /// <param name="id"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public Task<ManageAgent> Generate (bool isNew)
+  public async Task<ManageAgent> GenerateNewSecret (int id)
   {
-    if (!isNew) // check if request is for an existing Agent. Only send Client secret.
-      return Task.FromResult(new ManageAgent() { ClientSecret = Crypto.GenerateId() });
-    
-    return Task.FromResult(new ManageAgent() {// if request is for a new Agent registration, send both
-      ClientId = Crypto.GenerateId(),
-      ClientSecret = Crypto.GenerateId()
-    });
+    var clientSecret = Crypto.GenerateId();
+    var entity = await _db.Agents
+                   .SingleOrDefaultAsync(x => x.Id == id)
+                 ?? throw new KeyNotFoundException($"No Agent with ID: {id}");
+    entity.ClientSecretHash = clientSecret.Sha256();
+    await _db.SaveChangesAsync();
+    return new ManageAgent() // return newly created agent
+    {
+      Name = entity.Name, ClientId = entity.ClientId, ClientSecret = clientSecret
+    }; // return a summary of the updated Agent
   }
 }
