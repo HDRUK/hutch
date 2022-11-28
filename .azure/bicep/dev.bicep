@@ -1,5 +1,8 @@
 param location string = resourceGroup().location
 
+param webSettings object = {}
+param workerSettings object = {}
+
 var env = 'dev'
 
 var appHostnames = [

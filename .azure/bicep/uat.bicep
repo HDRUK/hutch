@@ -1,5 +1,8 @@
 param location string = resourceGroup().location
 
+param webSettings object = {}
+param workerSettings object = {}
+
 var env = 'uat'
 
 var aspName = 'nonprod-asp' // shared by all non prod apps
