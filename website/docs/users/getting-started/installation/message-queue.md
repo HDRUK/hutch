@@ -14,6 +14,12 @@ An easy way can be to use [Docker][rabbitmq-docker], configured via environment 
 - `RABBITMQ_DEFAULT_PASS=<password>`
   - **Generate a good random one!**
 
+# Azure Queue Storage
+
+Alternatively, you can use [Azure Queue Storage](azure-queue-storage) as your message queue. Add the connection string to the environment:
+- `AZURE_QUEUE_STORAGE_STRING=<connection_string>
+
 [RabbitMQ]: https://www.rabbitmq.com/
 [install-rabbitmq]: https://www.rabbitmq.com/download.html
 [rabbitmq-docker]: https://hub.docker.com/_/rabbitmq
+[azure-queue-storage]: https://learn.microsoft.com/en-au/azure/storage/queues/storage-dotnet-how-to-use-queues?tabs=dotnet
