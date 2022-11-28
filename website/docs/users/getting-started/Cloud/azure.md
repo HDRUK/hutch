@@ -9,6 +9,7 @@ You can use [Bicep][bicep-intro] to create the resources for Hutch in Azure. We 
 - [Azure CLI][azure-cli]
 - [Bicep][install-bicep]
 - [A resource group][create-resource-group]
+- [Key Vault][keyvault] to store secrets like the Queue Storage connection string and the connection string to your database.
 
 Now you can create the parameter files for the Agent and Manager.
 
@@ -33,3 +34,4 @@ az deployment group create \
 [create-resource-group]: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-portal
 [bicep-intro]: https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tabs=bicep
 [hutch-repo]: https://github.com/HDRUK/hutch
+[keyvault]: https://learn.microsoft.com/en-gb/azure/key-vault/general/overview
