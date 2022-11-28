@@ -9,26 +9,6 @@ var secretRef = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName='
 
 var sharedSettings = {
   AzureWebJobsStorage: '${secretRef}${workerStorageConnectionStringSecret})'
-  // Log database settings
-  'log-db-drivername': '${secretRef}log-db-drivername)'
-  'log-db-port': '${secretRef}log-db-port)'
-  'log-db-host': '${secretRef}log-db-host)'
-  'log-db-database': '${secretRef}log-db-database)'
-  'log-db-username': '${secretRef}log-db-username)'
-  'log-db-password': '${secretRef}log-db-password)'
-  // Data source database settings
-  'datasource-name': '${secretRef}datasource-name)'
-  'datasource-db-drivername': '${secretRef}datasource-db-drivername)'
-  'datasource-db-port': '${secretRef}datasource-db-port)'
-  'datasource-db-host': '${secretRef}datasource-db-host)'
-  'datasource-db-username': '${secretRef}datasource-db-username)'
-  'datasource-db-password': '${secretRef}datasource-db-password)'
-  'datasource-db-schema': '${secretRef}datasource-db-schema)'
-  // Manager related settings
-  'manager-url': '${secretRef}manager-url)'
-  'manager-verify-ssl': '${secretRef}manager-verify-ssl)'
-  // Agent check-in cron string
-  'checkin-cron': '${secretRef}checkin-cron)'
 }
 
 var fnSettings = {
