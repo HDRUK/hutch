@@ -28,7 +28,7 @@ public class AgentService
     await _db.SaveChangesAsync();
     return new AgentSummary() // return agent summary
     {
-      Name=agent.Name, ClientId = agent.ClientId
+      Name = agent.Name, ClientId = agent.ClientId
     };
   }
 
@@ -122,23 +122,11 @@ public class AgentService
   /// <exception cref="KeyNotFoundException"></exception>
   public async Task<ManageAgent> Generate (bool isNew)
   {
-    // Generate a unique Client Id
-    var clientId = string.Empty;
-    var isClientIdUnique = false;
-    while (!isClientIdUnique)
-    {
-      var uniqueClientId = Crypto.GenerateId();
-      var existingClientIds = await _db.Agents.AnyAsync(x => x.ClientId == uniqueClientId);
-      if (existingClientIds) continue;
-      clientId = uniqueClientId;
-      isClientIdUnique = true;
-    }
-    
     if (!isNew) // check if request is for an existing Agent. Only send Client secret.
       return new ManageAgent() { ClientSecret = Crypto.GenerateId() };
     
     return new ManageAgent() {// if request is for a new Agent registration, send both
-      ClientId = clientId,
+      ClientId = Crypto.GenerateId(),
       ClientSecret = Crypto.GenerateId()
     };
   }
