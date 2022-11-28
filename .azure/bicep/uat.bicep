@@ -19,9 +19,7 @@ module web 'web.bicep' = {
     env: env
     aspName: aspName
     keyVaultName: kv.name
-    appSettings: {
-      // AspNetCore__Environment: env // TODO specify env when a real prod environment is added
-    }
+    appSettings: webSettings
   }
 }
 
@@ -34,5 +32,6 @@ module worker 'worker.bicep' = {
     keyVaultName: kv.name
     aspName: aspName
     webApiBaseUrl: apiBaseUrl
+    appSettings: workerSettings
   }
 }

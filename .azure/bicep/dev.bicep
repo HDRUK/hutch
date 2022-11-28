@@ -25,9 +25,7 @@ module web 'web.bicep' = {
     aspName: aspName
     keyVaultName: kv.name
     appHostnames: appHostnames
-    appSettings: {
-      AspNetCore__Environment: env
-    }
+    appSettings: webSettings
   }
 }
 
@@ -40,5 +38,6 @@ module worker 'worker.bicep' = {
     keyVaultName: kv.name
     aspName: aspName
     webApiBaseUrl: apiBaseUrl
+    appSettings: workerSettings
   }
 }
