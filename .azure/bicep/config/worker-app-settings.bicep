@@ -9,6 +9,7 @@ var secretRef = '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName='
 
 var sharedSettings = {
   AzureWebJobsStorage: '${secretRef}${workerStorageConnectionStringSecret})'
+  AZURE_STORAGE_CONNECTION_STRING: '${secretRef}azure-storage-connection-string)'
 }
 
 var fnSettings = {

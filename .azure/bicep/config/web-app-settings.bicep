@@ -14,10 +14,10 @@ var sharedSettings = {
   ASPNETCORE_Kestrel__Certificates__Default__Path: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__Path)'
   ASPNETCORE_Kestrel__Certificates__Default__KeyPath: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__KeyPath)'
   // Connection string to database
-  'database-connection-string': '${secretRef}database-connection-string)'
+  DATABASE_CONNECTION_STRING: '${secretRef}database-connection-string)'
   // Connection string to storage queue
   // https://learn.microsoft.com/en-us/azure/storage/queues/storage-tutorial-queues?tabs=dotnet%2Cenvironment-variable-windows#configure-your-storage-connection-string
-  'azure-storage-connection-string': '${secretRef}azure-storage-connection-string)'
+  AZURE_STORAGE_CONNECTION_STRING: '${secretRef}azure-storage-connection-string)'
 }
 
 resource appinsights 'microsoft.insights/components@2020-02-02-preview' existing = {
