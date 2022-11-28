@@ -31,10 +31,19 @@ public class AgentsController : ControllerBase
   public async Task<AgentSummary> Create(ManageAgent manageAgent)
     => await _agents.Create(manageAgent);
   
+  /// <summary>
+  /// Get a Agents list
+  /// </summary>
+  /// <returns></returns>
   [HttpGet]
   public async Task<List<AgentSummary>> List()
     => await _agents.List();
   
+  /// <summary>
+  /// Get an Agent by ID
+  /// </summary>
+  /// <param name="id"></param>
+  /// <returns></returns>
   [HttpGet("{id}")]
   public async Task<ActionResult<AgentSummary>> Get(int id)
     => await _agents.Get(id);
@@ -52,6 +61,11 @@ public class AgentsController : ControllerBase
     }
   }
   
+  /// <summary>
+  /// Delete an Agent by ID
+  /// </summary>
+  /// <param name="id"></param>
+  /// <returns></returns>
   [HttpDelete("{id}")]
   public async Task<IActionResult> Delete(int id)
   {
