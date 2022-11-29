@@ -42,11 +42,11 @@ namespace HutchManager.Extensions
       {
         case "AzureQueueStorage":
           s.Configure<AzureJobQueueOptions>(c.GetSection("JobQueue"))
-            .AddTransient<AzureJobQueueService>();
+            .AddTransient<IJobQueueService, AzureJobQueueService>();
           break;
         case "RabbitMQ":
           s.Configure<RabbitJobQueueOptions>(c.GetSection("JobQueue"))
-            .AddTransient<RabbitJobQueueService>();
+            .AddTransient<IJobQueueService, RabbitJobQueueService>();
           break;
         default:
           throw new Exception($"'{queueType}' is not a valid queue service");

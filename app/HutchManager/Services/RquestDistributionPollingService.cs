@@ -10,13 +10,13 @@ public class RquestDistributionPollingService
   private readonly RQuestTaskApiClient _taskApi;
   private readonly ILogger<RquestDistributionPollingService> _logger;
   private readonly IFeatureManager _featureManager;
-  private readonly RabbitJobQueueService _jobQueue;
+  private readonly IJobQueueService _jobQueue;
 
   public RquestDistributionPollingService(
     RQuestTaskApiClient taskApi,
     ILogger<RquestDistributionPollingService> logger,
     IFeatureManager featureManager,
-    RabbitJobQueueService jobQueue)
+    IJobQueueService jobQueue)
   {
     _taskApi = taskApi;
     _logger = logger;
