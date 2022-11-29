@@ -11,10 +11,10 @@ public class RabbitJobQueueService : IDisposable, IJobQueueService
 {
   private readonly IConnection _connection;
   private readonly IModel _channel;
-  private readonly JobQueueOptions _options;
+  private readonly RabbitJobQueueOptions _options;
 
 
-  public RabbitJobQueueService(IOptions<JobQueueOptions> options)
+  public RabbitJobQueueService(IOptions<RabbitJobQueueOptions> options)
   {
     _options = options.Value;
     var connectionFactory = new ConnectionFactory()

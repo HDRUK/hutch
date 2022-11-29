@@ -67,7 +67,7 @@ b.Services
   .AddApplicationInsightsTelemetry()
   .ConfigureApplicationCookie(AuthConfiguration.IdentityCookieOptions)
   .AddAuthorization(AuthConfiguration.AuthOptions)
-  .Configure<JobQueueOptions>(b.Configuration.GetSection("JobQueue"))
+  .Configure<RabbitJobQueueOptions>(b.Configuration.GetSection("JobQueue"))
   .Configure<RQuestTaskApiOptions>(b.Configuration.GetSection("RQuestTaskApi"))
   .Configure<ActivitySourcePollingOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
   .Configure<DistributionPollingOptions>(b.Configuration.GetSection("DistributionPolling"))

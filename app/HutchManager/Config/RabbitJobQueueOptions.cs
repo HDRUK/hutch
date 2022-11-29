@@ -2,7 +2,7 @@ using RabbitMQ.Client;
 
 namespace HutchManager.Config;
 
-public class JobQueueOptions
+public class RabbitJobQueueOptions
 {
   public string HostName { get; set; } = "";
   public int Port { get; set; } = AmqpTcpEndpoint.UseDefaultPort;
