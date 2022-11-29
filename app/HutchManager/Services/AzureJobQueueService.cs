@@ -17,6 +17,7 @@ public class AzureJobQueueService : IJobQueueService
   public void SendMessage<T>(string queueName, T message) where T : class
   {
     var queueClient = new QueueClient(_connectionString, queueName);
+    queueClient.CreateIfNotExists();
     queueClient.SendMessage(
       JsonSerializer.Serialize(message));
   }
