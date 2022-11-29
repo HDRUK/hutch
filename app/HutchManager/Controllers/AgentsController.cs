@@ -1,4 +1,3 @@
-using HutchManager.Data;
 using HutchManager.Models;
 using HutchManager.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -28,7 +27,7 @@ public class AgentsController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<AgentModel> Create(ManageAgent manageAgent)
+  public async Task<ManageAgent> Create(ManageAgent manageAgent)
     => await _agents.Create(manageAgent);
   
   /// <summary>
@@ -36,7 +35,7 @@ public class AgentsController : ControllerBase
   /// </summary>
   /// <returns></returns>
   [HttpGet]
-  public async Task<List<AgentSummary>> List()
+  public async Task<List<ManageAgent>> List()
     => await _agents.List();
   
   /// <summary>
@@ -45,7 +44,7 @@ public class AgentsController : ControllerBase
   /// <param name="id"></param>
   /// <returns></returns>
   [HttpGet("{id}")]
-  public async Task<ActionResult<AgentSummary>> Get(int id)
+  public async Task<ActionResult<ManageAgent>> Get(int id)
     => await _agents.Get(id);
 
   [HttpPut("{id}")]
@@ -79,4 +78,9 @@ public class AgentsController : ControllerBase
     }
     return NoContent();
   }
+  
+  [HttpPut("{id}/secret")] //api/agents/{id}/secret
+  public async Task<ManageAgent> GenerateNewSecret (int id)
+    =>  await _agents.GenerateNewSecret(id);
+  
 }
