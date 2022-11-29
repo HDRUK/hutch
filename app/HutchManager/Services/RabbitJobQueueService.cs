@@ -7,14 +7,14 @@ using RabbitMQ.Client;
 
 namespace HutchManager.Services;
 
-public class JobQueueService : IDisposable, IJobQueueService
+public class RabbitJobQueueService : IDisposable, IJobQueueService
 {
   private readonly IConnection _connection;
   private readonly IModel _channel;
   private readonly JobQueueOptions _options;
 
 
-  public JobQueueService(IOptions<JobQueueOptions> options)
+  public RabbitJobQueueService(IOptions<JobQueueOptions> options)
   {
     _options = options.Value;
     var connectionFactory = new ConnectionFactory()
@@ -51,7 +51,7 @@ public class JobQueueService : IDisposable, IJobQueueService
       body: body);
   }
 
-  ~JobQueueService()
+  ~RabbitJobQueueService()
   {
     Dispose(false);
   }
