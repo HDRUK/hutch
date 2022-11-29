@@ -80,7 +80,7 @@ public class AgentsController : ControllerBase
   }
   
   [HttpPut("{id}/secret")] //api/agents/{id}/secret
-  public async Task<ManageAgent> Set (int id)
+  public async Task<ManageAgent> GenerateNewSecret (int id)
     =>  await _agents.GenerateNewSecret(id);
   
 }
