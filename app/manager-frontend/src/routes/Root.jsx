@@ -12,6 +12,8 @@ import { useBackendConfig } from "contexts/Config";
 import CreateActivitySource from "pages/ActivitySource/create";
 import EditActivitySource from "pages/ActivitySource/edit";
 import { DataSourcesList } from "pages/DataSource/list";
+import RegisterAgent from "pages/Agent/create";
+import EditAgent from "pages/Agent/edit";
 
 const IndexRedirect = () => {
   const { user } = useUser();
@@ -39,8 +41,10 @@ export const Root = () => {
             path="activitysources/new"
             element={<CreateActivitySource />}
           />
+          <Route path="agents/new" element={<RegisterAgent />} />
           <Route path="datasources" element={<DataSourcesList />} />
           <Route path="activitysources/:id" element={<EditActivitySource />} />
+          <Route path="agents/:id" element={<EditAgent />} />
         </Route>
 
         <Route path="account/*" element={<Account />} />
