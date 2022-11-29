@@ -10,9 +10,6 @@ var sharedSettings = {
   OutboundEmail__Provider: 'sendgrid'
   OutboundEmail__SendGridApiKey: '${secretRef}sendgrid-api-key)'
   OutboundEmail__FromAddress: 'noreply@hutch.com'
-  // Paths to SSL certificates
-  ASPNETCORE_Kestrel__Certificates__Default__Path: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__Path)'
-  ASPNETCORE_Kestrel__Certificates__Default__KeyPath: '${secretRef}ASPNETCORE_Kestrel__Certificates__Default__KeyPath)'
   // Connection string to database
   DATABASE_CONNECTION_STRING: '${secretRef}database-connection-string)'
   // Connection string to storage queue
