@@ -4,18 +4,24 @@ import { ActivitySourcesList } from "./ActivitySource/list";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AgentsList } from "./Agent/list";
+import { UsersList } from "./User/list";
 
 export const UserHome = () => {
   const homepageActions = [
     {
       title: "Activity Source",
-      description: "Activity Source description",
+      description: "Activity Source action card description",
       href: "/activitysourcelist",
     },
     {
       title: "Agents",
-      description: "Agents description",
+      description: "Agents action card description",
       href: "/agentlist",
+    },
+    {
+      title: "Users",
+      description: "Users action card description",
+      href: "/userlist",
     },
   ];
 
@@ -25,6 +31,18 @@ export const UserHome = () => {
   useEffect(() => {
     if (!listname) navigate("/home/activitysourcelist"); // load activitysourcelist if params not available
   }, []);
+
+  const List = () => {
+    // conditional loading of the list based on listname
+    switch (listname) {
+      case "agentlist":
+        return <AgentsList />; // load Agent list if listname(params) is 'agentlist'
+      case "userlist":
+        return <UsersList />; // load User list if listname(params) is 'userlist'
+      default:
+        return <ActivitySourcesList />; // load Activity Source list if listname(params) is 'activitysourcelist'
+    }
+  };
 
   return (
     <Stack px={8} w="100%" spacing={4} p={4} alignItems="center">
@@ -52,14 +70,7 @@ export const UserHome = () => {
           </ActionCard>
         ))}
       </HStack>
-      {
-        // conditional loading of the list based on listname
-        listname === "activitysourcelist" ? (
-          <ActivitySourcesList /> // load Activity Source list if listname(params) is 'activitysourcelist'
-        ) : (
-          listname === "agentlist" && <AgentsList /> // load Agent list if listname(params) is 'agentlist'
-        )
-      }
+      <List />
     </Stack>
   );
 };
