@@ -41,7 +41,7 @@ namespace HutchManager.Extensions
       switch (queueType)
       {
         case "AzureQueueStorage":
-          s.Configure<AzureJobQueueOptions>(c.GetSection("AzureQueueStorage"))
+          s.Configure<AzureJobQueueOptions>(c.GetSection("JobQueue"))
             .AddTransient<AzureJobQueueService>();
           break;
         case "RabbitMQ":
