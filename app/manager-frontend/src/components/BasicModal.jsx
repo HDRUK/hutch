@@ -24,6 +24,7 @@ export const BasicModal = ({
   closeOnOverlayClick = true,
 }) => (
   <AlertDialog
+    closeOnEsc={closeOnOverlayClick}
     closeOnOverlayClick={closeOnOverlayClick}
     isOpen={isOpen}
     onClose={cancelBtnAction}
