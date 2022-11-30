@@ -1,4 +1,4 @@
-import { HStack, Stack, Text } from "@chakra-ui/react";
+import { HStack, Stack } from "@chakra-ui/react";
 import { ActionCard } from "components/ActionCard";
 import { ActivitySourcesList } from "./ActivitySource/list";
 import { useParams, useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ import { FiUsers } from "react-icons/fi";
 export const UserHome = () => {
   const homepageActions = [
     {
-      title: "Activity Source",
+      title: "Activity Sources",
       href: "/activitysourcelist",
       icon: TbDeviceDesktopAnalytics,
     },
