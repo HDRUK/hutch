@@ -1,6 +1,7 @@
 using HutchManager.Data;
 using HutchManager.Data.Entities;
 using HutchManager.Extensions;
+using HutchManager.Helpers;
 using HutchManager.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,30 +15,33 @@ public class AgentService
     _db = db;
   }
   
-  public async Task<Models.AgentModel> Create(Models.ManageAgent manageAgent)
+  public async Task<ManageAgent> Create(ManageAgent manageAgent)
   {
+    var clientSecret = Crypto.GenerateId();
     Agent agent = new Agent()
     {
       Name = manageAgent.Name,
-      ClientId = manageAgent.ClientId,
-      ClientSecretHash = manageAgent.ClientSecretHash.Sha256()
+      ClientId = Crypto.GenerateId(),
+      ClientSecretHash = clientSecret.Sha256() // Hash the secret
     };
-    
     await _db.Agents.AddAsync(agent);
     await _db.SaveChangesAsync();
-    return new(agent);
+    return new ManageAgent() // return newly created agent
+    {
+      Id = agent.Id, Name = agent.Name, ClientId = agent.ClientId, ClientSecret = clientSecret
+    };
   }
 
   /// <summary>
   /// Get all Agents
   /// </summary>
   /// <returns></returns>
-  public async Task<List<AgentSummary>> List()
+  public async Task<List<ManageAgent>> List()
   {
     var list = await _db.Agents
       .AsNoTracking()
       .Include(x => x.DataSources)
-      .Select(x=> new AgentSummary()
+      .Select(x=> new ManageAgent()
       {
         Id = x.Id,
         Name = x.Name,
@@ -54,13 +58,13 @@ public class AgentService
   /// <param name="agentId"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public async Task<AgentSummary> Get(int agentId)
+  public async Task<ManageAgent> Get(int agentId)
   {
     var agent = await _db.Agents
                   .AsNoTracking()
                   .Include(x => x.DataSources)
                   .Where(x => x.Id == agentId)
-                  .Select(x => new AgentSummary()
+                  .Select(x => new ManageAgent()
                   {
                     Id = x.Id,
                     Name = x.Name,
@@ -78,21 +82,50 @@ public class AgentService
   /// <param name="agent"></param>
   /// <returns></returns>
   /// <exception cref="KeyNotFoundException"></exception>
-  public async Task<AgentModel> Set(int id, ManageAgent agent)
+  public async Task<ManageAgent> Set(int id, ManageAgent agent)
   {
     var entity = await _db.Agents
                    .SingleOrDefaultAsync(x => x.Id == id)
                  ?? throw new KeyNotFoundException($"No Agent with ID: {id}");
     entity.Name = agent.Name;
-    entity.ClientId = agent.ClientId;
-    if (agent.ClientSecretHash != "")
-    {
-      entity.ClientSecretHash = agent.ClientSecretHash.Sha256();
-    }
     await _db.SaveChangesAsync();
-    return new (entity);
+    return await Get(id); // return a summary of the updated Agent
+  }
+  /// <summary>
+  /// Delete an Agent by ID
+  /// </summary>
+  /// <param name="agentId"></param>
+  /// <exception cref="KeyNotFoundException"></exception>
+  public async Task Delete(int agentId)
+  {
+    var entity = await _db.Agents
+      .AsNoTracking()
+      .Include(x => x.DataSources)
+      .FirstOrDefaultAsync(x => x.Id == agentId);
+    if (entity is null)
+      throw new KeyNotFoundException(
+        $"No Agent with ID: {agentId}");
+    _db.Agents.Remove(entity);
+    await _db.SaveChangesAsync();
   }
 
-
-
+  /// <summary>
+  /// Generate a new client secret and update the existing one
+  /// </summary>
+  /// <param name="id"></param>
+  /// <returns></returns>
+  /// <exception cref="KeyNotFoundException"></exception>
+  public async Task<ManageAgent> GenerateNewSecret (int id)
+  {
+    var clientSecret = Crypto.GenerateId();
+    var entity = await _db.Agents
+                   .SingleOrDefaultAsync(x => x.Id == id)
+                 ?? throw new KeyNotFoundException($"No Agent with ID: {id}");
+    entity.ClientSecretHash = Crypto.GenerateId().Sha256();
+    await _db.SaveChangesAsync();
+    return new ManageAgent() // return newly created agent
+    {
+      Id = id, Name = entity.Name, ClientId = entity.ClientId, ClientSecret = clientSecret
+    }; // return a summary of the updated Agent
+  }
 }

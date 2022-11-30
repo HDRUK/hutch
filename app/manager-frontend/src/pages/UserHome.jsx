@@ -1,21 +1,30 @@
-import { HStack, Text, Stack } from "@chakra-ui/react";
+import { HStack, Stack } from "@chakra-ui/react";
 import { ActionCard } from "components/ActionCard";
 import { ActivitySourcesList } from "./ActivitySource/list";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AgentsList } from "./Agent/list";
+import { UsersList } from "./User/list";
+import { TbDeviceDesktopAnalytics } from "react-icons/tb";
+import { AiOutlineInteraction } from "react-icons/ai";
+import { FiUsers } from "react-icons/fi";
 
 export const UserHome = () => {
   const homepageActions = [
     {
-      title: "Activity Source",
-      description: "Activity Source description",
+      title: "Activity Sources",
       href: "/activitysourcelist",
+      icon: TbDeviceDesktopAnalytics,
     },
     {
       title: "Agents",
-      description: "Agents description",
       href: "/agentlist",
+      icon: AiOutlineInteraction,
+    },
+    {
+      title: "Users",
+      href: "/userlist",
+      icon: FiUsers,
     },
   ];
 
@@ -25,6 +34,18 @@ export const UserHome = () => {
   useEffect(() => {
     if (!listname) navigate("/home/activitysourcelist"); // load activitysourcelist if params not available
   }, []);
+
+  const List = () => {
+    // conditional loading of the list based on listname
+    switch (listname) {
+      case "agentlist":
+        return <AgentsList />; // load Agent list if listname(params) is 'agentlist'
+      case "userlist":
+        return <UsersList />; // load User list if listname(params) is 'userlist'
+      default:
+        return <ActivitySourcesList />; // load Activity Source list if listname(params) is 'activitysourcelist'
+    }
+  };
 
   return (
     <Stack px={8} w="100%" spacing={4} p={4} alignItems="center">
@@ -45,21 +66,11 @@ export const UserHome = () => {
             title={action.title}
             href={`/home${action.href}`}
             isActive={listname === action.href.replace("/", "")}
-          >
-            <Text color="gray.600" fontSize="sm">
-              {action.description}
-            </Text>
-          </ActionCard>
+            icon={action.icon}
+          />
         ))}
       </HStack>
-      {
-        // conditional loading of the list based on listname
-        listname === "activitysourcelist" ? (
-          <ActivitySourcesList /> // load Activity Source list if listname(params) is 'activitysourcelist'
-        ) : (
-          listname === "agentlist" && <AgentsList /> // load Agent list if listname(params) is 'agentlist'
-        )
-      }
+      <List />
     </Stack>
   );
 };
