@@ -1,27 +1,30 @@
-import { HStack, Text, Stack } from "@chakra-ui/react";
+import { HStack, Stack, Text } from "@chakra-ui/react";
 import { ActionCard } from "components/ActionCard";
 import { ActivitySourcesList } from "./ActivitySource/list";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AgentsList } from "./Agent/list";
 import { UsersList } from "./User/list";
+import { TbDeviceDesktopAnalytics } from "react-icons/tb";
+import { AiOutlineInteraction } from "react-icons/ai";
+import { FiUsers } from "react-icons/fi";
 
 export const UserHome = () => {
   const homepageActions = [
     {
       title: "Activity Source",
-      description: "Activity Source action card description",
       href: "/activitysourcelist",
+      icon: TbDeviceDesktopAnalytics,
     },
     {
       title: "Agents",
-      description: "Agents action card description",
       href: "/agentlist",
+      icon: AiOutlineInteraction,
     },
     {
       title: "Users",
-      description: "Users action card description",
       href: "/userlist",
+      icon: FiUsers,
     },
   ];
 
@@ -63,11 +66,8 @@ export const UserHome = () => {
             title={action.title}
             href={`/home${action.href}`}
             isActive={listname === action.href.replace("/", "")}
-          >
-            <Text color="gray.600" fontSize="sm">
-              {action.description}
-            </Text>
-          </ActionCard>
+            icon={action.icon}
+          />
         ))}
       </HStack>
       <List />
