@@ -19,7 +19,7 @@ export const ActionCard = ({ icon, title, href, isActive, children, ...p }) => (
       borderWidth={1}
       borderRadius={5}
       h="100%"
-      p={2.5}
+      p={[2.5, 5]}
       align="stretch"
       _hover={{
         borderColor: `${!isActive && "blue.500"}`,
@@ -28,7 +28,7 @@ export const ActionCard = ({ icon, title, href, isActive, children, ...p }) => (
       {...p}
     >
       <HStack>
-        {icon && <Icon as={icon} />}
+        {icon && <Icon w={6} h={6} as={icon} />}
         <LinkOverlay w="100%" as={Link} to={href}>
           <Heading as="h3" size="md">
             {title}
