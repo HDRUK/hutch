@@ -33,7 +33,7 @@ export const AgentsList = () => {
     setIsLoading(false);
     toast({
       position: "top",
-      title: `Agent ${selectedAgent?.name} deleted!`,
+      title: `Agent ${selectedAgent.name} deleted!`,
       status: "success",
       duration: 1500,
       isClosable: true,
