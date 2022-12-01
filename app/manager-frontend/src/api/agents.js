@@ -24,6 +24,10 @@ export const getAgentApi = ({ api }) => ({
     api.delete(`Agents/${id}`, {
       json: values,
     }),
+  updateAgentSecret: ({ values, id }) =>
+    api.put(`Agents/${id}/secret`, {
+      json: values,
+    }),
 });
 
 export const useAgentList = () => {
