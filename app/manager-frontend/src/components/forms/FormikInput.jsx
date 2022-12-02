@@ -7,12 +7,14 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  InputRightElement,
   Tooltip,
+  useToast,
 } from "@chakra-ui/react";
 import { useField } from "formik";
 import { useDebounce } from "helpers/hooks/useDebounce";
 import { useEffect, useState } from "react";
-import { FaEye, FaEyeSlash, FaInfoCircle } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaInfoCircle, FaRegCopy } from "react-icons/fa";
 import { FormHelpError } from "./FormHelpError";
 
 export const FormikInput = ({
@@ -25,8 +27,10 @@ export const FormikInput = ({
   fieldHelp,
   collapseError,
   tooltip,
+  isDisable,
   ...p
 }) => {
+  const toast = useToast();
   const [field, meta, helpers] = useField({ name, type });
 
   const [isMasked, setIsMasked] = useState(type === "password");
@@ -53,6 +57,7 @@ export const FormikInput = ({
 
   const inputField = (
     <Input
+      disabled={isDisable || type === "readOnly"}
       type={isMasked ? "password" : type === "password" ? "text" : type}
       placeholder={placeholder}
       {...p}
@@ -60,6 +65,18 @@ export const FormikInput = ({
       onChange={handleChange}
     />
   );
+
+  const onClickCopyToClipboard = (value) => {
+    // handle copy to clipboard action
+    navigator.clipboard.writeText(value);
+    toast({
+      position: "top",
+      title: "Copied to clipboard",
+      status: "success",
+      duration: 700,
+      isClosable: true,
+    });
+  };
 
   return (
     <FormControl
@@ -80,17 +97,30 @@ export const FormikInput = ({
           </Flex>
         )}
       </Flex>
-      {type === "password" ? (
+      {type === "password" || type === "readOnly" ? (
         <InputGroup>
           {inputField}
-          <InputLeftElement>
-            <IconButton
-              variant="solid"
-              onClick={() => setIsMasked(!isMasked)}
-              size="xs"
-              icon={isMasked ? <FaEye /> : <FaEyeSlash />}
-            />
-          </InputLeftElement>
+          {type == "password" ? (
+            <InputLeftElement>
+              <IconButton
+                variant="solid"
+                onClick={() => setIsMasked(!isMasked)}
+                size="md"
+                icon={isMasked ? <FaEye /> : <FaEyeSlash />}
+              />
+            </InputLeftElement>
+          ) : (
+            value && ( // display copy icon to allow user to copy value to clipboard
+              <InputRightElement>
+                <IconButton
+                  variant="solid"
+                  onClick={() => onClickCopyToClipboard(value)}
+                  size="md"
+                  icon={<FaRegCopy />}
+                />
+              </InputRightElement>
+            )
+          )}
         </InputGroup>
       ) : (
         inputField

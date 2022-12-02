@@ -1,4 +1,4 @@
-import { useDisclosure, VStack, Text } from "@chakra-ui/react";
+import { useDisclosure, VStack, Text, useToast } from "@chakra-ui/react";
 import { useSortingAndFiltering } from "helpers/hooks/useSortingAndFiltering";
 import { useAgentList } from "api/agents";
 import { AgentSummary } from "components/agents/AgentSummary";
@@ -13,7 +13,7 @@ export const AgentsList = () => {
   const [isLoading, setIsLoading] = useState();
   const { agent } = useBackendApi();
   const { data, mutate } = useAgentList();
-
+  const toast = useToast();
   const { setFilter, outputList } = useSortingAndFiltering(data, "name", {
     initialSort: { key: "name" },
     sorters: {
@@ -31,6 +31,13 @@ export const AgentsList = () => {
     await mutate();
     onClose();
     setIsLoading(false);
+    toast({
+      position: "top",
+      title: `Agent ${selectedAgent.name} deleted!`,
+      status: "success",
+      duration: 1500,
+      isClosable: true,
+    });
   };
   const onClickDelete = (agent) => {
     setSelectedAgent(agent);
@@ -69,7 +76,7 @@ export const AgentsList = () => {
           <>
             <AgentSummary
               key={index}
-              href={`/agent/${item.id}`}
+              href={`/agents/${item.id}`}
               onDelete={() => onClickDelete(item)}
               agentName={item.name}
               clientId={item.clientId}
