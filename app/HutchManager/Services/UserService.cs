@@ -1,15 +1,13 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Claims;
 using HutchManager.Auth;
-using HutchManager.Config;
 using HutchManager.Constants;
 using HutchManager.Data;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.User;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
-
 namespace HutchManager.Services;
 
 public class UserService
@@ -17,15 +15,17 @@ public class UserService
   private readonly ApplicationDbContext _db;
   private readonly IFeatureManager _featureManager;
   private readonly IUserClaimsPrincipalFactory<ApplicationUser> _principalFactory;
-
+  private readonly UserManager<ApplicationUser> _users;
   public UserService(
     ApplicationDbContext db,
     IFeatureManager featureManager,
-    IUserClaimsPrincipalFactory<ApplicationUser> principalFactory)
+    IUserClaimsPrincipalFactory<ApplicationUser> principalFactory,
+    UserManager<ApplicationUser> users)
   {
     _db = db;
     _principalFactory = principalFactory;
     _featureManager = featureManager;
+    _users = users;
   }
 
   /// <summary>
@@ -90,5 +90,25 @@ public class UserService
     user.UICulture = culture.Name;
 
     await _db.SaveChangesAsync();
+  }
+
+  public async Task Create(UserModel userModel)
+  {
+    // Autogenerate email address for @username users
+    if (userModel.Username.StartsWith("@"))
+    {
+      userModel.Email = userModel.Username.Trim('@') + "@local";
+    }
+    else
+    {
+      userModel.Email = userModel.Username;
+    }
+    
+    var user = new ApplicationUser()
+    {
+      UserName = userModel.Username,
+      Email = userModel.Email
+    };
+    await _users.CreateAsync(user);
   }
 }
