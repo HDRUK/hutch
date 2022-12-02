@@ -77,6 +77,7 @@ b.Services
   .AddTransient<ActivitySourceService>()
   .AddTransient<DataSourceService>()
   .AddTransient<ResultsModifierService>()
+  .AddTransient<AgentService>()
   .AddTransient<JobQueueService>()
   .AddHostedService<ActivitySourcePollingHostedService>()
   .AddScoped<RQuestPollingService>()

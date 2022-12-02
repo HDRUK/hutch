@@ -6,6 +6,7 @@ import ky from "ky";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { getResultsModifierApi } from "api/resultsmodifiers";
+import { getAgentApi } from "api/agents";
 const BackendApiContext = createContext({});
 export const useBackendApi = () => useContext(BackendApiContext);
 
@@ -49,6 +50,7 @@ export const BackendApiProvider = ({ children }) => {
       activitysource: getActivitySourceApi(baseContext),
       datasource: getDataSourceApi(baseContext),
       resultsmodifier: getResultsModifierApi(baseContext),
+      agent: getAgentApi(baseContext),
     }),
     [baseContext]
   );
