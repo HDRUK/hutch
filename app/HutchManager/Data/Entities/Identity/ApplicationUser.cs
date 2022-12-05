@@ -10,4 +10,5 @@ public class ApplicationUser : IdentityUser
   [PersonalData]
   public string UICulture { get; set; } = string.Empty;
 
+  public bool AccountConfirmed { get; set; }
 }

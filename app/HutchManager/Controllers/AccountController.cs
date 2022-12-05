@@ -259,10 +259,8 @@ public class AccountController : ControllerBase
 
       if (!isTokenValid) return BadRequest();
       
-      user.EmailConfirmed = true;
+      user.AccountConfirmed = true;
       await _users.UpdateAsync(user);
-
-      if (!user.EmailConfirmed) return BadRequest();
       await _signIn.SignInAsync(user, false);
       var profile = await _user.BuildProfile(user);
       // Write a basic Profile Cookie for JS
