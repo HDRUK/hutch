@@ -246,4 +246,32 @@ public class AccountController : ControllerBase
       Errors = ModelState.CollapseErrors()
     });
   }
+  
+  [HttpPost("activate")]
+  public async Task<IActionResult> Activate (UserTokenModel model)
+  {
+    if (ModelState.IsValid)
+    {
+      var user = await _users.FindByIdAsync(model.UserId);
+      if (user is null) return NotFound();
+
+      var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Token); // validate token
+
+      if (!isTokenValid) return BadRequest();
+      
+      user.EmailConfirmed = true;
+      await _users.UpdateAsync(user);
+
+      if (!user.EmailConfirmed) return BadRequest();
+      await _signIn.SignInAsync(user, false);
+      var profile = await _user.BuildProfile(user);
+      // Write a basic Profile Cookie for JS
+      HttpContext.Response.Cookies.Append(
+        AuthConfiguration.ProfileCookieName,
+        JsonSerializer.Serialize((BaseUserProfileModel)profile),
+        AuthConfiguration.ProfileCookieOptions);
+      return Ok(profile);
+    }
+    return BadRequest();
+  }
 }

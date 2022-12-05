@@ -18,15 +18,18 @@ public class UserController : ControllerBase
   private readonly UserManager<ApplicationUser> _users;
   private readonly SignInManager<ApplicationUser> _signIn;
   private readonly UserService _user;
+  private readonly TokenIssuingService _tokens;
 
   public UserController(
     UserManager<ApplicationUser> users,
     SignInManager<ApplicationUser> signIn,
-    UserService user)
+    UserService user,
+    TokenIssuingService tokens)
   {
     _users = users;
     _signIn = signIn;
     _user = user;
+    _tokens = tokens;
   }
 
   [HttpGet("me")]
@@ -68,6 +71,16 @@ public class UserController : ControllerBase
   {
     await _user.Create(user);
     return Ok(user);
+  }
+
+  [AllowAnonymous]
+  [HttpPost("{userIdOrEmail}/activation")] //api/users/{userIdOrEmail}/activation
+  public async Task<IActionResult> GenerateAccountActivationLink(string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+    return Ok(await _tokens.GenerateAccountActivationLink(user));
   }
 }
 
