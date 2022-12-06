@@ -13,5 +13,5 @@ public static class ClientRoutes
 
   public const string ConfirmEmailChange = "/account/ConfirmEmailChange";
   
-  public const string ConfirmAccountActivation = "/account/activate";
+  public const string ConfirmAccountActivation = "/account/activate"; // path to account activation page
 }

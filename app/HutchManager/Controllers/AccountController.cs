@@ -5,6 +5,7 @@ using HutchManager.Models.Account;
 using HutchManager.Models.User;
 using HutchManager.Services;
 using HutchManager.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -247,7 +248,17 @@ public class AccountController : ControllerBase
     });
   }
   
-  [HttpPost("activate")]
+  [Authorize]
+  [HttpPost("{userIdOrEmail}/activation")] //api/account/{userIdOrEmail}/activation
+  public async Task<IActionResult> GenerateAccountActivationLink(string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+    return Ok(await _tokens.GenerateAccountActivationLink(user)); // return activation link
+  }
+  
+  [HttpPost("activate")] //api/account/activate
   public async Task<IActionResult> Activate (AnonymousSetPasswordModel model)
   {
     if (ModelState.IsValid)
