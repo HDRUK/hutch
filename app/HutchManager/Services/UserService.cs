@@ -127,4 +127,21 @@ public class UserService
       .ToListAsync();
     return list.ConvertAll<UserModel>(x => new(x));
   }
+  
+  /// <summary>
+  /// Delete User by ID
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <exception cref="KeyNotFoundException"></exception>
+  public async Task Delete(string userId)
+  {
+    var entity = await _db.Users
+      .AsNoTracking()
+      .FirstOrDefaultAsync(x => x.Id == userId);
+    if (entity is null)
+      throw new KeyNotFoundException(
+        $"No User with ID: {userId}");
+    _db.Users.Remove(entity);
+    await _db.SaveChangesAsync();
+  }
 }
