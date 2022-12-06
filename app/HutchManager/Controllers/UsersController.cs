@@ -28,5 +28,20 @@ public class UsersController : ControllerBase
     await _user.Create(user);
     return Ok(user);
   }
+  
+  [HttpDelete("{id}")]
+  public async Task<IActionResult> Delete(string id)
+  {
+    try
+    {
+      await _user.Delete(id);
+    }
+    catch (KeyNotFoundException)
+    {
+
+    }
+
+    return NoContent();
+  }
 }
 
