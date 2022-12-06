@@ -72,8 +72,7 @@ public class UserController : ControllerBase
     await _user.Create(user);
     return Ok(user);
   }
-
-  [AllowAnonymous]
+  
   [HttpPost("{userIdOrEmail}/activation")] //api/users/{userIdOrEmail}/activation
   public async Task<IActionResult> GenerateAccountActivationLink(string userIdOrEmail)
   {

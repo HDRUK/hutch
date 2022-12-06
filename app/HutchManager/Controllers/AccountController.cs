@@ -248,20 +248,23 @@ public class AccountController : ControllerBase
   }
   
   [HttpPost("activate")]
-  public async Task<IActionResult> Activate (UserTokenModel model)
+  public async Task<IActionResult> Activate (AnonymousSetPasswordModel model)
   {
     if (ModelState.IsValid)
     {
-      var user = await _users.FindByIdAsync(model.UserId);
+      var user = await _users.FindByIdAsync(model.Credentials.UserId);
       if (user is null) return NotFound();
 
-      var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Token); // validate token
+      var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
 
       if (!isTokenValid) return BadRequest();
       
-      user.AccountConfirmed = true;
-      await _users.UpdateAsync(user);
-      await _signIn.SignInAsync(user, false);
+      var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
+      user.AccountConfirmed = true; // update Account status
+      user.PasswordHash = hashedPassword; // update password
+      await _users.UpdateAsync(user); // update the user
+
+      await _signIn.SignInAsync(user, false); // sign in the user
       var profile = await _user.BuildProfile(user);
       // Write a basic Profile Cookie for JS
       HttpContext.Response.Cookies.Append(
