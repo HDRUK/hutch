@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Claims;
 using HutchManager.Auth;
@@ -7,6 +6,7 @@ using HutchManager.Data;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.User;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 namespace HutchManager.Services;
 
@@ -92,6 +92,10 @@ public class UserService
     await _db.SaveChangesAsync();
   }
 
+  /// <summary>
+  /// Create User given a username
+  /// </summary>
+  /// <param name="userModel"></param>
   public async Task Create(UserModel userModel)
   {
     // Autogenerate email address for @username users
@@ -110,5 +114,17 @@ public class UserService
       Email = userModel.Email
     };
     await _users.CreateAsync(user);
+  }
+  
+  /// <summary>
+  /// List all Users
+  /// </summary>
+  /// <returns></returns>
+  public async Task<List<UserModel>> List()
+  {
+    var list = await _db.Users
+      .AsNoTracking()
+      .ToListAsync();
+    return list.ConvertAll<UserModel>(x => new(x));
   }
 }

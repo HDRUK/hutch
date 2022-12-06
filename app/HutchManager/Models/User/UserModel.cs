@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using HutchManager.Data.Entities.Identity;
 
 namespace HutchManager.Models.User;
 
@@ -7,7 +9,16 @@ public class UserModel
 {
   [Required] [UsernameOrEmail] public string Username { get; set; } = string.Empty;
 
-  [EmailAddress] public string? Email { get; set; }
+  [EmailAddress] public string? Email { get; set; } 
+  
+  public UserModel(ApplicationUser entity)
+  {
+    Username = entity.UserName;
+    Email = entity.Email;
+  }
+  
+  [JsonConstructor]
+  public UserModel(){}
   
 }
 

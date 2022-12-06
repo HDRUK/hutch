@@ -62,12 +62,5 @@ public class UserController : ControllerBase
 
     return NoContent();
   }
-
-  [HttpPost]
-  public async Task<IActionResult> Create([FromBody] UserModel user)
-  {
-    await _user.Create(user);
-    return Ok(user);
-  }
 }
 
