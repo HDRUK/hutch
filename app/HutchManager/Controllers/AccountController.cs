@@ -265,17 +265,20 @@ public class AccountController : ControllerBase
     {
       var user = await _users.FindByIdAsync(model.Credentials.UserId);
       if (user is null) return NotFound();
-
+      
       var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
-
+      
       if (!isTokenValid) return BadRequest();
       
+      // if token is valid, then do the following
       var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
-      user.AccountConfirmed = true; // update Account status
       user.PasswordHash = hashedPassword; // update password
+      user.AccountConfirmed = true; // update Account status
+      
       await _users.UpdateAsync(user); // update the user
 
       await _signIn.SignInAsync(user, false); // sign in the user
+      
       var profile = await _user.BuildProfile(user);
       // Write a basic Profile Cookie for JS
       HttpContext.Response.Cookies.Append(
