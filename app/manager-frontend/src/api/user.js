@@ -2,7 +2,7 @@ import { useBackendApi } from "contexts/BackendApi";
 import useSWR from "swr";
 
 const fetchKeys = {
-  me: "user/me",
+  me: "users/me",
 };
 
 /**

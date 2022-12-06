@@ -13,13 +13,13 @@ namespace HutchManager.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class UserController : ControllerBase
+public class UsersController : ControllerBase
 {
   private readonly UserManager<ApplicationUser> _users;
   private readonly SignInManager<ApplicationUser> _signIn;
   private readonly UserService _user;
 
-  public UserController(
+  public UsersController(
     UserManager<ApplicationUser> users,
     SignInManager<ApplicationUser> signIn,
     UserService user)
@@ -62,6 +62,10 @@ public class UserController : ControllerBase
 
     return NoContent();
   }
+
+  [HttpGet]
+  public async Task<List<UserModel>> List()
+    => await _user.List();
 
   [HttpPost]
   public async Task<IActionResult> Create([FromBody] UserModel user)
