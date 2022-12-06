@@ -7,7 +7,6 @@ using HutchManager.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using System.Text.Json;
 
 namespace HutchManager.Services;
 
@@ -88,16 +87,19 @@ public class TokenIssuingService
             .ToLocalUrlString(_actionContext.HttpContext.Request));
   }
 
-  public async Task<TokenLinkModel> GenerateAccountActivationLink(ApplicationUser user)
+  public async Task<UserActivationTokenModel> GenerateAccountActivationLink(ApplicationUser user)
   {
     var token = await _users.GenerateUserTokenAsync(user, "Default","ActivateAccount");
     var vm = new UserTokenModel(user.Id, token);
 
-    var link = (ClientRoutes.ConfirmAccountActivation +
+    var activationLink = (ClientRoutes.ConfirmAccountActivation +
                 $"?vm={vm.ObjectToBase64UrlJson()}")
       .ToLocalUrlString(_actionContext.HttpContext.Request);
 
-    return new TokenLinkModel(link);
+    return new UserActivationTokenModel()
+    {
+      ActivationLink = activationLink
+    };
   }
 }
 
