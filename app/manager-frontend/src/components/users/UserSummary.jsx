@@ -36,7 +36,21 @@ export const UserSummary = ({
 }) => {
   const [isLoading, setIsLoading] = useState();
   const [feedback, setFeedback] = useState();
-  const [activationLink, setActivationLink] = useState();
+  const [activationOrPwdResetLink, setActivationOrPwdResetLink] = useState();
+  const [action, setAction] = useState();
+
+  const actionMenu = {
+    accountActivate: {
+      name: "ActivationLink",
+      label: "Account Activation Link",
+      title: "Account activation",
+    },
+    passwordReset: {
+      name: "PasswordResetLink",
+      label: "Password Reset Link",
+      title: "Password reset",
+    },
+  };
 
   const getNameInitials = () => {
     // get name initials
@@ -49,10 +63,10 @@ export const UserSummary = ({
   };
 
   const {
-    isOpen: isDisplayActivationLinkOpen,
-    onOpen: onDisplayActivationLinkOpen,
-    onClose: onDisplayActivationLinkClose,
-  } = useDisclosure(); // Handle Display ActivationLink modal
+    isOpen: isDisplayLinkOpen,
+    onOpen: onDisplayLinkOpen,
+    onClose: onDisplayLinkClose,
+  } = useDisclosure(); // Handle the modal that displays generated link
 
   const toast = useToast();
   // toast configured for the User summary
@@ -77,26 +91,28 @@ export const UserSummary = ({
     try {
       // handle submission for generating activation link
       setIsLoading(true);
+      setAction(actionMenu.accountActivate);
       const actionResponse = await users
         .generateActivationLink({ id: userId })
         .json(); // generate and get activation link
       if (actionResponse) {
-        setActivationLink(actionResponse.activationLink); // update the state
+        setActivationOrPwdResetLink(actionResponse.activationLink); // update the state
       }
       setIsLoading(false);
       displayToast({
-        title: "New activation link generted",
+        title: "New activation link generated",
         status: "success",
         duration: 900,
       });
-      onDisplayActivationLinkOpen();
+      onDisplayLinkOpen();
     } catch (e) {
       console.error(e);
       setFeedback("Something went wrong!");
+      onDisplayLinkOpen();
     }
   };
 
-  const ModalDisplayActivationLink = // Display activation link with only an OK button
+  const ModalDisplayLink = // Display activation/password reset link with only an OK button
     (
       <BasicModal
         body={
@@ -109,35 +125,35 @@ export const UserSummary = ({
             <Formik
               enableReinitialize
               initialValues={{
-                AccountActivationLink: activationLink, // get Activation link from the state
+                Link: activationOrPwdResetLink, // get Activation/Password reset link from the state
               }}
             >
               <Form noValidate>
                 <VStack align="stretch" spacing={4}>
                   <FormikInput
-                    label="Account Activation Link"
-                    name="AccountActivationLink"
+                    label={action?.label}
+                    name="Link"
                     type="readOnly"
                   />
                   <Alert status="info">
                     <AlertIcon />
-                    Please copy the Account Activation Link and pass it to the
-                    user to complete the account activation process.
+                    Please copy the {action?.label} and pass it to the user to
+                    complete the {action?.title} process.
                   </Alert>
                 </VStack>
               </Form>
             </Formik>
           )
         }
-        title="Account Activation Link"
+        title={action?.title}
         actionBtnCaption="Ok"
         actionBtnColorScheme="blue"
         isLoading={isLoading}
-        onAction={onDisplayActivationLinkClose}
-        isOpen={isDisplayActivationLinkOpen}
-        onClose={onDisplayActivationLinkClose}
-        closeOnOverlayClick={false} // disable closing the modal when clicked on overlay
-        cancelBtnEnable={false} // hide cancel button
+        onAction={onDisplayLinkClose}
+        isOpen={isDisplayLinkOpen}
+        onClose={onDisplayLinkClose}
+        closeOnOverlayClick={feedback ? true : false} // disable closing the modal when clicked on overlay
+        cancelBtnEnable={feedback ? true : false} // display cancel if error else hide cancel button
       />
     );
 
@@ -219,14 +235,14 @@ export const UserSummary = ({
                   leftIcon={<FaLink />}
                   onClick={onGenerateActivationLink}
                 >
-                  Generate an activation link
+                  Generate {actionMenu.accountActivate.label}
                 </Button>
               </HStack>
             )}
           </Stack>
         </Box>
       </LinkBox>
-      {ModalDisplayActivationLink}
+      {ModalDisplayLink}
     </Center>
   );
 };
