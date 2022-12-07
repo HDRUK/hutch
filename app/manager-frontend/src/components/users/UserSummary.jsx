@@ -11,11 +11,22 @@ import {
   IconButton,
   HStack,
   VStack,
+  useDisclosure,
+  useToast,
+  Button,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useBackendApi } from "contexts/BackendApi";
+import { useState } from "react";
+import { Form, Formik } from "formik";
+import { FormikInput } from "components/forms/FormikInput";
+import { BasicModal } from "components/BasicModal";
 
 export const UserSummary = ({
+  userId,
   name, //user display name
   username, // username
   isUserActive, // user status
@@ -23,7 +34,11 @@ export const UserSummary = ({
   onDelete,
   ...p
 }) => {
+  const [isLoading, setIsLoading] = useState();
+  const [activationLink, setActivationLink] = useState();
+
   const getNameInitials = () => {
+    // get name initials
     const splitName = name.trim().split(" "); // split name into an array
     let initials = ""; // empty initials
     splitName.forEach((name) => {
@@ -31,6 +46,117 @@ export const UserSummary = ({
     });
     return initials;
   };
+
+  const {
+    isOpen: isGenerateActivationLinkOpen,
+    onOpen: onGenerateActivationLinkOpen,
+    onClose: onGenerateActivationLinkClose,
+  } = useDisclosure(); // Handle Generate activation link modal
+
+  const {
+    isOpen: isDisplayActivationLinkOpen,
+    onOpen: onDisplayActivationLinkOpen,
+    onClose: onDisplayActivationLinkClose,
+  } = useDisclosure(); // Handle Display ActivationLink modal
+
+  const toast = useToast();
+  // toast configured for the User summary
+  const displayToast = ({
+    position = "top",
+    title,
+    status,
+    duration = "900",
+    isClosable = true,
+  }) =>
+    toast({
+      position: position,
+      title: title,
+      status: status,
+      duration: duration,
+      isClosable: isClosable,
+    });
+
+  const { users } = useBackendApi();
+
+  const onGenerateActivationLink = async () => {
+    // handle submission for generating activation link
+    setIsLoading(true);
+    const actionResponse = await users
+      .generateAccountActivationLink({ id: userId })
+      .json(); // generate and get activation link
+    if (actionResponse) {
+      setActivationLink(actionResponse.link); // update the state
+    }
+    setIsLoading(false);
+    onGenerateActivationLinkClose();
+    displayToast({
+      title: "New activation link generted",
+      status: "success",
+      duration: 900,
+    });
+    onDisplayActivationLinkOpen();
+  };
+
+  const ModalGenerateActivationLink = // Modal for displaying Generate Activation link
+    (
+      <BasicModal
+        title="Generate an Account Activation Link?"
+        body={
+          <VStack>
+            <VStack>
+              <Text>
+                Would you like to generate an activation link for the user:
+              </Text>
+              <Text fontWeight="bold">{name}</Text>
+            </VStack>
+          </VStack>
+        }
+        actionBtnCaption="Yes"
+        actionBtnColorScheme="blue"
+        isLoading={isLoading}
+        onAction={onGenerateActivationLink} // Generate link, display toast, close the modal and open another modal displaying activation link
+        isOpen={isGenerateActivationLinkOpen}
+        onClose={onGenerateActivationLinkClose}
+      />
+    );
+
+  const ModalDisplayActivationLink = // Display activation link with only an OK button
+    (
+      <BasicModal
+        body={
+          <Formik
+            enableReinitialize
+            initialValues={{
+              AccountActivationLink: activationLink, // get Activation link from the state
+            }}
+          >
+            <Form noValidate>
+              <VStack align="stretch" spacing={4}>
+                <FormikInput
+                  label="Account Activation Link"
+                  name="AccountActivationLink"
+                  type="readOnly"
+                />
+                <Alert status="info">
+                  <AlertIcon />
+                  Please copy the Account Activation Link and pass it to the
+                  user to complete the account activation process.
+                </Alert>
+              </VStack>
+            </Form>
+          </Formik>
+        }
+        title="Account Activation Link"
+        actionBtnCaption="Ok"
+        actionBtnColorScheme="blue"
+        isLoading={isLoading}
+        onAction={onDisplayActivationLinkClose}
+        isOpen={isDisplayActivationLinkOpen}
+        onClose={onDisplayActivationLinkClose}
+        closeOnOverlayClick={false} // disable closing the modal when clicked on overlay
+        cancelBtnEnable={false} // hide cancel button
+      />
+    );
 
   return (
     <Center py={2}>
@@ -61,15 +187,17 @@ export const UserSummary = ({
               User
             </Text>
             <Divider />
-            <IconButton
-              h={5}
-              w={5}
-              icon={<FaTrash />}
-              alignSelf={"flex-end"}
-              style={{ background: "transparent" }}
-              color={"red.500"}
-              onClick={onDelete}
-            />
+            {onDelete && (
+              <IconButton
+                h={5}
+                w={5}
+                icon={<FaTrash />}
+                alignSelf={"flex-end"}
+                style={{ background: "transparent" }}
+                color={"red.500"}
+                onClick={onDelete}
+              />
+            )}
 
             <HStack alignItems={"center"} spacing={3}>
               <Heading
@@ -100,9 +228,23 @@ export const UserSummary = ({
                 </Text>
               </VStack>
             </HStack>
+            {!isUserActive && (
+              <HStack pt="10px" justifyContent="end">
+                <Button
+                  size="sm"
+                  colorScheme="green"
+                  leftIcon={<FaLink />}
+                  onClick={onGenerateActivationLinkOpen}
+                >
+                  Generate an activation link
+                </Button>
+              </HStack>
+            )}
           </Stack>
         </Box>
       </LinkBox>
+      {ModalGenerateActivationLink}
+      {ModalDisplayActivationLink}
     </Center>
   );
 };
