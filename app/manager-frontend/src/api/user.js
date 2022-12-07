@@ -3,6 +3,7 @@ import useSWR from "swr";
 
 const fetchKeys = {
   me: "user/me",
+  userList: "users",
 };
 
 /**
@@ -36,4 +37,24 @@ export const getUserApi = ({ api }) => ({
     api.put("user/uiCulture", {
       json: culture,
     }),
+  generateActivationLink: ({ values, id }) =>
+    api.post(`account/${id}/activation`, {
+      json: values,
+    }),
+  delete: ({ values, id }) =>
+    api.delete(`users/${id}`, {
+      json: values,
+    }),
 });
+
+export const useUserList = () => {
+  const { apiFetcher } = useBackendApi();
+  return useSWR(
+    fetchKeys.userList,
+    async (url) => {
+      const data = await apiFetcher(url);
+      return data;
+    },
+    { suspense: true }
+  );
+};
