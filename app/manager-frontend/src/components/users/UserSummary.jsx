@@ -35,6 +35,7 @@ export const UserSummary = ({
   ...p
 }) => {
   const [isLoading, setIsLoading] = useState();
+  const [feedback, setFeedback] = useState();
   const [activationLink, setActivationLink] = useState();
 
   const getNameInitials = () => {
@@ -79,22 +80,27 @@ export const UserSummary = ({
   const { users } = useBackendApi();
 
   const onGenerateActivationLink = async () => {
-    // handle submission for generating activation link
-    setIsLoading(true);
-    const actionResponse = await users
-      .generateActivationLink({ id: userId })
-      .json(); // generate and get activation link
-    if (actionResponse) {
-      setActivationLink(actionResponse.activationLink); // update the state
+    try {
+      // handle submission for generating activation link
+      setIsLoading(true);
+      const actionResponse = await users
+        .generateActivationLink({ id: userId })
+        .json(); // generate and get activation link
+      if (actionResponse) {
+        setActivationLink(actionResponse.activationLink); // update the state
+      }
+      setIsLoading(false);
+      onGenerateActivationLinkClose();
+      displayToast({
+        title: "New activation link generted",
+        status: "success",
+        duration: 900,
+      });
+      onDisplayActivationLinkOpen();
+    } catch (e) {
+      console.error(e);
+      setFeedback("Something went wrong!");
     }
-    setIsLoading(false);
-    onGenerateActivationLinkClose();
-    displayToast({
-      title: "New activation link generted",
-      status: "success",
-      duration: 900,
-    });
-    onDisplayActivationLinkOpen();
   };
 
   const ModalGenerateActivationLink = // Modal for displaying Generate Activation link
@@ -104,6 +110,12 @@ export const UserSummary = ({
         body={
           <VStack>
             <VStack>
+              {feedback && (
+                <Alert status="error">
+                  <AlertIcon />
+                  {feedback}
+                </Alert>
+              )}
               <Text>
                 Would you like to generate an activation link for the user?
               </Text>
