@@ -1,4 +1,3 @@
-import json
 from typing import List
 
 from hutchagent.rquest.rule import Rule
@@ -9,15 +8,12 @@ class Group:
 
     def __init__(
         self,
-        context: str,
-        type_: str,
-        name: str,
-        number_of_items: int,
         rules: List[Rule],
-        rule_operator: str,
+        rules_operator: str,
         **kwargs
     ) -> None:
-        pass
+        self.rules = rules
+        self.rules_operator = rules_operator
 
     def to_dict(self) -> dict:
         """Convert `Group` to `dict`.
@@ -25,11 +21,14 @@ class Group:
         Returns:
             dict: `Group` as a `dict`.
         """
-        return {}
+        return {
+            "rules": [r.to_dict() for r in self.rules],
+            "rules_oper": self.rules_operator,
+        }
 
     @classmethod
     def from_dict(cls, dict_: dict):
-        """Create a `Group` from RO-Crate JSON.
+        """Create a `Group` from dict.
 
         Args:
             dict_ (dict): Mapping containing the `Group`'s attributes.
@@ -37,13 +36,6 @@ class Group:
         Returns:
             Self: `Group` object.
         """
-
-        return cls()
-
-    def __str__(self) -> str:
-        """`Group` as a JSON string.
-
-        Returns:
-            str: JSON string.
-        """
-        return json.dumps(self.to_dict(), indent=2)
+        rules = [Rule.from_dict(r) for r in dict_.get("rules", [])]
+        rules_operator = dict_.get("rules_oper", "")
+        return cls(rules=rules, rules_operator=rules_operator)
