@@ -51,7 +51,7 @@ export const UsersList = () => {
   const ModalDelete = () => {
     return (
       <DeleteModal
-        title={`Delete User ?`}
+        title={`Delete User?`}
         body={
           <VStack>
             <Text>Are you sure you want to delete this user:</Text>

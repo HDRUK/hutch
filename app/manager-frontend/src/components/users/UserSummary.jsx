@@ -49,12 +49,6 @@ export const UserSummary = ({
   };
 
   const {
-    isOpen: isGenerateActivationLinkOpen,
-    onOpen: onGenerateActivationLinkOpen,
-    onClose: onGenerateActivationLinkClose,
-  } = useDisclosure(); // Handle Generate activation link modal
-
-  const {
     isOpen: isDisplayActivationLinkOpen,
     onOpen: onDisplayActivationLinkOpen,
     onClose: onDisplayActivationLinkClose,
@@ -90,7 +84,6 @@ export const UserSummary = ({
         setActivationLink(actionResponse.activationLink); // update the state
       }
       setIsLoading(false);
-      onGenerateActivationLinkClose();
       displayToast({
         title: "New activation link generted",
         status: "success",
@@ -103,59 +96,38 @@ export const UserSummary = ({
     }
   };
 
-  const ModalGenerateActivationLink = // Modal for displaying Generate Activation link
-    (
-      <BasicModal
-        title="Generate an Account Activation Link?"
-        body={
-          <VStack>
-            <VStack>
-              {feedback && (
-                <Alert status="error">
-                  <AlertIcon />
-                  {feedback}
-                </Alert>
-              )}
-              <Text>
-                Would you like to generate an activation link for the user?
-              </Text>
-            </VStack>
-          </VStack>
-        }
-        actionBtnCaption="Yes"
-        actionBtnColorScheme="blue"
-        isLoading={isLoading}
-        onAction={onGenerateActivationLink} // Generate link, display toast, close the modal and open another modal displaying activation link
-        isOpen={isGenerateActivationLinkOpen}
-        onClose={onGenerateActivationLinkClose}
-      />
-    );
-
   const ModalDisplayActivationLink = // Display activation link with only an OK button
     (
       <BasicModal
         body={
-          <Formik
-            enableReinitialize
-            initialValues={{
-              AccountActivationLink: activationLink, // get Activation link from the state
-            }}
-          >
-            <Form noValidate>
-              <VStack align="stretch" spacing={4}>
-                <FormikInput
-                  label="Account Activation Link"
-                  name="AccountActivationLink"
-                  type="readOnly"
-                />
-                <Alert status="info">
-                  <AlertIcon />
-                  Please copy the Account Activation Link and pass it to the
-                  user to complete the account activation process.
-                </Alert>
-              </VStack>
-            </Form>
-          </Formik>
+          feedback ? (
+            <Alert status="error">
+              <AlertIcon />
+              {feedback}
+            </Alert>
+          ) : (
+            <Formik
+              enableReinitialize
+              initialValues={{
+                AccountActivationLink: activationLink, // get Activation link from the state
+              }}
+            >
+              <Form noValidate>
+                <VStack align="stretch" spacing={4}>
+                  <FormikInput
+                    label="Account Activation Link"
+                    name="AccountActivationLink"
+                    type="readOnly"
+                  />
+                  <Alert status="info">
+                    <AlertIcon />
+                    Please copy the Account Activation Link and pass it to the
+                    user to complete the account activation process.
+                  </Alert>
+                </VStack>
+              </Form>
+            </Formik>
+          )
         }
         title="Account Activation Link"
         actionBtnCaption="Ok"
@@ -245,7 +217,7 @@ export const UserSummary = ({
                   size="sm"
                   colorScheme="green"
                   leftIcon={<FaLink />}
-                  onClick={onGenerateActivationLinkOpen}
+                  onClick={onGenerateActivationLink}
                 >
                   Generate an activation link
                 </Button>
@@ -254,7 +226,6 @@ export const UserSummary = ({
           </Stack>
         </Box>
       </LinkBox>
-      {ModalGenerateActivationLink}
       {ModalDisplayActivationLink}
     </Center>
   );

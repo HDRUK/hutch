@@ -18,7 +18,6 @@ public class UserModel
   public string Id { get; set; } = string.Empty;
   
   public UserModel(ApplicationUser entity)
-  {
     {
       Username = entity.UserName;
       Email = entity.Email;
@@ -26,7 +25,6 @@ public class UserModel
       AccountConfirmed = entity.AccountConfirmed;
       Id = entity.Id;
     }
-  }
   
   [JsonConstructor]
   public UserModel(){}
