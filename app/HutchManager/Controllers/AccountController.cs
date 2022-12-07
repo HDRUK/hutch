@@ -289,4 +289,14 @@ public class AccountController : ControllerBase
     }
     return BadRequest();
   }
+  
+  [Authorize]
+  [HttpPost("{userIdOrEmail}/password/reset")] //api/account/{userIdOrEmail}/password/reset
+  public async Task<IActionResult> GeneratePasswordResetLink(string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+    return Ok(await _tokens.GeneratePasswordResetLink(user)); // return password reset link
+  }
 }

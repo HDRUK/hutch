@@ -101,5 +101,20 @@ public class TokenIssuingService
       ActivationLink = activationLink
     };
   }
+  
+  public async Task<UserPasswordResetTokenModel> GeneratePasswordResetLink(ApplicationUser user)
+  {
+    var token = await _users.GeneratePasswordResetTokenAsync(user);
+    var vm = new UserTokenModel(user.Id, token);
+
+    var pwdResetLink = (ClientRoutes.ResetPassword +
+                          $"?vm={vm.ObjectToBase64UrlJson()}")
+      .ToLocalUrlString(_actionContext.HttpContext.Request);
+
+    return new UserPasswordResetTokenModel()
+    {
+      PasswordResetLink = pwdResetLink
+    };
+  }
 }
 
