@@ -82,10 +82,10 @@ export const UserSummary = ({
     // handle submission for generating activation link
     setIsLoading(true);
     const actionResponse = await users
-      .generateAccountActivationLink({ id: userId })
+      .generateActivationLink({ id: userId })
       .json(); // generate and get activation link
     if (actionResponse) {
-      setActivationLink(actionResponse.link); // update the state
+      setActivationLink(actionResponse.activationLink); // update the state
     }
     setIsLoading(false);
     onGenerateActivationLinkClose();
@@ -105,9 +105,8 @@ export const UserSummary = ({
           <VStack>
             <VStack>
               <Text>
-                Would you like to generate an activation link for the user:
+                Would you like to generate an activation link for the user?
               </Text>
-              <Text fontWeight="bold">{name}</Text>
             </VStack>
           </VStack>
         }
