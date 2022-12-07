@@ -7,7 +7,7 @@ from pika.spec import Basic, BasicProperties
 import hutchagent.config as config
 from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
 from hutchagent.message_queues.helpers import send_to_manager
-from hutchagent.message_queues.rquest_solvers import solve_availability, solve_distribution
+from hutchagent.rquest.rquest_solvers import solve_availability, solve_distribution
 
 
 def connect(queue: str, host, **kwargs) -> BlockingChannel:
