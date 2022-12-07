@@ -1,22 +1,30 @@
-import json
-from typing import Any, Union
+import re
+from typing import Any, Tuple, Union
 
 
 class Rule:
-    """Python representation of an rule based on [QuantitativeValue](https://schema.org/QuantitativeValue)."""
-
+ 
     def __init__(
         self,
-        context: str,
-        type_: str,
-        name: str = "",
         value: Any = None,
-        min_value: Union[int, float, None] = None,
-        max_value: Union[int, float, None] = None,
-        operator: Union[str, None] = None,
+        type_: str = "",
+        time: Union[str, None] = None,
+        varname: str = "",
         **kwargs,
     ) -> None:
-        pass
+        self.value = value
+        self.type_ = type_
+        self.time = time
+        self.varname = varname
+
+        if self.type_ == "NUM":
+            self.min_value, self.max_value = self._parse_numeric(self.value)
+            _, v = self.varname.split("=")
+            self.value = v
+        elif self.time is not None:
+            self.min_value, self.max_value = self._parse_time(self.value)
+        else:
+            self.min_value, self.max_value = None, None
 
     def to_dict(self) -> dict:
         """Convert `Rule` to `dict`.
@@ -36,12 +44,35 @@ class Rule:
         Returns:
             Self: `Rule` object.
         """
-        return cls()
+        type_ = dict_.get("type", "")
+        value = dict_.get("value")
+        time = dict_.get("time")
+        varname = dict_.get("varname", "")
+        return cls(type_=type_, value=value, time=time, varname=varname)
 
-    def __str__(self) -> str:
-        """`Rule` as a JSON string.
+    def _parse_numeric(self, value: str) -> Tuple[Union[float, None], Union[float, None]]:
+        pattern = re.compile(
+            r"(-?\d*\.\d+|\d+|null)\.\.(-?\d*\.\d+|null)"
+        )
+        # Try and parse min and max values, then return them
+        if match := re.search(pattern, value):
+            lower, upper = match.groups()
+            # parse lower bound
+            try:
+                min_value = float(lower)
+            except ValueError:
+                min_value = None
+            # parse upper bound
+            try:
+                max_value = float(upper)
+            except ValueError:
+                max_value = None
+            return min_value, max_value
+        
+        return None, None
 
-        Returns:
-            str: JSON string.
-        """
-        return json.dumps(self.to_dict(), indent=2)
+    def _parse_time(self, value) -> Tuple[Union[int, float, None], Union[int, float, None]]:
+        # Less than pattern "|65:AGE:Y" = < 65 years
+        # Greater than pattern "18|:AGE:Y" > 18 years
+        # TODO: implement logic to parse time clauses
+        return None, None
