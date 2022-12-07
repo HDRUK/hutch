@@ -86,5 +86,20 @@ public class TokenIssuingService
             $"?vm={new { UserId = user.Id }.ObjectToBase64UrlJson()}")
             .ToLocalUrlString(_actionContext.HttpContext.Request));
   }
+
+  public async Task<UserActivationTokenModel> GenerateAccountActivationLink(ApplicationUser user)
+  {
+    var token = await _users.GenerateUserTokenAsync(user, "Default","ActivateAccount");
+    var vm = new UserTokenModel(user.Id, token);
+
+    var activationLink = (ClientRoutes.ConfirmAccountActivation +
+                $"?vm={vm.ObjectToBase64UrlJson()}")
+      .ToLocalUrlString(_actionContext.HttpContext.Request);
+
+    return new UserActivationTokenModel()
+    {
+      ActivationLink = activationLink
+    };
+  }
 }
 

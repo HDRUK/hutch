@@ -5,6 +5,7 @@ using HutchManager.Models.Account;
 using HutchManager.Models.User;
 using HutchManager.Services;
 using HutchManager.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -245,5 +246,47 @@ public class AccountController : ControllerBase
     {
       Errors = ModelState.CollapseErrors()
     });
+  }
+  
+  [Authorize]
+  [HttpPost("{userIdOrEmail}/activation")] //api/account/{userIdOrEmail}/activation
+  public async Task<IActionResult> GenerateAccountActivationLink(string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+    return Ok(await _tokens.GenerateAccountActivationLink(user)); // return activation link
+  }
+  
+  [HttpPost("activate")] //api/account/activate
+  public async Task<IActionResult> Activate (AnonymousSetPasswordModel model)
+  {
+    if (ModelState.IsValid)
+    {
+      var user = await _users.FindByIdAsync(model.Credentials.UserId);
+      if (user is null) return NotFound();
+      
+      var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
+      
+      if (!isTokenValid) return BadRequest();
+      
+      // if token is valid, then do the following
+      var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
+      user.PasswordHash = hashedPassword; // update password
+      user.AccountConfirmed = true; // update Account status
+      
+      await _users.UpdateAsync(user); // update the user
+
+      await _signIn.SignInAsync(user, false); // sign in the user
+      
+      var profile = await _user.BuildProfile(user);
+      // Write a basic Profile Cookie for JS
+      HttpContext.Response.Cookies.Append(
+        AuthConfiguration.ProfileCookieName,
+        JsonSerializer.Serialize((BaseUserProfileModel)profile),
+        AuthConfiguration.ProfileCookieOptions);
+      return Ok(profile);
+    }
+    return BadRequest();
   }
 }
