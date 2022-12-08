@@ -95,7 +95,6 @@ export const UserSummary = ({
       try {
         setIsLoading(true);
         const actionResponse = await selectedAction.apiAction(); // get requested link
-        console.log(actionResponse);
         setActivationOrPwdResetLink(actionResponse[selectedAction.name]); // update the state with the link received
         displayToast({
           title: `New ${selectedAction.title} link generated`,

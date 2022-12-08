@@ -104,17 +104,11 @@ public class TokenIssuingService
   
   public async Task<UserPasswordResetTokenModel> GeneratePasswordResetLink(ApplicationUser user)
   {
-    var token = await _users.GeneratePasswordResetTokenAsync(user);
-    var vm = new UserTokenModel(user.Id, token);
-
-    var pwdResetLink = (ClientRoutes.ResetPassword +
-                          $"?vm={vm.ObjectToBase64UrlJson()}")
-      .ToLocalUrlString(_actionContext.HttpContext.Request);
-
-    return new UserPasswordResetTokenModel()
-    {
-      PasswordResetLink = pwdResetLink
-    };
+    var token = await _users.GeneratePasswordResetTokenAsync(user); // Generate password reset token
+    var vm = new UserTokenModel(user.Id, token); // create an object with userId and pwd reset token
+    var pwdResetLink = (ClientRoutes.ResetPassword + $"?vm={vm.ObjectToBase64UrlJson()}")
+      .ToLocalUrlString(_actionContext.HttpContext.Request); // create a link
+    return new UserPasswordResetTokenModel() { PasswordResetLink = pwdResetLink }; // return password reset link
   }
 }
 
