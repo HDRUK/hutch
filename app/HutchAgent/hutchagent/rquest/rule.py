@@ -1,3 +1,4 @@
+import datetime as dt
 import re
 from typing import Any, Tuple, Union
 
@@ -10,19 +11,19 @@ class Rule:
         type_: str = "",
         time: Union[str, None] = None,
         varname: str = "",
+        operator: str = "",
         **kwargs,
     ) -> None:
         self.value = value
         self.type_ = type_
         self.time = time
         self.varname = varname
+        self.operator = operator
 
         if self.type_ == "NUM":
             self.min_value, self.max_value = self._parse_numeric(self.value)
             _, v = self.varname.split("=")
             self.value = v
-        elif self.time is not None:
-            self.min_value, self.max_value = self._parse_time(self.value)
         else:
             self.min_value, self.max_value = None, None
 
@@ -32,7 +33,10 @@ class Rule:
         Returns:
             dict: `Rule` as a `dict`.
         """
-        return {}
+        return {
+            "varname": self.varname,
+
+        }
 
     @classmethod
     def from_dict(cls, dict_: dict):
@@ -48,7 +52,8 @@ class Rule:
         value = dict_.get("value")
         time = dict_.get("time")
         varname = dict_.get("varname", "")
-        return cls(type_=type_, value=value, time=time, varname=varname)
+        operator = dict_.get("oper", "")
+        return cls(type_=type_, value=value, time=time, varname=varname, operator=operator)
 
     def _parse_numeric(self, value: str) -> Tuple[Union[float, None], Union[float, None]]:
         pattern = re.compile(
@@ -69,10 +74,4 @@ class Rule:
                 max_value = None
             return min_value, max_value
         
-        return None, None
-
-    def _parse_time(self, value) -> Tuple[Union[int, float, None], Union[int, float, None]]:
-        # Less than pattern "|65:AGE:Y" = < 65 years
-        # Greater than pattern "18|:AGE:Y" > 18 years
-        # TODO: implement logic to parse time clauses
         return None, None
