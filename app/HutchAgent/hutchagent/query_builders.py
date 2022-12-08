@@ -1,5 +1,5 @@
 import os
-from typing import Tuple
+from typing import List, Tuple
 import dotenv
 import pandas as pd
 from sqlalchemy import (
@@ -65,7 +65,7 @@ class AvailibilityQueryBuilder:
 
     def _find_concepts(self) -> dict:
         concept_ids = set()
-        for group in self.query.groups:
+        for group in self.query.cohort.groups:
             for rule in group.rules:
                 concept_ids.add(rule.value)
         concept_query = (
@@ -84,43 +84,8 @@ class AvailibilityQueryBuilder:
         """Find all rows that match the rules' criteria."""
         concepts = self._find_concepts()
         merge_method = lambda x: "inner" if x == "AND" else "outer"
-        for group in self.query.groups:
-            concept = concepts.get(group.rules[0].value)
-            concept_table = self.concept_table_map.get(concept)
-            boolean_rule_col = self.boolean_rule_map.get(concept)
-            numeric_rule_col = self.numeric_rule_map.get(concept)
-            if (
-                group.rules[0].min_value is not None
-                and group.rules[0].max_value is not None
-            ):
-                stmnt = (
-                    select(concept_table.person_id)
-                    .where(
-                        and_(
-                            boolean_rule_col == group.rules[0].value,
-                            numeric_rule_col.between(
-                                group.rules[0].min_value, group.rules[0].max_value
-                            ),
-                        )
-                    )
-                    .distinct()
-                )
-                main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-            elif group.rules[0].operator.value == "=":
-                stmnt = (
-                    select(concept_table.person_id)
-                    .where(boolean_rule_col == group.rules[0].value)
-                    .distinct()
-                )
-                main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-            elif group.rules[0].operator.value == "!=":
-                stmnt = (
-                    select(concept_table.person_id)
-                    .where(boolean_rule_col != group.rules[0].value)
-                    .distinct()
-                )
-                main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-            for i, rule in enumerate(group.rules[1:], start=1):
+        for group in self.query.cohort.groups:
+            for i, rule in enumerate(group.rules):
                 concept = concepts.get(rule.value)
                 concept_table = self.concept_table_map.get(concept)
                 boolean_rule_col = self.boolean_rule_map.get(concept)
@@ -142,37 +107,31 @@ class AvailibilityQueryBuilder:
                     rule_df = pd.read_sql_query(
                         sql=stmnt, con=self.db_manager.engine
                     )
-                    main_df = main_df.merge(
-                        right=rule_df,
-                        how=merge_method(group.rule_operator.value),
-                        left_on="person_id",
-                        right_on=f"person_id_{i}",
-                    )
                 # Text rules testing for inclusion
-                elif rule.operator.value == "=":
+                elif rule.operator == "=":
                     stmnt = (
                         select(concept_table.person_id.label(f"person_id_{i}"))
                         .where(boolean_rule_col == rule.value)
                         .distinct()
                     )
                     rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-                    main_df = main_df.merge(
-                        right=rule_df,
-                        how=merge_method(group.rule_operator.value),
-                        left_on="person_id",
-                        right_on=f"person_id_{i}",
-                    )
                 # Text rules testing for exclusion
-                elif rule.operator.value == "!=":
+                elif rule.operator == "!=":
                     stmnt = (
                         select(concept_table.person_id.label(f"person_id_{i}"))
                         .where(boolean_rule_col != rule.value)
                         .distinct()
                     )
                     rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
+                    
+                if i == 0:
+                    main_df = rule_df.copy()
+                    # reset the name for solving the groups afterwards
+                    main_df.rename({"person_id_0": "person_id"}, inplace=True, axis=1)
+                else:
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rule_operator.value),
+                        how=merge_method(group.rules_operator),
                         left_on="person_id",
                         right_on=f"person_id_{i}",
                     )
@@ -187,7 +146,7 @@ class AvailibilityQueryBuilder:
             df.rename({"person_id": f"person_id_{i}"}, axis=1)
             group0_df = group0_df.merge(
                 right=df,
-                how=merge_method(self.query.group_operator),
+                how=merge_method(self.query.cohort.groups_operator),
                 left_on="person_id_0",
                 right_on=f"person_id_{i}",
             )
