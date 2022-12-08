@@ -20,7 +20,7 @@ import {
 import { FaTrash, FaLink } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { useBackendApi } from "contexts/BackendApi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, Formik } from "formik";
 import { FormikInput } from "components/forms/FormikInput";
 import { BasicModal } from "components/BasicModal";
@@ -37,20 +37,8 @@ export const UserSummary = ({
   const [isLoading, setIsLoading] = useState();
   const [feedback, setFeedback] = useState();
   const [activationOrPwdResetLink, setActivationOrPwdResetLink] = useState();
-  const [action, setAction] = useState();
-
-  const actionMenu = {
-    accountActivate: {
-      name: "ActivationLink",
-      label: "Account Activation Link",
-      title: "Account activation",
-    },
-    passwordReset: {
-      name: "PasswordResetLink",
-      label: "Password Reset Link",
-      title: "Password reset",
-    },
-  };
+  const [selectedAction, setSelectedAction] = useState();
+  const { users } = useBackendApi();
 
   const getNameInitials = () => {
     // get name initials
@@ -69,8 +57,8 @@ export const UserSummary = ({
   } = useDisclosure(); // Handle the modal that displays generated link
 
   const toast = useToast();
-  // toast configured for the User summary
   const displayToast = ({
+    // toast configured for the User summary
     position = "top",
     title,
     status,
@@ -85,35 +73,45 @@ export const UserSummary = ({
       isClosable: isClosable,
     });
 
-  const { users } = useBackendApi();
-
-  const onGenerateActivationLink = async () => {
-    try {
-      // handle submission for generating activation link
-      setIsLoading(true);
-      setAction(actionMenu.accountActivate);
-      const actionResponse = await users
-        .generateActivationLink({ id: userId })
-        .json(); // generate and get activation link
-      if (actionResponse) {
-        setActivationOrPwdResetLink(actionResponse.activationLink); // update the state
-      }
-      setIsLoading(false);
-      displayToast({
-        title: "New activation link generated",
-        status: "success",
-        duration: 900,
-      });
-      onDisplayLinkOpen();
-    } catch (e) {
-      console.error(e);
-      setFeedback("Something went wrong!");
-      onDisplayLinkOpen();
-    }
+  const actionMenu = {
+    accountActivate: {
+      // applicable for handling account activation link
+      name: "activationLink", // match with object key of the response. For e.g. activationLink: "Activation link here"
+      title: "Account Activation",
+      apiAction: async () =>
+        users.generateActivationLink({ id: userId }).json(), // function that triggers api call
+    },
+    passwordReset: {
+      // applicable for handling password reset link
+      name: "passwordResetLink",
+      title: "Password reset",
+      apiAction: async () => {}, // TODO use for making api call to generate password reset link
+    },
   };
 
+  useEffect(() => {
+    const generateLink = async () => {
+      try {
+        setIsLoading(true);
+        const actionResponse = await selectedAction.apiAction(); // get requested link
+        setActivationOrPwdResetLink(actionResponse[selectedAction.name]); // update the state with the link received
+        displayToast({
+          title: `New ${selectedAction.title} link generated`,
+          status: "success",
+          duration: 900,
+        });
+        setIsLoading(false);
+      } catch (e) {
+        console.error(e);
+        setFeedback("Something went wrong!");
+      }
+    };
+    selectedAction && generateLink();
+    onDisplayLinkOpen();
+  }, [selectedAction]);
+
   const ModalDisplayLink = // Display activation/password reset link with only an OK button
-    (
+    (feedback || selectedAction) && (
       <BasicModal
         body={
           feedback ? (
@@ -125,27 +123,27 @@ export const UserSummary = ({
             <Formik
               enableReinitialize
               initialValues={{
-                Link: activationOrPwdResetLink, // get Activation/Password reset link from the state
+                [selectedAction.name]: activationOrPwdResetLink, // get Activation/Password reset link from the state
               }}
             >
               <Form noValidate>
                 <VStack align="stretch" spacing={4}>
                   <FormikInput
-                    label={action?.label}
-                    name="Link"
+                    label={`${selectedAction.title} Link`}
+                    name={selectedAction.name}
                     type="readOnly"
                   />
                   <Alert status="info">
                     <AlertIcon />
-                    Please copy the {action?.label} and pass it to the user to
-                    complete the {action?.title} process.
+                    Please copy the {selectedAction.title} link and pass it to
+                    the user to complete the {selectedAction.title} process.
                   </Alert>
                 </VStack>
               </Form>
             </Formik>
           )
         }
-        title={action?.title}
+        title={selectedAction.title}
         actionBtnCaption="Ok"
         actionBtnColorScheme="blue"
         isLoading={isLoading}
@@ -233,9 +231,9 @@ export const UserSummary = ({
                   size="sm"
                   colorScheme="green"
                   leftIcon={<FaLink />}
-                  onClick={onGenerateActivationLink}
+                  onClick={() => setSelectedAction(actionMenu.accountActivate)}
                 >
-                  Generate {actionMenu.accountActivate.label}
+                  Generate {actionMenu.accountActivate.title}
                 </Button>
               </HStack>
             )}
