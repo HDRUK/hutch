@@ -1,5 +1,4 @@
-import json
-from hutchagent.rquest.group import Group
+from hutchagent.rquest.cohort import Cohort
 
 
 class AvailabilityQuery:
@@ -7,8 +6,24 @@ class AvailabilityQuery:
 
     def __init__(
         self,
+        cohort: Cohort,
+        uuid: str,
+        project: str,
+        task_id: str,
+        owner: str,
+        collection: str,
+        protocol_version: str,
+        char_salt: str,
+        **kwargs,
     ) -> None:
-        pass
+        self.cohort = cohort
+        self.uuid = uuid
+        self.project = project
+        self.task_id = task_id
+        self.owner = owner
+        self.collection = collection
+        self.protocol_version = protocol_version
+        self.char_salt = char_salt
 
     def to_dict(self) -> dict:
         """Convert `AvailabilityQuery` to `dict`.
@@ -16,7 +31,16 @@ class AvailabilityQuery:
         Returns:
             dict: `AvailabilityQuery` as a `dict`.
         """
-        return {}
+        return {
+            "cohort": self.cohort.to_dict(),
+            "uuid": self.uuid,
+            "project": self.project,
+            "task_id": self.task_id,
+            "owner": self.owner,
+            "collection": self.collection,
+            "protocol_version": self.protocol_version,
+            "char_salt": self.char_salt,
+        }
 
     @classmethod
     def from_dict(cls, dict_: dict):
@@ -28,10 +52,8 @@ class AvailabilityQuery:
         Returns:
             Self: `AvailabilityQuery` object.
         """
-        return cls()
-
-    def __str__(self) -> str:
-        return json.dumps(self.to_dict(), indent=2)
+        cohort = Cohort.from_dict(dict_.pop("cohort", {}))
+        return cls(cohort=cohort, **dict_)
 
 
 class DistributionQuery:
