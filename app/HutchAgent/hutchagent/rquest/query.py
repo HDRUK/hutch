@@ -59,8 +59,18 @@ class AvailabilityQuery:
 class DistributionQuery:
     def __init__(
         self,
+        owner: str,
+        code: str,
+        analysis: str,
+        uuid: str,
+        collection: str,
+        **kwargs,
     ) -> None:
-        pass
+        self.owner = owner
+        self.code = code
+        self.analysis = analysis
+        self.uuid = uuid
+        self.collection = collection
 
     def to_dict(self) -> dict:
         """Convert `DistributionQuery` to `dict`.
@@ -68,7 +78,13 @@ class DistributionQuery:
         Returns:
             dict: `DistributionQuery` as a `dict`.
         """
-        return {}
+        return {
+            "owner": self.owner,
+            "code": self.code,
+            "analysis": self.analysis,
+            "uuid": self.uuid,
+            "collection": self.collection,
+        }
 
     @classmethod
     def from_dict(cls, dict_: dict):
@@ -80,4 +96,4 @@ class DistributionQuery:
         Returns:
             Self: `DistributionQuery` object.
         """
-        return cls()
+        return cls(**dict_)
