@@ -80,7 +80,7 @@ class AvailibilityQueryBuilder:
         }
         return concept_dict
 
-    def solve_rules(self) -> None:
+    def _solve_rules(self) -> None:
         """Find all rows that match the rules' criteria."""
         concepts = self._find_concepts()
         merge_method = lambda x: "inner" if x == "AND" else "outer"
@@ -140,6 +140,8 @@ class AvailibilityQueryBuilder:
     def solve_groups(self) -> int:
         """Merge the groups and return the number of rows that matched all criteria."""
         merge_method = lambda x: "inner" if x == "AND" else "outer"
+        # solve the rules
+        self._solve_rules()
         group0_df = self.subqueries[0]
         group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
         for i, df in enumerate(self.subqueries[1:], start=1):

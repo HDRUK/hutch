@@ -34,7 +34,6 @@ def solve_availability(query: AvailabilityQuery) -> AvailabilityResult:
     query_builder = AvailibilityQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
-        query_builder.solve_rules()
         res = query_builder.solve_groups()
         query_end = time.time()
         count_ = res
