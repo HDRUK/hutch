@@ -85,7 +85,8 @@ export const UserSummary = ({
       // applicable for handling password reset link
       name: "passwordResetLink",
       title: "Password reset",
-      apiAction: async () => {}, // TODO use for making api call to generate password reset link
+      apiAction: async () =>
+        users.generatePasswordResetLink({ id: userId }).json(),
     },
   };
 
@@ -94,6 +95,7 @@ export const UserSummary = ({
       try {
         setIsLoading(true);
         const actionResponse = await selectedAction.apiAction(); // get requested link
+        console.log(actionResponse);
         setActivationOrPwdResetLink(actionResponse[selectedAction.name]); // update the state with the link received
         displayToast({
           title: `New ${selectedAction.title} link generated`,
@@ -234,6 +236,18 @@ export const UserSummary = ({
                   onClick={() => setSelectedAction(actionMenu.accountActivate)}
                 >
                   Generate {actionMenu.accountActivate.title}
+                </Button>
+              </HStack>
+            )}
+            {isUserActive && (
+              <HStack pt="10px" justifyContent="end">
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  leftIcon={<FaLink />}
+                  onClick={() => setSelectedAction(actionMenu.passwordReset)}
+                >
+                  Generate {actionMenu.passwordReset.title}
                 </Button>
               </HStack>
             )}
