@@ -44,7 +44,7 @@ def az_queue_callback(msg: Union[str, bytes]):
     query_builder = AvailibilityQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
-        res = query_builder.solve_groups()
+        res = query_builder.solve_query()
         query_end = time.time()
         count_ = res
         result_modifiers = get_results_modifiers(query.activity_source_id)

@@ -137,7 +137,7 @@ class AvailibilityQueryBuilder:
                     )
             self.subqueries.append(main_df)
 
-    def solve_groups(self) -> int:
+    def solve_query(self) -> int:
         """Merge the groups and return the number of rows that matched all criteria."""
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         # solve the rules
