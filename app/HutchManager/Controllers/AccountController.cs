@@ -259,7 +259,7 @@ public class AccountController : ControllerBase
   }
   
   [HttpPost("activate")] //api/account/activate
-  public async Task<IActionResult> Activate (AnonymousSetPasswordModel model)
+  public async Task<IActionResult> Activate (AnonymousSetAccountActivateModel model)
   {
     if (ModelState.IsValid)
     {
@@ -274,6 +274,7 @@ public class AccountController : ControllerBase
       var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
       user.PasswordHash = hashedPassword; // update password
       user.AccountConfirmed = true; // update Account status
+      user.FullName = model.Data.FullName; // update user full name
       
       await _users.UpdateAsync(user); // update the user
 
