@@ -85,30 +85,14 @@ export const ActivateAccount = () => {
     if (document?.activeElement) document.activeElement.blur();
 
     try {
-      const { user, isUnconfirmedAccount } = await activateAccount(
+      const { user, isAccountConfirmed } = await activateAccount(
         userId,
         token,
         password,
         fullName
       ).json();
 
-      if (isUnconfirmedAccount) {
-        setFeedback({
-          alerts: [
-            {
-              status: "success",
-              message: t("activateAccount.feedback.success"),
-            },
-            {
-              status: "warning",
-              message: t("feedback.account.unconfirmed"),
-            },
-          ],
-
-          resendConfirm: true,
-          hideForm: true,
-        });
-      } else {
+      if (user && isAccountConfirmed) {
         // no gotchas? Sign In and be on our way
         signIn(user);
         navigate("/", {

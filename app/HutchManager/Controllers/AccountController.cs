@@ -268,7 +268,10 @@ public class AccountController : ControllerBase
       
       var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
       
-      if (!isTokenValid) return BadRequest();
+      if (!isTokenValid) return BadRequest(new SetAccountActivateResult
+      {
+        Errors = ModelState.CollapseErrors()
+      });
       
       // if token is valid, then do the following
       var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
@@ -286,8 +289,15 @@ public class AccountController : ControllerBase
         AuthConfiguration.ProfileCookieName,
         JsonSerializer.Serialize((BaseUserProfileModel)profile),
         AuthConfiguration.ProfileCookieOptions);
-      return Ok(profile);
+      return Ok(new SetAccountActivateResult
+      {
+        User = profile,
+        IsAccountConfirmed = user.AccountConfirmed
+      });
     }
-    return BadRequest();
+    return BadRequest(new SetAccountActivateResult
+    {
+      Errors = ModelState.CollapseErrors()
+    });
   }
 }
