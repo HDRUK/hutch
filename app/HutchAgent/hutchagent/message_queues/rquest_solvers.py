@@ -3,6 +3,7 @@ import logging
 import os
 import time
 from hutchagent.rquest.file import File
+from hutchagent.ro_crates.item_list import ItemList
 from sqlalchemy import exc as sql_exc
 import hutchagent.config as config
 from hutchagent.db_manager import SyncDBManager
@@ -34,7 +35,8 @@ def solve_availability(query: AvailabilityQuery) -> AvailabilityResult:
     query_builder = AvailibilityQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
-        res = query_builder.solve_query()
+        query_builder.solve_rules()
+        res = query_builder.solve_groups()
         query_end = time.time()
         count_ = res
         result_modifiers = get_results_modifiers(query.activity_source_id)

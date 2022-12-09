@@ -1,5 +1,5 @@
-from typing import List, Union
-from hutchagent.rquest.file import File
+from typing import Union
+from hutchagent.ro_crates.item_list import ItemList
 
 
 class AvailabilityResult:
@@ -9,24 +9,43 @@ class AvailabilityResult:
         job_id: str,
         status: str,
         count: int,
-        collection_id: str,
-        protocol_version: str = "v2"
+        context: str = "https://w3id.org/ro/crate/1.1/context",
     ) -> None:
         self.activity_source_id = activity_source_id
         self.job_id = job_id
         self.status = status
         self.count = count
-        self.collection_id = collection_id
-        self.protocol_version = protocol_version
+        self.context = context
 
     def to_dict(self) -> dict:
         return {
-            "status": self.status,
-            "protocol_version": self.protocol_version,
-            "collection_id": self.collection_id,
-            "query_result": {
-                "count": self.count,
-            },
+            "@context": self.context,
+            "@graph": [
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "activity_source_id",
+                    "value": self.activity_source_id,
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "job_id",
+                    "value": self.job_id,
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "status",
+                    "value": self.status,
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "count",
+                    "value": str(self.count),  # stringify so Manager can decode.
+                },
+            ],
         }
 
 
@@ -43,10 +62,9 @@ class DistributionResult:
         status: str,
         count: int,
         datasets_count: Union[int, None],
-        files: List[File],
-        collection_id: str,
-        message: Union[str, None] = None,
-        protocol_version: str = "v2",
+        files: ItemList,
+        context: str = "https://w3id.org/ro/crate/1.1/context",
+        message: str = "",
     ) -> None:
         self.activity_source_id = activity_source_id
         self.job_id = job_id
@@ -54,9 +72,8 @@ class DistributionResult:
         self.count = count
         self.datasets_count = datasets_count
         self.files = files
+        self.context = context
         self.message = message
-        self.collection_id = collection_id
-        self.protocol_version = protocol_version
 
     def to_dict(self) -> dict:
         """Convert this `DistributionResult` object to a JSON serialisable `dict`.
@@ -67,14 +84,32 @@ class DistributionResult:
                 distribution query.
         """
         return {
-            "status": self.status,
-            "protocol_version": self.protocol_version,
-            "uuid": self.job_id,
-            "queryResult": {
-                "count": self.count,
-                "datasetCount": self.datasets_count,
-                "files": [f.to_dict() for f in self.files]
-            },
-            "message": self.message,
-            "collection_id": self.collection_id
+            "@context": self.context,
+            "@graph": [
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "activity_source_id",
+                    "value": self.activity_source_id,
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "job_id",
+                    "value": self.job_id,
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "status",
+                    "value": self.status,
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "message",
+                    "value": self.message,
+                },
+                self.files.to_dict()
+            ],
         }

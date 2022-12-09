@@ -1,31 +1,29 @@
-import datetime as dt
-import re
-from typing import Any, Tuple, Union
+import json
+from typing import Any, Union
+
+from hutchagent.rquest.operator import Operator
+from hutchagent.ro_crates.thing import Thing
 
 
-class Rule:
- 
+class Rule(Thing):
+    """Python representation of an rule based on [QuantitativeValue](https://schema.org/QuantitativeValue)."""
+
     def __init__(
         self,
+        context: str,
+        type_: str,
+        name: str = "",
         value: Any = None,
-        type_: str = "",
-        time: Union[str, None] = None,
-        varname: str = "",
-        operator: str = "",
+        min_value: Union[int, float, None] = None,
+        max_value: Union[int, float, None] = None,
+        operator: Union[Operator, None] = None,
         **kwargs,
     ) -> None:
-        self.value = value
-        self.type_ = type_
-        self.time = time
-        self.varname = varname
+        super().__init__(context, type_, name)
         self.operator = operator
-
-        if self.type_ == "NUM":
-            self.min_value, self.max_value = self._parse_numeric(self.value)
-            _, v = self.varname.split("=")
-            self.value = v
-        else:
-            self.min_value, self.max_value = None, None
+        self.value = value
+        self.min_value = min_value
+        self.max_value = max_value
 
     def to_dict(self) -> dict:
         """Convert `Rule` to `dict`.
@@ -33,10 +31,20 @@ class Rule:
         Returns:
             dict: `Rule` as a `dict`.
         """
-        return {
-            "varname": self.varname,
-
+        dict_ = {
+            "@context": self.context,
+            "@type": self.type_,
         }
+        if self.name is not None:
+            dict_.update(name=self.name)
+        if self.operator is not None:
+            dict_.update(additionalProperty=self.operator.to_dict())
+        if self.value is not None:
+            dict_.update(value=str(self.value))  # Manager expects a string
+        elif (self.min_value is not None) and (self.max_value is not None):
+            # Manager expects a string
+            dict_.update(minValue=str(self.min_value), maxValue=str(self.max_value))
+        return dict_
 
     @classmethod
     def from_dict(cls, dict_: dict):
@@ -48,30 +56,23 @@ class Rule:
         Returns:
             Self: `Rule` object.
         """
-        type_ = dict_.get("type", "")
-        value = dict_.get("value")
-        time = dict_.get("time")
-        varname = dict_.get("varname", "")
-        operator = dict_.get("oper", "")
-        return cls(type_=type_, value=value, time=time, varname=varname, operator=operator)
-
-    def _parse_numeric(self, value: str) -> Tuple[Union[float, None], Union[float, None]]:
-        pattern = re.compile(
-            r"(-?\d*\.\d+|\d+|null)\.\.(-?\d*\.\d+|null)"
+        operator = None
+        if op := dict_.get("additionalProperty"):
+            operator = Operator.from_dict(op)
+        return cls(
+            context=dict_.get("@context"),
+            type_=dict_.get("@type"),
+            name=dict_.get("name"),
+            value=dict_.get("value"),
+            min_value=dict_.get("minValue"),
+            max_value=dict_.get("maxValue"),
+            operator=operator,
         )
-        # Try and parse min and max values, then return them
-        if match := re.search(pattern, value):
-            lower, upper = match.groups()
-            # parse lower bound
-            try:
-                min_value = float(lower)
-            except ValueError:
-                min_value = None
-            # parse upper bound
-            try:
-                max_value = float(upper)
-            except ValueError:
-                max_value = None
-            return min_value, max_value
-        
-        return None, None
+
+    def __str__(self) -> str:
+        """`Rule` as a JSON string.
+
+        Returns:
+            str: JSON string.
+        """
+        return json.dumps(self.to_dict(), indent=2)

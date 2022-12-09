@@ -1,4 +1,8 @@
-from hutchagent.rquest.cohort import Cohort
+import json
+from typing import List
+from hutchagent.rquest.group import Group
+from hutchagent.rquest.operator import Operator
+from hutchagent.ro_crates.property_value import PropertyValue
 
 
 class AvailabilityQuery:
@@ -6,24 +10,17 @@ class AvailabilityQuery:
 
     def __init__(
         self,
-        cohort: Cohort,
-        uuid: str,
-        project: str,
-        task_id: str,
-        owner: str,
-        collection: str,
-        protocol_version: str,
-        char_salt: str,
-        **kwargs,
+        groups: List[Group],
+        group_operator: Operator,
+        job_id: str,
+        activity_source_id: str,
+        context: str = "https://w3id.org/ro/crate/1.1/context",
     ) -> None:
-        self.cohort = cohort
-        self.uuid = uuid
-        self.project = project
-        self.task_id = task_id
-        self.owner = owner
-        self.collection = collection
-        self.protocol_version = protocol_version
-        self.char_salt = char_salt
+        self.context = context
+        self.groups = [] if groups is None else groups
+        self.group_operator = group_operator
+        self.job_id = job_id
+        self.activity_source_id = activity_source_id
 
     def to_dict(self) -> dict:
         """Convert `AvailabilityQuery` to `dict`.
@@ -32,14 +29,23 @@ class AvailabilityQuery:
             dict: `AvailabilityQuery` as a `dict`.
         """
         return {
-            "cohort": self.cohort.to_dict(),
-            "uuid": self.uuid,
-            "project": self.project,
-            "task_id": self.task_id,
-            "owner": self.owner,
-            "collection": self.collection,
-            "protocol_version": self.protocol_version,
-            "char_salt": self.char_salt,
+            "@context": self.context,
+            "@graph": [
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "activity_source_id",
+                    "value": self.activity_source_id,
+                },
+                {
+                    "@context": "https://schema.org",
+                    "@type": "PropertyValue",
+                    "name": "job_id",
+                    "value": self.job_id,
+                },
+                self.group_operator.to_dict(),
+            ]
+            + [thing.to_dict() for thing in self.groups],
         }
 
     @classmethod
@@ -52,25 +58,46 @@ class AvailabilityQuery:
         Returns:
             Self: `AvailabilityQuery` object.
         """
-        cohort = Cohort.from_dict(dict_.pop("cohort", {}))
-        return cls(cohort=cohort, **dict_)
+        job_id = ""
+        activity_source_id = ""
+        graph_list = dict_.get("@graph", [])
+        groups = []
+        group_operator = None
+        for g in graph_list:
+            if g.get("name") == "groupOperator":
+                group_operator = Operator.from_dict(g)
+            elif g.get("name") == "job_id":
+                job_id = g.get("value")
+            elif g.get("name") == "activity_source_id":
+                activity_source_id = g.get("value")
+            elif g.get("name") == "group":
+                groups.append(Group.from_dict(g))
+
+        return cls(
+            groups=groups,
+            group_operator=group_operator,
+            job_id=job_id,
+            activity_source_id=activity_source_id,
+        )
+
+    def __str__(self) -> str:
+        return json.dumps(self.to_dict(), indent=2)
 
 
 class DistributionQuery:
     def __init__(
         self,
-        owner: str,
-        code: str,
+        activity_source_id: str,
         analysis: str,
-        uuid: str,
-        collection: str,
-        **kwargs,
+        code: str,
+        job_id: str,
+        context: str = "https://w3id.org/ro/crate/1.1/context",
     ) -> None:
-        self.owner = owner
-        self.code = code
+        self.activity_source_id = activity_source_id
         self.analysis = analysis
-        self.uuid = uuid
-        self.collection = collection
+        self.code = code
+        self.job_id = job_id
+        self.context = context
 
     def to_dict(self) -> dict:
         """Convert `DistributionQuery` to `dict`.
@@ -79,11 +106,33 @@ class DistributionQuery:
             dict: `DistributionQuery` as a `dict`.
         """
         return {
-            "owner": self.owner,
-            "code": self.code,
-            "analysis": self.analysis,
-            "uuid": self.uuid,
-            "collection": self.collection,
+            "@context": self.context,
+            "@graph": [
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="activity_source_id",
+                    value=self.activity_source_id,
+                ).to_dict(),
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="analysis",
+                    value=self.analysis,
+                ).to_dict(),
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="code",
+                    value=self.code,
+                ).to_dict(),
+                PropertyValue(
+                    context="https://schema.org",
+                    type_="PropertyValue",
+                    name="job_id",
+                    value=self.job_id,
+                ).to_dict()
+            ]
         }
 
     @classmethod
@@ -96,4 +145,23 @@ class DistributionQuery:
         Returns:
             Self: `DistributionQuery` object.
         """
-        return cls(**dict_)
+        activity_source_id = ""
+        analysis = ""
+        code = ""
+        job_id = ""
+        for g in dict_.get("@graph", []):
+            if g.get("name") == "activity_source_id":
+                activity_source_id = g.get("value")
+            elif g.get("name") == "analysis":
+                analysis = g.get("value")
+            elif g.get("name") == "code":
+                code = g.get("value")
+            elif g.get("name") == "job_id":
+                job_id = g.get("value")
+        
+        return cls(
+            activity_source_id=activity_source_id,
+            analysis=analysis,
+            code=code,
+            job_id=job_id,
+        )
