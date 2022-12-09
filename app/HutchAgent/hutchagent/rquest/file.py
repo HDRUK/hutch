@@ -18,4 +18,12 @@ class File:
         self.type_ = type_
 
     def to_dict(self) -> dict:
-        return {}
+        return {
+            "file_name": self.name,
+            "file_data": self.data,
+            "file_description": self.description,
+            "file_size": self.size,
+            "file_type": self.type_,
+            "file_sensitive": self.sensitive,
+            "file_reference": self.reference
+        }
