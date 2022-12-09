@@ -215,9 +215,9 @@ public class AccountController : ControllerBase
 
       if (!result.Errors.Any())
       {
-        if (user.EmailConfirmed)
+        if (user.AccountConfirmed) // check if AccountConfirmed
         {
-          await _signIn.SignInAsync(user, false);
+          await _signIn.SignInAsync(user, false); 
 
           var profile = await _user.BuildProfile(user);
 
@@ -234,7 +234,7 @@ public class AccountController : ControllerBase
         }
         else
         {
-          return Ok(new SetPasswordResult
+          return Ok(new SetPasswordResult 
           {
             IsUnconfirmedAccount = true
           });
