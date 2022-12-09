@@ -34,7 +34,6 @@ azure-queue = ["azure-storage-queue"]
 
 [tool.poetry.scripts]
 hutchagent = "scripts.main:main"
-build-log-db = "hutchagent.db_logging:create_log_table"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
