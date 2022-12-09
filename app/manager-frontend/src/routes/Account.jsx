@@ -7,6 +7,7 @@ import { ResendPasswordReset } from "pages/account/ResendPasswordReset";
 import { ResetPassword } from "pages/account/ResetPassword";
 import { NotFound } from "pages/error/NotFound";
 import { Route, Routes } from "react-router-dom";
+import { ActivateAccount } from "pages/account/ActivateAccount";
 
 export const Account = () => (
   <Routes>
@@ -17,6 +18,7 @@ export const Account = () => (
     <Route path="password/reset" element={<RequestPasswordReset />} />
     <Route path="password/resend" element={<ResendPasswordReset />} />
     <Route path="password" element={<ResetPassword />} />
+    <Route path="activate" element={<ActivateAccount />} />
 
     <Route path="*" element={<NotFound />} />
   </Routes>
