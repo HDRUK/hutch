@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "rquest-agent"
+name = "rquest-omop-agent"
 version = "0.1.0"
 description = ""
 authors = ["Daniel Lea <Daniel.Lea@nottingham.ac.uk>"]
