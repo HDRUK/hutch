@@ -261,44 +261,44 @@ public class AccountController : ControllerBase
   [HttpPost("activate")] //api/account/activate
   public async Task<IActionResult> Activate (AnonymousSetAccountActivateModel model)
   {
-      if (ModelState.IsValid)
-      {
-        var user = await _users.FindByIdAsync(model.Credentials.UserId);
-        if (user is null) return NotFound();
+    if (ModelState.IsValid)
+    { 
+      var user = await _users.FindByIdAsync(model.Credentials.UserId);
+      if (user is null) return NotFound();
       
-        var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
+      var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
       
-        if (!isTokenValid) return BadRequest(new SetPasswordResult
-        {
-          Errors = ModelState.CollapseErrors()
-        });
-      
-        // if token is valid, then do the following
-        var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
-        user.PasswordHash = hashedPassword; // update password
-        user.AccountConfirmed = true; // update Account status
-        user.FullName = model.Data.FullName; // update user full name
-      
-        await _users.UpdateAsync(user); // update the user
-
-        await _signIn.SignInAsync(user, false); // sign in the user
-      
-        var profile = await _user.BuildProfile(user);
-        // Write a basic Profile Cookie for JS
-        HttpContext.Response.Cookies.Append(
-          AuthConfiguration.ProfileCookieName,
-          JsonSerializer.Serialize((BaseUserProfileModel)profile),
-          AuthConfiguration.ProfileCookieOptions);
-        return Ok(new SetPasswordResult
-        {
-          User = profile,
-          IsUnconfirmedAccount = !user.AccountConfirmed // Is account not confirmed? 'FALSE' if account confirmed, else 'TRUE'
-        });
-      }
-      return BadRequest(new SetPasswordResult
+      if (!isTokenValid) return BadRequest(new SetPasswordResult
       {
         Errors = ModelState.CollapseErrors()
       });
+      
+      // if token is valid, then do the following
+      var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
+      user.PasswordHash = hashedPassword; // update password
+      user.AccountConfirmed = true; // update Account status
+      user.FullName = model.Data.FullName; // update user full name
+      
+      await _users.UpdateAsync(user); // update the user
+
+      await _signIn.SignInAsync(user, false); // sign in the user
+      
+      var profile = await _user.BuildProfile(user);
+      // Write a basic Profile Cookie for JS
+      HttpContext.Response.Cookies.Append(
+        AuthConfiguration.ProfileCookieName,
+        JsonSerializer.Serialize((BaseUserProfileModel)profile),
+        AuthConfiguration.ProfileCookieOptions);
+      return Ok(new SetPasswordResult
+      {
+        User = profile,
+        IsUnconfirmedAccount = !user.AccountConfirmed // Is account not confirmed? 'FALSE' if account confirmed, else 'TRUE'
+      });
+    }
+    return BadRequest(new SetPasswordResult
+    {
+      Errors = ModelState.CollapseErrors()
+    });
   }
   
   [Authorize]
