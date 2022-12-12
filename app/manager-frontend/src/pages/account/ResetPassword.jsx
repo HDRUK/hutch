@@ -100,7 +100,7 @@ export const ResetPassword = () => {
             },
             {
               status: "warning",
-              message: t("feedback.account.unconfirmed"),
+              message: t("feedback.account.unconfirmedAccount"),
             },
           ],
 
