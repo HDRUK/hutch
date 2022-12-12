@@ -6,9 +6,19 @@ authors = ["Daniel Lea <Daniel.Lea@nottingham.ac.uk>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+SQLAlchemy = "^1.4.36"
+pandas = "^1.4.4"
+psycopg2 = { version = "^2.9.3", optional = true }
+mysqlclient = { version = "^2.1.1", optional = true }
+pyodbc = { version = "^4.0.35", optional = true }
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+
+[tool.poetry.extras]
+postgres = ["psycopg2"]
+mysql = ["mysqlclient"]
+sqlserver = ["pyodbc"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

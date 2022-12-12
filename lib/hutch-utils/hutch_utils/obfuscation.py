@@ -1,12 +1,6 @@
-import logging
 import os
-import dotenv
-import requests, requests.exceptions as req_exc
-import hutchagent.config as config
+import requests
 from typing import Union
-
-
-dotenv.load_dotenv()
 
 
 def get_results_modifiers(activity_source_id: int) -> list:
@@ -17,33 +11,17 @@ def get_results_modifiers(activity_source_id: int) -> list:
 
     Returns:
         list: The modifiers for the given activity source.
+
+    Raises:
+        HTTPError: raised when this function can't get the results modifiers.
     """
-    logger = logging.getLogger(config.LOGGER_NAME)
-    try:
-        logger.info(
-            f"Getting results modifiers for activity source {activity_source_id}."
-        )
-        res = requests.get(
-            f"{os.getenv('MANAGER_URL')}/api/activitysources/{activity_source_id}/resultsmodifiers",
-            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
-        )
-        modifiers = res.json()
-        logger.info(
-            f"Retrieved {len(modifiers)} modifiers for activity source {activity_source_id}."
-        )
-        return modifiers
-    except req_exc.ConnectionError as connection_error:
-        logger.error(str(connection_error))
-        return list()
-    except req_exc.Timeout as timeout_error:
-        logger.error(str(timeout_error))
-        return list()
-    except req_exc.MissingSchema as missing_schema_error:
-        logger.error(str(missing_schema_error))
-        return list()
-    except req_exc.JSONDecodeError as json_error:
-        logger.error(str(json_error))
-        return list()
+    res = requests.get(
+        f"{os.getenv('MANAGER_URL')}/api/activitysources/{activity_source_id}/resultsmodifiers",
+        verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
+    )
+    res.raise_for_status()
+    modifiers = res.json()
+    return modifiers
 
 
 def low_number_suppression(
@@ -57,13 +35,14 @@ def low_number_suppression(
 
     Returns:
         Union[int, float]: `value` if `value` > `threshold` else `0`.
+
+    Examples:
+        >>> low_number_suppression(99, threshold=100)
+        0
+        >>> low_number_suppression(200, threshold=100)
+        200
     """
-    logger = logging.getLogger(config.LOGGER_NAME)
-    logger.info("Applying Low Number Suppression.")
-    logger.info(f"The count is {value} before Low Number Suppression.")
-    result = value if value > threshold else 0
-    logger.info(f"The count is {result} after Low Number Suppression.")
-    return result
+    return value if value > threshold else 0
 
 
 def rounding(value: Union[int, float], nearest: int = 10) -> int:
@@ -74,14 +53,15 @@ def rounding(value: Union[int, float], nearest: int = 10) -> int:
         nearest (int, optional): Round value to this base. Defaults to 10.
 
     Returns:
-        int: _description_
+        int: The value rounded to the specified nearest interval.
+
+    Examples:
+        >>> rounding(145, nearest=100)
+        100
+        >>> rounding(160, nearest=100)
+        200
     """
-    logger = logging.getLogger(config.LOGGER_NAME)
-    logger.info("Applying Rounding.")
-    logger.info(f"The count is {value} before Rounding.")
-    result = nearest * round(value / nearest)
-    logger.info(f"The count is {result} after Rounding.")
-    return result
+    return nearest * round(value / nearest)
 
 
 def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
