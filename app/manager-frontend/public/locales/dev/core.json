@@ -10,7 +10,7 @@
     "error_404": "The requested page could not be found.",
     "emptyState": "Looks like there's nothing here!",
     "account": {
-      "tndConfirm_title": "Request a new confirmation link",
+      "resendConfirm_title": "Request a new confirmation link",
       "resendConfirm_link": "Send me a new confirmation link via email",
       "invalidResendLink": "Your resend link is invalid. Please try to get a new one, or contact support.",
       "unconfirmedEmail": "Your account email address has not been confirmed.",
