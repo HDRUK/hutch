@@ -45,6 +45,10 @@ export const getUserApi = ({ api }) => ({
     api.delete(`users/${id}`, {
       json: values,
     }),
+  generatePasswordResetLink: ({ values, id }) =>
+    api.post(`account/${id}/password/reset`, {
+      json: values,
+    }),
 });
 
 export const useUserList = () => {

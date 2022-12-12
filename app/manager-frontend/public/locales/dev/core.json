@@ -13,7 +13,8 @@
       "tndConfirm_title": "Request a new confirmation link",
       "resendConfirm_link": "Send me a new confirmation link via email",
       "invalidResendLink": "Your resend link is invalid. Please try to get a new one, or contact support.",
-      "unconfirmed": "Your account email address has not been confirmed."
+      "unconfirmedEmail": "Your account email address has not been confirmed.",
+      "unconfirmedAccount": "Your account has not been activated."
     }
   },
   "fields": {

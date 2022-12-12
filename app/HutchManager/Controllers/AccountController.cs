@@ -215,9 +215,9 @@ public class AccountController : ControllerBase
 
       if (!result.Errors.Any())
       {
-        if (user.EmailConfirmed)
+        if (user.AccountConfirmed) // check if AccountConfirmed
         {
-          await _signIn.SignInAsync(user, false);
+          await _signIn.SignInAsync(user, false); 
 
           var profile = await _user.BuildProfile(user);
 
@@ -234,7 +234,7 @@ public class AccountController : ControllerBase
         }
         else
         {
-          return Ok(new SetPasswordResult
+          return Ok(new SetPasswordResult 
           {
             IsUnconfirmedAccount = true
           });
@@ -262,13 +262,13 @@ public class AccountController : ControllerBase
   public async Task<IActionResult> Activate (AnonymousSetAccountActivateModel model)
   {
     if (ModelState.IsValid)
-    {
+    { 
       var user = await _users.FindByIdAsync(model.Credentials.UserId);
       if (user is null) return NotFound();
       
       var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
       
-      if (!isTokenValid) return BadRequest(new SetAccountActivateResult
+      if (!isTokenValid) return BadRequest(new SetPasswordResult
       {
         Errors = ModelState.CollapseErrors()
       });
@@ -289,15 +289,21 @@ public class AccountController : ControllerBase
         AuthConfiguration.ProfileCookieName,
         JsonSerializer.Serialize((BaseUserProfileModel)profile),
         AuthConfiguration.ProfileCookieOptions);
-      return Ok(new SetAccountActivateResult
-      {
-        User = profile,
-        IsAccountConfirmed = user.AccountConfirmed
-      });
+      return Ok(new SetPasswordResult { User = profile});
     }
-    return BadRequest(new SetAccountActivateResult
+    return BadRequest(new SetPasswordResult
     {
       Errors = ModelState.CollapseErrors()
     });
+  }
+  
+  [Authorize]
+  [HttpPost("{userIdOrEmail}/password/reset")] //api/account/{userIdOrEmail}/password/reset
+  public async Task<IActionResult> GeneratePasswordResetLink(string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+    return Ok(await _tokens.GeneratePasswordResetLink(user)); // return password reset link
   }
 }
