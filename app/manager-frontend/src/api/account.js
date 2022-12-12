@@ -71,9 +71,9 @@ export const getAccountApi = ({ api }) => ({
 
   /**
    * Activate Users's account, using a valid token
-   * @param {*} userId User ID to reset password for
-   * @param {*} token System issued password reset token
-   * @param {*} password the new password
+   * @param {*} userId User ID to activate account for
+   * @param {*} token System issued account activation token
+   * @param {*} password the password
    * @param {*} fullName User full name
    * @returns
    */
