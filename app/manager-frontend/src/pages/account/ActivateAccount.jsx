@@ -85,14 +85,14 @@ export const ActivateAccount = () => {
     if (document?.activeElement) document.activeElement.blur();
 
     try {
-      const { user, isAccountConfirmed } = await activateAccount(
+      const { user } = await activateAccount(
         userId,
         token,
         password,
         fullName
       ).json();
 
-      if (user && isAccountConfirmed) {
+      if (user) {
         // no gotchas? Sign In and be on our way
         signIn(user);
         navigate("/", {
