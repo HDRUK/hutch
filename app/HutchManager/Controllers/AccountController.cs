@@ -289,11 +289,7 @@ public class AccountController : ControllerBase
         AuthConfiguration.ProfileCookieName,
         JsonSerializer.Serialize((BaseUserProfileModel)profile),
         AuthConfiguration.ProfileCookieOptions);
-      return Ok(new SetPasswordResult
-      {
-        User = profile,
-        IsUnconfirmedAccount = !user.AccountConfirmed // Is account not confirmed? 'FALSE' if account confirmed, else 'TRUE'
-      });
+      return Ok(new SetPasswordResult { User = profile});
     }
     return BadRequest(new SetPasswordResult
     {
