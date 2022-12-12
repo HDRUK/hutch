@@ -27,8 +27,18 @@ sqlserver = [
   "pyodbc~=4.0.35",
 ]
 
+[project.scripts]
+rquest-omop-agent = "scripts.agent:main"
+
 [tool.hatch.version]
 path = "rquest_omop_agent/__about__.py"
+
+[tool.hatch.build]
+only-packages = true
+include = [
+  "rquest_omop_agent",
+  "scripts",
+]
 
 # Add lib packages to wheel
 [tool.hatch.build.targets.wheel.force-include]
