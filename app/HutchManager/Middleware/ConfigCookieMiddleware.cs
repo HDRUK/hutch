@@ -28,7 +28,7 @@ public class ConfigCookieMiddleware
     _config.GetSection(RegistrationOptions.UserAccounts).Bind(regOptions);
     
     var model = new ConfigCookieModel();
-    model.Flags.Add("Registration",regOptions.Registration);
+    model.Settings.Add("Registration",regOptions.Registration);
     
     var jsonString = JsonSerializer.Serialize(model);
     context.Response.Cookies.Append(ConfigCookieName, jsonString);

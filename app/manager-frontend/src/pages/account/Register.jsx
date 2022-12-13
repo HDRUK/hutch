@@ -100,7 +100,7 @@ export const Register = () => {
     actions.setSubmitting(false);
   };
 
-  if (config.Flags.Registration === "disabled") {
+  if (config.Settings.Registration === "disabled") {
     return <NotFound></NotFound>;
   } else {
     return (

@@ -107,7 +107,7 @@ const UserMenu = () => {
         {t("buttons.login")}
       </NavBarButton>
 
-      {config.Flags.Registration === "disabled" ? null : (
+      {config.Settings.Registration === "disabled" ? null : (
         <NavBarButton
           leftIcon={<FaUserPlus />}
           as={Link}
