@@ -6,8 +6,8 @@ from sqlalchemy import (
     select,
     func,
 )
-from hutchagent.db_manager import SyncDBManager
-from hutchagent.entities import (
+from .db_manager import SyncDBManager
+from omop_entities.entities import (
     Concept,
     ConditionOccurrence,
     Measurement,
@@ -16,7 +16,7 @@ from hutchagent.entities import (
     DrugExposure,
     ProcedureOccurrence,
 )
-from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
+from rquest_dto.query import AvailabilityQuery, DistributionQuery
 
 
 class AvailibilityQueryBuilder:
