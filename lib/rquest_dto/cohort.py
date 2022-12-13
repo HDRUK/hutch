@@ -1,5 +1,5 @@
 from typing import List
-from .group import Group
+from rquest_dto.group import Group
 
 
 class Cohort:

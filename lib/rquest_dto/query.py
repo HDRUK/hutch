@@ -1,4 +1,4 @@
-from .cohort import Cohort
+from rquest_dto.cohort import Cohort
 
 
 class AvailabilityQuery:

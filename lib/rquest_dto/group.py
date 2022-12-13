@@ -1,6 +1,6 @@
 from typing import List
 
-from .rule import Rule
+from rquest_dto.rule import Rule
 
 
 class Group:

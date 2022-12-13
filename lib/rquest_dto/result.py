@@ -1,5 +1,5 @@
 from typing import List, Union
-from .file import File
+from rquest_dto.file import File
 
 
 class AvailabilityResult:
