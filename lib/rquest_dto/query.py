@@ -14,6 +14,7 @@ class AvailabilityQuery:
         collection: str,
         protocol_version: str,
         char_salt: str,
+        activity_source_id: int,
         **kwargs,
     ) -> None:
         self.cohort = cohort
@@ -24,6 +25,7 @@ class AvailabilityQuery:
         self.collection = collection
         self.protocol_version = protocol_version
         self.char_salt = char_salt
+        self.activity_source_id = activity_source_id
 
     def to_dict(self) -> dict:
         """Convert `AvailabilityQuery` to `dict`.
@@ -40,6 +42,7 @@ class AvailabilityQuery:
             "collection": self.collection,
             "protocol_version": self.protocol_version,
             "char_salt": self.char_salt,
+            "activity_source_id": self.activity_source_id
         }
 
     @classmethod
@@ -64,6 +67,7 @@ class DistributionQuery:
         analysis: str,
         uuid: str,
         collection: str,
+        activity_source_id: int,
         **kwargs,
     ) -> None:
         self.owner = owner
@@ -71,6 +75,7 @@ class DistributionQuery:
         self.analysis = analysis
         self.uuid = uuid
         self.collection = collection
+        self.activity_source_id = activity_source_id
 
     def to_dict(self) -> dict:
         """Convert `DistributionQuery` to `dict`.
@@ -84,6 +89,7 @@ class DistributionQuery:
             "analysis": self.analysis,
             "uuid": self.uuid,
             "collection": self.collection,
+            "activity_source_id": self.activity_source_id
         }
 
     @classmethod
