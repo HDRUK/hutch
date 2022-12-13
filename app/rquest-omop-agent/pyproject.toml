@@ -16,6 +16,7 @@ dependencies = [
   "SQLAlchemy~=1.4.36",
   "pandas~=1.4.4",
   "psycopg2~=2.9.3",  # support postgres by default
+  "requests~=2.27.1"
 ]
 dynamic = ["version"]
 
