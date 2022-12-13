@@ -24,8 +24,12 @@ public class ConfigCookieMiddleware
 
   public async Task Invoke(HttpContext context, FeatureFlagService features)
   {
+    var regOptions = new RegistrationOptions();
+    _config.GetSection(RegistrationOptions.UserAccounts).Bind(regOptions);
+    
     var model = new ConfigCookieModel();
-    model.Flags.Add("Registration",_config["UserAccounts:Registration"]);
+    model.Flags.Add("Registration",regOptions.Registration);
+    
     var jsonString = JsonSerializer.Serialize(model);
     context.Response.Cookies.Append(ConfigCookieName, jsonString);
     await _next(context);
