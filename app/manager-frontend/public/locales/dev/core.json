@@ -13,7 +13,8 @@
       "resendConfirm_title": "Request a new confirmation link",
       "resendConfirm_link": "Send me a new confirmation link via email",
       "invalidResendLink": "Your resend link is invalid. Please try to get a new one, or contact support.",
-      "unconfirmed": "Your account email address has not been confirmed."
+      "unconfirmedEmail": "Your account email address has not been confirmed.",
+      "unconfirmedAccount": "Your account has not been activated."
     }
   },
   "fields": {
@@ -118,6 +119,17 @@
       "success": "Your password has been changed.",
       "loggedIn": "You have been logged in.",
       "invalidLink": "The password reset failed. Please request a new reset link, or contact support."
+    }
+  },
+  "activateAccount": {
+    "heading": "Activate your account",
+    "buttons": {
+      "submit": "Activate account"
+    },
+    "feedback": {
+      "success": "Your account has been activated.",
+      "loggedIn": "You have been logged in.",
+      "invalidLink": "Your account activation failed. Please request a new account activation link, or contact support."
     }
   }
 }

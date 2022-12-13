@@ -25,6 +25,7 @@ import {
 } from "components/forms/PasswordField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { HutchLogo } from "components/Logo";
+import { FormikInput } from "components/forms/FormikInput";
 
 const validationSchema = (t) => object().shape(pwSchema(t));
 
@@ -33,7 +34,7 @@ const InvalidLinkFeedback = () => {
   return (
     <Container my={16}>
       <TitledAlert status="error" title={t("feedback.error_title")}>
-        <Text>{t("resetPassword.feedback.invalidLink")}</Text>
+        <Text>{t("activateAccount.feedback.invalidLink")}</Text>
       </TitledAlert>
     </Container>
   );
@@ -57,14 +58,14 @@ const FeedbackAlerts = ({ feedback, userId }) => (
   </>
 );
 
-export const ResetPassword = () => {
+export const ActivateAccount = () => {
   const { userId, token } = useQueryStringViewModel();
   const { t } = useTranslation();
   const { key } = useLocation();
   const navigate = useNavigate();
   const { signIn } = useUser();
   const {
-    account: { resetPassword },
+    account: { activateAccount },
   } = useBackendApi();
 
   // ajax submissions may cause feedback to display
@@ -77,44 +78,28 @@ export const ResetPassword = () => {
 
   if (!userId || !token) return <InvalidLinkFeedback />;
 
-  const handleSubmit = async ({ password, passwordConfirm }, actions) => {
+  const handleSubmit = async ({ password, fullName }, actions) => {
     // If submission was triggered by hitting Enter,
     // we should blur the focused input
     // so we don't mess up validation when we reset after submission
     if (document?.activeElement) document.activeElement.blur();
 
     try {
-      const { user, isUnconfirmedAccount } = await resetPassword(
+      const { user } = await activateAccount(
         userId,
         token,
         password,
-        passwordConfirm
+        fullName
       ).json();
 
-      if (isUnconfirmedAccount) {
-        setFeedback({
-          alerts: [
-            {
-              status: "success",
-              message: t("resetPassword.feedback.success"),
-            },
-            {
-              status: "warning",
-              message: t("feedback.account.unconfirmedAccount"),
-            },
-          ],
-
-          resendConfirm: true,
-          hideForm: true,
-        });
-      } else {
+      if (user) {
         // no gotchas? Sign In and be on our way
         signIn(user);
         navigate("/", {
           state: {
             toast: {
-              title: `${t("resetPassword.feedback.success")} ${t(
-                "resetPassword.feedback.loggedIn"
+              title: `${t("activateAccount.feedback.success")} ${t(
+                "activateAccount.feedback.loggedIn"
               )}`,
               status: "success",
               duration: 2500,
@@ -131,7 +116,7 @@ export const ResetPassword = () => {
         case 400:
           setFeedback({
             status: "error",
-            message: t("resetPassword.feedback.invalidLink"),
+            message: t("activateAccount.feedback.invalidLink"),
           });
           break;
         default:
@@ -162,7 +147,7 @@ export const ResetPassword = () => {
           />
         </Center>
         <Heading as="h2" size="lg">
-          {t("resetPassword.heading")}
+          {t("activateAccount.heading")}
         </Heading>
 
         <FeedbackAlerts feedback={feedback} userId={userId} />
@@ -170,6 +155,7 @@ export const ResetPassword = () => {
         <Formik
           initialValues={{
             password: "",
+            fullName: "",
           }}
           onSubmit={handleSubmit}
           validationSchema={validationSchema(t)}
@@ -177,6 +163,12 @@ export const ResetPassword = () => {
           {({ isSubmitting }) => (
             <Form noValidate>
               <VStack align="stretch" spacing={4} hidden={feedback?.hideForm}>
+                <FormikInput
+                  name="fullName"
+                  label={t("register.fields.fullname")}
+                  placeholder={t("register.fields.fullname_placeholder")}
+                  isRequired
+                />
                 <PasswordField autoFocus />
 
                 <Button
@@ -187,7 +179,7 @@ export const ResetPassword = () => {
                   disabled={isSubmitting}
                   isLoading={isSubmitting}
                 >
-                  {t("resetPassword.buttons.submit")}
+                  {t("activateAccount.buttons.submit")}
                 </Button>
               </VStack>
             </Form>
