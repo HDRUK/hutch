@@ -1,4 +1,3 @@
-import base64
 import os
 import sys
 import logging
@@ -10,7 +9,6 @@ import hutch_utils.config as config
 from hutch_utils.checkin import check_in
 from rquest_omop_agent import query_solvers
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
-from rquest_dto.file import File
 from rquest_dto.result import AvailabilityResult, DistributionResult
 from rquest_omop_agent.db_manager import SyncDBManager
 
