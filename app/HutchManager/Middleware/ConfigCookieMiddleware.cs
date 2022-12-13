@@ -22,7 +22,7 @@ public class ConfigCookieMiddleware
     _config = config;
   }
 
-  public async Task Invoke(HttpContext context, FeatureFlagService features)
+  public async Task Invoke(HttpContext context)
   {
     var regOptions = new RegistrationOptions();
     _config.GetSection(RegistrationOptions.UserAccounts).Bind(regOptions);
