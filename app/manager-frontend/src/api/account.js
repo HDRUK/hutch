@@ -68,4 +68,20 @@ export const getAccountApi = ({ api }) => ({
         data: { password, passwordConfirm },
       },
     }),
+
+  /**
+   * Activate Users's account, using a valid token
+   * @param {*} userId User ID to activate account for
+   * @param {*} token System issued account activation token
+   * @param {*} password the password
+   * @param {*} fullName User full name
+   * @returns
+   */
+  activateAccount: (userId, token, password, fullName) =>
+    api.post("account/activate", {
+      json: {
+        credentials: { userId, token },
+        data: { password, fullName },
+      },
+    }),
 });
