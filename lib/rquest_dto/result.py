@@ -1,5 +1,5 @@
 from typing import List, Union
-from hutchagent.rquest.file import File
+from .file import File
 
 
 class AvailabilityResult:

@@ -1,4 +1,4 @@
-from hutchagent.rquest.cohort import Cohort
+from .cohort import Cohort
 
 
 class AvailabilityQuery:
