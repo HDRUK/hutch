@@ -19,7 +19,7 @@ from omop_entities.entities import (
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 
 
-class AvailibilityQueryBuilder:
+class AvailibilityQuerySolver:
     subqueries = list()
     concept_table_map = {
         "Condition": ConditionOccurrence,
@@ -192,7 +192,7 @@ class AvailibilityQueryBuilder:
         return group0_df.shape[0]  # the number of rows
 
 
-class CodeDistributionQueryBuilder:
+class CodeDistributionQuerySolver:
     allowed_domains_map = {
         "Condition": ConditionOccurrence,
         "Ethnicity": Person,
