@@ -1,10 +1,13 @@
+import base64
 import os
+import time
 from typing import Tuple
 import pandas as pd
 from sqlalchemy import (
     and_,
     select,
     func,
+    exc as sql_exc
 )
 from .db_manager import SyncDBManager
 from omop_entities.entities import (
@@ -17,6 +20,8 @@ from omop_entities.entities import (
     ProcedureOccurrence,
 )
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
+from rquest_dto.file import File
+from rquest_dto.result import AvailabilityResult, DistributionResult
 
 
 class AvailibilityQuerySolver:
@@ -283,3 +288,138 @@ class CodeDistributionQuerySolver:
         
         return os.linesep.join(results), len(df)
 
+
+def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResult:
+    """_summary_
+
+    Args:
+        query (AvailabilityQuery): _description_
+
+    Returns:
+        AvailabilityResult: _description_
+    """
+    query_builder = AvailibilityQuerySolver(db_manager, query)
+    try:
+        query_start = time.time()
+        query_builder.solve_rules()
+        res = query_builder.solve_groups()
+        query_end = time.time()
+        count_ = res
+        result_modifiers = get_results_modifiers(query.activity_source_id)
+        count_ = apply_filters(count_, result_modifiers)
+        logger.info(
+            f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
+        )
+        result = AvailabilityResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="ok",
+            count=count_,
+        )
+    except sql_exc.NoSuchTableError as table_error:
+        logger.error(str(table_error))
+        result = AvailabilityResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+    except sql_exc.NoSuchColumnError as column_error:
+        logger.error(str(column_error))
+        result = AvailabilityResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+    except sql_exc.ProgrammingError as programming_error:
+        logger.error(str(programming_error))
+        result = AvailabilityResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+    except Exception as e:
+        logger.error(str(e))
+        result = AvailabilityResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.job_id,
+            status="error",
+            count=0,
+        )
+
+    return result
+
+
+def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> DistributionResult:
+    """Solve RQuest distribution queries.
+
+    Args:
+        db_manager (SyncDBManager): The database manager
+        query (DistributionQuery): The distribution query object
+
+    Returns:
+        DistributionResult: Result object for the query
+    """
+    solver = CodeDistributionQuerySolver(db_manager, query)
+    try:
+        res, count = solver.solve_query()
+        # Convert file data to base64
+        res_b64_bytes = base64.b64encode(res.encode("utf-8"))  # bytes
+        size = len(res_b64_bytes) / 1000  # length of file data in KB
+        res_b64 = res_b64_bytes.decode("utf-8")  # convert back to string, now base64
+        result_file = File(
+            data=res_b64,
+            description="Result of code.distribution anaylsis",
+            name="code.distribution",
+            sensitive=True,
+            reference="",
+            size=size,
+            type_="BCOS"
+        )
+        result = DistributionResult(
+            job_id=query.uuid,
+            status="ok",
+            count=count,
+            datasets_count=1,
+            files=[result_file],
+        )
+    except sql_exc.NoSuchTableError:
+        result = DistributionResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.uuid,
+            status="error",
+            count=0,
+            datasets_count=0,
+            files=[],
+        )
+    except sql_exc.NoSuchColumnError:
+        result = DistributionResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.uuid,
+            status="error",
+            count=0,
+            datasets_count=0,
+            files=[],
+        )
+    except sql_exc.ProgrammingError:
+        result = DistributionResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.uuid,
+            status="error",
+            count=0,
+            datasets_count=0,
+            files=[],
+        )
+    except Exception:
+        result = DistributionResult(
+            activity_source_id=query.activity_source_id,
+            job_id=query.uuid,
+            status="error",
+            count=0,
+            datasets_count=0,
+            files=[],
+        )
+
+    return result
