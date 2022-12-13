@@ -62,7 +62,7 @@ class AvailibilityQuerySolver:
 
     def _find_concepts(self) -> dict:
         concept_ids = set()
-        for group in self.query.groups:
+        for group in self.query.cohort.groups:
             for rule in group.rules:
                 concept_ids.add(rule.value)
         concept_query = (
@@ -77,11 +77,11 @@ class AvailibilityQuerySolver:
         }
         return concept_dict
 
-    def solve_rules(self) -> None:
+    def _solve_rules(self) -> None:
         """Find all rows that match the rules' criteria."""
         concepts = self._find_concepts()
         merge_method = lambda x: "inner" if x == "AND" else "outer"
-        for group in self.query.groups:
+        for group in self.query.cohort.groups:
             concept = concepts.get(group.rules[0].value)
             concept_table = self.concept_table_map.get(concept)
             boolean_rule_col = self.boolean_rule_map.get(concept)
@@ -103,14 +103,14 @@ class AvailibilityQuerySolver:
                     .distinct()
                 )
                 main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-            elif group.rules[0].operator.value == "=":
+            elif group.rules[0].operator == "=":
                 stmnt = (
                     select(concept_table.person_id)
                     .where(boolean_rule_col == group.rules[0].value)
                     .distinct()
                 )
                 main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-            elif group.rules[0].operator.value == "!=":
+            elif group.rules[0].operator == "!=":
                 stmnt = (
                     select(concept_table.person_id)
                     .where(boolean_rule_col != group.rules[0].value)
@@ -141,12 +141,12 @@ class AvailibilityQuerySolver:
                     )
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rule_operator.value),
+                        how=merge_method(group.rules_operator),
                         left_on="person_id",
                         right_on=f"person_id_{i}",
                     )
                 # Text rules testing for inclusion
-                elif rule.operator.value == "=":
+                elif rule.operator == "=":
                     stmnt = (
                         select(concept_table.person_id.label(f"person_id_{i}"))
                         .where(boolean_rule_col == rule.value)
@@ -155,12 +155,12 @@ class AvailibilityQuerySolver:
                     rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rule_operator.value),
+                        how=merge_method(group.rules_operator),
                         left_on="person_id",
                         right_on=f"person_id_{i}",
                     )
                 # Text rules testing for exclusion
-                elif rule.operator.value == "!=":
+                elif rule.operator == "!=":
                     stmnt = (
                         select(concept_table.person_id.label(f"person_id_{i}"))
                         .where(boolean_rule_col != rule.value)
@@ -169,14 +169,15 @@ class AvailibilityQuerySolver:
                     rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rule_operator.value),
+                        how=merge_method(group.rules_operator),
                         left_on="person_id",
                         right_on=f"person_id_{i}",
                     )
             self.subqueries.append(main_df)
 
-    def solve_groups(self) -> int:
+    def solve_query(self) -> int:
         """Merge the groups and return the number of rows that matched all criteria."""
+        self._solve_rules()
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         group0_df = self.subqueries[0]
         group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
@@ -184,7 +185,7 @@ class AvailibilityQuerySolver:
             df.rename({"person_id": f"person_id_{i}"}, axis=1)
             group0_df = group0_df.merge(
                 right=df,
-                how=merge_method(self.query.group_operator),
+                how=merge_method(self.query.cohort.groups_operator),
                 left_on="person_id_0",
                 right_on=f"person_id_{i}",
             )
