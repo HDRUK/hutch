@@ -13,6 +13,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { useBackendApi } from "contexts/BackendApi";
+import { useBackendConfig } from "contexts/Config";
 import { useUser } from "contexts/User";
 import { useTranslation } from "react-i18next";
 import {
@@ -61,6 +62,7 @@ const UserMenu = () => {
   const {
     account: { logout },
   } = useBackendApi();
+  const { config } = useBackendConfig();
 
   const busyModalState = useDisclosure();
   const busyModal = (
@@ -105,9 +107,15 @@ const UserMenu = () => {
         {t("buttons.login")}
       </NavBarButton>
 
-      <NavBarButton leftIcon={<FaUserPlus />} as={Link} to="/account/register">
-        {t("buttons.register")}
-      </NavBarButton>
+      {config.Flags.Registration === "disabled" ? null : (
+        <NavBarButton
+          leftIcon={<FaUserPlus />}
+          as={Link}
+          to="/account/register"
+        >
+          {t("buttons.register")}
+        </NavBarButton>
+      )}
       {busyModal}
     </>
   );

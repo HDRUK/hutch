@@ -16,16 +16,19 @@ public class UserService
   private readonly IFeatureManager _featureManager;
   private readonly IUserClaimsPrincipalFactory<ApplicationUser> _principalFactory;
   private readonly UserManager<ApplicationUser> _users;
+  private readonly IConfiguration _config;
   public UserService(
     ApplicationDbContext db,
     IFeatureManager featureManager,
     IUserClaimsPrincipalFactory<ApplicationUser> principalFactory,
+    IConfiguration config,
     UserManager<ApplicationUser> users)
   {
     _db = db;
     _principalFactory = principalFactory;
     _featureManager = featureManager;
     _users = users;
+    _config = config;
   }
 
   /// <summary>
@@ -35,9 +38,15 @@ public class UserService
   /// <param name="email">The email address to check</param>
   /// <returns></returns>
   public async Task<bool> CanRegister(string email)
-    => await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.AllowFreeRegistration)) ||
-        (await _db.RegistrationAllowlist.FindAsync(email) is not null);
+    => _config["UserAccounts:Registration"] == "free" ||
+       (await _db.RegistrationAllowlist.FindAsync(email) is not null);
 
+  /// <summary>
+  /// Checks if User Registration is disabled
+  /// </summary>
+  /// <returns></returns>
+  public bool IsDisabled()
+    => _config["UserAccounts:Registration"] == "disabled";
   /// <summary>
   /// Build up a client profile for a user
   /// </summary>
