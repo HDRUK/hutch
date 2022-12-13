@@ -4,6 +4,7 @@ import sys
 import logging
 import argparse
 import json
+from typing import Union
 import requests
 import hutch_utils.config as config
 from hutch_utils.checkin import check_in
@@ -37,6 +38,26 @@ parser.add_argument(
     action="store_true",
     help="The query is a distribution query"
 )
+
+def send_to_manager(
+    result: Union[AvailabilityResult, DistributionResult], endpoint: str
+) -> None:
+    """Send a result RO-Crate to the manager.
+
+    Args:
+        result (Union[AvailabilityResult, DistributionResult]): 
+            The RO-Crate object containing the result of a query.
+        endpoint (str): The endpoint at the manager to send the result.
+    """
+    logger = logging.getLogger(config.LOGGER_NAME)
+    res = requests.post(
+        f"{os.getenv('MANAGER_URL')}/{endpoint}",
+        json=result.to_dict(),
+        verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
+    )
+    res.raise_for_status()
+    logger.info("Sent results to manager.")
+
 
 def main() -> None:
     # Set up the logger
@@ -86,29 +107,17 @@ def main() -> None:
     query_dict = json.loads(args.body)
     if args.is_availability:
         query = AvailabilityQuery.from_dict(query_dict)
-        solver = query_solvers.AvailibilityQuerySolver(db_manager=db_manager, query=query)
-        # TODO: solve query
+        result = query_solvers.solve_availability(db_manager=db_manager, query=query)
+        try:
+            send_to_manager(result, "api/results")
+            logger.info("Sent results to the manager")
+        except requests.HTTPError as e:
+            logger.critical(str(e))
     else:
         query = DistributionQuery.from_dict(query_dict)
-        solver = query_solvers.CodeDistributionQuerySolver(db_manager=db_manager, query=query)
-        res, count = solver.solve_query()
-        # Convert file data to base64
-        res_b64_bytes = base64.b64encode(res.encode("utf-8"))  # bytes
-        size = len(res_b64_bytes) / 1000  # length of file data in KB
-        res_b64 = res_b64_bytes.decode("utf-8")  # convert back to string, now base64
-        result_file = File(
-            data=res_b64,
-            description="Result of code.distribution anaylsis",
-            name="code.distribution",
-            sensitive=True,
-            reference="",
-            size=size,
-            type_="BCOS"
-        )
-        result = DistributionResult(
-            job_id=query.uuid,
-            status="ok",
-            count=count,
-            datasets_count=1,
-            files=[result_file],
-        )
+        result = query_solvers.solve_distribution(db_manager=db_manager, query=query)
+        try:
+            send_to_manager(result, "api/results")
+            logger.info("Sent results to the manager")
+        except requests.HTTPError as e:
+            logger.critical(str(e))
