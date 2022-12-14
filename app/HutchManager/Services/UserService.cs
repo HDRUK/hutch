@@ -1,13 +1,14 @@
 using System.Globalization;
 using System.Security.Claims;
 using HutchManager.Auth;
-using HutchManager.Constants;
+using HutchManager.Config;
 using HutchManager.Data;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.FeatureManagement;
+using Microsoft.Extensions.Options;
+
 namespace HutchManager.Services;
 
 public class UserService
@@ -15,17 +16,17 @@ public class UserService
   private readonly ApplicationDbContext _db;
   private readonly IUserClaimsPrincipalFactory<ApplicationUser> _principalFactory;
   private readonly UserManager<ApplicationUser> _users;
-  private readonly IConfiguration _config;
+  private readonly RegistrationOptions _registrationOptions;
   public UserService(
     ApplicationDbContext db,
     IUserClaimsPrincipalFactory<ApplicationUser> principalFactory,
-    IConfiguration config,
+    IOptions<RegistrationOptions> registrationOptions,
     UserManager<ApplicationUser> users)
   {
     _db = db;
     _principalFactory = principalFactory;
     _users = users;
-    _config = config;
+    _registrationOptions = registrationOptions.Value;
   }
 
   /// <summary>
@@ -36,9 +37,7 @@ public class UserService
   /// <returns></returns>
   public async Task<bool> CanRegister(string email)
   {
-    var regOptions = new RegistrationOptions();
-    _config.GetSection(RegistrationOptions.UserAccounts).Bind(regOptions);
-    return regOptions.Registration == "free" ||
+    return _registrationOptions.Registration == "free" ||
            (await _db.RegistrationAllowlist.FindAsync(email) is not null);
   }
   /// <summary>
@@ -47,9 +46,7 @@ public class UserService
   /// <returns></returns>
   public bool IsDisabled()
   {
-    var regOptions = new RegistrationOptions();
-    _config.GetSection(RegistrationOptions.UserAccounts).Bind(regOptions);
-    return regOptions.Registration == "disabled";
+    return _registrationOptions.Registration == "disabled";
   }
   /// <summary>
   /// Build up a client profile for a user

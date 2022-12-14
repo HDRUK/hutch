@@ -1,4 +1,4 @@
-namespace HutchManager.Constants;
+namespace HutchManager.Config;
 
 public class RegistrationOptions
 {

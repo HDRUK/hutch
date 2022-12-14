@@ -71,6 +71,7 @@ b.Services
   .Configure<RQuestTaskApiOptions>(b.Configuration.GetSection("RQuestTaskApi"))
   .Configure<ActivitySourcePollingOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
   .Configure<DistributionPollingOptions>(b.Configuration.GetSection("DistributionPolling"))
+  .Configure<RegistrationOptions>(b.Configuration.GetSection("UserAccounts"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()

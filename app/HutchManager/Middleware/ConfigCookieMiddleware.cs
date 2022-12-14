@@ -1,8 +1,7 @@
 using System.Text.Json;
-using HutchManager.Constants;
+using HutchManager.Config;
 using HutchManager.Models;
-using HutchManager.Services;
-using Microsoft.FeatureManagement;
+using Microsoft.Extensions.Options;
 
 namespace HutchManager.Middleware;
 
@@ -11,24 +10,21 @@ public class ConfigCookieMiddleware
 
   public static readonly string ConfigCookieName = ".HutchManager.Config";
   private readonly RequestDelegate _next;
-  private readonly IConfiguration _config;
+  private readonly RegistrationOptions _registrationOptions;
 
   public ConfigCookieMiddleware(
-    IConfiguration config,
+    IOptions<RegistrationOptions> registrationOptions,
     RequestDelegate next
     )
   {
     _next = next;
-    _config = config;
+    _registrationOptions = registrationOptions.Value;
   }
 
   public async Task Invoke(HttpContext context)
   {
-    var regOptions = new RegistrationOptions();
-    _config.GetSection(RegistrationOptions.UserAccounts).Bind(regOptions);
-    
     var model = new ConfigCookieModel();
-    model.Settings.Add("Registration",regOptions.Registration);
+    model.Settings.Add("Registration",_registrationOptions.Registration);
     
     var jsonString = JsonSerializer.Serialize(model);
     context.Response.Cookies.Append(ConfigCookieName, jsonString);
