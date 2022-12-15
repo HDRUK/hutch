@@ -35,8 +35,13 @@ public class AccountController : ControllerBase
   [HttpPost("register")]
   public async Task<IActionResult> Register(RegisterAccountModel model)
   {
+    // 404 if User registration is disabled.
+    if (_user.IsDisabled())
+    {
+      return NotFound();
+    }
+    
     RegisterAccountResult regResult = new();
-
     if (ModelState.IsValid) // Additional Pre-registration checks
     {
       if (!await _user.CanRegister(model.Email))
@@ -84,7 +89,6 @@ public class AccountController : ControllerBase
         }
       }
     }
-
     return BadRequest(regResult with
     {
       Errors = ModelState.CollapseErrors()

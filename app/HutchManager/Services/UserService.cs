@@ -1,31 +1,33 @@
 using System.Globalization;
 using System.Security.Claims;
 using HutchManager.Auth;
+using HutchManager.Config;
 using HutchManager.Constants;
 using HutchManager.Data;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.FeatureManagement;
+using Microsoft.Extensions.Options;
+
 namespace HutchManager.Services;
 
 public class UserService
 {
   private readonly ApplicationDbContext _db;
-  private readonly IFeatureManager _featureManager;
   private readonly IUserClaimsPrincipalFactory<ApplicationUser> _principalFactory;
   private readonly UserManager<ApplicationUser> _users;
+  private readonly RegistrationOptions _registrationOptions;
   public UserService(
     ApplicationDbContext db,
-    IFeatureManager featureManager,
     IUserClaimsPrincipalFactory<ApplicationUser> principalFactory,
+    IOptions<RegistrationOptions> registrationOptions,
     UserManager<ApplicationUser> users)
   {
     _db = db;
     _principalFactory = principalFactory;
-    _featureManager = featureManager;
     _users = users;
+    _registrationOptions = registrationOptions.Value;
   }
 
   /// <summary>
@@ -35,9 +37,18 @@ public class UserService
   /// <param name="email">The email address to check</param>
   /// <returns></returns>
   public async Task<bool> CanRegister(string email)
-    => await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.AllowFreeRegistration)) ||
-        (await _db.RegistrationAllowlist.FindAsync(email) is not null);
-
+  {
+    return _registrationOptions.Registration.Equals(UserRegistrationOptions.Free, StringComparison.OrdinalIgnoreCase) ||
+           (await _db.RegistrationAllowlist.FindAsync(email) is not null);
+  }
+  /// <summary>
+  /// Checks if User Registration is disabled
+  /// </summary>
+  /// <returns></returns>
+  public bool IsDisabled()
+  {
+    return _registrationOptions.Registration.Equals(UserRegistrationOptions.Disabled,StringComparison.OrdinalIgnoreCase);
+  }
   /// <summary>
   /// Build up a client profile for a user
   /// </summary>
