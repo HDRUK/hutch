@@ -37,16 +37,8 @@ export const getUserApi = ({ api }) => ({
     api.put("user/uiCulture", {
       json: culture,
     }),
-  generateActivationLink: ({ values, id }) =>
-    api.post(`account/${id}/activation`, {
-      json: values,
-    }),
   delete: ({ values, id }) =>
     api.delete(`users/${id}`, {
-      json: values,
-    }),
-  generatePasswordResetLink: ({ values, id }) =>
-    api.post(`account/${id}/password/reset`, {
       json: values,
     }),
 });

@@ -38,7 +38,7 @@ export const UserSummary = ({
   const [feedback, setFeedback] = useState();
   const [activationOrPwdResetLink, setActivationOrPwdResetLink] = useState();
   const [selectedAction, setSelectedAction] = useState();
-  const { users } = useBackendApi();
+  const { account } = useBackendApi();
 
   const getNameInitials = () => {
     // get name initials
@@ -79,14 +79,14 @@ export const UserSummary = ({
       name: "activationLink", // match with object key of the response. For e.g. activationLink: "Activation link here"
       title: "Account Activation",
       apiAction: async () =>
-        users.generateActivationLink({ id: userId }).json(), // function that triggers api call
+        account.generateActivationLink({ id: userId }).json(), // function that triggers api call
     },
     passwordReset: {
       // applicable for handling password reset link
       name: "passwordResetLink",
       title: "Password reset",
       apiAction: async () =>
-        users.generatePasswordResetLink({ id: userId }).json(),
+        account.generatePasswordResetLink({ id: userId }).json(),
     },
   };
 
