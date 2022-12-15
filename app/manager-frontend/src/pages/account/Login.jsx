@@ -152,7 +152,8 @@ export const Login = () => {
                     {t("buttons.login")}
                   </Button>
 
-                  {config.Settings.Registration === "disabled" ? null : (
+                  {config.Settings.Registration.toLowerCase() ===
+                  "disabled" ? null : (
                     <Button
                       colorScheme="blue"
                       variant="link"

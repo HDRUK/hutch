@@ -100,7 +100,7 @@ export const Register = () => {
     actions.setSubmitting(false);
   };
 
-  if (config.Settings.Registration === "disabled") {
+  if (config.Settings.Registration.toLowerCase() === "disabled") {
     return <NotFound></NotFound>;
   } else {
     return (
