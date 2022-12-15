@@ -19,7 +19,6 @@ import { useResetState } from "helpers/hooks/useResetState";
 import { useUser } from "contexts/User";
 import { ResendConfirmAlert } from "components/account/ResendConfirmAlert";
 import { useBackendApi } from "contexts/BackendApi";
-import { useBackendConfig } from "contexts/Config";
 import { EmailField } from "components/forms/EmailField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { HutchLogo } from "components/Logo";
@@ -48,7 +47,6 @@ export const Login = () => {
   const {
     account: { login },
   } = useBackendApi();
-  const { config } = useBackendConfig();
 
   // ajax submissions may cause feedback to display
   // but we reset feedback if the page should remount
@@ -59,8 +57,10 @@ export const Login = () => {
   });
 
   const handleSubmit = async (values, actions) => {
+    console.log(values);
     try {
       const { user } = await login(values).json();
+
       signIn(user);
 
       // redirect back to where we came from; otherwise the user home
@@ -134,7 +134,14 @@ export const Login = () => {
 
                 <PasswordField
                   fieldTip={
-                    <Link as={RouterLink} to="/account/password/reset">
+                    <Link
+                      onClick={() =>
+                        setFeedback({
+                          status: "info",
+                          message: t("login.feedback.passwordResetInfo"),
+                        })
+                      }
+                    >
                       {t("login.links.forgotPassword")}
                     </Link>
                   }
@@ -151,19 +158,15 @@ export const Login = () => {
                   >
                     {t("buttons.login")}
                   </Button>
-
-                  {config.Settings.Registration.toLowerCase() ===
-                  "disabled" ? null : (
-                    <Button
-                      colorScheme="blue"
-                      variant="link"
-                      leftIcon={<FaUserPlus />}
-                    >
-                      <Link as={RouterLink} to="/account/register">
-                        {t("login.links.register")}
-                      </Link>
-                    </Button>
-                  )}
+                  <Button
+                    colorScheme="blue"
+                    variant="link"
+                    leftIcon={<FaUserPlus />}
+                  >
+                    <Link as={RouterLink} to="/account/register">
+                      {t("login.links.register")}
+                    </Link>
+                  </Button>
                 </HStack>
               </VStack>
             </Form>
