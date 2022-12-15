@@ -185,6 +185,17 @@ public class AccountController : ControllerBase
     return BadRequest();
   }
 
+  [HttpPost("confirm/resend")]
+  public async Task<IActionResult> ConfirmResend([FromBody] string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+
+    await _tokens.SendAccountConfirmation(user);
+    return NoContent();
+  }
+
   [HttpPost("password")]
   public async Task<IActionResult> ResetPassword(AnonymousSetPasswordModel model)
   {
