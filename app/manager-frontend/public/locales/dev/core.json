@@ -95,22 +95,6 @@
       "success_message": "We've sent you an email to confirm your account. Please follow the link in the email."
     }
   },
-  "requestPasswordReset": {
-    "heading": "Request a password reset",
-    "buttons": {
-      "submit": "Send me a reset link"
-    },
-    "feedback": {
-      "success": "If there is an user account associated with that email address, we'll send an email with instructions on how to reset your password."
-    }
-  },
-  "resendPasswordReset": {
-    "feedback": {
-      "busy": "Sending password reset link via email",
-      "success_title": "Password reset link sent",
-      "success_message": "We've sent you an email with instructions on how to reset your password. Please follow the link in the email."
-    }
-  },
   "resetPassword": {
     "heading": "Reset your password",
     "buttons": {
