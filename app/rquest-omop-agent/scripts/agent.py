@@ -90,15 +90,15 @@ def main() -> None:
     logger.info("Check-in successful")
 
     logger.info("Setting up database connection...")
-    log_db_host = os.getenv("LOG_DB_HOST")
-    log_db_port = os.getenv("LOG_DB_PORT")
+    datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
     db_manager = SyncDBManager(
-        username=os.getenv("LOG_DB_USERNAME"),
-        password=os.getenv("LOG_DB_PASSWORD"),
-        host=log_db_host,
-        port=int(log_db_port) if log_db_port is not None else None,
-        database=os.getenv("LOG_DB_DATABASE"),
-        drivername=os.getenv("LOG_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
+        username=os.getenv("DATASOURCE_DB_USERNAME"),
+        password=os.getenv("DATASOURCE_DB_PASSWORD"),
+        host=os.getenv("DATASOURCE_DB_HOST"),
+        port=int(datasource_db_port) if datasource_db_port is not None else None,
+        database=os.getenv("DATASOURCE_DB_DATABASE"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
+        schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
 
     logger.info("Processing query...")
