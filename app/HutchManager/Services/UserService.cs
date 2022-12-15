@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using HutchManager.Auth;
 using HutchManager.Config;
+using HutchManager.Constants;
 using HutchManager.Data;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.User;
@@ -37,7 +38,7 @@ public class UserService
   /// <returns></returns>
   public async Task<bool> CanRegister(string email)
   {
-    return _registrationOptions.Registration.Equals("free", StringComparison.OrdinalIgnoreCase) ||
+    return _registrationOptions.Registration.Equals(UserRegistrationOptions.Free, StringComparison.OrdinalIgnoreCase) ||
            (await _db.RegistrationAllowlist.FindAsync(email) is not null);
   }
   /// <summary>
@@ -46,7 +47,7 @@ public class UserService
   /// <returns></returns>
   public bool IsDisabled()
   {
-    return _registrationOptions.Registration.Equals("disabled",StringComparison.OrdinalIgnoreCase);
+    return _registrationOptions.Registration.Equals(UserRegistrationOptions.Disabled,StringComparison.OrdinalIgnoreCase);
   }
   /// <summary>
   /// Build up a client profile for a user
