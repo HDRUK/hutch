@@ -17,7 +17,6 @@ import { useTranslation } from "react-i18next";
 import { object, string } from "yup";
 import { useResetState } from "helpers/hooks/useResetState";
 import { useUser } from "contexts/User";
-import { ResendConfirmAlert } from "components/account/ResendConfirmAlert";
 import { useBackendApi } from "contexts/BackendApi";
 import { useBackendConfig } from "contexts/Config";
 import { EmailField } from "components/forms/EmailField";
@@ -74,9 +73,9 @@ export const Login = () => {
           setFeedback({
             status: "error",
             message: result.isUnconfirmedAccount
-              ? t("feedback.account.unconfirmed")
+              ? t("feedback.account.unconfirmedAccount")
               : t("login.feedback.loginFailed"),
-            resendConfirm: result.isUnconfirmedAccount,
+            resendActivation: result.isUnconfirmedAccount,
           });
 
           break;
@@ -117,7 +116,7 @@ export const Login = () => {
           onSubmit={handleSubmit}
           validationSchema={validationSchema(t)}
         >
-          {({ isSubmitting, values }) => (
+          {({ isSubmitting }) => (
             <Form noValidate>
               <VStack align="stretch" spacing={4}>
                 {feedback?.status && (
@@ -126,10 +125,13 @@ export const Login = () => {
                     {feedback.message}
                   </Alert>
                 )}
-                {feedback?.resendConfirm && (
-                  <ResendConfirmAlert userIdOrEmail={values.username} />
-                )}
 
+                {feedback?.resendActivation && (
+                  <Alert status="info">
+                    <AlertIcon />
+                    {t("login.feedback.unconfirmedAccountInfo")}
+                  </Alert>
+                )}
                 <EmailField name="username" autoFocus />
 
                 <PasswordField
