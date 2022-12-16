@@ -134,7 +134,14 @@ export const Login = () => {
 
                 <PasswordField
                   fieldTip={
-                    <Link as={RouterLink} to="/account/password/reset">
+                    <Link
+                      onClick={() =>
+                        setFeedback({
+                          status: "info",
+                          message: t("login.feedback.passwordResetInfo"),
+                        })
+                      }
+                    >
                       {t("login.links.forgotPassword")}
                     </Link>
                   }
