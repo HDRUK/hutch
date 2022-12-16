@@ -49,44 +49,6 @@ public class TokenIssuingService
             .ToLocalUrlString(_actionContext.HttpContext.Request));
   }
 
-  public async Task SendPasswordReset(ApplicationUser user)
-  {
-    var token = await _users.GeneratePasswordResetTokenAsync(user);
-    var vm = new UserTokenModel(user.Id, token);
-
-    await _accountEmail.SendPasswordReset(
-        new EmailAddress(user.Email)
-        {
-          Name = user.FullName
-        },
-        link: (ClientRoutes.ResetPassword +
-            $"?vm={vm.ObjectToBase64UrlJson()}")
-            .ToLocalUrlString(_actionContext.HttpContext.Request),
-        resendLink: (ClientRoutes.ResendResetPassword +
-            $"?vm={new { UserId = user.Id }.ObjectToBase64UrlJson()}")
-            .ToLocalUrlString(_actionContext.HttpContext.Request));
-  }
-
-  public async Task SendEmailChange(ApplicationUser user, string newEmail)
-  {
-    var token = await _users.GenerateChangeEmailTokenAsync(user, newEmail);
-    var vm = new UserTokenModel(user.Id, token);
-
-    // TODO: do we need the new email in the VM?
-
-    await _accountEmail.SendEmailChange(
-        new EmailAddress(newEmail)
-        {
-          Name = user.FullName
-        },
-        link: (ClientRoutes.ConfirmEmailChange +
-        $"?vm={vm.ObjectToBase64UrlJson()}")
-            .ToLocalUrlString(_actionContext.HttpContext.Request),
-        resendLink: (ClientRoutes.ResendConfirm + // TODO
-            $"?vm={new { UserId = user.Id }.ObjectToBase64UrlJson()}")
-            .ToLocalUrlString(_actionContext.HttpContext.Request));
-  }
-
   public async Task<UserActivationTokenModel> GenerateAccountActivationLink(ApplicationUser user)
   {
     var token = await _users.GenerateUserTokenAsync(user, "Default","ActivateAccount");

@@ -34,24 +34,12 @@ export const getAccountApi = ({ api }) => ({
     }),
 
   /**
-   * Resend an account confirmation email
-   * @param {*} userIdOrEmail The User ID or Email Address
+   * Request a User's password reset link
+   * @param {*} id User ID for requesting password reset link
    * @returns
    */
-  resendConfirm: (userIdOrEmail) =>
-    api.post("account/confirm/resend", {
-      json: userIdOrEmail,
-    }),
-
-  /**
-   * Request a password reset email
-   * @param {*} userIdOrEmail The User ID or Email Address
-   * @returns
-   */
-  requestPasswordReset: (userIdOrEmail) =>
-    api.post("account/password/reset", {
-      json: userIdOrEmail,
-    }),
+  generatePasswordResetLink: ({ id }) =>
+    api.post(`account/${id}/password/reset`),
 
   /**
    * Reset a User's password, using a valid token
@@ -68,6 +56,13 @@ export const getAccountApi = ({ api }) => ({
         data: { password, passwordConfirm },
       },
     }),
+
+  /**
+   * Request a User's account activation link
+   * @param {*} id User ID for requesting account activation link
+   * @returns
+   */
+  generateActivationLink: ({ id }) => api.post(`account/${id}/activation`),
 
   /**
    * Activate Users's account, using a valid token
