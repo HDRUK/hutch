@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HutchManager.Auth;
+using HutchManager.Config;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.Account;
 using HutchManager.Models.User;
@@ -8,6 +9,7 @@ using HutchManager.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace HutchManager.Controllers;
 
@@ -19,17 +21,20 @@ public class AccountController : ControllerBase
   private readonly SignInManager<ApplicationUser> _signIn;
   private readonly UserService _user;
   private readonly TokenIssuingService _tokens;
+  private readonly LoginOptions _loginOptions;
 
   public AccountController(
     UserManager<ApplicationUser> users,
     SignInManager<ApplicationUser> signIn,
     UserService user,
-    TokenIssuingService tokens)
+    TokenIssuingService tokens,
+    IOptions<LoginOptions> loginOptions)
   {
     _users = users;
     _signIn = signIn;
-    _user = user;
+    _user = user; 
     _tokens = tokens;
+    _loginOptions = loginOptions.Value;
   }
 
   [HttpPost("register")]
@@ -109,32 +114,25 @@ public class AccountController : ControllerBase
           throw new InvalidOperationException(
             $"Successfully signed in user could not be retrieved! Username: {model.Username}");
 
-        if (user.AccountConfirmed) // check if AccountConfirmed
+        if (_loginOptions.RequireConfirmedAccount)
         {
-          var profile = await _user.BuildProfile(user);
-
-          // Write a basic Profile Cookie for JS
-          HttpContext.Response.Cookies.Append(
-            AuthConfiguration.ProfileCookieName,
-            JsonSerializer.Serialize((BaseUserProfileModel)profile),
-            AuthConfiguration.ProfileCookieOptions);
-
-          return Ok(new LoginResult
-          {
-            User = profile,
-          });
+          if (!user.AccountConfirmed) // check if AccountConfirmed is false
+            return BadRequest(new LoginResult{IsUnconfirmedAccount = true});
         }
         
-        // Handle login failures
-        // But WHY was it disallowed?
-        // Distinguish some specific cases we care about
-        // So the login form can behave accordingly
-        LoginResult loginResult = user switch
+        var profile = await _user.BuildProfile(user);
+
+        // Write a basic Profile Cookie for JS
+        HttpContext.Response.Cookies.Append(
+          AuthConfiguration.ProfileCookieName,
+          JsonSerializer.Serialize((BaseUserProfileModel)profile),
+          AuthConfiguration.ProfileCookieOptions);
+
+        return Ok(new LoginResult
         {
-          { AccountConfirmed: false } => new() { IsUnconfirmedAccount = true },
-          _ => new() { }
-        };
-        return BadRequest(loginResult);
+          User = profile,
+        });
+
       }
     }
     return BadRequest(new LoginResult
