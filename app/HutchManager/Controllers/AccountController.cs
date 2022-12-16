@@ -109,37 +109,34 @@ public class AccountController : ControllerBase
           throw new InvalidOperationException(
             $"Successfully signed in user could not be retrieved! Username: {model.Username}");
 
-        var profile = await _user.BuildProfile(user);
-
-        // Write a basic Profile Cookie for JS
-        HttpContext.Response.Cookies.Append(
-          AuthConfiguration.ProfileCookieName,
-          JsonSerializer.Serialize((BaseUserProfileModel)profile),
-          AuthConfiguration.ProfileCookieOptions);
-
-        return Ok(new LoginResult
+        if (user.AccountConfirmed) // check if AccountConfirmed
         {
-          User = profile,
-        });
-      }
+          var profile = await _user.BuildProfile(user);
 
-      // Handle login failures
-      if (result.IsNotAllowed)
-      {
+          // Write a basic Profile Cookie for JS
+          HttpContext.Response.Cookies.Append(
+            AuthConfiguration.ProfileCookieName,
+            JsonSerializer.Serialize((BaseUserProfileModel)profile),
+            AuthConfiguration.ProfileCookieOptions);
+
+          return Ok(new LoginResult
+          {
+            User = profile,
+          });
+        }
+        
+        // Handle login failures
         // But WHY was it disallowed?
         // Distinguish some specific cases we care about
         // So the login form can behave accordingly
-
         LoginResult loginResult = user switch
         {
-          { EmailConfirmed: false } => new() { IsUnconfirmedAccount = true },
+          { AccountConfirmed: false } => new() { IsUnconfirmedAccount = true },
           _ => new() { }
         };
-
         return BadRequest(loginResult);
       }
     }
-
     return BadRequest(new LoginResult
     {
       Errors = ModelState.CollapseErrors()
