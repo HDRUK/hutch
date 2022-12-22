@@ -32,7 +32,7 @@ public class AccountController : ControllerBase
   {
     _users = users;
     _signIn = signIn;
-    _user = user; 
+    _user = user;
     _tokens = tokens;
     _loginOptions = loginOptions.Value;
   }

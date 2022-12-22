@@ -75,7 +75,7 @@ export const Login = () => {
             message: result.isUnconfirmedAccount
               ? t("feedback.account.unconfirmedAccount")
               : t("login.feedback.loginFailed"),
-            resendActivation: result.isUnconfirmedAccount,
+            requireActivation: result.isUnconfirmedAccount,
           });
 
           break;
@@ -126,7 +126,7 @@ export const Login = () => {
                   </Alert>
                 )}
 
-                {feedback?.resendActivation && (
+                {feedback?.requireActivation && (
                   <Alert status="info">
                     <AlertIcon />
                     {t("login.feedback.unconfirmedAccountInfo")}
