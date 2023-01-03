@@ -47,7 +47,8 @@ OutboundEmail:
   # More information can be found here
   # http://www.mimekit.net/docs/html/T_MailKit_Security_SecureSocketOptions.htm
 
-UserAccounts: 
+UserAccounts:
+  RequireConfirmedAccount: # true or false. Check 'AccountConfirmed' status if true
   RequireConfirmedEmail: # true or false. Send confirmation email for user accounts if true.
   Registration: # set as 'free', 'limited' or 'disabled'
   # 'free' - allows new account registration
