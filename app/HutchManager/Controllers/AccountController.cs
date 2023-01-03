@@ -114,12 +114,9 @@ public class AccountController : ControllerBase
           throw new InvalidOperationException(
             $"Successfully signed in user could not be retrieved! Username: {model.Username}");
 
-        if (_loginOptions.RequireConfirmedAccount)
-        {
-          if (!user.AccountConfirmed) // check if AccountConfirmed is false
+        if (_loginOptions.RequireConfirmedAccount && !user.AccountConfirmed) // check if AccountConfirmed is false
             return BadRequest(new LoginResult{IsUnconfirmedAccount = true});
-        }
-        
+
         var profile = await _user.BuildProfile(user);
 
         // Write a basic Profile Cookie for JS
