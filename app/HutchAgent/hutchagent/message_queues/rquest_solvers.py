@@ -7,7 +7,7 @@ from hutchagent.ro_crates.item_list import ItemList
 from sqlalchemy import exc as sql_exc
 import hutchagent.config as config
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.obfuscation import get_results_modifiers, apply_filters
+from hutch_utils.obfuscation import get_results_modifiers, apply_filters
 from hutchagent.query_builders import AvailibilityQueryBuilder, CodeDistributionQueryBuilder
 from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
 from hutchagent.rquest.result import AvailabilityResult, DistributionResult
