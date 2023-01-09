@@ -10,10 +10,8 @@ namespace HutchManager.Extensions
 {
   public static class ServiceCollectionExtensions
   {
-
     public static IServiceCollection AddEmailSender(this IServiceCollection s, IConfiguration c)
     {
-
       var emailProvider = c["OutboundEmail:Provider"] ?? string.Empty;
 
       var useSendGrid = emailProvider.Equals("sendgrid", StringComparison.InvariantCultureIgnoreCase);
@@ -24,14 +22,35 @@ namespace HutchManager.Extensions
       else s.Configure<LocalDiskEmailOptions>(c.GetSection("OutboundEmail"));
 
       s
-              .AddTransient<TokenIssuingService>()
-              .AddTransient<RazorViewService>()
-              .AddTransient<AccountEmailService>()
-              .TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+        .AddTransient<TokenIssuingService>()
+        .AddTransient<RazorViewService>()
+        .AddTransient<AccountEmailService>()
+        .TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
       if (useSendGrid) s.AddTransient<IEmailSender, SendGridEmailSender>();
       else if (useSmtp) s.AddTransient<IEmailSender, SmtpEmailSender>();
       else s.AddTransient<IEmailSender, LocalDiskEmailSender>();
+
+      return s;
+    }
+
+    public static IServiceCollection AddJobQueue(this IServiceCollection s, IConfiguration c)
+    {
+      var queueType = c["QueueType"] ?? throw new Exception("Please provide a queue type");
+
+      switch (queueType)
+      {
+        case "AzureQueueStorage":
+          s.Configure<AzureJobQueueOptions>(c.GetSection("JobQueue"))
+            .AddTransient<IJobQueueService, AzureJobQueueService>();
+          break;
+        case "RabbitMQ":
+          s.Configure<RabbitJobQueueOptions>(c.GetSection("JobQueue"))
+            .AddTransient<IJobQueueService, RabbitJobQueueService>();
+          break;
+        default:
+          throw new Exception($"'{queueType}' is not a valid queue service");
+      }
 
       return s;
     }

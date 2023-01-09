@@ -7,14 +7,14 @@ using RabbitMQ.Client;
 
 namespace HutchManager.Services;
 
-public class JobQueueService : IDisposable
+public class RabbitJobQueueService : IDisposable, IJobQueueService
 {
   private readonly IConnection _connection;
   private readonly IModel _channel;
-  private readonly JobQueueOptions _options;
+  private readonly RabbitJobQueueOptions _options;
 
 
-  public JobQueueService(IOptions<JobQueueOptions> options)
+  public RabbitJobQueueService(IOptions<RabbitJobQueueOptions> options)
   {
     _options = options.Value;
     var connectionFactory = new ConnectionFactory()
@@ -34,15 +34,14 @@ public class JobQueueService : IDisposable
   /// <param name="queueName"></param>
   /// <param name="message"></param>
   /// <typeparam name="T">The CLR type of the message</typeparam>
-  public void SendMessage<T>(string queueName, T message)
-  where T: class
+  public void SendMessage<T>(string queueName, T message) where T : class
   {
     _channel.QueueDeclare(queue: queueName,
       durable: false,
       exclusive: false,
       autoDelete: false,
       arguments: null);
-    
+
     var body = Encoding.UTF8.GetBytes(
       JsonSerializer.Serialize(message, DefaultJsonOptions.Serializer));
     _channel.BasicPublish(
@@ -52,7 +51,7 @@ public class JobQueueService : IDisposable
       body: body);
   }
 
-  ~JobQueueService()
+  ~RabbitJobQueueService()
   {
     Dispose(false);
   }
