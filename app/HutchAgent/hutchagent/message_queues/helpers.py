@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Union
 import requests, requests.exceptions as req_exc
-import hutchagent.config as config
+import hutch_utils.config as config
 from hutchagent.rquest.result import AvailabilityResult, DistributionResult
 
 

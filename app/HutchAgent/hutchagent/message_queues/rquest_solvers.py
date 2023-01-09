@@ -5,7 +5,7 @@ import time
 from hutchagent.rquest.file import File
 from hutchagent.ro_crates.item_list import ItemList
 from sqlalchemy import exc as sql_exc
-import hutchagent.config as config
+import hutch_utils.config as config
 from hutchagent.db_manager import SyncDBManager
 from hutch_utils.obfuscation import get_results_modifiers, apply_filters
 from hutchagent.query_builders import AvailibilityQueryBuilder, CodeDistributionQueryBuilder

@@ -3,7 +3,7 @@ import json
 import logging
 import time
 import requests, requests.exceptions as req_exc
-import hutchagent.config as config
+import hutch_utils.config as config
 from typing import Union
 from sqlalchemy import exc as sql_exc
 from hutchagent.rquest.result import AvailabilityResult
