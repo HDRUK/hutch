@@ -3,6 +3,10 @@ from rquest_dto.file import File
 
 
 class AvailabilityResult:
+    """
+    This class represents the result of an RQuest availability query.
+    """
+
     def __init__(
         self,
         activity_source_id: str,
@@ -20,6 +24,12 @@ class AvailabilityResult:
         self.protocol_version = protocol_version
 
     def to_dict(self) -> dict:
+        """Convert this `AvailabilityResult` object to a JSON serialisable `dict`.
+
+        Returns:
+            dict:
+                the `dict` representing the result of an availability query.
+        """
         return {
             "status": self.status,
             "protocol_version": self.protocol_version,
@@ -32,8 +42,7 @@ class AvailabilityResult:
 
 class DistributionResult:
     """
-    This class represents the result of an RQuest distribution query
-    in RO-Crates common transfer format.
+    This class represents the result of an RQuest distribution query.
     """
 
     def __init__(
@@ -63,8 +72,7 @@ class DistributionResult:
 
         Returns:
             dict:
-                the `dict` representing the RO-Crate containing the result of a
-                distribution query.
+                the `dict` representing the result of a distribution query.
         """
         return {
             "status": self.status,
