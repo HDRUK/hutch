@@ -3,7 +3,7 @@ import os
 from typing import Union
 import requests
 import hutch_utils.config as config
-from hutchagent.rquest.result import AvailabilityResult, DistributionResult
+from rquest_dto.result import AvailabilityResult, DistributionResult
 
 
 def send_to_manager(

@@ -5,7 +5,7 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 import hutch_utils.config as config
-from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
+from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from hutchagent.message_queues.helpers import send_to_manager
 from hutchagent.query_solvers import solve_availability, solve_distribution
 
