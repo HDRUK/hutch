@@ -71,8 +71,8 @@ export const UsersList = () => {
       data={outputList.length > 0}
       setFilter={setFilter}
       href="/users"
-      actionTitle="User"
-      actionNewTitle="Register an user"
+      actionTitle="Users"
+      actionNewTitle="Register a user"
       modalDelete={ModalDelete}
     >
       {outputList.length > 0 &&
