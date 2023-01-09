@@ -60,7 +60,7 @@ class AvailabilityQuery:
 
 
 class DistributionQuery:
-    """Python representation of an RQuest Availability Query"""
+    """Python representation of an RQuest Distribution Query"""
 
     def __init__(
         self,
