@@ -2,7 +2,7 @@ from rquest_dto.cohort import Cohort
 
 
 class AvailabilityQuery:
-    """Python representation of a query based on RO-Crate"""
+    """Python representation of an RQuest Availability Query"""
 
     def __init__(
         self,
@@ -47,7 +47,7 @@ class AvailabilityQuery:
 
     @classmethod
     def from_dict(cls, dict_: dict):
-        """Create a `AvailabilityQuery` from RO-Crate JSON.
+        """Create a `AvailabilityQuery` from RQuest JSON.
 
         Args:
             dict_ (dict): Mapping containing the `AvailabilityQuery`'s attributes.
@@ -60,6 +60,8 @@ class AvailabilityQuery:
 
 
 class DistributionQuery:
+    """Python representation of an RQuest Availability Query"""
+
     def __init__(
         self,
         owner: str,
@@ -94,7 +96,7 @@ class DistributionQuery:
 
     @classmethod
     def from_dict(cls, dict_: dict):
-        """Create a `DistributionQuery` from RO-Crate JSON.
+        """Create a `DistributionQuery` from RQuest JSON.
 
         Args:
             dict_ (dict): Mapping containing the `DistributionQuery`'s attributes.
