@@ -1,12 +1,15 @@
 using System.Text.Json;
 using HutchManager.Auth;
+using HutchManager.Config;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.Account;
 using HutchManager.Models.User;
 using HutchManager.Services;
 using HutchManager.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace HutchManager.Controllers;
 
@@ -18,24 +21,32 @@ public class AccountController : ControllerBase
   private readonly SignInManager<ApplicationUser> _signIn;
   private readonly UserService _user;
   private readonly TokenIssuingService _tokens;
+  private readonly LoginOptions _loginOptions;
 
   public AccountController(
     UserManager<ApplicationUser> users,
     SignInManager<ApplicationUser> signIn,
     UserService user,
-    TokenIssuingService tokens)
+    TokenIssuingService tokens,
+    IOptions<LoginOptions> loginOptions)
   {
     _users = users;
     _signIn = signIn;
     _user = user;
     _tokens = tokens;
+    _loginOptions = loginOptions.Value;
   }
 
   [HttpPost("register")]
   public async Task<IActionResult> Register(RegisterAccountModel model)
   {
+    // 404 if User registration is disabled.
+    if (_user.IsDisabled())
+    {
+      return NotFound();
+    }
+    
     RegisterAccountResult regResult = new();
-
     if (ModelState.IsValid) // Additional Pre-registration checks
     {
       if (!await _user.CanRegister(model.Email))
@@ -83,7 +94,6 @@ public class AccountController : ControllerBase
         }
       }
     }
-
     return BadRequest(regResult with
     {
       Errors = ModelState.CollapseErrors()
@@ -104,6 +114,9 @@ public class AccountController : ControllerBase
           throw new InvalidOperationException(
             $"Successfully signed in user could not be retrieved! Username: {model.Username}");
 
+        if (_loginOptions.RequireConfirmedAccount && !user.AccountConfirmed) // check if AccountConfirmed is false
+            return BadRequest(new LoginResult{IsUnconfirmedAccount = true});
+
         var profile = await _user.BuildProfile(user);
 
         // Write a basic Profile Cookie for JS
@@ -116,25 +129,9 @@ public class AccountController : ControllerBase
         {
           User = profile,
         });
-      }
 
-      // Handle login failures
-      if (result.IsNotAllowed)
-      {
-        // But WHY was it disallowed?
-        // Distinguish some specific cases we care about
-        // So the login form can behave accordingly
-
-        LoginResult loginResult = user switch
-        {
-          { EmailConfirmed: false } => new() { IsUnconfirmedAccount = true },
-          _ => new() { }
-        };
-
-        return BadRequest(loginResult);
       }
     }
-
     return BadRequest(new LoginResult
     {
       Errors = ModelState.CollapseErrors()
@@ -191,17 +188,6 @@ public class AccountController : ControllerBase
     return NoContent();
   }
 
-  [HttpPost("password/reset")]
-  public async Task<IActionResult> RequestPasswordReset([FromBody] string userIdOrEmail)
-  {
-    var user = await _users.FindByIdAsync(userIdOrEmail);
-    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
-    if (user is null) return NotFound();
-
-    await _tokens.SendPasswordReset(user);
-    return NoContent();
-  }
-
   [HttpPost("password")]
   public async Task<IActionResult> ResetPassword(AnonymousSetPasswordModel model)
   {
@@ -214,9 +200,9 @@ public class AccountController : ControllerBase
 
       if (!result.Errors.Any())
       {
-        if (user.EmailConfirmed)
+        if (user.AccountConfirmed) // check if AccountConfirmed
         {
-          await _signIn.SignInAsync(user, false);
+          await _signIn.SignInAsync(user, false); 
 
           var profile = await _user.BuildProfile(user);
 
@@ -233,7 +219,7 @@ public class AccountController : ControllerBase
         }
         else
         {
-          return Ok(new SetPasswordResult
+          return Ok(new SetPasswordResult 
           {
             IsUnconfirmedAccount = true
           });
@@ -245,5 +231,64 @@ public class AccountController : ControllerBase
     {
       Errors = ModelState.CollapseErrors()
     });
+  }
+  
+  [Authorize]
+  [HttpPost("{userIdOrEmail}/activation")] //api/account/{userIdOrEmail}/activation
+  public async Task<IActionResult> GenerateAccountActivationLink(string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+    return Ok(await _tokens.GenerateAccountActivationLink(user)); // return activation link
+  }
+  
+  [HttpPost("activate")] //api/account/activate
+  public async Task<IActionResult> Activate (AnonymousSetAccountActivateModel model)
+  {
+    if (ModelState.IsValid)
+    { 
+      var user = await _users.FindByIdAsync(model.Credentials.UserId);
+      if (user is null) return NotFound();
+      
+      var isTokenValid = await _users.VerifyUserTokenAsync(user, "Default", "ActivateAccount", model.Credentials.Token); // validate token
+      
+      if (!isTokenValid) return BadRequest(new SetPasswordResult
+      {
+        Errors = ModelState.CollapseErrors()
+      });
+      
+      // if token is valid, then do the following
+      var hashedPassword = _users.PasswordHasher.HashPassword(user, model.Data.Password); // hash the password
+      user.PasswordHash = hashedPassword; // update password
+      user.AccountConfirmed = true; // update Account status
+      user.FullName = model.Data.FullName; // update user full name
+      
+      await _users.UpdateAsync(user); // update the user
+
+      await _signIn.SignInAsync(user, false); // sign in the user
+      
+      var profile = await _user.BuildProfile(user);
+      // Write a basic Profile Cookie for JS
+      HttpContext.Response.Cookies.Append(
+        AuthConfiguration.ProfileCookieName,
+        JsonSerializer.Serialize((BaseUserProfileModel)profile),
+        AuthConfiguration.ProfileCookieOptions);
+      return Ok(new SetPasswordResult { User = profile});
+    }
+    return BadRequest(new SetPasswordResult
+    {
+      Errors = ModelState.CollapseErrors()
+    });
+  }
+  
+  [Authorize]
+  [HttpPost("{userIdOrEmail}/password/reset")] //api/account/{userIdOrEmail}/password/reset
+  public async Task<IActionResult> GeneratePasswordResetLink(string userIdOrEmail)
+  {
+    var user = await _users.FindByIdAsync(userIdOrEmail);
+    if (user is null) user = await _users.FindByEmailAsync(userIdOrEmail);
+    if (user is null) return NotFound();
+    return Ok(await _tokens.GeneratePasswordResetLink(user)); // return password reset link
   }
 }

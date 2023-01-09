@@ -20,24 +20,5 @@ public class AccountEmailService
             to.Name!,
             link,
             resendLink));
-
-  public async Task SendPasswordReset(EmailAddress to, string link, string resendLink)
-      => await _emails.SendEmail(
-          to,
-          "Emails/PasswordReset",
-          new TokenEmailModel(
-            to.Name!,
-            link,
-            resendLink));
-
-  public async Task SendEmailChange(EmailAddress to, string link, string resendLink)
-      => await _emails.SendEmail(
-          to,
-          //$"Confirm your new {_config.ServiceName} Email Address",
-          "Emails/EmailChange",
-          new TokenEmailModel(
-            to.Name!,
-            link,
-            resendLink));
 }
 

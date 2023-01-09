@@ -56,8 +56,7 @@ b.Services
 
 // Identity
 b.Services
-  .AddIdentity<ApplicationUser, IdentityRole>(
-    o => o.SignIn.RequireConfirmedEmail = b.Configuration.GetValue<bool>("UserAccounts:RequireConfirmedEmail")) // default is false
+  .AddIdentity<ApplicationUser, IdentityRole>()
   .AddClaimsPrincipalFactory<CustomClaimsPrincipalFactory>()
   .AddEntityFrameworkStores<ApplicationDbContext>()
   .AddDefaultTokenProviders();
@@ -71,6 +70,8 @@ b.Services
   .Configure<RQuestTaskApiOptions>(b.Configuration.GetSection("RQuestTaskApi"))
   .Configure<ActivitySourcePollingOptions>(b.Configuration.GetSection("ActivitySourcePolling"))
   .Configure<DistributionPollingOptions>(b.Configuration.GetSection("DistributionPolling"))
+  .Configure<RegistrationOptions>(b.Configuration.GetSection("UserAccounts"))
+  .Configure<LoginOptions>(b.Configuration.GetSection("UserAccounts"))
   .AddEmailSender(b.Configuration)
   .AddTransient<UserService>()
   .AddTransient<FeatureFlagService>()

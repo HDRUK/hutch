@@ -11,11 +11,20 @@ public class UserModel
 
   [EmailAddress] public string? Email { get; set; } 
   
+  public string FullName { get; set; } = string.Empty;
+
+  public bool AccountConfirmed { get; set; }
+
+  public string Id { get; set; } = string.Empty;
+  
   public UserModel(ApplicationUser entity)
-  {
-    Username = entity.UserName;
-    Email = entity.Email;
-  }
+    {
+      Username = entity.UserName;
+      Email = entity.Email;
+      FullName = entity.FullName;
+      AccountConfirmed = entity.AccountConfirmed;
+      Id = entity.Id;
+    }
   
   [JsonConstructor]
   public UserModel(){}

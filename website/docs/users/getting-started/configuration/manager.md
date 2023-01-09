@@ -47,8 +47,14 @@ OutboundEmail:
   # More information can be found here
   # http://www.mimekit.net/docs/html/T_MailKit_Security_SecureSocketOptions.htm
 
-UserAccounts: 
+UserAccounts:
+  RequireConfirmedAccount: # true or false. Check 'AccountConfirmed' status if true
   RequireConfirmedEmail: # true or false. Send confirmation email for user accounts if true.
+  Registration: # set as 'free', 'limited' or 'disabled'
+  # 'free' - allows new account registration
+  # 'limited' - allows registration if email in AllowList
+  # 'disabled' - disables registration altogether
+  
 
 ActivitySourcePolling:
   PollingInterval: 5 # set to a negative value will disable polling altogether
@@ -70,7 +76,7 @@ JobQueue:
 # Opt in feature flags
 # sometimes features here are works in progress
 FeatureManagement:
-  AllowFreeRegistration: false # By default, the app uses an Allowlist for new account registration; setting this to `true` bypasses that.
+  # no feature flags currently in use
 ```
 
 ## Sample Production Configuration guidance

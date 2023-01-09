@@ -18,6 +18,7 @@ import { useResetState } from "helpers/hooks/useResetState";
 import { FormikInput } from "components/forms/FormikInput";
 import { TitledAlert } from "components/TitledAlert";
 import { useBackendApi } from "contexts/BackendApi";
+import { useBackendConfig } from "contexts/Config";
 import {
   EmailField,
   validationSchema as emailSchema,
@@ -28,7 +29,7 @@ import {
 } from "components/forms/PasswordField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { HutchLogo } from "components/Logo";
-
+import { NotFound } from "pages/error/NotFound";
 export const validationSchema = (t) =>
   object().shape({
     fullname: string().required(t("validation.fullname_required")),
@@ -42,6 +43,7 @@ export const Register = () => {
   const {
     account: { register },
   } = useBackendApi();
+  const { config } = useBackendConfig();
 
   // ajax submissions may cause feedback to display
   // but we reset feedback if the page should remount
@@ -98,82 +100,86 @@ export const Register = () => {
     actions.setSubmitting(false);
   };
 
-  return (
-    <Container maxWidth="md" ref={scrollTarget} key={key} my={8}>
-      <VStack align="stretch" spacing={4}>
-        <Center>
-          <HutchLogo
-            logoColor={true}
-            logoMaxWidth="170px"
-            logoFillColor="#000"
-          />
-        </Center>
-        <Heading as="h2" size="lg">
-          {t("register.heading")}
-        </Heading>
+  if (config.Settings.Registration.toLowerCase() === "disabled") {
+    return <NotFound></NotFound>;
+  } else {
+    return (
+      <Container maxWidth="md" ref={scrollTarget} key={key} my={8}>
+        <VStack align="stretch" spacing={4}>
+          <Center>
+            <HutchLogo
+              logoColor={true}
+              logoMaxWidth="170px"
+              logoFillColor="#000"
+            />
+          </Center>
+          <Heading as="h2" size="lg">
+            {t("register.heading")}
+          </Heading>
 
-        {feedback?.status && (
-          <Alert status={feedback.status}>
-            <AlertIcon />
-            {feedback.message}
-          </Alert>
-        )}
-        {feedback?.confirmationRequired && (
-          <TitledAlert title={t("register.feedback.confirm_title")}>
-            {t("register.feedback.confirm_message")}
-          </TitledAlert>
-        )}
-
-        <Formik
-          initialValues={{
-            fullname: "",
-            email: "",
-            password: "",
-          }}
-          onSubmit={handleSubmit}
-          validationSchema={validationSchema(t)}
-        >
-          {({ isSubmitting }) => (
-            <Form noValidate>
-              <VStack align="stretch" spacing={4}>
-                <EmailField hasCheckReminder autoFocus />
-
-                <FormikInput
-                  name="fullname"
-                  label={t("register.fields.fullname")}
-                  placeholder={t("register.fields.fullname_placeholder")}
-                  isRequired
-                />
-
-                <PasswordField />
-
-                <HStack justify="space-between">
-                  <Button
-                    w="150px"
-                    colorScheme="blue"
-                    leftIcon={<FaUserPlus />}
-                    type="submit"
-                    disabled={isSubmitting}
-                    isLoading={isSubmitting}
-                  >
-                    {t("buttons.register")}
-                  </Button>
-
-                  <Button
-                    colorScheme="blue"
-                    variant="link"
-                    leftIcon={<FaSignInAlt />}
-                  >
-                    <Link as={RouterLink} to="/account/login">
-                      {t("register.links.login")}
-                    </Link>
-                  </Button>
-                </HStack>
-              </VStack>
-            </Form>
+          {feedback?.status && (
+            <Alert status={feedback.status}>
+              <AlertIcon />
+              {feedback.message}
+            </Alert>
           )}
-        </Formik>
-      </VStack>
-    </Container>
-  );
+          {feedback?.confirmationRequired && (
+            <TitledAlert title={t("register.feedback.confirm_title")}>
+              {t("register.feedback.confirm_message")}
+            </TitledAlert>
+          )}
+
+          <Formik
+            initialValues={{
+              fullname: "",
+              email: "",
+              password: "",
+            }}
+            onSubmit={handleSubmit}
+            validationSchema={validationSchema(t)}
+          >
+            {({ isSubmitting }) => (
+              <Form noValidate>
+                <VStack align="stretch" spacing={4}>
+                  <EmailField hasCheckReminder autoFocus />
+
+                  <FormikInput
+                    name="fullname"
+                    label={t("register.fields.fullname")}
+                    placeholder={t("register.fields.fullname_placeholder")}
+                    isRequired
+                  />
+
+                  <PasswordField />
+
+                  <HStack justify="space-between">
+                    <Button
+                      w="150px"
+                      colorScheme="blue"
+                      leftIcon={<FaUserPlus />}
+                      type="submit"
+                      disabled={isSubmitting}
+                      isLoading={isSubmitting}
+                    >
+                      {t("buttons.register")}
+                    </Button>
+
+                    <Button
+                      colorScheme="blue"
+                      variant="link"
+                      leftIcon={<FaSignInAlt />}
+                    >
+                      <Link as={RouterLink} to="/account/login">
+                        {t("register.links.login")}
+                      </Link>
+                    </Button>
+                  </HStack>
+                </VStack>
+              </Form>
+            )}
+          </Formik>
+        </VStack>
+      </Container>
+    );
+  }
 };
