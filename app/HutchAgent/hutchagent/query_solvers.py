@@ -311,6 +311,7 @@ def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResu
             job_id=query.uuid,
             status="ok",
             count=count_,
+            collection_id=query.collection
         )
         logger.info("Solved availability query")
     except Exception as e:
@@ -320,6 +321,7 @@ def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResu
             job_id=query.uuid,
             status="error",
             count=0,
+            collection_id=query.collection,
         )
 
     return result
@@ -358,6 +360,7 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> D
             count=count,
             datasets_count=1,
             files=[result_file],
+            collection_id=query.collection,
         )
     except Exception as e:
         logger.error(str(e))
@@ -368,6 +371,7 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> D
             count=0,
             datasets_count=0,
             files=[],
+            collection_id=query.collection,
         )
 
     return result

@@ -34,6 +34,7 @@ class AvailabilityResult:
             "status": self.status,
             "protocol_version": self.protocol_version,
             "collection_id": self.collection_id,
+            "uuid": self.job_id,
             "query_result": {
                 "count": self.count,
             },
