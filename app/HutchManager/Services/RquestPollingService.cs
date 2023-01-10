@@ -27,13 +27,13 @@ public class RQuestPollingService
 
   public async Task Poll(ActivitySource activitySource)
   {
-    RquestQueryTask? job = null;
+    AvailabilityQuery? job = null;
 
     do
     {
       try
       {
-        job = await _taskApi.FetchQuery<RquestQueryTask>(activitySource);
+        job = await _taskApi.FetchQuery<AvailabilityQuery>(activitySource);
         if (job is null)
         {
           _logger.LogInformation(
@@ -58,10 +58,8 @@ public class RQuestPollingService
     } while (job is null);
   }
 
-  public void SendToQueue(RquestQueryTask jobPayload, string queueName)
+  public void SendToQueue(AvailabilityQuery jobPayload, string queueName)
   {
-    ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
-    _jobQueue.SendMessage(queueName, roCratesQuery);
-    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
+    // TODO: package jobPayload into an ActivityJob and send that to the queue
   }
 }
