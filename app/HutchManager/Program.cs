@@ -81,7 +81,7 @@ b.Services
   .AddTransient<ResultsModifierService>()
   .AddTransient<AgentService>()
   .AddHostedService<ActivitySourcePollingHostedService>()
-  .AddScoped<RQuestPollingService>()
+  .AddScoped<AvailabilityPollingService>()
   .AddHostedService<DistributionPollingHostedService>()
   .AddScoped<RquestDistributionPollingService>()
   .AddFeatureManagement();
