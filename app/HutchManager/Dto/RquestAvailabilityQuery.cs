@@ -10,6 +10,21 @@ public class AvailabilityQuery
 
   [JsonPropertyName("cohort")] 
   public Cohort Cohort { get; set; } = new();
+  
+  /// <summary>
+  /// The collection ID to run the query against.
+  /// </summary>
+  [JsonPropertyName("collection")]
+  public string Collection { get; set; } = String.Empty;
+  
+  [JsonPropertyName("protocol_version")]
+  public string ProtocolVersion { get; set; } = String.Empty;
+  
+  [JsonPropertyName("char_salt")]
+  public string CharSalt { get; set; } = String.Empty;
+  
+  [JsonPropertyName("uuid")]
+  public string Uuid { get; set; } = String.Empty;
 }
 
 public class Cohort
