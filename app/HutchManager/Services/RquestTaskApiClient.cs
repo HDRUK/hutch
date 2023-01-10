@@ -111,7 +111,7 @@ namespace HutchManager.Services
     /// <param name="activitySourceId">activitySourceId ID</param>
     /// <param name="jobId">Job ID</param>
     /// <param name="result">Results with Count</param>
-    public async Task ResultsEndpointPost(int activitySourceId, string jobId, QueryResultCount result)
+    public async Task ResultsEndpointPost(int activitySourceId, string jobId, RquestAvailabilityResult result)
     {
       var activitySource = await _db.ActivitySources
         .FirstOrDefaultAsync(x => x.Id == activitySourceId);
@@ -128,7 +128,7 @@ namespace HutchManager.Services
         activitySource.ResourceId);
 
       var response = (await _client.PostAsync(
-          requestUri, AsHttpJsonString(new RquestAvailabilityResult(activitySource.ResourceId, jobId, result.Count))))
+          requestUri, AsHttpJsonString(result)))
         .EnsureSuccessStatusCode();
 
       var body = await response.Content.ReadAsStringAsync();
