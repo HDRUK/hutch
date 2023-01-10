@@ -59,8 +59,6 @@ public class RquestDistributionPollingService
   
   public void SendToQueue(DistributionQuery jobPayload, string queueName)
   {
-    ROCratesQuery roCratesQuery = new QueryTranslator.RquestDistributionQueryTranslator().Translate(jobPayload);
-    _jobQueue.SendMessage(queueName, roCratesQuery);
-    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
+    // TODO: package jobPayload into an ActivityJob and send that to the queue
   }
 }
