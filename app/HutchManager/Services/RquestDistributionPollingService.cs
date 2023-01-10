@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HutchManager.Constants;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
 using Microsoft.FeatureManagement;
@@ -41,7 +42,8 @@ public class RquestDistributionPollingService
           return;
         }
 
-        SendToQueue(job, activitySource.TargetDataSource.Id);
+        var packagedJob = PackageJob(job, activitySource);
+        SendToQueue(packagedJob, activitySource.TargetDataSource.Id);
       }
       catch (Exception e)
       {
@@ -57,8 +59,20 @@ public class RquestDistributionPollingService
     } while (job is null);
   }
   
-  public void SendToQueue(DistributionQuery jobPayload, string queueName)
+  private ActivityJob PackageJob(DistributionQuery jobPayload, ActivitySource activitySource)
   {
-    // TODO: package jobPayload into an ActivityJob and send that to the queue
+    var job = new ActivityJob
+    {
+      ActivitySourceId = activitySource.Id,
+      Payload = JsonSerializer.SerializeToElement(jobPayload),
+      Type = ActivityJobTypes.DistributionQuery,
+    };
+    return job;
+  }
+
+  private void SendToQueue(ActivityJob jobPayload, string queueName)
+  {
+    _jobQueue.SendMessage(queueName, jobPayload);
+    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(jobPayload));
   }
 }
