@@ -173,7 +173,6 @@ export const UserSummary = ({
             boxShadow: "md",
           }}
         >
-          <LinkOverlay as={Link} to={href} />
           <Stack>
             <Text
               color={"blue.500"}
