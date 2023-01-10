@@ -6,16 +6,16 @@ using Microsoft.FeatureManagement;
 
 namespace HutchManager.Services;
 
-public class AvailabilityPollingService
+public class RquestAvailabilityPollingService
 {
   private readonly RQuestTaskApiClient _taskApi;
-  private readonly ILogger<AvailabilityPollingService> _logger;
+  private readonly ILogger<RquestAvailabilityPollingService> _logger;
   private readonly IFeatureManager _featureManager;
   private readonly IJobQueueService _jobQueue;
 
-  public AvailabilityPollingService(
+  public RquestAvailabilityPollingService(
     RQuestTaskApiClient taskApi,
-    ILogger<AvailabilityPollingService> logger,
+    ILogger<RquestAvailabilityPollingService> logger,
     IFeatureManager featureManager,
     IJobQueueService jobQueue)
   {
