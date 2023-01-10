@@ -16,6 +16,12 @@ public class ActivityJob
   public string Type { get; set; } = string.Empty;
   
   /// <summary>
+  /// UUID identifying the job.
+  /// </summary>
+  [JsonPropertyName("job_id")]
+  public string JobId { get; set; } = string.Empty;
+  
+  /// <summary>
   /// The ID of the activity source.
   /// </summary>
   [JsonPropertyName("activity_source_id")] 

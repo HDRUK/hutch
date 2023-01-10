@@ -66,6 +66,7 @@ public class RquestDistributionPollingService
       ActivitySourceId = activitySource.Id,
       Payload = JsonSerializer.SerializeToElement(jobPayload),
       Type = ActivityJobTypes.DistributionQuery,
+      JobId = jobPayload.Uuid
     };
     return job;
   }

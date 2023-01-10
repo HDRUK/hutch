@@ -66,6 +66,7 @@ public class RquestAvailabilityPollingService
       ActivitySourceId = activitySource.Id,
       Payload = JsonSerializer.SerializeToElement(jobPayload),
       Type = ActivityJobTypes.AvailabilityQuery,
+      JobId = jobPayload.Uuid
     };
     return job;
   }
