@@ -128,7 +128,7 @@ namespace HutchManager.Services
         activitySource.ResourceId);
 
       var response = (await _client.PostAsync(
-          requestUri, AsHttpJsonString(new RquestQueryTaskResult(activitySource.ResourceId, jobId, result.Count))))
+          requestUri, AsHttpJsonString(new RquestAvailabilityResult(activitySource.ResourceId, jobId, result.Count))))
         .EnsureSuccessStatusCode();
 
       var body = await response.Content.ReadAsStringAsync();
