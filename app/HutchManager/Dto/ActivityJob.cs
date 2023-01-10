@@ -16,6 +16,12 @@ public class ActivityJob
   public string Type { get; set; } = string.Empty;
   
   /// <summary>
+  /// The ID of the activity source.
+  /// </summary>
+  [JsonPropertyName("activity_source_id")] 
+  public int ActivitySourceId { get; set; }
+  
+  /// <summary>
   /// The properties of the job.
   /// </summary>
   [JsonPropertyName("payload")]
