@@ -105,9 +105,9 @@ public class QueryTranslator
     }
   }
   
-  public class RquestDistributionQueryTranslator: IQueryTranslator<RquestDistributionQueryTask>
+  public class RquestDistributionQueryTranslator: IQueryTranslator<DistributionQuery>
   {
-    public ROCratesQuery Translate(RquestDistributionQueryTask job)
+    public ROCratesQuery Translate(DistributionQuery job)
     {
       ROCratesQuery roCratesQuery = new();
       var graphs = new ROCratesQuery().Graphs;

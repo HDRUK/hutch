@@ -26,13 +26,13 @@ public class RquestDistributionPollingService
   
   public async Task Poll(ActivitySource activitySource)
   {
-    RquestDistributionQueryTask? job = null;
+    DistributionQuery? job = null;
 
     do
     {
       try
       {
-        job = await _taskApi.FetchQuery<RquestDistributionQueryTask>(activitySource);
+        job = await _taskApi.FetchQuery<DistributionQuery>(activitySource);
         if (job is null)
         {
           _logger.LogInformation(
@@ -57,7 +57,7 @@ public class RquestDistributionPollingService
     } while (job is null);
   }
   
-  public void SendToQueue(RquestDistributionQueryTask jobPayload, string queueName)
+  public void SendToQueue(DistributionQuery jobPayload, string queueName)
   {
     ROCratesQuery roCratesQuery = new QueryTranslator.RquestDistributionQueryTranslator().Translate(jobPayload);
     _jobQueue.SendMessage(queueName, roCratesQuery);

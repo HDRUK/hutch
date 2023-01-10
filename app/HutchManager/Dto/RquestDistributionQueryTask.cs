@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace HutchManager.Dto;
 
-public class RquestDistributionQueryTask : IRquestTask
+public class DistributionQuery
 {
   /// <summary>
   /// The user that creates the task.
