@@ -81,7 +81,6 @@ export const UsersList = () => {
             <UserSummary
               key={index}
               userId={item.id}
-              href={`/users/${item.id}`}
               name={item.fullName}
               username={item.username}
               isUserActive={item.accountConfirmed}
