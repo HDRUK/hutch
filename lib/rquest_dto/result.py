@@ -10,15 +10,11 @@ class AvailabilityResult(BaseDto):
 
     def __init__(
         self,
-        activity_source_id: str,
-        job_id: str,
         status: str,
         count: int,
         collection_id: str,
         protocol_version: str = "v2"
     ) -> None:
-        self.activity_source_id = activity_source_id
-        self.job_id = job_id
         self.status = status
         self.count = count
         self.collection_id = collection_id
@@ -35,7 +31,6 @@ class AvailabilityResult(BaseDto):
             "status": self.status,
             "protocol_version": self.protocol_version,
             "collection_id": self.collection_id,
-            "uuid": self.job_id,
             "query_result": {
                 "count": self.count,
             },

@@ -9,8 +9,6 @@ class AvailabilityQuery(BaseDto):
         self,
         cohort: Cohort,
         uuid: str,
-        project: str,
-        task_id: str,
         owner: str,
         collection: str,
         protocol_version: str,
@@ -19,8 +17,6 @@ class AvailabilityQuery(BaseDto):
     ) -> None:
         self.cohort = cohort
         self.uuid = uuid
-        self.project = project
-        self.task_id = task_id
         self.owner = owner
         self.collection = collection
         self.protocol_version = protocol_version
@@ -35,8 +31,6 @@ class AvailabilityQuery(BaseDto):
         return {
             "cohort": self.cohort.to_dict(),
             "uuid": self.uuid,
-            "project": self.project,
-            "task_id": self.task_id,
             "owner": self.owner,
             "collection": self.collection,
             "protocol_version": self.protocol_version,
