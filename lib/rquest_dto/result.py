@@ -44,7 +44,6 @@ class DistributionResult(BaseDto):
 
     def __init__(
         self,
-        activity_source_id: str,
         job_id: str,
         status: str,
         count: int,
@@ -54,7 +53,6 @@ class DistributionResult(BaseDto):
         message: Union[str, None] = None,
         protocol_version: str = "v2",
     ) -> None:
-        self.activity_source_id = activity_source_id
         self.job_id = job_id
         self.status = status
         self.count = count

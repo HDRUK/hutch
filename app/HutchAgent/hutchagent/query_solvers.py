@@ -361,7 +361,6 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> D
     except Exception as e:
         logger.error(str(e))
         result = DistributionResult(
-            activity_source_id=query.activity_source_id,
             job_id=query.uuid,
             status="error",
             count=0,
