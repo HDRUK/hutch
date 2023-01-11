@@ -63,10 +63,22 @@ def ro_crates_callback(
     if query_type == "AvailabilityQuery":
         query = AvailabilityQuery.from_dict(activity_job.payload)
         result = solve_availability(query)
-        send_to_manager(result=result, endpoint="api/results")
+        return_payload = ActivityJob(
+            type_=query_type,
+            job_id=activity_job.job_id,
+            activity_source_id=activity_job.activity_source_id,
+            payload=result
+        )
+        send_to_manager(result=return_payload, endpoint="api/results")
     elif query_type == "DistributionQuery":
         query = DistributionQuery.from_dict(activity_job.payload)
         result = solve_distribution(query)
+        return_payload = ActivityJob(
+            type_=query_type,
+            job_id=activity_job.job_id,
+            activity_source_id=activity_job.activity_source_id,
+            payload=result
+        )
         # send_to_manager(result=result, endpoint="api/results")
     else:
         logger.error(f"Unsupported query type: '{query_type}'.")
