@@ -307,8 +307,6 @@ def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResu
         result_modifiers = get_results_modifiers(query.activity_source_id)
         count_ = apply_filters(res, result_modifiers)
         result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
             status="ok",
             count=count_,
             collection_id=query.collection
@@ -317,11 +315,9 @@ def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResu
     except Exception as e:
         logger.error(str(e))
         result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
             status="error",
             count=0,
-            collection_id=query.collection,
+            collection_id=query.collection
         )
 
     return result
