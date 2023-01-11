@@ -1,8 +1,9 @@
 from typing import List, Union
+from rquest_dto.base_dto import BaseDto
 from rquest_dto.file import File
 
 
-class AvailabilityResult:
+class AvailabilityResult(BaseDto):
     """
     This class represents the result of an RQuest availability query.
     """
@@ -41,7 +42,7 @@ class AvailabilityResult:
         }
 
 
-class DistributionResult:
+class DistributionResult(BaseDto):
     """
     This class represents the result of an RQuest distribution query.
     """

@@ -1,9 +1,9 @@
 from typing import List
-
+from rquest_dto.base_dto import BaseDto
 from rquest_dto.rule import Rule
 
 
-class Group:
+class Group(BaseDto):
     """Python representation of a group based on [ItemList](https://schema.org/ItemList)."""
 
     def __init__(

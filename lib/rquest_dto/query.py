@@ -1,7 +1,8 @@
+from rquest_dto.base_dto import BaseDto
 from rquest_dto.cohort import Cohort
 
 
-class AvailabilityQuery:
+class AvailabilityQuery(BaseDto):
     """Python representation of an RQuest Availability Query"""
 
     def __init__(
@@ -59,7 +60,7 @@ class AvailabilityQuery:
         return cls(cohort=cohort, **dict_)
 
 
-class DistributionQuery:
+class DistributionQuery(BaseDto):
     """Python representation of an RQuest Distribution Query"""
 
     def __init__(
