@@ -1,19 +1,15 @@
 import logging
 import os
-from typing import Union
 import requests
 import hutch_utils.config as config
-from rquest_dto.result import AvailabilityResult, DistributionResult
+from rquest_dto.activity_job import ActivityJob
 
 
-def send_to_manager(
-    result: Union[AvailabilityResult, DistributionResult], endpoint: str
-) -> None:
-    """Send a result RO-Crate to the manager.
+def send_to_manager(result: ActivityJob, endpoint: str) -> None:
+    """Send a result to the manager.
 
     Args:
-        result (Union[AvailabilityResult, DistributionResult]): 
-            The RO-Crate object containing the result of a query.
+        result (ActivityJob): The `ActivityJob` containing the result of a query.
         endpoint (str): The endpoint at the manager to send the result.
     """
     logger = logging.getLogger(config.LOGGER_NAME)
