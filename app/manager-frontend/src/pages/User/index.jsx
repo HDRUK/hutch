@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { BasicModal } from "components/BasicModal";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { validationSchema } from "./validation";
+import { useBackendApi } from "contexts/BackendApi";
 
 export const User = ({ data, action, id }) => {
   const [feedback, setFeedback] = useState();
@@ -22,8 +23,14 @@ export const User = ({ data, action, id }) => {
   const { isOpen: isRegisterUserOpen, onClose: onRegisterUserClose } =
     useDisclosure({ defaultIsOpen: true }); // Handle Register User modal
 
+  const {
+    isOpen: isDisplayLinkOpen,
+    onOpen: onDisplayLinkOpen,
+    onClose: onDisplayLinkClose,
+  } = useDisclosure(); // Handle the modal that displays generated link
+
   const onCloseHandler = () => {
-    onClose();
+    onRegisterUserClose();
     setFeedback(null);
   };
   const toast = useToast();
@@ -68,6 +75,8 @@ export const User = ({ data, action, id }) => {
         )}
       </Flex>
     );
+  const { account } = useBackendApi();
+  const [generatedLink, setGeneratedLink] = useState();
 
   const handleSubmit = async (values, actions) => {
     // handle submission for an update or registering new user
@@ -84,6 +93,14 @@ export const User = ({ data, action, id }) => {
         status: "success",
         duration: 1500,
       });
+      console.log(actionResponse.id);
+      const response = await account.generateActivationLink({
+        id: actionResponse.id,
+      });
+
+      setGeneratedLink(response.url);
+      console.log(response.url);
+      onDisplayLinkOpen();
     } catch (e) {
       console.error(e);
       setFeedback("Something went wrong!");
@@ -91,7 +108,6 @@ export const User = ({ data, action, id }) => {
     }
     actions.setSubmitting(false);
     onRegisterUserClose();
-    navigate("/home/userlist");
     onCloseHandler();
   };
 
@@ -128,9 +144,51 @@ export const User = ({ data, action, id }) => {
           formRef.current.handleSubmit();
         }}
         isOpen={isRegisterUserOpen}
-        onClose={() => navigate("/home/userlist")} // navigate back to userlist when modal is closed
+        onClose={() => navigate("/home/userlist")} // navigate to userlist when modal is closed
       />
     );
+  const GenerateLinkModal = (
+    <BasicModal
+      body={
+        <Formik
+          enableReinitialize
+          initialValues={
+            { Generate: generatedLink } // get Activation/Password reset link from the state
+          }
+        >
+          <Form noValidate>
+            <VStack align="stretch" spacing={4}>
+              <FormikInput
+                label={"Link"}
+                name={"Generate"}
+                initialValues={generatedLink}
+                type="readOnly"
+              />
+              <Alert status="info">
+                <AlertIcon />
+                Please copy the link and pass it to the user to complete the
+                registration process.
+              </Alert>
+            </VStack>
+          </Form>
+        </Formik>
+      }
+      title={"Generate Link"}
+      actionBtnCaption="Ok"
+      actionBtnColorScheme="blue"
+      isLoading={isLoading}
+      onAction={() => navigate("/home/userlist")}
+      isOpen={isDisplayLinkOpen}
+      onClose={() => navigate("/home/userlist")}
+      closeOnOverlayClick={false} // disable closing the modal when clicked on overlay
+      cancelBtnEnable={false} // display cancel if error else hide cancel button
+    />
+  );
 
-  return <>{ModalRegisterUser}</>;
+  return (
+    <>
+      {ModalRegisterUser}
+      {GenerateLinkModal}
+    </>
+  );
 };
