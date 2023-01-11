@@ -74,7 +74,7 @@ def ro_crates_callback(
 
     if query_type == "AvailabilityQuery":
         query = AvailabilityQuery.from_dict(activity_job.payload)
-        result = solve_availability(db_manager, query)
+        result = solve_availability(db_manager, query, activity_job.activity_source_id)
         return_payload = ActivityJob(
             type_=query_type,
             job_id=activity_job.job_id,
