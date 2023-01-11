@@ -6,34 +6,34 @@ using Microsoft.FeatureManagement;
 
 namespace HutchManager.Services;
 
-public class RquestDistributionPollingService
+public class RquestAvailabilityPollingService
 {
   private readonly RQuestTaskApiClient _taskApi;
-  private readonly ILogger<RquestDistributionPollingService> _logger;
+  private readonly ILogger<RquestAvailabilityPollingService> _logger;
   private readonly IFeatureManager _featureManager;
   private readonly IJobQueueService _jobQueue;
 
-  public RquestDistributionPollingService(
+  public RquestAvailabilityPollingService(
     RQuestTaskApiClient taskApi,
-    ILogger<RquestDistributionPollingService> logger,
+    ILogger<RquestAvailabilityPollingService> logger,
     IFeatureManager featureManager,
     IJobQueueService jobQueue)
   {
-    _taskApi = taskApi;
     _logger = logger;
+    _taskApi = taskApi;
     _featureManager = featureManager;
     _jobQueue = jobQueue;
   }
-  
+
   public async Task Poll(ActivitySource activitySource)
   {
-    DistributionQuery? job = null;
+    AvailabilityQuery? job = null;
 
     do
     {
       try
       {
-        job = await _taskApi.FetchQuery<DistributionQuery>(activitySource);
+        job = await _taskApi.FetchQuery<AvailabilityQuery>(activitySource);
         if (job is null)
         {
           _logger.LogInformation(
@@ -58,14 +58,14 @@ public class RquestDistributionPollingService
       }
     } while (job is null);
   }
-  
-  private ActivityJob PackageJob(DistributionQuery jobPayload, ActivitySource activitySource)
+
+  private ActivityJob PackageJob(AvailabilityQuery jobPayload, ActivitySource activitySource)
   {
     var job = new ActivityJob
     {
       ActivitySourceId = activitySource.Id,
       Payload = JsonSerializer.SerializeToElement(jobPayload),
-      Type = ActivityJobTypes.DistributionQuery,
+      Type = ActivityJobTypes.AvailabilityQuery,
       JobId = jobPayload.Uuid
     };
     return job;
