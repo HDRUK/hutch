@@ -29,6 +29,6 @@ class Cohort(BaseDto):
         Returns:
             Self: a `Cohort` instance
         """
-        groups = [Group.from_dict(g) for g in dict_.get("rules", [])]
+        groups = [Group.from_dict(g) for g in dict_.get("groups", [])]
         groups_operator = dict_.get("groups_oper", "")
         return cls(groups=groups, groups_operator=groups_operator)
