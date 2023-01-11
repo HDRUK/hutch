@@ -6,16 +6,16 @@ using Microsoft.FeatureManagement;
 
 namespace HutchManager.Services;
 
-public class RQuestPollingService
+public class RquestAvailabilityPollingService
 {
   private readonly RQuestTaskApiClient _taskApi;
-  private readonly ILogger<RQuestPollingService> _logger;
+  private readonly ILogger<RquestAvailabilityPollingService> _logger;
   private readonly IFeatureManager _featureManager;
   private readonly IJobQueueService _jobQueue;
 
-  public RQuestPollingService(
+  public RquestAvailabilityPollingService(
     RQuestTaskApiClient taskApi,
-    ILogger<RQuestPollingService> logger,
+    ILogger<RquestAvailabilityPollingService> logger,
     IFeatureManager featureManager,
     IJobQueueService jobQueue)
   {
@@ -27,13 +27,13 @@ public class RQuestPollingService
 
   public async Task Poll(ActivitySource activitySource)
   {
-    RquestQueryTask? job = null;
+    AvailabilityQuery? job = null;
 
     do
     {
       try
       {
-        job = await _taskApi.FetchQuery<RquestQueryTask>(activitySource);
+        job = await _taskApi.FetchQuery<AvailabilityQuery>(activitySource);
         if (job is null)
         {
           _logger.LogInformation(
@@ -42,7 +42,8 @@ public class RQuestPollingService
           return;
         }
 
-        SendToQueue(job, activitySource.TargetDataSource.Id);
+        var packagedJob = PackageJob(job, activitySource);
+        SendToQueue(packagedJob, activitySource.TargetDataSource.Id);
       }
       catch (Exception e)
       {
@@ -58,10 +59,21 @@ public class RQuestPollingService
     } while (job is null);
   }
 
-  public void SendToQueue(RquestQueryTask jobPayload, string queueName)
+  private ActivityJob PackageJob(AvailabilityQuery jobPayload, ActivitySource activitySource)
   {
-    ROCratesQuery roCratesQuery = new QueryTranslator.RquestQueryTranslator().Translate(jobPayload);
-    _jobQueue.SendMessage(queueName, roCratesQuery);
-    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
+    var job = new ActivityJob
+    {
+      ActivitySourceId = activitySource.Id,
+      Payload = JsonSerializer.SerializeToElement(jobPayload),
+      Type = ActivityJobTypes.AvailabilityQuery,
+      JobId = jobPayload.Uuid
+    };
+    return job;
+  }
+
+  private void SendToQueue(ActivityJob jobPayload, string queueName)
+  {
+    _jobQueue.SendMessage(queueName, jobPayload);
+    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(jobPayload));
   }
 }
