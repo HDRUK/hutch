@@ -19,23 +19,18 @@ import { useResetState } from "helpers/hooks/useResetState";
 import { useUser } from "contexts/User";
 import { useBackendApi } from "contexts/BackendApi";
 import { useBackendConfig } from "contexts/Config";
-import { EmailField } from "components/forms/EmailField";
+import { UsernameField } from "components/forms/UsernameField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { HutchLogo } from "components/Logo";
 
 const validationSchema = (t) =>
   object().shape({
     username: string()
-      .test(
-        "valid-username",
-        t("validation.email_valid"),
-        (v) =>
-          // this allows for DECSYS style "@admin" usernames in future
-          // for a non-email seeded superuser
-          string().email().isValidSync(v) ||
-          string().matches(/^@/).isValidSync(v)
+      .test("valid-username", t("validation.username_valid"), (v) =>
+        // this allows "@admin" style usernames
+        string().isValidSync(v)
       )
-      .required(t("validation.email_required")),
+      .required(t("validation.username_required")),
     password: string().required(t("validation.password_required")),
   });
 
@@ -132,7 +127,7 @@ export const Login = () => {
                     {t("login.feedback.unconfirmedAccountInfo")}
                   </Alert>
                 )}
-                <EmailField name="username" autoFocus />
+                <UsernameField name="username" autoFocus />
 
                 <PasswordField
                   fieldTip={
