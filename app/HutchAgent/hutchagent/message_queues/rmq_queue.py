@@ -67,7 +67,7 @@ def ro_crates_callback(
             type_=query_type,
             job_id=activity_job.job_id,
             activity_source_id=activity_job.activity_source_id,
-            payload=result
+            payload=result.to_dict()
         )
         send_to_manager(result=return_payload, endpoint="api/results")
     elif query_type == "DistributionQuery":
@@ -77,7 +77,7 @@ def ro_crates_callback(
             type_=query_type,
             job_id=activity_job.job_id,
             activity_source_id=activity_job.activity_source_id,
-            payload=result
+            payload=result.to_dict()
         )
         # send_to_manager(result=result, endpoint="api/results")
     else:
