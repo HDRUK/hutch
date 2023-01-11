@@ -5,6 +5,7 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
 import hutch_utils.config as config
+from rquest_dto.activity_job import ActivityJob
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from hutchagent.message_queues.helpers import send_to_manager
 from hutchagent.query_solvers import solve_availability, solve_distribution
@@ -55,27 +56,16 @@ def ro_crates_callback(
     logger.info("Received message from the Queue. Processing...")
 
     # Try to find the query type
-    query_type = None
-    try:
-        body_json = json.loads(body)
-        for g in body_json.get("@graph", list()):
-            if g.get("name") == "query_type":
-                query_type = g.get("value")
-                break
-        # Can't get query type
-        else:
-            raise json.decoder.JSONDecodeError
-        logger.info(f"Successfully unpacked message.")
-    except json.decoder.JSONDecodeError:
-        logger.error("Failed to decode the message from the queue.")
-        return  # exit the callback
+    activity_job = ActivityJob.from_dict(json.loads(body))
+    query_type = activity_job.type_
+    logger.info(f"Successfully unpacked message.")
 
-    if query_type == "RQuestAvailability":
-        query = AvailabilityQuery.from_dict(body_json)
+    if query_type == "AvailabilityQuery":
+        query = AvailabilityQuery.from_dict(activity_job.payload)
         result = solve_availability(query)
         send_to_manager(result=result, endpoint="api/results")
-    elif query_type == "RQuestDistribution":
-        query = DistributionQuery.from_dict(body_json)
+    elif query_type == "DistributionQuery":
+        query = DistributionQuery.from_dict(activity_job.payload)
         result = solve_distribution(query)
         # send_to_manager(result=result, endpoint="api/results")
     else:
