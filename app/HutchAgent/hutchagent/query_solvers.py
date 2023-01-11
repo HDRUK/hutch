@@ -290,7 +290,7 @@ class CodeDistributionQuerySolver:
         return os.linesep.join(results), len(df)
 
 
-def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResult:
+def solve_availability(db_manager: SyncDBManager, query: AvailabilityQuery) -> AvailabilityResult:
     """Solve RQuest availability queries.
 
     Args:

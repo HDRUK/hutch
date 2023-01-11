@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.channel import Channel
@@ -9,6 +10,7 @@ from rquest_dto.activity_job import ActivityJob
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from hutchagent.message_queues.helpers import send_to_manager
 from hutchagent.query_solvers import solve_availability, solve_distribution
+from hutchagent.db_manager import SyncDBManager
 
 
 def connect(queue: str, host, **kwargs) -> BlockingChannel:
@@ -53,6 +55,16 @@ def ro_crates_callback(
         body (bytes): The body of the message.
     """
     logger = logging.getLogger(config.LOGGER_NAME)
+    datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
+    db_manager = SyncDBManager(
+        username=os.getenv("DATASOURCE_DB_USERNAME"),
+        password=os.getenv("DATASOURCE_DB_PASSWORD"),
+        host=os.getenv("DATASOURCE_DB_HOST"),
+        port=int(datasource_db_port) if datasource_db_port is not None else None,
+        database=os.getenv("DATASOURCE_DB_DATABASE"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
+        schema=os.getenv("DATASOURCE_DB_SCHEMA"),
+    )
     logger.info("Received message from the Queue. Processing...")
 
     # Try to find the query type
@@ -62,7 +74,7 @@ def ro_crates_callback(
 
     if query_type == "AvailabilityQuery":
         query = AvailabilityQuery.from_dict(activity_job.payload)
-        result = solve_availability(query)
+        result = solve_availability(db_manager, query)
         return_payload = ActivityJob(
             type_=query_type,
             job_id=activity_job.job_id,
@@ -72,7 +84,7 @@ def ro_crates_callback(
         send_to_manager(result=return_payload, endpoint="api/results")
     elif query_type == "DistributionQuery":
         query = DistributionQuery.from_dict(activity_job.payload)
-        result = solve_distribution(query)
+        result = solve_distribution(db_manager, query)
         return_payload = ActivityJob(
             type_=query_type,
             job_id=activity_job.job_id,
