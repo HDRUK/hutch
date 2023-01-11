@@ -31,8 +31,9 @@ class AvailabilityResult(BaseDto):
             "status": self.status,
             "protocol_version": self.protocol_version,
             "collection_id": self.collection_id,
-            "query_result": {
+            "queryResult": {
                 "count": self.count,
+                "files": [],
             },
         }
 
