@@ -188,7 +188,7 @@ class AvailibilityQuerySolver:
         group0_df = self.subqueries[0]
         group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
         for i, df in enumerate(self.subqueries[1:], start=1):
-            df.rename({"person_id": f"person_id_{i}"}, axis=1)
+            df.rename({"person_id": f"person_id_{i}"}, inplace=True, axis=1)
             group0_df = group0_df.merge(
                 right=df,
                 how=merge_method(self.query.cohort.groups_operator),
