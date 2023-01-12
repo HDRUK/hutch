@@ -38,27 +38,27 @@ class AvailabilityResult(BaseDto):
         }
 
 
-class DistributionResult(BaseDto):
+class RquestResult(BaseDto):
     """
-    This class represents the result of an RQuest distribution query.
+    This class represents the result of an RQuest query.
     """
 
     def __init__(
         self,
-        job_id: str,
+        uuid: str,
         status: str,
-        count: int,
-        datasets_count: Union[int, None],
-        files: List[File],
         collection_id: str,
+        count: int = 0,
+        datasets_count: int = 0,
+        files: List[File] = None,
         message: Union[str, None] = None,
         protocol_version: str = "v2",
     ) -> None:
-        self.job_id = job_id
+        self.uuid = uuid
         self.status = status
         self.count = count
         self.datasets_count = datasets_count
-        self.files = files
+        self.files = files if files is not None else list()
         self.message = message
         self.collection_id = collection_id
         self.protocol_version = protocol_version
@@ -72,8 +72,8 @@ class DistributionResult(BaseDto):
         """
         return {
             "status": self.status,
-            "protocol_version": self.protocol_version,
-            "uuid": self.job_id,
+            "protocolVersion": self.protocol_version,
+            "uuid": self.uuid,
             "queryResult": {
                 "count": self.count,
                 "datasetCount": self.datasets_count,

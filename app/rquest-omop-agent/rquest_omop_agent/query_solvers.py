@@ -20,7 +20,7 @@ from omop_entities.entities import (
 )
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from rquest_dto.file import File
-from rquest_dto.result import AvailabilityResult, DistributionResult
+from rquest_dto.result import AvailabilityResult, RquestResult
 from hutch_utils.obfuscation import get_results_modifiers, apply_filters
 from hutch_utils import config
 
@@ -325,7 +325,7 @@ def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResu
     return result
 
 
-def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> DistributionResult:
+def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> RquestResult:
     """Solve RQuest distribution queries.
 
     Args:
@@ -352,8 +352,8 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> D
             size=size,
             type_="BCOS"
         )
-        result = DistributionResult(
-            job_id=query.uuid,
+        result = RquestResult(
+            uuid=query.uuid,
             status="ok",
             count=count,
             datasets_count=1,
@@ -361,9 +361,9 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> D
         )
     except Exception as e:
         logger.error(str(e))
-        result = DistributionResult(
+        result = RquestResult(
             activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
+            uuid=query.uuid,
             status="error",
             count=0,
             datasets_count=0,
