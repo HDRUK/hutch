@@ -17,7 +17,7 @@ public class RquestAvailabilityResult
   [JsonPropertyName("protocol_version")]
   public string ProtocolVersion { get; set; } = "2";
 
-  [JsonPropertyName("query_result")]
+  [JsonPropertyName("queryResult")]
   public AvailabilityCount QueryResult { get; set; } = new();
 }
 
@@ -25,4 +25,7 @@ public class AvailabilityCount
 {
   [JsonPropertyName("count")]
   public int Count { get; set; } = 0;
+
+  [JsonPropertyName("files")]
+  public List<string> Files { get; set; } = new();
 }

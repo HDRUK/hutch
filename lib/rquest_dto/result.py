@@ -1,44 +1,50 @@
 from typing import List, Union
+from rquest_dto.base_dto import BaseDto
 from rquest_dto.file import File
 
 
-class AvailabilityResult:
+class AvailabilityResult(BaseDto):
+    """
+    This class represents the result of an RQuest availability query.
+    """
+
     def __init__(
         self,
-        activity_source_id: str,
-        job_id: str,
         status: str,
         count: int,
         collection_id: str,
         protocol_version: str = "v2"
     ) -> None:
-        self.activity_source_id = activity_source_id
-        self.job_id = job_id
         self.status = status
         self.count = count
         self.collection_id = collection_id
         self.protocol_version = protocol_version
 
     def to_dict(self) -> dict:
+        """Convert this `AvailabilityResult` object to a JSON serialisable `dict`.
+
+        Returns:
+            dict:
+                the `dict` representing the result of an availability query.
+        """
         return {
             "status": self.status,
             "protocol_version": self.protocol_version,
             "collection_id": self.collection_id,
-            "query_result": {
+            "queryResult": {
                 "count": self.count,
+                "files": [],
             },
         }
 
 
-class DistributionResult:
+class DistributionResult(BaseDto):
     """
-    This class represents the result of an RQuest distribution query
-    in RO-Crates common transfer format.
+    This class represents the result of an RQuest distribution query.
     """
 
     def __init__(
         self,
-        activity_source_id: str,
         job_id: str,
         status: str,
         count: int,
@@ -48,7 +54,6 @@ class DistributionResult:
         message: Union[str, None] = None,
         protocol_version: str = "v2",
     ) -> None:
-        self.activity_source_id = activity_source_id
         self.job_id = job_id
         self.status = status
         self.count = count
@@ -63,8 +68,7 @@ class DistributionResult:
 
         Returns:
             dict:
-                the `dict` representing the RO-Crate containing the result of a
-                distribution query.
+                the `dict` representing the result of a distribution query.
         """
         return {
             "status": self.status,

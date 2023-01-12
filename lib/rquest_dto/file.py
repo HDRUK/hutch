@@ -1,4 +1,6 @@
-class File:
+from rquest_dto.base_dto import BaseDto
+
+class File(BaseDto):
     def __init__(
         self,
         data: str,

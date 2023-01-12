@@ -3,14 +3,14 @@ import json
 import logging
 import time
 import requests, requests.exceptions as req_exc
-import hutchagent.config as config
+import hutch_utils.config as config
 from typing import Union
 from sqlalchemy import exc as sql_exc
-from hutchagent.rquest.result import AvailabilityResult
-from hutchagent.rquest.query import AvailabilityQuery
+from rquest_dto.result import AvailabilityResult
+from rquest_dto.query import AvailabilityQuery
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.query_builders import AvailibilityQueryBuilder
-from hutchagent.obfuscation import get_results_modifiers, apply_filters
+from hutchagent.query_solvers import AvailibilityQuerySolver
+from hutch_utils.obfuscation import get_results_modifiers, apply_filters
 
 
 def az_queue_callback(msg: Union[str, bytes]):
@@ -41,7 +41,7 @@ def az_queue_callback(msg: Union[str, bytes]):
         drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
         schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
-    query_builder = AvailibilityQueryBuilder(db_manager, query)
+    query_builder = AvailibilityQuerySolver(db_manager, query)
     try:
         query_start = time.time()
         query_builder.solve_rules()

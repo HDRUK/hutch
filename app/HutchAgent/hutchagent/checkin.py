@@ -7,7 +7,7 @@ import requests, requests.exceptions as req_exc
 from typing import Union
 from croniter import croniter
 
-import hutchagent.config as config
+import hutch_utils.config as config
 
 
 dotenv.load_dotenv()

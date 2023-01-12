@@ -1,8 +1,9 @@
 from typing import List
+from rquest_dto.base_dto import BaseDto
 from rquest_dto.group import Group
 
 
-class Cohort:
+class Cohort(BaseDto):
     def __init__(self, groups: List[Group], groups_operator: str) -> None:
         self.groups = groups
         self.groups_operator = groups_operator
@@ -28,6 +29,6 @@ class Cohort:
         Returns:
             Self: a `Cohort` instance
         """
-        groups = [Group.from_dict(g) for g in dict_.get("rules", [])]
+        groups = [Group.from_dict(g) for g in dict_.get("groups", [])]
         groups_operator = dict_.get("groups_oper", "")
         return cls(groups=groups, groups_operator=groups_operator)
