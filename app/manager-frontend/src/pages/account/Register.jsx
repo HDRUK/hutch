@@ -20,9 +20,9 @@ import { TitledAlert } from "components/TitledAlert";
 import { useBackendApi } from "contexts/BackendApi";
 import { useBackendConfig } from "contexts/Config";
 import {
-  EmailField,
+  UsernameField,
   validationSchema as emailSchema,
-} from "components/forms/EmailField";
+} from "components/forms/UsernameField";
 import {
   PasswordField,
   validationSchema as pwSchema,
@@ -141,7 +141,7 @@ export const Register = () => {
             {({ isSubmitting }) => (
               <Form noValidate>
                 <VStack align="stretch" spacing={4}>
-                  <EmailField hasCheckReminder autoFocus />
+                  <UsernameField hasCheckReminder autoFocus />
 
                   <FormikInput
                     name="fullname"

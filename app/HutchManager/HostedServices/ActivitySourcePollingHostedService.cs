@@ -44,14 +44,14 @@ namespace HutchManager.HostedServices
           var count = Interlocked.Increment(ref _executionCount);
             
           _logger.LogDebug(
-            "{Service} is working. Count: {Count}",nameof(RQuestPollingService) , count);
+            "{Service} is working. Count: {Count}",nameof(RquestAvailabilityPollingService) , count);
 
           using var executionScope = _serviceProvider.CreateScope();
 
           // TODO use another worker service with DI instead of Service Locator? 
           var db = executionScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
           
-          var rQuestPoller = executionScope.ServiceProvider.GetRequiredService<RQuestPollingService>();
+          var rQuestPoller = executionScope.ServiceProvider.GetRequiredService<RquestAvailabilityPollingService>();
 
           var sources = db.ActivitySources.AsNoTracking()
             .Include(x => x.Type)
