@@ -93,13 +93,11 @@ export const User = ({ data, action, id }) => {
         status: "success",
         duration: 1500,
       });
-      console.log(actionResponse.id);
       const response = await account.generateActivationLink({
         id: actionResponse.id,
-      });
+      }); // generate user account activation link
 
       setGeneratedLink(response.url);
-      console.log(response.url);
       onDisplayLinkOpen();
     } catch (e) {
       console.error(e);
@@ -112,7 +110,7 @@ export const User = ({ data, action, id }) => {
   };
 
   const formRef = useRef();
-  const ModalRegisterUser = // Modal for displaying New User Registration
+  const ModalRegisterUser = // Modal for new User Registration
     (
       <BasicModal
         body={
@@ -153,7 +151,7 @@ export const User = ({ data, action, id }) => {
         <Formik
           enableReinitialize
           initialValues={
-            { Generate: generatedLink } // get Activation/Password reset link from the state
+            { Generate: generatedLink } // get activation reset link
           }
         >
           <Form noValidate>
@@ -166,7 +164,7 @@ export const User = ({ data, action, id }) => {
               />
               <Alert status="info">
                 <AlertIcon />
-                Please copy the link and pass it to the user to complete the
+                Please copy this link and pass it to the user to complete the
                 registration process.
               </Alert>
             </VStack>
