@@ -5,28 +5,32 @@ import { string } from "yup";
 import { FormikInput } from "./FormikInput";
 
 export const validationSchema = (t) => ({
-  email: string()
-    .email(t("validation.email_valid"))
-    .required(t("validation.email_required")),
+  username: string()
+    .username(t("validation.username"))
+    .required(t("validation.username_required")),
 });
 
-export const EmailField = ({ name = "email", hasCheckReminder, ...p }) => {
+export const UsernameField = ({
+  name = "username",
+  hasCheckReminder,
+  ...p
+}) => {
   const { t } = useTranslation();
 
   const checkReminder = (
     <HStack>
       <Icon as={FaExclamationTriangle} />
-      <Text>{t("fields.email_checkreminder")}</Text>
+      <Text>{t("fields.username_checkreminder")}</Text>
     </HStack>
   );
 
   return (
     <FormikInput
       name={name}
-      type="email"
+      type="username"
       isRequired
-      label={t("fields.email")}
-      placeholder={t("fields.email_placeholder")}
+      label={t("fields.username")}
+      placeholder={t("fields.username_placeholder")}
       fieldHelp={hasCheckReminder ? checkReminder : undefined}
       {...p}
     />

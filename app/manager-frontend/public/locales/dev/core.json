@@ -18,15 +18,15 @@
     }
   },
   "fields": {
-    "email": "Email Address",
-    "email_placeholder": "name@example.com",
+    "username": "Username",
+    "username_placeholder": "@username",
     "password": "Password",
-    "email_checkreminder": "Please check to ensure your email address is correct."
+    "username_checkreminder": "Please check to ensure your username is correct."
   },
   "validation": {
     "fullname_required": "Please enter your name.",
-    "email_required": "Please enter your email address.",
-    "email_valid": "Please enter a valid email address.",
+    "username_required": "Please enter your username.",
+    "username_valid": "Please enter a valid username.",
     "password_required": "Please enter a password.",
     "password_minLength": "Passwords must be at least {{minLength}} characters.",
     "password_digit": "Passwords must have at least one digit ('0' - '9').",
