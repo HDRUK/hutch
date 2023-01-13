@@ -3,41 +3,6 @@ from rquest_dto.base_dto import BaseDto
 from rquest_dto.file import File
 
 
-class AvailabilityResult(BaseDto):
-    """
-    This class represents the result of an RQuest availability query.
-    """
-
-    def __init__(
-        self,
-        status: str,
-        count: int,
-        collection_id: str,
-        protocol_version: str = "v2"
-    ) -> None:
-        self.status = status
-        self.count = count
-        self.collection_id = collection_id
-        self.protocol_version = protocol_version
-
-    def to_dict(self) -> dict:
-        """Convert this `AvailabilityResult` object to a JSON serialisable `dict`.
-
-        Returns:
-            dict:
-                the `dict` representing the result of an availability query.
-        """
-        return {
-            "status": self.status,
-            "protocol_version": self.protocol_version,
-            "collection_id": self.collection_id,
-            "queryResult": {
-                "count": self.count,
-                "files": [],
-            },
-        }
-
-
 class RquestResult(BaseDto):
     """
     This class represents the result of an RQuest query.

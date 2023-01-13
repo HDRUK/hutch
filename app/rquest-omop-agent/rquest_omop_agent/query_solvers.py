@@ -20,7 +20,7 @@ from omop_entities.entities import (
 )
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from rquest_dto.file import File
-from rquest_dto.result import AvailabilityResult, RquestResult
+from rquest_dto.result import RquestResult
 from hutch_utils.obfuscation import get_results_modifiers, apply_filters
 from hutch_utils import config
 
@@ -290,7 +290,11 @@ class CodeDistributionQuerySolver:
         return os.linesep.join(results), len(df)
 
 
-def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResult:
+def solve_availability(
+    db_manager: SyncDBManager,
+    query: AvailabilityQuery,
+    activity_source_id: int,
+) -> RquestResult:
     """Solve RQuest availability queries.
 
     Args:
@@ -298,28 +302,28 @@ def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResu
         query (AvailabilityQuery): The availability query object
 
     Returns:
-        AvailabilityResult: Result object for the query
+        RquestResult: Result object for the query
     """
     logger = logging.getLogger(config.LOGGER_NAME)
     solver = AvailibilityQuerySolver(db_manager, query)
     try:
         res = solver.solve_query()
-        result_modifiers = get_results_modifiers(query.activity_source_id)
+        result_modifiers = get_results_modifiers(activity_source_id)
         count_ = apply_filters(res, result_modifiers)
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
+        result = RquestResult(
             status="ok",
             count=count_,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
         logger.info("Solved availability query")
     except Exception as e:
         logger.error(str(e))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
+        result = RquestResult(
             status="error",
             count=0,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
 
     return result
