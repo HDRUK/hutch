@@ -111,7 +111,7 @@ namespace HutchManager.Services
     /// <param name="activitySourceId">activitySourceId ID</param>
     /// <param name="jobId">Job ID</param>
     /// <param name="result">Results with Count</param>
-    public async Task ResultsEndpointPost(int activitySourceId, string jobId, RquestAvailabilityResult result)
+    public async Task ResultsEndpointPost(int activitySourceId, string jobId, RquestQueryResult result)
     {
       var activitySource = await _db.ActivitySources
         .FirstOrDefaultAsync(x => x.Id == activitySourceId);

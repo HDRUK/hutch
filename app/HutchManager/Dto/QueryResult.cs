@@ -11,8 +11,7 @@ public class RquestQueryResult
   public string Status { get; set; } = string.Empty;
   public string ProtocolVersion { get; set; } = "v2";
 
-  [JsonPropertyName("collection_id")]
-  public int CollectionId { get; set; }
+  [JsonPropertyName("collection_id")] public string CollectionId { get; set; } = string.Empty;
 
   [JsonPropertyName("uuid")] 
   public string Uuid { get; set; } = string.Empty;
