@@ -10,35 +10,92 @@ namespace HutchManager.Extensions
 {
   public static class ServiceCollectionExtensions
   {
+    /// <summary>
+    /// Enum for Email Providers.
+    /// </summary>
+    enum EmailProviders
+    {
+      Local,
+      SendGrid,
+      SMTP
+    }
+    
+    /// <summary>
+    /// Enum for Job Queue Providers.
+    /// </summary>
     enum JobQueueProviders
     {
       RabbitMq,
       AzureQueueStorage
     }
-    public static IServiceCollection AddEmailSender(this IServiceCollection s, IConfiguration c)
+    
+    /// <summary>
+    /// Parse the desired Email Provider from configuration.
+    /// </summary>
+    /// <param name="c">The configuration object</param>
+    /// <returns>The <c>enum</c> for the chosen Email Provider</returns>
+    private static EmailProviders GetEmailProvider(IConfiguration c)
     {
-      var emailProvider = c["OutboundEmail:Provider"] ?? string.Empty;
+      // TryParse defaults failures to the first enum value.
+      Enum.TryParse<EmailProviders>(
+        c["OutboundEmail:Provider"],
+        ignoreCase: true,
+        out var emailProvider);
 
-      var useSendGrid = emailProvider.Equals("sendgrid", StringComparison.InvariantCultureIgnoreCase);
-      var useSmtp = emailProvider.Equals("smtp", StringComparison.InvariantCultureIgnoreCase);
+      return emailProvider;
+    }
+    
+    private static IServiceCollection ConfigureEmail(
+      this IServiceCollection s,
+      EmailProviders provider,
+      IConfiguration c)
+    {
+      // set the appropriate configuration function
+      Func<IConfiguration, IServiceCollection> ConfigureEmail =
+        provider switch
+        {
+          EmailProviders.SendGrid => s.Configure<SendGridOptions>,
+          //EmailProviders.SMTP => s.Configure<
+          _ => s.Configure<LocalDiskEmailOptions>
+        };
 
-      if (useSendGrid) s.Configure<SendGridOptions>(c.GetSection("OutboundEmail"));
-      else if (useSmtp) s.Configure<SmtpOptions>(c.GetSection("OutboundEmail"));
-      else s.Configure<LocalDiskEmailOptions>(c.GetSection("OutboundEmail"));
-
-      s
-        .AddTransient<TokenIssuingService>()
-        .AddTransient<RazorViewService>()
-        .AddTransient<AccountEmailService>()
-        .TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
-
-      if (useSendGrid) s.AddTransient<IEmailSender, SendGridEmailSender>();
-      else if (useSmtp) s.AddTransient<IEmailSender, SmtpEmailSender>();
-      else s.AddTransient<IEmailSender, LocalDiskEmailSender>();
+      // and execute it
+      ConfigureEmail.Invoke(c.GetSection("OutboundEmail"));
 
       return s;
     }
+    
+    /// <summary>
+    /// Determine which email sender the user wishes to use and adds it the service collection.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="c"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddEmailSender(this IServiceCollection s, IConfiguration c)
+    {
+      var emailProvider = GetEmailProvider(c);
 
+      s.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+      return s.ConfigureEmail(emailProvider, c)
+        .AddTransient<TokenIssuingService>()
+        .AddTransient<RazorViewService>()
+        .AddTransient<AccountEmailService>()
+        .AddTransient(
+          typeof(IEmailSender),
+          emailProvider switch
+          {
+            EmailProviders.SendGrid => typeof(SendGridEmailSender),
+            
+            _ => typeof(LocalDiskEmailSender)
+          });
+    }
+
+    /// <summary>
+    /// Parse the desired Job Queue Provider from configuration.
+    /// </summary>
+    /// <param name="c">The configuration object</param>
+    /// <returns>The <c>enum</c> for the chosen Job Queue Provider</returns>
     private static JobQueueProviders GetJobQueueProvider(IConfiguration c)
     {
       Enum.TryParse<JobQueueProviders>(
@@ -48,6 +105,13 @@ namespace HutchManager.Extensions
 
       return jobQueueProvider;
     }
+    
+    /// <summary>
+    /// Determine which job queue the user wishes to use and adds it the service collection.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="c"></param>
+    /// <returns></returns>
     public static IServiceCollection AddJobQueue(this IServiceCollection s, IConfiguration c)
     {
       var queueType = GetJobQueueProvider(c);
