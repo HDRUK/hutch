@@ -10,6 +10,11 @@ namespace HutchManager.Extensions
 {
   public static class ServiceCollectionExtensions
   {
+    enum JobQueueProviders
+    {
+      RabbitMq,
+      AzureQueueStorage
+    }
     public static IServiceCollection AddEmailSender(this IServiceCollection s, IConfiguration c)
     {
       var emailProvider = c["OutboundEmail:Provider"] ?? string.Empty;
@@ -34,17 +39,26 @@ namespace HutchManager.Extensions
       return s;
     }
 
+    private static JobQueueProviders GetJobQueueProvider(IConfiguration c)
+    {
+      Enum.TryParse<JobQueueProviders>(
+        c["JobQueue:Provider"],
+        ignoreCase: true,
+        out var jobQueueProvider);
+
+      return jobQueueProvider;
+    }
     public static IServiceCollection AddJobQueue(this IServiceCollection s, IConfiguration c)
     {
-      var queueType = c["JobQueue:Provider"] ?? throw new Exception("Please provide a queue type");
+      var queueType = GetJobQueueProvider(c);
 
       switch (queueType)
       {
-        case "AzureQueueStorage":
+        case JobQueueProviders.AzureQueueStorage:
           s.Configure<AzureJobQueueOptions>(c.GetSection("JobQueue"))
             .AddTransient<IJobQueueService, AzureJobQueueService>();
           break;
-        case "RabbitMQ":
+        case JobQueueProviders.RabbitMq:
           s.Configure<RabbitJobQueueOptions>(c.GetSection("JobQueue"))
             .AddTransient<IJobQueueService, RabbitJobQueueService>();
           break;
