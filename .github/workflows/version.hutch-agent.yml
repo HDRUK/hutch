@@ -6,9 +6,9 @@ on:
       version_tag:
         description: Version tag
         required: true
-  push:
-    branches:
-      - release/agent-**
+  # push:
+  #   branches:
+  #     - release/agent-**
 
 env:
   PYTHON_VERSION: "3.9"

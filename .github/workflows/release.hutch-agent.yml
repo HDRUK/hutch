@@ -6,11 +6,11 @@ on:
       version_tag:
         description: Version tag
         required: true
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
+  # pull_request:
+  #   types:
+  #     - closed
+  #   branches:
+  #     - main
 
 env:
   PYTHON_VERSION: "3.9"
