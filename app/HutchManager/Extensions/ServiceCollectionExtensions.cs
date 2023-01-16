@@ -36,7 +36,7 @@ namespace HutchManager.Extensions
 
     public static IServiceCollection AddJobQueue(this IServiceCollection s, IConfiguration c)
     {
-      var queueType = c["QueueType"] ?? throw new Exception("Please provide a queue type");
+      var queueType = c["JobQueue:Provider"] ?? throw new Exception("Please provide a queue type");
 
       switch (queueType)
       {
