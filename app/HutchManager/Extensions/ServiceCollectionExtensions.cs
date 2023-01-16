@@ -106,6 +106,26 @@ namespace HutchManager.Extensions
       return jobQueueProvider;
     }
     
+    private static IServiceCollection ConfigureJobQueue(
+      this IServiceCollection s,
+      JobQueueProviders provider,
+      IConfiguration c)
+    {
+      // set the appropriate configuration function
+      Func<IConfiguration, IServiceCollection> ConfigureEmail =
+        provider switch
+        {
+          JobQueueProviders.RabbitMq => s.Configure<AzureJobQueueOptions>,
+          JobQueueProviders.AzureQueueStorage => s.Configure<AzureJobQueueOptions>,
+          _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, null)
+        };
+
+      // and execute it
+      ConfigureEmail.Invoke(c.GetSection("JobQueue"));
+
+      return s;
+    }
+    
     /// <summary>
     /// Determine which job queue the user wishes to use and adds it the service collection.
     /// </summary>
@@ -116,21 +136,14 @@ namespace HutchManager.Extensions
     {
       var queueType = GetJobQueueProvider(c);
 
-      switch (queueType)
-      {
-        case JobQueueProviders.AzureQueueStorage:
-          s.Configure<AzureJobQueueOptions>(c.GetSection("JobQueue"))
-            .AddTransient<IJobQueueService, AzureJobQueueService>();
-          break;
-        case JobQueueProviders.RabbitMq:
-          s.Configure<RabbitJobQueueOptions>(c.GetSection("JobQueue"))
-            .AddTransient<IJobQueueService, RabbitJobQueueService>();
-          break;
-        default:
-          throw new Exception($"'{queueType}' is not a valid queue service");
-      }
-
-      return s;
+      return s.ConfigureJobQueue(queueType, c)
+        .AddTransient(
+          typeof(IJobQueueService),
+          queueType switch
+          {
+            JobQueueProviders.AzureQueueStorage => typeof(AzureJobQueueService),
+            _ => typeof(RabbitJobQueueService)
+          });
     }
   }
 }
