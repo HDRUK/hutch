@@ -32,7 +32,7 @@ public class ResultsController: ControllerBase
   [HttpPost]
   public async Task<IActionResult> PostRoCrates([FromBody] ActivityJob body)
   {
-    var result = JsonSerializer.Deserialize<RquestAvailabilityResult>(body.Payload);
+    var result = JsonSerializer.Deserialize<RquestQueryResult>(body.Payload);
     if (result != null)
     {
       await _apiClient.ResultsEndpointPost(body.ActivitySourceId, body.JobId, result);
