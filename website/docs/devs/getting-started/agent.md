@@ -66,6 +66,12 @@ hatch build
 ```
 That's it!
 
+To add a shared library to the build, such as those in the `lib` directory of the repo, in `pyproject.toml`, go to the section named `[tool.hatch.build.targets.wheel.force-include]` and `[tool.hatch.build.targets.sdist.force-include]` and add the relative path to the packages you wish to include like so: `../../lib/name_of_shared_lib = shared_lib`.
+
+:::info
+It is recommended that you add your shared libs to the `lib` folder at the root of the repo. Make sure they contain a `__init__.py` file (which can be empty).
+:::
+
 ### Adding and removing deps
 To add a dependency to the whole project, in `pyproject.toml`, go to `dependencies` in `[project]` and add the name of the package you wish to add to the list. You should also add a version number to get more repeatable builds.
 
