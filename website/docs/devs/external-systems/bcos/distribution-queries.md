@@ -33,7 +33,7 @@ The code field can be one of the following:
 - GENERIC
 
 ## Uploading results for distribution queries
-There are two endpoints for uploading distirbution query results:
+There are two endpoints for uploading distribution query results:
 1. `/link_connector_api/task/resultfile/{uuid}/{collectionId}`
 2. `/link_connector_api/task/result/{uuid}/{collectionId}`
 
