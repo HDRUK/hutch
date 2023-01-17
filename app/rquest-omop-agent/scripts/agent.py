@@ -42,10 +42,16 @@ parser.add_argument(
     default="output.json",
     help="The path to the output file"
 )
+parser.add_argument(
+    "-m",
+    "--modifiers",
+    dest="results_modifiers",
+    required=False,
+    help="The results modifiers",
+    nargs="*",
+)
 
-def save_to_output(
-    result: RquestResult, destination: str
-) -> None:
+def save_to_output(result: RquestResult, destination: str) -> None:
     """Save the result to a JSON file.
 
     Args:
