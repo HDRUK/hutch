@@ -3,7 +3,6 @@ import sys
 import logging
 import argparse
 import json
-from typing import Union
 import requests
 import hutch_utils.config as config
 from hutch_utils.checkin import check_in
@@ -45,23 +44,28 @@ parser.add_argument(
     help="The path to the output file"
 )
 
-def send_to_manager(
-    result: RquestResult, endpoint: str
+def save_to_output(
+    result: RquestResult, destination: str
 ) -> None:
-    """Send a result RO-Crate to the manager.
+    """Save the result to a JSON file.
 
     Args:
         result (RquestResult): The object containing the result of a query.
-        endpoint (str): The endpoint at the manager to send the result.
+        destination (str): The name of the JSON file to save the results.
+
+    Raises:
+        ValueError: A path to a non-JSON file was passed as the destination.
     """
+    if not destination.endswith(".json"):
+        raise ValueError("Please specify a JSON file (ending in '.json').")
     logger = logging.getLogger(config.LOGGER_NAME)
-    res = requests.post(
-        f"{os.getenv('MANAGER_URL')}/{endpoint}",
-        json=result.to_dict(),
-        verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
-    )
-    res.raise_for_status()
-    logger.info("Sent results to manager.")
+    try:
+        with open(destination, "w") as output_file:
+            file_body = json.dumps(result.to_dict())
+            output_file.write(file_body)
+            logger.info(f"Saved results to {output_file.name}")
+    except Exception as e:
+        logger.error(str(e), exc_info=True)
 
 
 def main() -> None:
@@ -114,7 +118,7 @@ def main() -> None:
         query = AvailabilityQuery.from_dict(query_dict)
         result = query_solvers.solve_availability(db_manager=db_manager, query=query)
         try:
-            send_to_manager(result, "api/results")
+            save_to_output(result, "api/results")
             logger.info("Sent results to the manager")
         except requests.HTTPError as e:
             logger.critical(str(e))
@@ -122,7 +126,7 @@ def main() -> None:
         query = DistributionQuery.from_dict(query_dict)
         result = query_solvers.solve_distribution(db_manager=db_manager, query=query)
         try:
-            send_to_manager(result, "api/results")
+            save_to_output(result, "api/results")
             logger.info("Sent results to the manager")
         except requests.HTTPError as e:
             logger.critical(str(e))
