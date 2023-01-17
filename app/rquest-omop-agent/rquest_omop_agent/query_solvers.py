@@ -290,18 +290,12 @@ class CodeDistributionQuerySolver:
         return os.linesep.join(results), len(df)
 
 
-def solve_availability(
-    db_manager: SyncDBManager,
-    query: AvailabilityQuery,
-    activity_source_id: int,
-) -> RquestResult:
+def solve_availability(db_manager: SyncDBManager, query: AvailabilityQuery) -> RquestResult:
     """Solve RQuest availability queries.
 
     Args:
         db_manager (SyncDBManager): The database manager
         query (AvailabilityQuery): The availability query object
-        activity_source_id (int): The ID of the activity source
-        for fetching results modifiers
 
     Returns:
         RquestResult: Result object for the query
@@ -309,9 +303,7 @@ def solve_availability(
     logger = logging.getLogger(config.LOGGER_NAME)
     solver = AvailibilityQuerySolver(db_manager, query)
     try:
-        res = solver.solve_query()
-        result_modifiers = get_results_modifiers(activity_source_id)
-        count_ = apply_filters(res, result_modifiers)
+        count_ = solver.solve_query()
         result = RquestResult(
             status="ok",
             count=count_,
