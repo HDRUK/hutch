@@ -114,7 +114,7 @@ def main() -> None:
             save_to_output(result, args.output)
             logger.info(f"Saved results to {args.output}")
         except ValueError as e:
-            logger.critical(str(e), exc_info=True)
+            logger.error(str(e), exc_info=True)
     else:
         query = DistributionQuery.from_dict(query_dict)
         result = query_solvers.solve_distribution(db_manager=db_manager, query=query)
@@ -122,4 +122,4 @@ def main() -> None:
             save_to_output(result, args.output)
             logger.info(f"Saved results to {args.output}")
         except ValueError as e:
-            logger.critical(str(e), exc_info=True)
+            logger.error(str(e), exc_info=True)
