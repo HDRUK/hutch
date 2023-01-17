@@ -3,9 +3,7 @@ import sys
 import logging
 import argparse
 import json
-import requests
 import hutch_utils.config as config
-from hutch_utils.checkin import check_in
 from rquest_omop_agent import query_solvers
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from rquest_dto.result import RquestResult
@@ -40,6 +38,7 @@ parser.add_argument(
     "--output",
     dest="output",
     required=False,
+    type=str,
     default="output.json",
     help="The path to the output file"
 )
@@ -63,7 +62,6 @@ def save_to_output(
         with open(destination, "w") as output_file:
             file_body = json.dumps(result.to_dict())
             output_file.write(file_body)
-            logger.info(f"Saved results to {output_file.name}")
     except Exception as e:
         logger.error(str(e), exc_info=True)
 
@@ -83,22 +81,17 @@ def main() -> None:
     # parse command line arguments
     args = parser.parse_args()
 
+    # check only of -a or -d is given
     if args.is_availability and args.is_distribution:
         logger.error("Only one of `-a` or `-d` can be specified at once.")
         parser.print_help()
         exit()
 
-    logger.info("Attempting check-in...")
-    try:
-        check_in(
-            data_source_id=os.getenv("DATASOURCE_NAME"),
-            url=f"{os.getenv('MANAGER_URL')}/api/agents/checkin",
-        )
-    except requests.HTTPError:
-        logger.critical("Couldn't contact the manager. Exiting...")
+    # check one of -a or -d is given
+    if not (args.is_availability or args.is_distribution):
+        logger.error("Specify one of `-a` or `-d`.")
+        parser.print_help()
         exit()
-
-    logger.info("Check-in successful")
 
     logger.info("Setting up database connection...")
     datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
@@ -118,15 +111,15 @@ def main() -> None:
         query = AvailabilityQuery.from_dict(query_dict)
         result = query_solvers.solve_availability(db_manager=db_manager, query=query)
         try:
-            save_to_output(result, "api/results")
-            logger.info("Sent results to the manager")
-        except requests.HTTPError as e:
-            logger.critical(str(e))
+            save_to_output(result, args.output)
+            logger.info(f"Saved results to {args.output}")
+        except ValueError as e:
+            logger.critical(str(e), exc_info=True)
     else:
         query = DistributionQuery.from_dict(query_dict)
         result = query_solvers.solve_distribution(db_manager=db_manager, query=query)
         try:
-            save_to_output(result, "api/results")
-            logger.info("Sent results to the manager")
-        except requests.HTTPError as e:
-            logger.critical(str(e))
+            save_to_output(result, args.output)
+            logger.info(f"Saved results to {args.output}")
+        except ValueError as e:
+            logger.critical(str(e), exc_info=True)
