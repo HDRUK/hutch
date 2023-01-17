@@ -35,7 +35,7 @@ The code field can be one of the following:
 ## Uploading results for distribution queries
 There are two endpoints for uploading distirbution query results:
 1. `/link_connector_api/task/resultfile/{uuid}/{collectionId}`
-2. `/task/result/{uuid}/{collectionId}`
+2. `/link_connector_api/task/result/{uuid}/{collectionId}`
 
 where `uuid` is the UUID that come with the distribution query and `collectionID` is the collection ID.
 
