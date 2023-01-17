@@ -9,7 +9,7 @@ import hutch_utils.config as config
 from hutch_utils.checkin import check_in
 from rquest_omop_agent import query_solvers
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
-from rquest_dto.result import AvailabilityResult, RquestResult
+from rquest_dto.result import RquestResult
 from rquest_omop_agent.db_manager import SyncDBManager
 
 parser = argparse.ArgumentParser(
@@ -38,13 +38,12 @@ parser.add_argument(
 )
 
 def send_to_manager(
-    result: Union[AvailabilityResult, RquestResult], endpoint: str
+    result: RquestResult, endpoint: str
 ) -> None:
     """Send a result RO-Crate to the manager.
 
     Args:
-        result (Union[AvailabilityResult, DistributionResult]): 
-            The RO-Crate object containing the result of a query.
+        result (RquestResult): The object containing the result of a query.
         endpoint (str): The endpoint at the manager to send the result.
     """
     logger = logging.getLogger(config.LOGGER_NAME)
