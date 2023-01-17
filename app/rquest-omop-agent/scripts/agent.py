@@ -36,6 +36,14 @@ parser.add_argument(
     action="store_true",
     help="The query is a distribution query"
 )
+parser.add_argument(
+    "-o",
+    "--output",
+    dest="output",
+    required=False,
+    default="output.json",
+    help="The path to the output file"
+)
 
 def send_to_manager(
     result: RquestResult, endpoint: str
