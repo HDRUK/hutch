@@ -300,6 +300,8 @@ def solve_availability(
     Args:
         db_manager (SyncDBManager): The database manager
         query (AvailabilityQuery): The availability query object
+        activity_source_id (int): The ID of the activity source
+        for fetching results modifiers
 
     Returns:
         RquestResult: Result object for the query
@@ -362,16 +364,17 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> R
             count=count,
             datasets_count=1,
             files=[result_file],
+            collection_id=query.collection
         )
     except Exception as e:
         logger.error(str(e))
         result = RquestResult(
-            activity_source_id=query.activity_source_id,
             uuid=query.uuid,
             status="error",
             count=0,
             datasets_count=0,
             files=[],
+            collection_id=query.collection
         )
 
     return result
