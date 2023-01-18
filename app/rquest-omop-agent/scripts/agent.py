@@ -3,13 +3,11 @@ import sys
 import logging
 import argparse
 import json
-from typing import Union
-import requests
 import hutch_utils.config as config
-from hutch_utils.checkin import check_in
 from rquest_omop_agent import query_solvers
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
-from rquest_dto.result import AvailabilityResult, RquestResult
+from rquest_dto.result import RquestResult
+from hutch_utils.obfuscation import get_results_modifiers_from_str, apply_filters_v2
 from rquest_omop_agent.db_manager import SyncDBManager
 
 parser = argparse.ArgumentParser(
@@ -36,25 +34,44 @@ parser.add_argument(
     action="store_true",
     help="The query is a distribution query"
 )
+parser.add_argument(
+    "-o",
+    "--output",
+    dest="output",
+    required=False,
+    type=str,
+    default="output.json",
+    help="The path to the output file"
+)
+parser.add_argument(
+    "-m",
+    "--modifiers",
+    dest="results_modifiers",
+    required=False,
+    type=str,
+    default="[]",  # when parsed will produce an empty list
+    help="The results modifiers",
+)
 
-def send_to_manager(
-    result: Union[AvailabilityResult, RquestResult], endpoint: str
-) -> None:
-    """Send a result RO-Crate to the manager.
+def save_to_output(result: RquestResult, destination: str) -> None:
+    """Save the result to a JSON file.
 
     Args:
-        result (Union[AvailabilityResult, DistributionResult]): 
-            The RO-Crate object containing the result of a query.
-        endpoint (str): The endpoint at the manager to send the result.
+        result (RquestResult): The object containing the result of a query.
+        destination (str): The name of the JSON file to save the results.
+
+    Raises:
+        ValueError: A path to a non-JSON file was passed as the destination.
     """
+    if not destination.endswith(".json"):
+        raise ValueError("Please specify a JSON file (ending in '.json').")
     logger = logging.getLogger(config.LOGGER_NAME)
-    res = requests.post(
-        f"{os.getenv('MANAGER_URL')}/{endpoint}",
-        json=result.to_dict(),
-        verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
-    )
-    res.raise_for_status()
-    logger.info("Sent results to manager.")
+    try:
+        with open(destination, "w") as output_file:
+            file_body = json.dumps(result.to_dict())
+            output_file.write(file_body)
+    except Exception as e:
+        logger.error(str(e), exc_info=True)
 
 
 def main() -> None:
@@ -72,22 +89,17 @@ def main() -> None:
     # parse command line arguments
     args = parser.parse_args()
 
+    # check only of -a or -d is given
     if args.is_availability and args.is_distribution:
         logger.error("Only one of `-a` or `-d` can be specified at once.")
         parser.print_help()
         exit()
 
-    logger.info("Attempting check-in...")
-    try:
-        check_in(
-            data_source_id=os.getenv("DATASOURCE_NAME"),
-            url=f"{os.getenv('MANAGER_URL')}/api/agents/checkin",
-        )
-    except requests.HTTPError:
-        logger.critical("Couldn't contact the manager. Exiting...")
+    # check one of -a or -d is given
+    if not (args.is_availability or args.is_distribution):
+        logger.error("Specify one of `-a` or `-d`.")
+        parser.print_help()
         exit()
-
-    logger.info("Check-in successful")
 
     logger.info("Setting up database connection...")
     datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
@@ -103,19 +115,21 @@ def main() -> None:
 
     logger.info("Processing query...")
     query_dict = json.loads(args.body)
+    result_modifers = get_results_modifiers_from_str(args.results_modifiers)
     if args.is_availability:
         query = AvailabilityQuery.from_dict(query_dict)
         result = query_solvers.solve_availability(db_manager=db_manager, query=query)
+        result.count = apply_filters_v2(result.count, result_modifers)
         try:
-            send_to_manager(result, "api/results")
-            logger.info("Sent results to the manager")
-        except requests.HTTPError as e:
-            logger.critical(str(e))
+            save_to_output(result, args.output)
+            logger.info(f"Saved results to {args.output}")
+        except ValueError as e:
+            logger.error(str(e), exc_info=True)
     else:
         query = DistributionQuery.from_dict(query_dict)
         result = query_solvers.solve_distribution(db_manager=db_manager, query=query)
         try:
-            send_to_manager(result, "api/results")
-            logger.info("Sent results to the manager")
-        except requests.HTTPError as e:
-            logger.critical(str(e))
+            save_to_output(result, args.output)
+            logger.info(f"Saved results to {args.output}")
+        except ValueError as e:
+            logger.error(str(e), exc_info=True)

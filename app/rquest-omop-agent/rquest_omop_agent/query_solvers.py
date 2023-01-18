@@ -290,11 +290,7 @@ class CodeDistributionQuerySolver:
         return os.linesep.join(results), len(df)
 
 
-def solve_availability(
-    db_manager: SyncDBManager,
-    query: AvailabilityQuery,
-    activity_source_id: int,
-) -> RquestResult:
+def solve_availability(db_manager: SyncDBManager, query: AvailabilityQuery) -> RquestResult:
     """Solve RQuest availability queries.
 
     Args:
@@ -307,9 +303,7 @@ def solve_availability(
     logger = logging.getLogger(config.LOGGER_NAME)
     solver = AvailibilityQuerySolver(db_manager, query)
     try:
-        res = solver.solve_query()
-        result_modifiers = get_results_modifiers(activity_source_id)
-        count_ = apply_filters(res, result_modifiers)
+        count_ = solver.solve_query()
         result = RquestResult(
             status="ok",
             count=count_,
@@ -362,16 +356,17 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> R
             count=count,
             datasets_count=1,
             files=[result_file],
+            collection_id=query.collection
         )
     except Exception as e:
         logger.error(str(e))
         result = RquestResult(
-            activity_source_id=query.activity_source_id,
             uuid=query.uuid,
             status="error",
             count=0,
             datasets_count=0,
             files=[],
+            collection_id=query.collection
         )
 
     return result

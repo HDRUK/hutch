@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 from typing import Union
@@ -22,6 +23,27 @@ def get_results_modifiers(activity_source_id: int) -> list:
     res.raise_for_status()
     modifiers = res.json()
     return modifiers
+
+
+def get_results_modifiers_from_str(params: str) -> list:
+    """Deserialise a JSON list containing results modifiers
+
+    Args:
+        params (str):
+        The JSON string containing list of parameter objects for results modifiers
+
+    Raises:
+        ValueError: The parsed string does not produce a list
+
+    Returns:
+        list: The list of parameter dicts of results modifiers
+    """
+    params = json.loads(params)
+    if type(params) is not list:
+        raise ValueError(
+            f"{get_results_modifiers_from_str.__name__} requires a JSON list"
+        )
+    return params
 
 
 def low_number_suppression(
@@ -80,6 +102,26 @@ def apply_filters(value: Union[int, float], filters: list) -> Union[int, float]:
     for f in filters:
         if action := actions.get(f["type"]["id"]):
             result = action(result, **f["parameters"])
+            if result == 0:
+                break  # don't apply any more filters
+    return result
+
+
+def apply_filters_v2(value: Union[int, float], filters: list) -> Union[int, float]:
+    """Iterate over a list of filters and apply them to the supplied value.
+
+    Args:
+        value (Union[int, float]): The value to be filtered.
+        filters (list): The filters applied to the value.
+
+    Returns:
+        Union[int, float]: The filtered value.
+    """
+    actions = {"Low Number Suppression": low_number_suppression, "Rounding": rounding}
+    result = value
+    for f in filters:
+        if action := actions.get(f.pop("id", None)):
+            result = action(result, **f)
             if result == 0:
                 break  # don't apply any more filters
     return result
