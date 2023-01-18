@@ -1,6 +1,7 @@
+import json
 import os
 import requests
-from typing import Union
+from typing import Union, List
 
 
 def get_results_modifiers(activity_source_id: int) -> list:
@@ -22,6 +23,27 @@ def get_results_modifiers(activity_source_id: int) -> list:
     res.raise_for_status()
     modifiers = res.json()
     return modifiers
+
+
+def get_results_modifiers_from_str(params: str) -> list:
+    """Deserialise a JSON list containing results modifiers
+
+    Args:
+        params (str):
+        The JSON string containing list of parameter objects for results modifiers
+
+    Raises:
+        ValueError: The parsed string does not produce a list
+
+    Returns:
+        list: The list of parameter dicts of results modifiers
+    """
+    params = json.loads(params)
+    if type(params) is not list:
+        raise ValueError(
+            f"{get_results_modifiers_from_str.__name__} requires a JSON list"
+        )
+    return params
 
 
 def low_number_suppression(
