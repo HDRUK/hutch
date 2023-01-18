@@ -7,6 +7,7 @@ import hutch_utils.config as config
 from rquest_omop_agent import query_solvers
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from rquest_dto.result import RquestResult
+from hutch_utils.obfuscation import get_results_modifiers_from_str, apply_filters_v2
 from rquest_omop_agent.db_manager import SyncDBManager
 
 parser = argparse.ArgumentParser(
@@ -114,9 +115,11 @@ def main() -> None:
 
     logger.info("Processing query...")
     query_dict = json.loads(args.body)
+    result_modifers = get_results_modifiers_from_str(args.results_modifiers)
     if args.is_availability:
         query = AvailabilityQuery.from_dict(query_dict)
         result = query_solvers.solve_availability(db_manager=db_manager, query=query)
+        result.count = apply_filters_v2(result.count, result_modifers)
         try:
             save_to_output(result, args.output)
             logger.info(f"Saved results to {args.output}")
