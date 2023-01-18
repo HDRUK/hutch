@@ -47,8 +47,9 @@ parser.add_argument(
     "--modifiers",
     dest="results_modifiers",
     required=False,
+    type=str,
+    default="[]",  # when parsed will produce an empty list
     help="The results modifiers",
-    nargs="*",
 )
 
 def save_to_output(result: RquestResult, destination: str) -> None:
