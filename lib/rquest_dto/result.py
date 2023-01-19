@@ -1,59 +1,29 @@
 from typing import List, Union
+from rquest_dto.base_dto import BaseDto
 from rquest_dto.file import File
 
 
-class AvailabilityResult:
-    def __init__(
-        self,
-        activity_source_id: str,
-        job_id: str,
-        status: str,
-        count: int,
-        collection_id: str,
-        protocol_version: str = "v2"
-    ) -> None:
-        self.activity_source_id = activity_source_id
-        self.job_id = job_id
-        self.status = status
-        self.count = count
-        self.collection_id = collection_id
-        self.protocol_version = protocol_version
-
-    def to_dict(self) -> dict:
-        return {
-            "status": self.status,
-            "protocol_version": self.protocol_version,
-            "collection_id": self.collection_id,
-            "query_result": {
-                "count": self.count,
-            },
-        }
-
-
-class DistributionResult:
+class RquestResult(BaseDto):
     """
-    This class represents the result of an RQuest distribution query
-    in RO-Crates common transfer format.
+    This class represents the result of an RQuest query.
     """
 
     def __init__(
         self,
-        activity_source_id: str,
-        job_id: str,
+        uuid: str,
         status: str,
-        count: int,
-        datasets_count: Union[int, None],
-        files: List[File],
         collection_id: str,
+        count: int = 0,
+        datasets_count: int = 0,
+        files: List[File] = None,
         message: Union[str, None] = None,
         protocol_version: str = "v2",
     ) -> None:
-        self.activity_source_id = activity_source_id
-        self.job_id = job_id
+        self.uuid = uuid
         self.status = status
         self.count = count
         self.datasets_count = datasets_count
-        self.files = files
+        self.files = files if files is not None else list()
         self.message = message
         self.collection_id = collection_id
         self.protocol_version = protocol_version
@@ -63,13 +33,12 @@ class DistributionResult:
 
         Returns:
             dict:
-                the `dict` representing the RO-Crate containing the result of a
-                distribution query.
+                the `dict` representing the result of a distribution query.
         """
         return {
             "status": self.status,
-            "protocol_version": self.protocol_version,
-            "uuid": self.job_id,
+            "protocolVersion": self.protocol_version,
+            "uuid": self.uuid,
             "queryResult": {
                 "count": self.count,
                 "datasetCount": self.datasets_count,

@@ -2,15 +2,15 @@ import os
 import json
 import logging
 import time
-import requests, requests.exceptions as req_exc
-import hutchagent.config as config
+import hutch_utils.config as config
 from typing import Union
 from sqlalchemy import exc as sql_exc
-from hutchagent.rquest.result import AvailabilityResult
-from hutchagent.rquest.query import AvailabilityQuery
+from rquest_dto.activity_job import ActivityJob
+from rquest_dto.result import RquestResult
+from rquest_dto.query import AvailabilityQuery
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.query_builders import AvailibilityQueryBuilder
-from hutchagent.obfuscation import get_results_modifiers, apply_filters
+from hutchagent.query_solvers import solve_availability
+from hutchagent.message_queues.helpers import send_to_manager
 
 
 def az_queue_callback(msg: Union[str, bytes]):
@@ -25,8 +25,8 @@ def az_queue_callback(msg: Union[str, bytes]):
     logger = logging.getLogger(config.LOGGER_NAME)
     logger.info("Received message from the Queue. Processing...")
     try:
-        body_json = json.loads(msg)
-        query = AvailabilityQuery.from_dict(body_json)
+        activity_job = ActivityJob.from_dict(json.loads(msg))
+        query = AvailabilityQuery.from_dict(activity_job.payload)
         logger.info(f"Successfully unpacked message.")
     except json.decoder.JSONDecodeError:
         logger.error("Failed to decode the message from the queue.")
@@ -41,67 +41,56 @@ def az_queue_callback(msg: Union[str, bytes]):
         drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
         schema=os.getenv("DATASOURCE_DB_SCHEMA"),
     )
-    query_builder = AvailibilityQueryBuilder(db_manager, query)
     try:
         query_start = time.time()
-        query_builder.solve_rules()
-        res = query_builder.solve_groups()
+        count_ = solve_availability(db_manager, query, activity_job.activity_source_id)
         query_end = time.time()
-        count_ = res
-        result_modifiers = get_results_modifiers(query.activity_source_id)
-        count_ = apply_filters(count_, result_modifiers)
         logger.info(
             f"Collected {count_} results from query in {(query_end - query_start):.3f}s."
         )
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
+        result = RquestResult(
             status="ok",
             count=count_,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
     except sql_exc.NoSuchTableError as table_error:
         logger.error(str(table_error))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
+        result = RquestResult(
             status="error",
             count=0,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
     except sql_exc.NoSuchColumnError as column_error:
         logger.error(str(column_error))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
+        result = RquestResult(
             status="error",
             count=0,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
     except sql_exc.ProgrammingError as programming_error:
         logger.error(str(programming_error))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
+        result = RquestResult(
             status="error",
             count=0,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
     except Exception as e:
         logger.error(str(e))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.job_id,
+        result = RquestResult(
             status="error",
             count=0,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
 
-    try:
-        requests.post(
-            f"{os.getenv('MANAGER_URL')}/api/results",
-            json=result.to_dict(),
-            verify=int(os.getenv("MANAGER_VERIFY_SSL", 1)),
+    result_payload = ActivityJob(
+            type_=activity_job.type_,
+            job_id=activity_job.job_id,
+            activity_source_id=activity_job.activity_source_id,
+            payload=result.to_dict()
         )
-        logger.info("Sent results to manager.")
-    except req_exc.ConnectionError as connection_error:
-        logger.error(str(connection_error))
-    except req_exc.Timeout as timeout_error:
-        logger.error(str(timeout_error))
-    except req_exc.MissingSchema as missing_schema_error:
-        logger.error(str(missing_schema_error))
+    send_to_manager(result_payload, endpoint="api/results")

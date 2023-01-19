@@ -1,13 +1,16 @@
 import json
 import logging
+import os
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.channel import Channel
 from pika.spec import Basic, BasicProperties
-import hutchagent.config as config
-from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
+import hutch_utils.config as config
+from rquest_dto.activity_job import ActivityJob
+from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from hutchagent.message_queues.helpers import send_to_manager
-from hutchagent.message_queues.rquest_solvers import solve_availability, solve_distribution
+from hutchagent.query_solvers import solve_availability, solve_distribution
+from hutchagent.db_manager import SyncDBManager
 
 
 def connect(queue: str, host, **kwargs) -> BlockingChannel:
@@ -52,31 +55,42 @@ def ro_crates_callback(
         body (bytes): The body of the message.
     """
     logger = logging.getLogger(config.LOGGER_NAME)
+    datasource_db_port = os.getenv("DATASOURCE_DB_PORT")
+    db_manager = SyncDBManager(
+        username=os.getenv("DATASOURCE_DB_USERNAME"),
+        password=os.getenv("DATASOURCE_DB_PASSWORD"),
+        host=os.getenv("DATASOURCE_DB_HOST"),
+        port=int(datasource_db_port) if datasource_db_port is not None else None,
+        database=os.getenv("DATASOURCE_DB_DATABASE"),
+        drivername=os.getenv("DATASOURCE_DB_DRIVERNAME", config.DEFAULT_DB_DRIVER),
+        schema=os.getenv("DATASOURCE_DB_SCHEMA"),
+    )
     logger.info("Received message from the Queue. Processing...")
 
     # Try to find the query type
-    query_type = None
-    try:
-        body_json = json.loads(body)
-        for g in body_json.get("@graph", list()):
-            if g.get("name") == "query_type":
-                query_type = g.get("value")
-                break
-        # Can't get query type
-        else:
-            raise json.decoder.JSONDecodeError
-        logger.info(f"Successfully unpacked message.")
-    except json.decoder.JSONDecodeError:
-        logger.error("Failed to decode the message from the queue.")
-        return  # exit the callback
+    activity_job = ActivityJob.from_dict(json.loads(body))
+    query_type = activity_job.type_
+    logger.info(f"Successfully unpacked message.")
 
-    if query_type == "RQuestAvailability":
-        query = AvailabilityQuery.from_dict(body_json)
-        result = solve_availability(query)
-        send_to_manager(result=result, endpoint="api/results")
-    elif query_type == "RQuestDistribution":
-        query = DistributionQuery.from_dict(body_json)
-        result = solve_distribution(query)
+    if query_type == "AvailabilityQuery":
+        query = AvailabilityQuery.from_dict(activity_job.payload)
+        result = solve_availability(db_manager, query, activity_job.activity_source_id)
+        return_payload = ActivityJob(
+            type_=query_type,
+            job_id=activity_job.job_id,
+            activity_source_id=activity_job.activity_source_id,
+            payload=result.to_dict()
+        )
+        send_to_manager(result=return_payload, endpoint="api/results")
+    elif query_type == "DistributionQuery":
+        query = DistributionQuery.from_dict(activity_job.payload)
+        result = solve_distribution(db_manager, query)
+        return_payload = ActivityJob(
+            type_=query_type,
+            job_id=activity_job.job_id,
+            activity_source_id=activity_job.activity_source_id,
+            payload=result.to_dict()
+        )
         # send_to_manager(result=result, endpoint="api/results")
     else:
         logger.error(f"Unsupported query type: '{query_type}'.")

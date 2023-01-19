@@ -1,6 +1,7 @@
+import base64
 import os
+import logging
 from typing import Tuple
-import dotenv
 import pandas as pd
 from sqlalchemy import (
     and_,
@@ -8,7 +9,7 @@ from sqlalchemy import (
     func,
 )
 from hutchagent.db_manager import SyncDBManager
-from hutchagent.entities import (
+from omop_entities.entities import (
     Concept,
     ConditionOccurrence,
     Measurement,
@@ -17,12 +18,14 @@ from hutchagent.entities import (
     DrugExposure,
     ProcedureOccurrence,
 )
-from hutchagent.rquest.query import AvailabilityQuery, DistributionQuery
+from rquest_dto.query import AvailabilityQuery, DistributionQuery
+from rquest_dto.file import File
+from rquest_dto.result import RquestResult
+from hutch_utils.obfuscation import get_results_modifiers, apply_filters
+from hutch_utils import config
 
-dotenv.load_dotenv()
 
-
-class AvailibilityQueryBuilder:
+class AvailibilityQuerySolver:
     subqueries = list()
     concept_table_map = {
         "Condition": ConditionOccurrence,
@@ -65,7 +68,7 @@ class AvailibilityQueryBuilder:
 
     def _find_concepts(self) -> dict:
         concept_ids = set()
-        for group in self.query.groups:
+        for group in self.query.cohort.groups:
             for rule in group.rules:
                 concept_ids.add(rule.value)
         concept_query = (
@@ -80,11 +83,11 @@ class AvailibilityQueryBuilder:
         }
         return concept_dict
 
-    def solve_rules(self) -> None:
+    def _solve_rules(self) -> None:
         """Find all rows that match the rules' criteria."""
         concepts = self._find_concepts()
         merge_method = lambda x: "inner" if x == "AND" else "outer"
-        for group in self.query.groups:
+        for group in self.query.cohort.groups:
             concept = concepts.get(group.rules[0].value)
             concept_table = self.concept_table_map.get(concept)
             boolean_rule_col = self.boolean_rule_map.get(concept)
@@ -106,14 +109,14 @@ class AvailibilityQueryBuilder:
                     .distinct()
                 )
                 main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-            elif group.rules[0].operator.value == "=":
+            elif group.rules[0].operator == "=":
                 stmnt = (
                     select(concept_table.person_id)
                     .where(boolean_rule_col == group.rules[0].value)
                     .distinct()
                 )
                 main_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
-            elif group.rules[0].operator.value == "!=":
+            elif group.rules[0].operator == "!=":
                 stmnt = (
                     select(concept_table.person_id)
                     .where(boolean_rule_col != group.rules[0].value)
@@ -144,12 +147,12 @@ class AvailibilityQueryBuilder:
                     )
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rule_operator.value),
+                        how=merge_method(group.rules_operator),
                         left_on="person_id",
                         right_on=f"person_id_{i}",
                     )
                 # Text rules testing for inclusion
-                elif rule.operator.value == "=":
+                elif rule.operator == "=":
                     stmnt = (
                         select(concept_table.person_id.label(f"person_id_{i}"))
                         .where(boolean_rule_col == rule.value)
@@ -158,12 +161,12 @@ class AvailibilityQueryBuilder:
                     rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rule_operator.value),
+                        how=merge_method(group.rules_operator),
                         left_on="person_id",
                         right_on=f"person_id_{i}",
                     )
                 # Text rules testing for exclusion
-                elif rule.operator.value == "!=":
+                elif rule.operator == "!=":
                     stmnt = (
                         select(concept_table.person_id.label(f"person_id_{i}"))
                         .where(boolean_rule_col != rule.value)
@@ -172,22 +175,23 @@ class AvailibilityQueryBuilder:
                     rule_df = pd.read_sql_query(sql=stmnt, con=self.db_manager.engine)
                     main_df = main_df.merge(
                         right=rule_df,
-                        how=merge_method(group.rule_operator.value),
+                        how=merge_method(group.rules_operator),
                         left_on="person_id",
                         right_on=f"person_id_{i}",
                     )
             self.subqueries.append(main_df)
 
-    def solve_groups(self) -> int:
+    def solve_query(self) -> int:
         """Merge the groups and return the number of rows that matched all criteria."""
+        self._solve_rules()
         merge_method = lambda x: "inner" if x == "AND" else "outer"
         group0_df = self.subqueries[0]
         group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
         for i, df in enumerate(self.subqueries[1:], start=1):
-            df.rename({"person_id": f"person_id_{i}"}, axis=1)
+            df.rename({"person_id": f"person_id_{i}"}, inplace=True, axis=1)
             group0_df = group0_df.merge(
                 right=df,
-                how=merge_method(self.query.group_operator),
+                how=merge_method(self.query.cohort.groups_operator),
                 left_on="person_id_0",
                 right_on=f"person_id_{i}",
             )
@@ -195,7 +199,7 @@ class AvailibilityQueryBuilder:
         return group0_df.shape[0]  # the number of rows
 
 
-class CodeDistributionQueryBuilder:
+class CodeDistributionQuerySolver:
     allowed_domains_map = {
         "Condition": ConditionOccurrence,
         "Ethnicity": Person,
@@ -285,3 +289,90 @@ class CodeDistributionQueryBuilder:
         
         return os.linesep.join(results), len(df)
 
+
+def solve_availability(
+    db_manager: SyncDBManager,
+    query: AvailabilityQuery,
+    activity_source_id: int,
+) -> RquestResult:
+    """Solve RQuest availability queries.
+
+    Args:
+        db_manager (SyncDBManager): The database manager
+        query (AvailabilityQuery): The availability query object
+
+    Returns:
+        RquestResult: Result object for the query
+    """
+    logger = logging.getLogger(config.LOGGER_NAME)
+    solver = AvailibilityQuerySolver(db_manager, query)
+    try:
+        res = solver.solve_query()
+        result_modifiers = get_results_modifiers(activity_source_id)
+        count_ = apply_filters(res, result_modifiers)
+        result = RquestResult(
+            status="ok",
+            count=count_,
+            collection_id=query.collection,
+            uuid=query.uuid
+        )
+        logger.info("Solved availability query")
+    except Exception as e:
+        logger.error(str(e))
+        result = RquestResult(
+            status="error",
+            count=0,
+            collection_id=query.collection,
+            uuid=query.uuid
+        )
+
+    return result
+
+
+def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> RquestResult:
+    """Solve RQuest distribution queries.
+
+    Args:
+        db_manager (SyncDBManager): The database manager
+        query (DistributionQuery): The distribution query object
+
+    Returns:
+        DistributionResult: Result object for the query
+    """
+    logger = logging.getLogger(config.LOGGER_NAME)
+    solver = CodeDistributionQuerySolver(db_manager, query)
+    try:
+        res, count = solver.solve_query()
+        # Convert file data to base64
+        res_b64_bytes = base64.b64encode(res.encode("utf-8"))  # bytes
+        size = len(res_b64_bytes) / 1000  # length of file data in KB
+        res_b64 = res_b64_bytes.decode("utf-8")  # convert back to string, now base64
+        result_file = File(
+            data=res_b64,
+            description="Result of code.distribution anaylsis",
+            name="code.distribution",
+            sensitive=True,
+            reference="",
+            size=size,
+            type_="BCOS"
+        )
+        result = RquestResult(
+            uuid=query.uuid,
+            status="ok",
+            count=count,
+            datasets_count=1,
+            files=[result_file],
+            collection_id=query.collection,
+        )
+    except Exception as e:
+        logger.error(str(e))
+        result = RquestResult(
+            uuid=query.uuid,
+            status="error",
+            count=0,
+            datasets_count=0,
+            files=[],
+            collection_id=query.collection,
+        )
+
+    return result

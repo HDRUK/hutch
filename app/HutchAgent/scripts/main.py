@@ -1,7 +1,7 @@
 import os
 import sys
 import logging
-import hutchagent.config as config
+import hutch_utils.config as config
 import pika
 import dotenv
 import hutchagent.message_queues.rmq_queue as rmq

@@ -33,13 +33,13 @@ The code field can be one of the following:
 - GENERIC
 
 ## Uploading results for distribution queries
-There are two endpoints for uploading distirbution query results:
+There are two endpoints for uploading distribution query results:
 1. `/link_connector_api/task/resultfile/{uuid}/{collectionId}`
-2. `/task/result/{uuid}/{collectionId}`
+2. `/link_connector_api/task/result/{uuid}/{collectionId}`
 
-where `uuid` is the UUID that come with the distribution query and `collectionID` is the collection ID.
+where `uuid` is the UUID that came with the distribution query and `collectionID` is the collection ID.
 
-Use **endpoint 1.** is when you want to upload large files and/or sensitive data. **Endpoint 2.** is for when your data are small and/or not sensitive.
+Use **endpoint 1.** when you want to upload large files and/or sensitive data. **Endpoint 2.** is for when your data are small and/or not sensitive.
 
 ### Uploading large/sensitive data
 There is a 2-step process for uploading large/sensitive data.
@@ -47,7 +47,7 @@ There is a 2-step process for uploading large/sensitive data.
 #### Step 1.
 `POST` to **endpoint 1.**
 
-The body of the `POST` request should take the following form:
+The body of the `POST` request should look like this:
 ```json
 {
   "status": "ok",
@@ -84,12 +84,12 @@ The `file_name` parameter can be one of the following:
 
 The choice depends on the type of distribution analysis being requested.
 
-The `file_data` field needs to the body a file encoded as base-64.
+The `file_data` field needs to be a single string containing the contents of the file, encoded in base-64.
 
 #### Step 2.
 `POST` to **endpoint 2.**
 
-The body of the `POST` request should take the following form:
+The body of the `POST` request should look like this:
 ```json
 {
   "status": "ok",

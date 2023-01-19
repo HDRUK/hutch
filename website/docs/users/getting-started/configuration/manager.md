@@ -68,16 +68,16 @@ RquestTaskApi:
   Password: ""
 
 # Set-up if using RabbitMQ
-QueueType: "RabbitMQ"
 JobQueue:
+  Provider: "RabbitMQ"
   HostName: ""
   Port: 5672
   UserName: "guest"
   Password: "guest"
 
 # Set-up if using Azure Queue Storage
-QueueType: "AzureQueueStorage"
 JobQueue:
+  Provider: "AzureQueueStorage"
   ConnectionString: "<your connection string>"
 
 # Opt in feature flags

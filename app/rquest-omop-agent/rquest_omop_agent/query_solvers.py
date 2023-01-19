@@ -20,7 +20,7 @@ from omop_entities.entities import (
 )
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from rquest_dto.file import File
-from rquest_dto.result import AvailabilityResult, DistributionResult
+from rquest_dto.result import RquestResult
 from hutch_utils.obfuscation import get_results_modifiers, apply_filters
 from hutch_utils import config
 
@@ -188,7 +188,7 @@ class AvailibilityQuerySolver:
         group0_df = self.subqueries[0]
         group0_df.rename({"person_id": "person_id_0"}, inplace=True, axis=1)
         for i, df in enumerate(self.subqueries[1:], start=1):
-            df.rename({"person_id": f"person_id_{i}"}, axis=1)
+            df.rename({"person_id": f"person_id_{i}"}, inplace=True, axis=1)
             group0_df = group0_df.merge(
                 right=df,
                 how=merge_method(self.query.cohort.groups_operator),
@@ -290,7 +290,7 @@ class CodeDistributionQuerySolver:
         return os.linesep.join(results), len(df)
 
 
-def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResult:
+def solve_availability(db_manager: SyncDBManager, query: AvailabilityQuery) -> RquestResult:
     """Solve RQuest availability queries.
 
     Args:
@@ -298,34 +298,32 @@ def solve_availability(db_manager, query: AvailabilityQuery) -> AvailabilityResu
         query (AvailabilityQuery): The availability query object
 
     Returns:
-        AvailabilityResult: Result object for the query
+        RquestResult: Result object for the query
     """
     logger = logging.getLogger(config.LOGGER_NAME)
     solver = AvailibilityQuerySolver(db_manager, query)
     try:
-        res = solver.solve_query()
-        result_modifiers = get_results_modifiers(query.activity_source_id)
-        count_ = apply_filters(res, result_modifiers)
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
+        count_ = solver.solve_query()
+        result = RquestResult(
             status="ok",
             count=count_,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
         logger.info("Solved availability query")
     except Exception as e:
         logger.error(str(e))
-        result = AvailabilityResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
+        result = RquestResult(
             status="error",
             count=0,
+            collection_id=query.collection,
+            uuid=query.uuid
         )
 
     return result
 
 
-def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> DistributionResult:
+def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> RquestResult:
     """Solve RQuest distribution queries.
 
     Args:
@@ -352,22 +350,23 @@ def solve_distribution(db_manager: SyncDBManager, query: DistributionQuery) -> D
             size=size,
             type_="BCOS"
         )
-        result = DistributionResult(
-            job_id=query.uuid,
+        result = RquestResult(
+            uuid=query.uuid,
             status="ok",
             count=count,
             datasets_count=1,
             files=[result_file],
+            collection_id=query.collection
         )
     except Exception as e:
         logger.error(str(e))
-        result = DistributionResult(
-            activity_source_id=query.activity_source_id,
-            job_id=query.uuid,
+        result = RquestResult(
+            uuid=query.uuid,
             status="error",
             count=0,
             datasets_count=0,
             files=[],
+            collection_id=query.collection
         )
 
     return result
