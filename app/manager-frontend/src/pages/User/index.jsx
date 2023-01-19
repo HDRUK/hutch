@@ -81,7 +81,6 @@ export const User = ({ data, action, id }) => {
   const handleSubmit = async (values, actions) => {
     // handle submission for an update or registering new user
     try {
-      values.username = "@" + values.username;
       // post to the api
       const actionResponse = await action({
         values,
@@ -95,9 +94,9 @@ export const User = ({ data, action, id }) => {
       });
       const response = await account.generateActivationLink({
         id: actionResponse.id,
-      }); // generate user account activation link
-
-      setGeneratedLink(response.url);
+      }).json(); // generate user account activation link
+     
+      setGeneratedLink(response.activationLink);
       onDisplayLinkOpen();
     } catch (e) {
       console.error(e);
@@ -129,7 +128,7 @@ export const User = ({ data, action, id }) => {
                     {feedback}
                   </Alert>
                 )}
-                <FormikInput label="Username" name="username" />
+                <FormikInput label="Username" placeholder={"@username"} name="username" />
               </VStack>
             </Form>
           </Formik>
