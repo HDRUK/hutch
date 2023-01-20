@@ -86,8 +86,9 @@ export const UsersList = () => {
               username={item.username}
               isUserActive={item.accountConfirmed}
               onDelete={
-                // Prevent user from deleting itself
-                // exclude delete action from the summary card for the logged in user
+                // Prevent user from deleting itself & superadmin
+                // exclude delete action from the summary card for the logged in user & admin
+                !item.isProtected &&
                 item.fullName !== user.fullName &&
                 item.email !== user.email &&
                 (() => onClickDelete(item))
