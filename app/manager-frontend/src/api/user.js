@@ -33,6 +33,10 @@ export const getUserApi = ({ api }) => ({
    * @param {*} culture a culture/locale/language code
    * @returns
    */
+  create: ({ values }) =>
+    api.post("users", {
+      json: values,
+    }),
   setUICulture: (culture) =>
     api.put("user/uiCulture", {
       json: culture,

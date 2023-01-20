@@ -13,6 +13,7 @@ import CreateActivitySource from "pages/ActivitySource/create";
 import EditActivitySource from "pages/ActivitySource/edit";
 import { DataSourcesList } from "pages/DataSource/list";
 import RegisterAgent from "pages/Agent/create";
+import RegisterUser from "pages/User/create";
 import EditAgent from "pages/Agent/edit";
 
 const IndexRedirect = () => {
@@ -45,6 +46,7 @@ export const Root = () => {
           <Route path="datasources" element={<DataSourcesList />} />
           <Route path="activitysources/:id" element={<EditActivitySource />} />
           <Route path="agents/:id" element={<EditAgent />} />
+          <Route path="users/new" element={<RegisterUser />} />
         </Route>
 
         <Route path="account/*" element={<Account />} />

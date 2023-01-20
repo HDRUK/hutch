@@ -71,8 +71,8 @@ export const UsersList = () => {
       data={outputList.length > 0}
       setFilter={setFilter}
       href="/users"
-      actionTitle="User"
-      actionNewTitle="Register an user"
+      actionTitle="Users"
+      actionNewTitle="Register a user"
       modalDelete={ModalDelete}
     >
       {outputList.length > 0 &&
@@ -81,7 +81,6 @@ export const UsersList = () => {
             <UserSummary
               key={index}
               userId={item.id}
-              href={`/users/${item.id}`}
               name={item.fullName}
               username={item.username}
               isUserActive={item.accountConfirmed}
