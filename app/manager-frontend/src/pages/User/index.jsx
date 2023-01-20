@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useRef } from "react";
 import { Form, Formik } from "formik";
-import { FormikInput } from "../../components/forms/FormikInput";
+import { FormikInput } from "components/forms/FormikInput";
 import { useNavigate } from "react-router-dom";
 import { BasicModal } from "components/BasicModal";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
