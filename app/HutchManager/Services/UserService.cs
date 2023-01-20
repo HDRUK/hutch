@@ -107,7 +107,7 @@ public class UserService
   /// Create User given a username
   /// </summary>
   /// <param name="userModel"></param>
-  public async Task Create(UserModel userModel)
+  public async Task<UserModel> Create(UserModel userModel)
   {
     // Autogenerate email address for @username users
     if (userModel.Username.StartsWith("@"))
@@ -125,6 +125,7 @@ public class UserService
       Email = userModel.Email
     };
     await _users.CreateAsync(user);
+    return new(user);
   }
   
   /// <summary>

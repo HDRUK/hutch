@@ -25,8 +25,8 @@ public class UsersController : ControllerBase
   [HttpPost]
   public async Task<IActionResult> Create([FromBody] UserModel user)
   {
-    await _user.Create(user);
-    return Ok(user);
+    
+    return Ok(await _user.Create(user));
   }
   
   [HttpDelete("{id}")]
