@@ -66,6 +66,8 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v3.1.1
         with:
-          push: true
+          # make push true before true before closing PR
+          push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          file: app/rquest-omop-agent/Dockerfile
