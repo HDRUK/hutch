@@ -1,0 +1,62 @@
+name: Publish Rquest OMOP Agent
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      buildConfig:
+        description: Build Configuration
+        required: true
+        default: release
+  push:
+    branches: [main]
+  
+
+jobs:
+  generate-timestamp:
+    runs-on: ubuntu-latest
+    outputs:
+      timestamp: ${{ steps.makestamp.outputs.time }}
+    steps:
+    - name: Make Timestamp
+      id: makestamp
+      uses: nanzm/get-time-action@v1.1
+      with:
+        format: "YYYYMMDDHHmmss"
+
+  publish-agent-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      APP_NAME: rquest-omop-agent
+      NEXT_TAG: next
+      TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
+      REGISTRY: ghcr.io
+    needs: generate-timestamp
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Docker Login
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Metadata action
+        id: meta
+        uses: docker/metadata-action@v4.0.1
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
+          tags: |
+            ${{ env.TS_TAG }}
+            ${{ env.NEXT_TAG }}
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3.1.1
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          file: app/rquest-omop-agent/Dockerfile
