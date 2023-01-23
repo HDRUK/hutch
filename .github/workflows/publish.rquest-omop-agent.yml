@@ -8,13 +8,7 @@ on:
         required: true
         default: release
   push:
-    branches: [main, one-shot-publish-workflow]
-  # This is for testing, remove before closing PR.
-  pull_request:
-    types: 
-      - open
-    paths:
-      - '.github/workflows/*.yml'
+    branches: [main]
   
 
 jobs:
@@ -38,8 +32,6 @@ jobs:
       APP_NAME: rquest-omop-agent
       NEXT_TAG: next
       TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
-      # Remove before closing PR
-      TEST_TAG: test
       REGISTRY: ghcr.io
     needs: generate-timestamp
     steps:
@@ -57,17 +49,14 @@ jobs:
         uses: docker/metadata-action@v4.0.1
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.APP_NAME }}
-          # Remove TEST_tag before closing PR
           tags: |
             ${{ env.TS_TAG }}
             ${{ env.NEXT_TAG }}
-            ${{ env.TEST_TAG }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v3.1.1
         with:
-          # make push true before true before closing PR
-          push: false
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: app/rquest-omop-agent/Dockerfile
