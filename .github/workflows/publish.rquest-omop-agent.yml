@@ -10,7 +10,7 @@ on:
   push:
     branches: [main]
   # This is for testing, remove before closing PR.
-  pull_rquest:
+  pull_request:
     types: 
       - open
     paths:
