@@ -8,7 +8,7 @@ on:
         required: true
         default: release
   push:
-    branches: [main]
+    branches: [main, one-shot-publish-workflow]
   # This is for testing, remove before closing PR.
   pull_request:
     types: 
