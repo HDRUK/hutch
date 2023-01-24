@@ -17,6 +17,8 @@ public class UserModel
 
   public string Id { get; set; } = string.Empty;
   
+  public bool IsProtected { get; set; }
+  
   public UserModel(ApplicationUser entity)
     {
       Username = entity.UserName;

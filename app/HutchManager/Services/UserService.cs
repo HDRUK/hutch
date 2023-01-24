@@ -137,7 +137,18 @@ public class UserService
     var list = await _db.Users
       .AsNoTracking()
       .ToListAsync();
-    return list.ConvertAll<UserModel>(x => new(x));
+    var userList=list.ConvertAll<UserModel>(x => new(x));
+    try
+    {
+      userList.Find(e => e.Username == "@admin")!.IsProtected = true;
+
+    }
+    catch
+    {
+      throw new KeyNotFoundException();
+    }
+
+    return userList;
   }
   
   /// <summary>
