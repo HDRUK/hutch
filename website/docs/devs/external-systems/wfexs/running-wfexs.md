@@ -24,3 +24,15 @@ And finally, to package the workflow into an RO-Crate, which will include refere
   staged-workdir create-prov-crate "pithy random name" ROCrate.zip \
   --full
 ```
+
+## Configuring WfExS
+
+Congiguration in WfExS is done using YAML (`.yaml/.yml`) files. There are two main configuration files to write in order to run WfExS:
+* a local configuration file, specified by the `-L` flag after `.WfExS_backend.py` and before any subcommands like `stage`, etc.
+* a workflow configuration file or a staging file, passed to `stage` using the `-W` flag.
+
+The local configuration file is used to tell WfExS to find certain commands like `java`, `git`, `singularity` etc. It also specifies the working and cache directories.
+
+The workflow configuartion file is used to specify parameters and oututs of a workflow, as well as other configuration specific to the workflow being run.
+
+More information can be found at [https://github.com/inab/WfExS-backend#configuration-files](https://github.com/inab/WfExS-backend#configuration-files).
