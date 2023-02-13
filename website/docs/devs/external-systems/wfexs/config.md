@@ -32,3 +32,21 @@ tools:
 Under `tools`, specify the commands to run programs like `singularity`, `java`, `docker`, etc. If only the names are specified, as above, these programs must be in `$PATH`. If any are not in `$PATH`, either add them to `$PATH` or give the full path to the progam here.
 
 ## Workflow Configuration
+The workflow configuration is also given in a YAML file. Template:
+```yaml
+workflow_id: # URL to workflow
+workflow_config:
+  secure: false
+cacheDir: /path/to/chacheDir
+crypt4gh:
+  key: /path/to/private-key
+  passphrase: four random words here
+  pub: /path/to/public-key
+params:
+  ...
+outputs:
+  ...
+```
+The `params` are the inputs to your workflow. The `outputs` map to the expected files/directories that come out at the end of the workflow.
+
+More information can be found at [https://github.com/inab/WfExS-backend#configuration-files](https://github.com/inab/WfExS-backend#configuration-files).
