@@ -9,7 +9,7 @@ public class ROCrate
   private List<Entity> _defaultEntities = new();
   private Dictionary<string, Entity> _entityMap = new();
   private static string _uuid = Guid.NewGuid().ToString();
-  private Uri _arcpBaseUri = new($"arcp://uuid,{_uuid}");
+  private string _arcpBaseUri = $"arcp://uuid{_uuid}/";
   /// TODO: add the following fields:
   ///   - preview (based on Preview class not yet made)
 
@@ -34,7 +34,8 @@ public class ROCrate
   public string ResolveId(string id)
   {
     if (Uri.IsWellFormedUriString(id, UriKind.Absolute)) return id.TrimEnd('/');
-    Uri.TryCreate(_arcpBaseUri, id, out var newUri);
+    
+    Uri.TryCreate(new Uri(_arcpBaseUri), id, out var newUri);
     return newUri.ToString().TrimEnd('/');
   }
 }
