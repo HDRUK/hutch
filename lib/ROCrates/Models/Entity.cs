@@ -26,8 +26,7 @@ public class Entity
   /// <returns></returns>
   public string GetCanonicalId()
   {
-    // return RoCrate.ResolveId(Identifier);
-    throw new NotImplementedException();
+    return RoCrate.ResolveId(Identifier);
   }
 
   /// <summary>
