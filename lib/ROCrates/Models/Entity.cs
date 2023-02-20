@@ -35,16 +35,16 @@ public class Entity
   /// </summary>
   /// <param name="propertyName">The name of the property to retrieve.</param>
   /// <typeparam name="T">The type to deserialise the property into.</typeparam>
-  /// <returns></returns>
-  public T? GetProperty<T>(string propertyName) where T : class
+  /// <returns>
+  /// <para>
+  /// The property as type <c>T</c> if the property exists, or <c>null</c> if the property does no exist on the entity.
+  /// </para>T
+  /// </returns>
+  public T? GetProperty<T>(string propertyName)
   {
-    T? deserialisedProperty = null;
-    var gotValue = Properties.TryGetPropertyValue(propertyName, out var property);
-    if (gotValue)
-    {
-      deserialisedProperty = property.Deserialize<T>();
-    }
-
+    T? deserialisedProperty;
+    Properties.TryGetPropertyValue(propertyName, out var property);
+    deserialisedProperty = property.Deserialize<T>();
     return deserialisedProperty;
   }
 
