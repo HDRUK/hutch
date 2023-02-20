@@ -9,7 +9,7 @@ public class ROCrate
   private List<Entity> _defaultEntities = new();
   private Dictionary<string, Entity> _entityMap = new();
   private static string _uuid = Guid.NewGuid().ToString();
-  private string _arcpBaseUri = $"arcp://uuid{_uuid}/";
+  private string _arcpBaseUri = $"arcp://uuid,{_uuid}/";
   /// TODO: add the following fields:
   ///   - preview (based on Preview class not yet made)
 
