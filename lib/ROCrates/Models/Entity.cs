@@ -11,9 +11,9 @@ public class Entity
   public ROCrate RoCrate { get; set; }
   public string Identifier { get; set; } = Guid.NewGuid().ToString();
 
-  public JsonObject Properties { get; set; }
+  public JsonObject Properties { get; set; } = new();
   
-  public Entity(ROCrate crate, string? identifier, JsonObject? properties)
+  public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
     if (identifier != null) Identifier = identifier;

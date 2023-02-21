@@ -8,7 +8,7 @@ public class DataEntity : Entity
   private string? _destPath;
   private bool _fetchRemote;
   private bool _validateUrl;
-  public DataEntity(ROCrate crate, string? identifier, JsonObject? properties, string source = "./",
+  public DataEntity(ROCrate crate, string? identifier = null, JsonObject? properties = null, string source = "./",
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties)
   {
     _source = source;
@@ -32,6 +32,10 @@ public class DataEntity : Entity
     else if (Path.GetFileName(_source) != String.Empty)
     {
       Identifier = Path.GetFileNameWithoutExtension(_source);
+    }
+    else
+    {
+      Identifier = _source;
     }
   }
 }

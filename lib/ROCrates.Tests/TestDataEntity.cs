@@ -17,8 +17,6 @@ public class TestDataEntity
   {
     Assert.Throws<Exception>(() => new DataEntity(
       new ROCrate("my-test.zip"),
-      "",
-      null,
       destPath: "/path/to/dest"));
   }
 
@@ -26,9 +24,7 @@ public class TestDataEntity
   public void Test_Identifier_DefaultsTo_DotSlash()
   {
     var dataEntity = new DataEntity(
-      new ROCrate("my-test.zip"),
-      "",
-      null);
+      new ROCrate("my-test.zip"));
     Assert.Equal("./", dataEntity.Identifier);
   }
   
@@ -38,16 +34,12 @@ public class TestDataEntity
     // relative source
     var dataEntity = new DataEntity(
       new ROCrate("my-test.zip"),
-      "",
-      null,
       source: "./path/to/my-file.txt");
     Assert.Equal("my-file", dataEntity.Identifier);
     
     // remote source
     dataEntity = new DataEntity(
       new ROCrate("my-test.zip"),
-      "",
-      null,
       source: "ftp:///path/to/my-file.txt",
       fetchRemote: true);
     Assert.Equal("my-file", dataEntity.Identifier);

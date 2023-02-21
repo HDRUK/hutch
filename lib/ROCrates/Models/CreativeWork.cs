@@ -4,7 +4,8 @@ namespace ROCrates.Models;
 
 public class CreativeWork : Entity
 {
-  public CreativeWork(ROCrate crate, string? identifier, JsonObject? properties) : base(crate, identifier, properties)
+  public CreativeWork(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate, identifier,
+    properties)
   {
   }
 }
