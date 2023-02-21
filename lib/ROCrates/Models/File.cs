@@ -26,17 +26,22 @@ public class File : FileOrDir
   public void Write(string basePath)
   {
     string outFilePath = Path.Join(basePath, Identifier);
-    if (Uri.IsWellFormedUriString(_source, UriKind.RelativeOrAbsolute))
-    {
-      var url = new Uri(_source);
-      using HttpClient client = new HttpClient();
-      var response = client.GetAsync(_source);
-    }
     var outFileParent = Path.GetDirectoryName(outFilePath);
     if (outFileParent != null)
     {
       Directory.CreateDirectory(outFileParent);
-      System.IO.File.Copy(_source, outFilePath);
+      if (Uri.IsWellFormedUriString(_source, UriKind.RelativeOrAbsolute))
+      {
+        using HttpClient client = new HttpClient();
+        var response = client.GetAsync(_source).Result.Content;
+        using var httpStream = response.ReadAsStream();
+        using var file = System.IO.File.OpenWrite(outFilePath);
+        httpStream.CopyTo(file);
+      }
+      else
+      {
+        System.IO.File.Copy(_source, outFilePath);
+      }
     }
   }
   private JsonObject _empty()
