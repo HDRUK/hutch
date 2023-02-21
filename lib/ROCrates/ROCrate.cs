@@ -34,8 +34,8 @@ public class ROCrate
   public string ResolveId(string id)
   {
     if (Uri.IsWellFormedUriString(id, UriKind.Absolute)) return id.TrimEnd('/');
-    
-    Uri.TryCreate(new Uri(_arcpBaseUri), id, out var newUri);
-    return newUri.ToString().TrimEnd('/');
+
+    var resolvedId = Path.Combine(_arcpBaseUri, id);
+    return resolvedId.TrimEnd('/');
   }
 }
