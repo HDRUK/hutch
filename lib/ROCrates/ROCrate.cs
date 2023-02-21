@@ -5,7 +5,7 @@ namespace ROCrates;
 public class ROCrate
 {
   private List<ContextEntity> _contextEntities = new();
-  private List<DataEntity> _dataEntities = new();
+  private List<FileOrDir> _dataEntities = new();
   private List<Entity> _defaultEntities = new();
   private Dictionary<string, Entity> _entityMap = new();
   private static string _uuid = Guid.NewGuid().ToString();
