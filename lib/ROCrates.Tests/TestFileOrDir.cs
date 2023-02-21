@@ -3,11 +3,11 @@ using Xunit.Abstractions;
 
 namespace ROCrates.Tests;
 
-public class TestDataEntity
+public class TestFileOrDir
 {
   private readonly ITestOutputHelper _testOutputHelper;
 
-  public TestDataEntity(ITestOutputHelper testOutputHelper)
+  public TestFileOrDir(ITestOutputHelper testOutputHelper)
   {
     _testOutputHelper = testOutputHelper;
   }
