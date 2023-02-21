@@ -4,10 +4,10 @@ namespace ROCrates.Models;
 
 public class FileOrDir : DataEntity
 {
-  private string _source;
-  private string? _destPath;
-  private bool _fetchRemote;
-  private bool _validateUrl;
+  protected string _source;
+  protected string? _destPath;
+  protected bool _fetchRemote;
+  protected bool _validateUrl;
   public FileOrDir(ROCrate crate, string? identifier = null, JsonObject? properties = null, string source = "./",
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties)
   {
