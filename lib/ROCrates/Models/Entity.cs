@@ -8,16 +8,26 @@ namespace ROCrates.Models;
 /// </summary>
 public class Entity
 {
+  private const string _defaultType = "Thing";
   public ROCrate RoCrate { get; set; }
   public string Identifier { get; set; } = Guid.NewGuid().ToString();
 
-  public JsonObject Properties { get; set; } = new();
-  
+  public JsonObject Properties { get; set; }
+
   public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
     if (identifier != null) Identifier = identifier;
-    if (properties != null) Properties = properties;
+    Properties = _empty();
+    if (properties != null)
+    {
+      using var propsEnumerator = properties.GetEnumerator();
+      while (propsEnumerator.MoveNext())
+      {
+        var (key, value) = propsEnumerator.Current;
+        if (value != null) SetProperty(key, value);
+      }
+    }
   }
 
   /// <summary>
@@ -58,7 +68,7 @@ public class Entity
     var serialisedProperty = JsonSerializer.SerializeToNode(property);
     if (serialisedProperty != null)
     {
-      // If a property already exists, remove first to avoid an exception, then add the new propterty
+      // If a property already exists, remove first to avoid an exception, then add the new property
       if (Properties.Remove(propertyName))
       {
         Properties.Add(propertyName, serialisedProperty);
@@ -77,5 +87,16 @@ public class Entity
   public void DeleteProperty(string propertyName)
   {
     Properties.Remove(propertyName);
+  }
+
+  private JsonObject _empty()
+  {
+    var emptyJsonString = new Dictionary<string, string>
+    {
+      { "@id", Identifier },
+      { "@type", _defaultType }
+    };
+    var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
+    return emptyObject;
   }
 }
