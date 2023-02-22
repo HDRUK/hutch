@@ -36,4 +36,14 @@ public class TestFile : IDisposable
     fileEntity.Write(_testBasePath);
     Assert.True(File.Exists(Path.Combine(_testBasePath, testDestPath)));
   }
+  
+  [Fact]
+  public void TestWrite_Saves_To_Source()
+  {
+    var fileEntity = new Models.File(
+      new ROCrate(_testFileName),
+      source: Path.Combine(_testBasePath, _testFileName));
+    fileEntity.Write(_testBasePath);
+    Assert.True(File.Exists(Path.Combine(_testBasePath, _testFileName)));
+  }
 }
