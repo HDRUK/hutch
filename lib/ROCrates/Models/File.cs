@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -6,7 +7,7 @@ namespace ROCrates.Models;
 public class File : FileOrDir
 {
   private const string _defaultType = "File";
-  
+
   public File(ROCrate crate, string? identifier = null, JsonObject? properties = null, string source = "./",
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
@@ -25,25 +26,35 @@ public class File : FileOrDir
 
   public void Write(string basePath)
   {
-    string outFilePath = Path.Join(basePath, Identifier);
+    var outFilePath = Path.Join(basePath, Identifier);
     var outFileParent = Path.GetDirectoryName(outFilePath);
-    if (outFileParent != null)
+    if (outFileParent == null) return;
+    if (Uri.IsWellFormedUriString(_source, UriKind.Absolute))
+    {
+      if (!_fetchRemote && !_validateUrl) return;
+      using HttpClient client = new HttpClient();
+      var response = client.GetAsync(_source).Result.Content;
+      if (_validateUrl)
+      {
+        SetProperty("contentSize", response.Headers.ContentLength);
+        SetProperty("encodingFormat", response.Headers.ContentType);
+        if (!_fetchRemote) 
+          SetProperty("sdDatePublished", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
+      }
+
+      if (!_fetchRemote) return;
+      Directory.CreateDirectory(outFileParent);
+      using var httpStream = response.ReadAsStream();
+      using var file = System.IO.File.OpenWrite(outFilePath);
+      httpStream.CopyTo(file);
+    }
+    else
     {
       Directory.CreateDirectory(outFileParent);
-      if (Uri.IsWellFormedUriString(_source, UriKind.RelativeOrAbsolute))
-      {
-        using HttpClient client = new HttpClient();
-        var response = client.GetAsync(_source).Result.Content;
-        using var httpStream = response.ReadAsStream();
-        using var file = System.IO.File.OpenWrite(outFilePath);
-        httpStream.CopyTo(file);
-      }
-      else
-      {
-        System.IO.File.Copy(_source, outFilePath);
-      }
+      System.IO.File.Copy(_source, outFilePath, overwrite: true);
     }
   }
+
   private JsonObject _empty()
   {
     var emptyJsonString = new Dictionary<string, string>
