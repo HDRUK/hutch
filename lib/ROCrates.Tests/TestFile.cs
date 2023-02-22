@@ -21,8 +21,8 @@ public class TestFile : IDisposable
   public void Dispose()
   {
     File.Delete(_testFileName);
-    var pathArray = _testBasePath.Split(Path.DirectorySeparatorChar);
-    Directory.Delete(pathArray[0], recursive: true);
+    var rootDir = _testBasePath.Split(Path.DirectorySeparatorChar).First();
+    Directory.Delete(rootDir, recursive: true);
   }
   
   [Fact]
@@ -45,5 +45,19 @@ public class TestFile : IDisposable
       source: Path.Combine(_testBasePath, _testFileName));
     fileEntity.Write(_testBasePath);
     Assert.True(File.Exists(Path.Combine(_testBasePath, _testFileName)));
+  }
+  
+  [Fact]
+  public void TestWrite_Saves_From_Remote()
+  {
+    var url = "https://hdruk.github.io/hutch/docs/devs";
+    var fileName = url.Split('/').Last();
+    var fileEntity = new Models.File(
+      new ROCrate(_testFileName),
+      source: url,
+      validateUrl: true,
+      fetchRemote: true);
+    fileEntity.Write(_testBasePath);
+    Assert.True(File.Exists(Path.Combine(_testBasePath, fileName)));
   }
 }
