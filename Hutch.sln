@@ -7,9 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchManager", "app\HutchMa
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{56701705-F669-4223-988E-D8CC2B308805}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROCrates", "lib\ROCrates\ROCrates.csproj", "{F676DC41-E9BA-4E28-BB08-E985656046FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROCrates.Net", "lib\ROCrates.Net\ROCrates.Net.csproj", "{F676DC41-E9BA-4E28-BB08-E985656046FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROCrates.Tests", "lib\ROCrates.Tests\ROCrates.Tests.csproj", "{B288D13A-8F45-485D-A9D0-F66A2BEADC9C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROCrates.Net.Tests", "lib\ROCrates.Net.Tests\ROCrates.Net.Tests.csproj", "{B288D13A-8F45-485D-A9D0-F66A2BEADC9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
