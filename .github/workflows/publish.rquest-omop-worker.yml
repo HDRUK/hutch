@@ -1,4 +1,4 @@
-name: Publish Rquest OMOP Agent
+name: Publish Rquest OMOP Worker
 
 on:
   workflow_dispatch: # manual trigger
@@ -22,13 +22,13 @@ jobs:
         with:
           format: "YYYYMMDDHHmmss"
 
-  publish-agent-docker:
+  publish-worker-docker:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     env:
-      APP_NAME: rquest-omop-agent
+      APP_NAME: rquest-omop-worker
       NEXT_TAG: next
       TS_TAG: ${{ needs.generate-timestamp.outputs.timestamp }}
       REGISTRY: ghcr.io
@@ -58,4 +58,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          file: app/rquest-omop-agent/Dockerfile
+          file: app/rquest-omop-worker/Dockerfile

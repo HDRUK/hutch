@@ -4,14 +4,14 @@ import logging
 import argparse
 import json
 import hutch_utils.config as config
-from rquest_omop_agent import query_solvers
+from rquest_omop_worker import query_solvers
 from rquest_dto.query import AvailabilityQuery, DistributionQuery
 from rquest_dto.result import RquestResult
 from hutch_utils.obfuscation import get_results_modifiers_from_str, apply_filters_v2
-from rquest_omop_agent.db_manager import SyncDBManager
+from rquest_omop_worker.db_manager import SyncDBManager
 
 parser = argparse.ArgumentParser(
-    prog="rquest-omop-agent",
+    prog="rquest-omop-worker",
     description="This program takes a JSON string containing an RQuest query and solves it.",
 )
 parser.add_argument(
