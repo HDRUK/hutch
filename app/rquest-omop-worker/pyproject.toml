@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "rquest-omop-agent"
+name = "rquest-omop-worker"
 description = ''
 readme = "README.md"
 requires-python = ">=3.9,<3.11"
@@ -29,15 +29,15 @@ sqlserver = [
 ]
 
 [project.scripts]
-rquest-omop-agent = "scripts.agent:main"
+rquest-omop-worker = "scripts.worker:main"
 
 [tool.hatch.version]
-path = "rquest_omop_agent/__about__.py"
+path = "rquest_omop_worker/__about__.py"
 
 [tool.hatch.build]
 only-packages = true
 include = [
-  "rquest_omop_agent",
+  "rquest_omop_worker",
   "scripts",
 ]
 

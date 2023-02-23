@@ -8,7 +8,7 @@ from sqlalchemy import (
     select,
     func,
 )
-from rquest_omop_agent.db_manager import SyncDBManager
+from rquest_omop_worker.db_manager import SyncDBManager
 from omop_entities.entities import (
     Concept,
     ConditionOccurrence,
