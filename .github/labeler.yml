@@ -5,6 +5,8 @@
   - app/manager-frontend/**/*
 "Area: Manager Backend API":
   - app/HutchManager/**/*
+"Area: Agent":
+  - app/HutchAgent/**/*
 "Area: Docs":
   - website/**/*
 
