@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.32002.185
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchManager", "app\HutchManager\HutchManager.csproj", "{E159D135-B386-4C24-9EB4-0A2116681EFD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchAgent", "app\HutchAgent\HutchAgent.csproj", "{94DC3895-F331-4AFB-BCBA-8038209E0834}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E159D135-B386-4C24-9EB4-0A2116681EFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E159D135-B386-4C24-9EB4-0A2116681EFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E159D135-B386-4C24-9EB4-0A2116681EFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94DC3895-F331-4AFB-BCBA-8038209E0834}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94DC3895-F331-4AFB-BCBA-8038209E0834}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94DC3895-F331-4AFB-BCBA-8038209E0834}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94DC3895-F331-4AFB-BCBA-8038209E0834}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
