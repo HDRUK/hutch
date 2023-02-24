@@ -8,7 +8,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class Entity
 {
-  private const string _defaultType = "Thing";
+  protected string DefaultType = "Thing";
   public ROCrate RoCrate { get; set; }
   public string Identifier { get; set; } = Guid.NewGuid().ToString();
 
@@ -89,12 +89,12 @@ public class Entity
     Properties.Remove(propertyName);
   }
 
-  private JsonObject _empty()
+  protected JsonObject _empty()
   {
     var emptyJsonString = new Dictionary<string, string>
     {
       { "@id", Identifier },
-      { "@type", _defaultType }
+      { "@type", DefaultType }
     };
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
     return emptyObject;

@@ -9,22 +9,12 @@ namespace ROCrates.Models;
 /// </summary>
 public class File : FileOrDir
 {
-  private const string _defaultType = "File";
-
   public File(ROCrate crate, string? identifier = null, JsonObject? properties = null, string source = "./",
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {
+    DefaultType = "File";
     Properties = _empty();
-    if (properties != null)
-    {
-      using var propsEnumerator = properties.GetEnumerator();
-      while (propsEnumerator.MoveNext())
-      {
-        var (key, value) = propsEnumerator.Current;
-        if (value != null) SetProperty(key, value);
-      }
-    }
   }
 
   /// <summary>
@@ -83,16 +73,5 @@ public class File : FileOrDir
       Directory.CreateDirectory(outFileParent);
       System.IO.File.Copy(_source, outFilePath, overwrite: true);
     }
-  }
-
-  private JsonObject _empty()
-  {
-    var emptyJsonString = new Dictionary<string, string>
-    {
-      { "@id", Identifier },
-      { "@type", _defaultType }
-    };
-    var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
-    return emptyObject;
   }
 }
