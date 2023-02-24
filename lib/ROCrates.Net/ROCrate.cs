@@ -13,17 +13,24 @@ public class ROCrate
   /// TODO: add the following fields:
   ///   - preview (based on Preview class not yet made)
 
-  private string _source;
-  private List<string>? _exclude;
+  private string _source = string.Empty;
+  private List<string> _exclude = new();
   private bool _generatePreview;
   private bool _init;
+
+  /// <summary>
+  /// Initialise a new empty <c>ROCrate</c> object. This constructor will not create or parse an RO-Crate on disk.
+  /// </summary>
+  public ROCrate()
+  {
+  }
 
   public ROCrate(string source, bool generatePreview = false, bool init = false, List<string>? exclude = null)
   {
     _source = source;
     _generatePreview = generatePreview;
     _init = init;
-    _exclude = exclude;
+    if (exclude is not null) _exclude = exclude;
   }
 
   /// <summary>
