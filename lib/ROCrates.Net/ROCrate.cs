@@ -1,5 +1,7 @@
-﻿using System.Text.Encodings.Web;
+﻿using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
 using ROCrates.Models;
+using File = ROCrates.Models.File;
 
 namespace ROCrates;
 public class ROCrate
@@ -44,5 +46,22 @@ public class ROCrate
 
     var resolvedId = Path.Combine(_arcpBaseUri, id);
     return resolvedId.TrimEnd('/');
+  }
+
+  /// <summary>
+  /// Add entities to an <c>ROCrate</c>.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var textFile = new File(roCrate, source: "my-file.txt");
+  /// var imageFile = new File(roCrate, source: "my-image.png");
+  /// var person = new Person();
+  /// roCrate.Add(textFile, imageFile, person);
+  /// </code>
+  /// </example>
+  /// <param name="entities">The entities to add the the <c>ROCrate</c>.</param>
+  public void Add(params Entity[] entities)
+  {
   }
 }
