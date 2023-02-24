@@ -8,4 +8,9 @@ public class DataEntity : Entity
     properties)
   {
   }
+
+  public virtual void Write(string basePath)
+  {
+    throw new NotImplementedException();
+  }
 }

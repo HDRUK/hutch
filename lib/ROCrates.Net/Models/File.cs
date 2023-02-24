@@ -44,7 +44,7 @@ public class File : FileOrDir
   /// </code>
   /// </example>
   /// <param name="basePath">The path the file will be written to.</param>
-  public void Write(string basePath)
+  public override void Write(string basePath)
   {
     var outFilePath = Path.Join(basePath, Identifier);
     var outFileParent = Path.GetDirectoryName(outFilePath);
