@@ -13,6 +13,28 @@ public class Dataset : FileOrDir
     Properties = _empty();
   }
 
+  /// <summary>
+  /// <para>Write the contents of a <c>Dataset</c> to disk.</para>
+  /// <para>If the <c>Dataset</c>'s source is remote, the contents will be downloaded to <c>basePath</c>.</para>
+  /// <para>If the source is on disk, the contents will be copied under <c>basePath</c>.</para>
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var url = "https://hdruk.github.io/hutch/docs/devs";
+  /// var dirName = url.Split('/').Last();
+  /// var dataset = new Models.Dataset(
+  ///    new ROCrate("myCrate.zip"),
+  ///    source: url,
+  ///    validateUrl: true,
+  ///    fetchRemote: true);
+  /// dataset.Write("myCrate");
+  /// Assert.True(Directory.Exists(Path.Combine("myCrate", dirName)));
+  /// </code>
+  /// </example>
+  /// <param name="basePath">The path under which the <c>Dataset</c>'s parts will be written.</param>
+  /// <exception cref="DirectoryNotFoundException">
+  /// Thrown when the source directory is not a URL, but it doesn't exist.
+  /// </exception>
   public override void Write(string basePath)
   {
     var outPath = Path.Join(basePath, Identifier);
@@ -32,7 +54,6 @@ public class Dataset : FileOrDir
     }
     else
     {
-      // Copy files on system
       if (!Directory.Exists(_source)) throw new DirectoryNotFoundException($"{_source} does not exist.");
       Directory.CreateDirectory(outPath);
     }
