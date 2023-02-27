@@ -99,4 +99,9 @@ public class Entity
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
     return emptyObject;
   }
+
+  protected virtual string _formatIdentifier(string identifier)
+  {
+    return identifier;
+  }
 }

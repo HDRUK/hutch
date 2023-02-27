@@ -11,6 +11,7 @@ public class Dataset : FileOrDir
   {
     DefaultType = "Dataset";
     Properties = _empty();
+    Identifier = _formatIdentifier(Identifier);
   }
 
   /// <summary>
@@ -77,5 +78,13 @@ public class Dataset : FileOrDir
       using var file = System.IO.File.OpenWrite(partOutPath);
       httpStream.CopyTo(file);
     }
+  }
+
+  protected sealed override string _formatIdentifier(string identifier)
+  {
+    var newId =  identifier.TrimEnd(Path.DirectorySeparatorChar);
+    newId = newId.TrimEnd(Path.AltDirectorySeparatorChar);
+    newId += "/";
+    return newId;
   }
 }
