@@ -8,6 +8,7 @@ public class ContextEntity : Entity
     identifier, properties)
   {
     Identifier = _formatIdentifier(Identifier);
+    if (properties is not null) _unpackPropterties(properties);
   }
 
   protected sealed override string _formatIdentifier(string identifier)

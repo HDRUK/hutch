@@ -17,17 +17,9 @@ public class Entity
   public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
-    if (identifier != null) Identifier = identifier;
+    if (identifier is not null) Identifier = identifier;
     Properties = _empty();
-    if (properties != null)
-    {
-      using var propsEnumerator = properties.GetEnumerator();
-      while (propsEnumerator.MoveNext())
-      {
-        var (key, value) = propsEnumerator.Current;
-        if (value != null) SetProperty(key, value);
-      }
-    }
+    if (properties is not null) _unpackPropterties(properties);
   }
 
   /// <summary>
@@ -103,5 +95,15 @@ public class Entity
   protected virtual string _formatIdentifier(string identifier)
   {
     return identifier;
+  }
+
+  protected void _unpackPropterties(JsonObject props)
+  {
+    using var propsEnumerator = props.GetEnumerator();
+    while (propsEnumerator.MoveNext())
+    {
+      var (key, value) = propsEnumerator.Current;
+      if (value != null) SetProperty(key, value);
+    }
   }
 }

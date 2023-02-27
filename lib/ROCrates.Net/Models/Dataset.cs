@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace ROCrates.Models;
@@ -11,6 +12,7 @@ public class Dataset : FileOrDir
   {
     DefaultType = "Dataset";
     Properties = _empty();
+    if (properties is not null) _unpackPropterties(properties);
     Identifier = _formatIdentifier(Identifier);
   }
 
@@ -80,6 +82,18 @@ public class Dataset : FileOrDir
     }
   }
 
+  protected new JsonObject _empty()
+  {
+    var emptyJsonString = new Dictionary<string, string>
+    {
+      { "@id", Identifier },
+      { "@type", DefaultType },
+      { "datePublished", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture) }
+    };
+    var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
+    return emptyObject;
+  }
+
   protected sealed override string _formatIdentifier(string identifier)
   {
     var newId =  identifier.TrimEnd(Path.DirectorySeparatorChar);
@@ -87,4 +101,6 @@ public class Dataset : FileOrDir
     newId += "/";
     return newId;
   }
+  
+  
 }

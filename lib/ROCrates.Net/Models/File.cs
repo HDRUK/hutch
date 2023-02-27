@@ -15,6 +15,7 @@ public class File : FileOrDir
   {
     DefaultType = "File";
     Properties = _empty();
+    if (properties is not null) _unpackPropterties(properties);
   }
 
   /// <summary>
