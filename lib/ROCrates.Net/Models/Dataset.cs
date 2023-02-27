@@ -94,7 +94,7 @@ public class Dataset : FileOrDir
     return emptyObject;
   }
 
-  protected sealed override string _formatIdentifier(string identifier)
+  private protected sealed override string _formatIdentifier(string identifier)
   {
     var newId =  identifier.TrimEnd(Path.DirectorySeparatorChar);
     newId = newId.TrimEnd(Path.AltDirectorySeparatorChar);

@@ -8,7 +8,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class Entity
 {
-  protected string DefaultType = "Thing";
+  private protected string DefaultType = "Thing";
   public ROCrate RoCrate { get; set; }
   public string Identifier { get; set; } = Guid.NewGuid().ToString();
 
@@ -80,7 +80,7 @@ public class Entity
     Properties.Remove(propertyName);
   }
 
-  protected JsonObject _empty()
+  private protected JsonObject _empty()
   {
     var emptyJsonString = new Dictionary<string, string>
     {
@@ -91,12 +91,12 @@ public class Entity
     return emptyObject;
   }
 
-  protected virtual string _formatIdentifier(string identifier)
+  private protected virtual string _formatIdentifier(string identifier)
   {
     return identifier;
   }
 
-  protected void _unpackProperties(JsonObject props)
+  private protected void _unpackProperties(JsonObject props)
   {
     using var propsEnumerator = props.GetEnumerator();
     while (propsEnumerator.MoveNext())
