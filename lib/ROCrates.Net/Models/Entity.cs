@@ -43,9 +43,8 @@ public class Entity
   /// </returns>
   public T? GetProperty<T>(string propertyName)
   {
-    T? deserialisedProperty;
     Properties.TryGetPropertyValue(propertyName, out var property);
-    deserialisedProperty = property.Deserialize<T>();
+    var deserialisedProperty = property.Deserialize<T>();
     return deserialisedProperty;
   }
 
