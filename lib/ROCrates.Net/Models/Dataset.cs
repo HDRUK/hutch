@@ -15,8 +15,7 @@ public class Dataset : FileOrDir
 
   public override void Write(string basePath)
   {
-    var outFilePath = Path.Join(basePath, Identifier);
-    var outFileParent = Path.GetDirectoryName(outFilePath);
+    var outPath = Path.Join(basePath, Identifier);
     if (Uri.IsWellFormedUriString(_source, UriKind.Absolute))
     {
       if (_validateUrl && !_fetchRemote)
@@ -28,12 +27,14 @@ public class Dataset : FileOrDir
 
       if (_fetchRemote)
       {
-        _getParts(basePath);
+        _getParts(outPath);
       }
     }
     else
     {
       // Copy files on system
+      if (!Directory.Exists(_source)) throw new DirectoryNotFoundException($"{_source} does not exist.");
+      Directory.CreateDirectory(outPath);
     }
   }
 
