@@ -19,7 +19,7 @@ public class Entity
     RoCrate = crate;
     if (identifier is not null) Identifier = identifier;
     Properties = _empty();
-    if (properties is not null) _unpackPropterties(properties);
+    if (properties is not null) _unpackProperties(properties);
   }
 
   /// <summary>
@@ -97,7 +97,7 @@ public class Entity
     return identifier;
   }
 
-  protected void _unpackPropterties(JsonObject props)
+  protected void _unpackProperties(JsonObject props)
   {
     using var propsEnumerator = props.GetEnumerator();
     while (propsEnumerator.MoveNext())

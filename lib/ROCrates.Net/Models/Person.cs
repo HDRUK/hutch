@@ -10,6 +10,6 @@ public class Person : ContextEntity
   {
     DefaultType = "Person";
     Properties = _empty();
-    if (properties is not null) _unpackPropterties(properties);
+    if (properties is not null) _unpackProperties(properties);
   }
 }

@@ -12,7 +12,7 @@ public class Dataset : FileOrDir
   {
     DefaultType = "Dataset";
     Properties = _empty();
-    if (properties is not null) _unpackPropterties(properties);
+    if (properties is not null) _unpackProperties(properties);
     Identifier = _formatIdentifier(Identifier);
   }
 

@@ -9,6 +9,6 @@ public class RootDataset : Dataset
     source, destPath, fetchRemote, validateUrl)
   {
     Properties = _empty();
-    if (properties is not null) _unpackPropterties(properties);
+    if (properties is not null) _unpackProperties(properties);
   }
 }
