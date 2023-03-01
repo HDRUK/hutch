@@ -9,7 +9,6 @@ public class ROCrate
   private List<ContextEntity> _contextEntities = new();
   private List<DataEntity> _dataEntities = new();
   private List<Entity> _defaultEntities = new();
-  private Dictionary<string, Entity> _entityMap = new();
   private static string _uuid = Guid.NewGuid().ToString();
   private string _arcpBaseUri = $"arcp://uuid,{_uuid}/";
   /// TODO: add the following fields:
@@ -23,6 +22,8 @@ public class ROCrate
   public RootDataset? RootDataset { get; set; }
   
   public Metadata? Metadata { get; set; }
+  
+  public Dictionary<string, Entity> Entities = new();
 
   /// <summary>
   /// Initialise a new empty <c>ROCrate</c> object. This constructor will not create or parse an RO-Crate on disk.
@@ -74,14 +75,12 @@ public class ROCrate
       if (entityType == typeof(RootDataset))
       {
         RootDataset = entity as RootDataset;
-        _entityMap.Add(key, entity as RootDataset);
       }
       if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
-        _entityMap.Add(key, entity as Metadata);
       }
-      // TODO: handle adding preview
+      Entities.Add(key, entity);
     }
   }
 }
