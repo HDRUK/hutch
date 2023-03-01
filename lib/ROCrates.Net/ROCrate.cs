@@ -20,6 +20,8 @@ public class ROCrate
   private bool _generatePreview;
   private bool _init;
 
+  public RootDataset? RootDataset { get; set; }
+
   /// <summary>
   /// Initialise a new empty <c>ROCrate</c> object. This constructor will not create or parse an RO-Crate on disk.
   /// </summary>

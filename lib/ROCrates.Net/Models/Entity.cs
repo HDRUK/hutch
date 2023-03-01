@@ -8,7 +8,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class Entity
 {
-  private const string _defaultType = "Thing";
+  private protected string DefaultType = "Thing";
   public ROCrate RoCrate { get; set; }
   public string Identifier { get; set; } = Guid.NewGuid().ToString();
 
@@ -17,17 +17,9 @@ public class Entity
   public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
-    if (identifier != null) Identifier = identifier;
+    if (identifier is not null) Identifier = identifier;
     Properties = _empty();
-    if (properties != null)
-    {
-      using var propsEnumerator = properties.GetEnumerator();
-      while (propsEnumerator.MoveNext())
-      {
-        var (key, value) = propsEnumerator.Current;
-        if (value != null) SetProperty(key, value);
-      }
-    }
+    if (properties is not null) _unpackProperties(properties);
   }
 
   /// <summary>
@@ -51,9 +43,8 @@ public class Entity
   /// </returns>
   public T? GetProperty<T>(string propertyName)
   {
-    T? deserialisedProperty;
     Properties.TryGetPropertyValue(propertyName, out var property);
-    deserialisedProperty = property.Deserialize<T>();
+    var deserialisedProperty = property.Deserialize<T>();
     return deserialisedProperty;
   }
 
@@ -89,14 +80,29 @@ public class Entity
     Properties.Remove(propertyName);
   }
 
-  private JsonObject _empty()
+  private protected JsonObject _empty()
   {
     var emptyJsonString = new Dictionary<string, string>
     {
       { "@id", Identifier },
-      { "@type", _defaultType }
+      { "@type", DefaultType }
     };
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
     return emptyObject;
+  }
+
+  private protected virtual string _formatIdentifier(string identifier)
+  {
+    return identifier;
+  }
+
+  private protected void _unpackProperties(JsonObject props)
+  {
+    using var propsEnumerator = props.GetEnumerator();
+    while (propsEnumerator.MoveNext())
+    {
+      var (key, value) = propsEnumerator.Current;
+      if (value != null) SetProperty(key, value);
+    }
   }
 }
