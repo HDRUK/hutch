@@ -11,8 +11,8 @@ public class Metadata : File
   protected const string BaseName = "ro-crate-metadata.json";
   protected const string Profile = "https://w3id.org/ro/crate/1.1";
 
-  public RootDataset RootDataset; // { get {RoCrate.RootDataset()} } // Todo: getter returns crate root dataset.
-  
+  public RootDataset? RootDataset => RoCrate.RootDataset;
+
   public Metadata(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
