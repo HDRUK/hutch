@@ -7,7 +7,7 @@ namespace ROCrates;
 public class ROCrate
 {
   private List<ContextEntity> _contextEntities = new();
-  private List<FileOrDir> _dataEntities = new();
+  private List<DataEntity> _dataEntities = new();
   private List<Entity> _defaultEntities = new();
   private Dictionary<string, Entity> _entityMap = new();
   private static string _uuid = Guid.NewGuid().ToString();
@@ -65,5 +65,13 @@ public class ROCrate
   /// <param name="entities">The entities to add the the <c>ROCrate</c>.</param>
   public void Add(params Entity[] entities)
   {
+    foreach (var entity in entities)
+    {
+      var key = entity.GetCanonicalId();
+      if (entity.GetType() == typeof(RootDataset))
+      {
+        RootDataset = entity as RootDataset;
+      }
+    }
   }
 }

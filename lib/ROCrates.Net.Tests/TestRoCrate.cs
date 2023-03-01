@@ -1,7 +1,18 @@
+using ROCrates.Models;
+using Xunit.Abstractions;
+using File = ROCrates.Models.File;
+
 namespace ROCrates.Tests;
 
 public class TestRoCrate
 {
+  private readonly ITestOutputHelper _testOutputHelper;
+
+  public TestRoCrate(ITestOutputHelper testOutputHelper)
+  {
+    _testOutputHelper = testOutputHelper;
+  }
+
   [Fact]
   public void TestResolveId_CombinesGoodAndBad_Uris()
   {
@@ -29,5 +40,20 @@ public class TestRoCrate
     
     string resultWithSlash = crate.ResolveId(withSlash);
     Assert.EndsWith(withSlash.TrimEnd('/'), resultWithSlash);
+  }
+
+  [Fact]
+  public void TestAdd_AddsObjetsOfDifferentTypes()
+  {
+    var roCrate = new ROCrate();
+    var person = new Person(roCrate);
+    var rootDataset = new RootDataset(roCrate);
+    var file = new File(roCrate);
+    Assert.Null(roCrate.RootDataset);
+    
+    roCrate.Add(person, rootDataset, file);
+    Assert.Equal(roCrate.RootDataset.Identifier, rootDataset.Identifier);
+    Assert.IsType<RootDataset>(roCrate.RootDataset);
+    
   }
 }
