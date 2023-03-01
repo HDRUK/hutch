@@ -21,6 +21,8 @@ public class ROCrate
   private bool _init;
 
   public RootDataset? RootDataset { get; set; }
+  
+  public Metadata? Metadata { get; set; }
 
   /// <summary>
   /// Initialise a new empty <c>ROCrate</c> object. This constructor will not create or parse an RO-Crate on disk.
@@ -67,11 +69,19 @@ public class ROCrate
   {
     foreach (var entity in entities)
     {
+      var entityType = entity.GetType();
       var key = entity.GetCanonicalId();
-      if (entity.GetType() == typeof(RootDataset))
+      if (entityType == typeof(RootDataset))
       {
         RootDataset = entity as RootDataset;
+        _entityMap.Add(key, entity as RootDataset);
       }
+      if (entityType == typeof(Metadata))
+      {
+        Metadata = entity as Metadata;
+        _entityMap.Add(key, entity as Metadata);
+      }
+      // TODO: handle adding preview
     }
   }
 }

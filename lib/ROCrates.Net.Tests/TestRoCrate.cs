@@ -48,12 +48,13 @@ public class TestRoCrate
     var roCrate = new ROCrate();
     var person = new Person(roCrate);
     var rootDataset = new RootDataset(roCrate);
+    var metedata = new Metadata(roCrate);
     var file = new File(roCrate);
-    Assert.Null(roCrate.RootDataset);
-    
-    roCrate.Add(person, rootDataset, file);
+
+    roCrate.Add(person, rootDataset, file, metedata);
     Assert.Equal(roCrate.RootDataset.Identifier, rootDataset.Identifier);
     Assert.IsType<RootDataset>(roCrate.RootDataset);
-    
+    Assert.Equal(roCrate.Metadata.Identifier, metedata.Identifier);
+    Assert.IsType<Metadata>(roCrate.Metadata);
   }
 }
