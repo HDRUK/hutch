@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace ROCrates.Tests;
 
-public class TestRoCrateEntity
+public class TestEntity
 {
   [Fact]
   public void TestSetProperty_Updates()
