@@ -80,6 +80,10 @@ public class ROCrate
       {
         Metadata = entity as Metadata;
       }
+      if (entityType.IsSubclassOf(typeof(DataEntity)))
+      {
+        // TODO: handle adding to "hasPart" of RootDataset
+      }
       Entities.Add(key, entity);
     }
   }

@@ -78,15 +78,22 @@ public class TestRoCrate
   {
     var roCrate = new ROCrate();
     var person = new Person(roCrate);
-    var rootDataset = new RootDataset(roCrate);
-    var metadata = new Metadata(roCrate);
     var file = new File(roCrate, source: "my-test-file.txt");
+    var dataset = new Dataset(roCrate, source: "my-data-dir/");
 
-    roCrate.Add(person, rootDataset, file, metadata);
-    Assert.Equal(roCrate.RootDataset.Identifier, rootDataset.Identifier);
-    Assert.Equal(roCrate.RootDataset.Properties, rootDataset.Properties);
-    Assert.IsType<RootDataset>(roCrate.RootDataset);
-    Assert.Equal(roCrate.Metadata.Identifier, metadata.Identifier);
-    Assert.IsType<Metadata>(roCrate.Metadata);
+    roCrate.Add(person, file, dataset);
+
+    Assert.True(roCrate.Entities.ContainsKey(person.GetCanonicalId()));
+    Assert.True(roCrate.Entities.TryGetValue(person.GetCanonicalId(), out var recoveredPerson));
+    Assert.IsType<Person>(recoveredPerson);
+    
+    Assert.True(roCrate.Entities.ContainsKey(file.GetCanonicalId()));
+    Assert.True(roCrate.Entities.TryGetValue(file.GetCanonicalId(), out var recoveredFile));
+    Assert.IsType<File>(recoveredFile);
+    
+    Assert.True(roCrate.Entities.ContainsKey(dataset.GetCanonicalId()));
+    Assert.True(roCrate.Entities.TryGetValue(dataset.GetCanonicalId(), out var recoveredDataset));
+    Assert.IsType<Dataset>(recoveredDataset);
+    
   }
 }
