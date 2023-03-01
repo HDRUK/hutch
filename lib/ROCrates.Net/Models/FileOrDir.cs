@@ -8,10 +8,10 @@ public class FileOrDir : DataEntity
   protected string? _destPath;
   protected bool _fetchRemote;
   protected bool _validateUrl;
-  public FileOrDir(ROCrate crate, string? identifier = null, JsonObject? properties = null, string source = "./",
+  public FileOrDir(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties)
   {
-    _source = source;
+    _source = source ?? "./";
     _destPath = destPath;
     _fetchRemote = fetchRemote;
     _validateUrl = validateUrl;

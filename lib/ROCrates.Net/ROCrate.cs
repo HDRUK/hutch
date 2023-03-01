@@ -18,6 +18,8 @@ public class ROCrate
   private bool _generatePreview;
   private bool _init;
 
+  public RootDataset? RootDataset { get; set; }
+
   public ROCrate(string source, bool generatePreview = false, bool init = false, List<string>? exclude = null)
   {
     _source = source;
