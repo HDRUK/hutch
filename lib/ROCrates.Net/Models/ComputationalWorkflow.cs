@@ -11,7 +11,7 @@ public class ComputationalWorkflow : File
   private protected string[] Types = { "File", "SoftwareSourceCode", "ComputationalWorkflow" };
   
   public ComputationalWorkflow(ROCrate crate, string? identifier = null, JsonObject? properties = null,
-    string source = "./", string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate,
+    string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate,
     identifier, properties, source, destPath, fetchRemote, validateUrl)
   {
     Properties = _empty();

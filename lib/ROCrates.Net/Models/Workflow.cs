@@ -7,7 +7,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class Workflow : ComputationalWorkflow
 {
-  public Workflow(ROCrate crate, string? identifier = null, JsonObject? properties = null, string source = "./",
+  public Workflow(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {
