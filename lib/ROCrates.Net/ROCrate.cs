@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
+using System.Text.Json.Nodes;
 using ROCrates.Models;
 using File = ROCrates.Models.File;
 
@@ -106,5 +107,30 @@ public class ROCrate
   public void AddPerson(Person person)
   {
     Add(person);
+  }
+
+  /// <summary>
+  /// Add a file to the RO-Crate and return the created <c>File</c> object.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var textFile = new File(roCrate, source: "my-file.txt");
+  /// var file = roCrate.AddFile(textFile);
+  /// </code>
+  /// </example>
+  /// <param name="identifier">The unique identifier.</param>
+  /// <param name="properties">Additional properties of the file.</param>
+  /// <param name="source">The path to the file.</param>
+  /// <param name="destPath">The path to where file will be saved.</param>
+  /// <param name="fetchRemote">Fetch the file from remote location?</param>
+  /// <param name="validateUrl">Check the URL?</param>
+  /// <returns>A new <c>File</c> with the given parameter.</returns>
+  public File AddFile(string? identifier = null, JsonObject? properties = null, string? source = null,
+    string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
+  {
+    var file = new File(this, identifier, properties, source, destPath, fetchRemote, validateUrl);
+    Add(file);
+    return file;
   }
 }
