@@ -134,4 +134,28 @@ public class ROCrate
     Add(file);
     return file;
   }
+  
+  /// <summary>
+  /// Add a dataset to the RO-Crate and return the created <c>Dataset</c> object.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var dataset = roCrate.AddDataset();
+  /// </code>
+  /// </example>
+  /// <param name="identifier">The unique identifier.</param>
+  /// <param name="properties">Additional properties of the dataset.</param>
+  /// <param name="source">The path to the dataset.</param>
+  /// <param name="destPath">The path to where dataset will be saved.</param>
+  /// <param name="fetchRemote">Fetch the dataset from remote location?</param>
+  /// <param name="validateUrl">Check the URL?</param>
+  /// <returns>A new <c>Dataset</c> with the given parameter.</returns>
+  public Dataset AddDataset(string? identifier = null, JsonObject? properties = null, string? source = null,
+    string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
+  {
+    var dataset = new Dataset(this, identifier, properties, source, destPath, fetchRemote, validateUrl);
+    Add(dataset);
+    return dataset;
+  }
 }
