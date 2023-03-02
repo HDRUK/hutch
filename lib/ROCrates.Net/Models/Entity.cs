@@ -93,13 +93,24 @@ public class Entity
   {
     if (key.StartsWith('@')) throw new Exception($"Cannot append to {key}");
     if (value is null) throw new NullReferenceException("value cannot be null.");
+    
     var newItem = new Part { Identifier = value.GetCanonicalId() };
     var itemList = new List<Part>{ newItem };
+    
     if (Properties.TryGetPropertyValue(key, out var propsJson))
     {
-      var currentItems = propsJson.Deserialize<List<Part>>() ?? new List<Part>();
-      if (currentItems.Count > 0) itemList.InsertRange(0, currentItems);
+      var currentItem = propsJson.Deserialize<Part>();
+      if (currentItem is null)
+      {
+        var currentItems = propsJson.Deserialize<List<Part>>() ?? new List<Part>();
+        if (currentItems.Count > 0) itemList.InsertRange(0, currentItems);
+      }
+      else
+      {
+        itemList.Insert(0, currentItem);
+      }
     }
+    
     if (itemList.Count > 1) SetProperty(key, itemList);
     else SetProperty(key, newItem);
   }
