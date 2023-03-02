@@ -99,14 +99,16 @@ public class ROCrate
   /// <example>
   /// <code>
   /// var roCrate = new ROCrate();
-  /// var person = new Person(roCrate);
-  /// roCrate.AddPerson(person);
+  /// var person = roCrate.AddPerson();
   /// </code>
   /// </example>
-  /// <param name="person">The person to add to the RO-Crate.</param>
-  public void AddPerson(Person person)
+  /// <param name="identifier">The unique identifier of the person.</param>
+  /// <param name="properties">Additional properties of the person.</param>
+  public Person AddPerson(string? identifier = null, JsonObject? properties = null)
   {
+    var person = new Person(this, identifier, properties);
     Add(person);
+    return person;
   }
 
   /// <summary>
@@ -115,8 +117,7 @@ public class ROCrate
   /// <example>
   /// <code>
   /// var roCrate = new ROCrate();
-  /// var textFile = new File(roCrate, source: "my-file.txt");
-  /// var file = roCrate.AddFile(textFile);
+  /// var file = roCrate.AddFile();
   /// </code>
   /// </example>
   /// <param name="identifier">The unique identifier.</param>
