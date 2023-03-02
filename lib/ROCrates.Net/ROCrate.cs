@@ -19,9 +19,9 @@ public class ROCrate
   private bool _generatePreview;
   private bool _init;
 
-  public RootDataset? RootDataset { get; set; }
-  
-  public Metadata? Metadata { get; set; }
+  public RootDataset RootDataset;
+
+  public Metadata Metadata;
   
   public Dictionary<string, Entity> Entities = new();
 
@@ -30,6 +30,8 @@ public class ROCrate
   /// </summary>
   public ROCrate()
   {
+    RootDataset = new RootDataset(this);
+    Metadata = new Metadata(this);
   }
 
   public ROCrate(string source, bool generatePreview = false, bool init = false, List<string>? exclude = null)
@@ -38,6 +40,8 @@ public class ROCrate
     _generatePreview = generatePreview;
     _init = init;
     if (exclude is not null) _exclude = exclude;
+    RootDataset = new RootDataset(this);
+    Metadata = new Metadata(this);
   }
 
   /// <summary>
@@ -82,7 +86,7 @@ public class ROCrate
       }
       if (entityType.IsSubclassOf(typeof(DataEntity)))
       {
-        // TODO: handle adding to "hasPart" of RootDataset
+        if (!Entities.ContainsKey(key)) RootDataset.AppendTo("hasPart", entity);
       }
       Entities.Add(key, entity);
     }
