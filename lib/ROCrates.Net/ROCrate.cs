@@ -94,7 +94,7 @@ public class ROCrate
   }
 
   /// <summary>
-  /// Add a person to the RO-Crate.
+  /// Add a person to the RO-Crate and return the created <c>Person</c> object.
   /// </summary>
   /// <example>
   /// <code>
@@ -104,6 +104,7 @@ public class ROCrate
   /// </example>
   /// <param name="identifier">The unique identifier of the person.</param>
   /// <param name="properties">Additional properties of the person.</param>
+  /// <remarks>A new <c>Person</c> with the given parameters.</remarks>
   public Person AddPerson(string? identifier = null, JsonObject? properties = null)
   {
     var person = new Person(this, identifier, properties);
@@ -126,7 +127,7 @@ public class ROCrate
   /// <param name="destPath">The path to where file will be saved.</param>
   /// <param name="fetchRemote">Fetch the file from remote location?</param>
   /// <param name="validateUrl">Check the URL?</param>
-  /// <returns>A new <c>File</c> with the given parameter.</returns>
+  /// <returns>A new <c>File</c> with the given parameters.</returns>
   public File AddFile(string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
   {
@@ -150,7 +151,7 @@ public class ROCrate
   /// <param name="destPath">The path to where dataset will be saved.</param>
   /// <param name="fetchRemote">Fetch the dataset from remote location?</param>
   /// <param name="validateUrl">Check the URL?</param>
-  /// <returns>A new <c>Dataset</c> with the given parameter.</returns>
+  /// <returns>A new <c>Dataset</c> with the given parameters.</returns>
   public Dataset AddDataset(string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
   {
