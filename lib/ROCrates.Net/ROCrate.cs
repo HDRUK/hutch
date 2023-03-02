@@ -65,7 +65,7 @@ public class ROCrate
   /// var roCrate = new ROCrate();
   /// var textFile = new File(roCrate, source: "my-file.txt");
   /// var imageFile = new File(roCrate, source: "my-image.png");
-  /// var person = new Person();
+  /// var person = new Person(roCrate);
   /// roCrate.Add(textFile, imageFile, person);
   /// </code>
   /// </example>
@@ -90,5 +90,21 @@ public class ROCrate
       }
       Entities.Add(key, entity);
     }
+  }
+
+  /// <summary>
+  /// Add a person to the RO-Crate.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var person = new Person(roCrate);
+  /// roCrate.AddPerson(person);
+  /// </code>
+  /// </example>
+  /// <param name="person">The person to add to the RO-Crate.</param>
+  public void AddPerson(Person person)
+  {
+    Add(person);
   }
 }
