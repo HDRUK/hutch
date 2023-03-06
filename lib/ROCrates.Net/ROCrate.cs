@@ -168,6 +168,12 @@ public class ROCrate
   /// <summary>
   /// Add a workflow to the RO-Crate and return the created <c>ComputationalWorkflow</c> object.
   /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var workflow = roCrate.AddWorkflow();
+  /// </code>
+  /// </example>
   /// <param name="identifier">The unique identifier.</param>
   /// <param name="properties">Additional properties of the workflow.</param>
   /// <param name="source">The path to the workflow file.</param>
