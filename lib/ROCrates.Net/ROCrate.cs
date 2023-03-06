@@ -168,12 +168,12 @@ public class ROCrate
   /// <summary>
   /// Add a workflow to the RO-Crate and return the created <c>ComputationalWorkflow</c> object.
   /// </summary>
-  /// <param name="identifier"></param>
-  /// <param name="properties"></param>
-  /// <param name="source"></param>
-  /// <param name="destPath"></param>
-  /// <param name="fetchRemote"></param>
-  /// <param name="validateUrl"></param>
+  /// <param name="identifier">The unique identifier.</param>
+  /// <param name="properties">Additional properties of the workflow.</param>
+  /// <param name="source">The path to the workflow file.</param>
+  /// <param name="destPath">The path to where workflow file will be saved.</param>
+  /// <param name="fetchRemote">Fetch the workflow from remote location?</param>
+  /// <param name="validateUrl">Check the URL?</param>
   /// <returns>A new <c>ComputationalWorkflow</c> with the given parameters.</returns>
   public ComputationalWorkflow AddWorkflow(string? identifier = null, JsonObject? properties = null,
     string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
