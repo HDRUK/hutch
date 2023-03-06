@@ -1,30 +1,21 @@
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace ROCrates.Tests;
 
-public class TestFile : IDisposable
+public class TestFile : IClassFixture<TestFileFixture>
 {
   private readonly ITestOutputHelper _testOutputHelper;
+  private TestFileFixture _testFileFixture;
   private static char _sep = Path.DirectorySeparatorChar;
   private const string _testFileName = "my-test-file.txt";
   private static readonly string _testBasePath = $"path{_sep}to{_sep}base";
 
-  public TestFile(ITestOutputHelper testOutputHelper)
+  public TestFile(ITestOutputHelper testOutputHelper, TestFileFixture testFileFixture)
   {
     _testOutputHelper = testOutputHelper;
-    Directory.CreateDirectory(_testBasePath);
-    using var file = new StreamWriter(Path.Combine(_testBasePath, _testFileName));
-    file.WriteLine("some content");
+    _testFileFixture = testFileFixture;
   }
 
-  public void Dispose()
-  {
-    File.Delete(_testFileName);
-    var rootDir = _testBasePath.Split(Path.DirectorySeparatorChar).First();
-    Directory.Delete(rootDir, recursive: true);
-  }
-  
   [Fact]
   public void TestWrite_Saves_To_DestPath()
   {
@@ -59,5 +50,24 @@ public class TestFile : IDisposable
       fetchRemote: true);
     fileEntity.Write(_testBasePath);
     Assert.True(File.Exists(Path.Combine(_testBasePath, fileName)));
+  }
+}
+
+public class TestFileFixture : IDisposable
+{
+  private static char _sep = Path.DirectorySeparatorChar;
+  private const string _testFileName = "my-test-file.txt";
+  private static readonly string _testBasePath = $"path{_sep}to{_sep}base";
+  public TestFileFixture()
+  {
+    Directory.CreateDirectory(_testBasePath);
+    using var file = new StreamWriter(Path.Combine(_testBasePath, _testFileName));
+    file.WriteLine("some content");
+  }
+  public void Dispose()
+  {
+    File.Delete(_testFileName);
+    var rootDir = _testBasePath.Split(Path.DirectorySeparatorChar).First();
+    Directory.Delete(rootDir, recursive: true);
   }
 }
