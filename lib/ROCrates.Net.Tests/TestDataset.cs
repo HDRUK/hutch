@@ -2,24 +2,20 @@ using Xunit.Abstractions;
 
 namespace ROCrates.Tests;
 
-public class TestDataset : IDisposable
+public class TestDataset : IClassFixture<TestDatasetFixture>
 {
   private readonly ITestOutputHelper _testOutputHelper;
+  private TestDatasetFixture _testDatasetFixture;
   private static char _sep = Path.DirectorySeparatorChar;
   private const string _testDirName = "my-test-file/";
   private static readonly string _testBasePath = $"path{_sep}to{_sep}base";
   
-  public TestDataset(ITestOutputHelper testOutputHelper)
+  public TestDataset(ITestOutputHelper testOutputHelper, TestDatasetFixture testDatasetFixture)
   {
     _testOutputHelper = testOutputHelper;
-    Directory.CreateDirectory(_testBasePath);
+    _testDatasetFixture = testDatasetFixture;
   }
-  
-  public void Dispose()
-  {
-    Directory.Delete(_testBasePath, recursive: true);
-  }
-  
+
   [Fact]
   public void TestWrite_Creates_Dir_From_Source()
   {
@@ -54,8 +50,23 @@ public class TestDataset : IDisposable
     Directory.CreateDirectory(testDestPath);
     var dataset = new Models.Dataset(
       new ROCrate(_testDirName),
-      source: Path.Combine(_testBasePath, _testDirName),
+      source: Path.Combine("non", "existent"),
       destPath: testDestPath);
     Assert.Throws<DirectoryNotFoundException>(() => dataset.Write(_testBasePath));
+  }
+}
+
+public class TestDatasetFixture : IDisposable
+{
+  private static char _sep = Path.DirectorySeparatorChar;
+  private static readonly string _testBasePath = $"path{_sep}to{_sep}base";
+  
+  public TestDatasetFixture()
+  {
+    Directory.CreateDirectory(_testBasePath);
+  }
+  public void Dispose()
+  {
+    Directory.Delete(_testBasePath, recursive: true);
   }
 }
