@@ -5,6 +5,7 @@ using ROCrates.Models;
 using File = ROCrates.Models.File;
 
 namespace ROCrates;
+
 public class ROCrate
 {
   private List<ContextEntity> _contextEntities = new();
@@ -12,10 +13,11 @@ public class ROCrate
   private List<Entity> _defaultEntities = new();
   private static string _uuid = Guid.NewGuid().ToString();
   private string _arcpBaseUri = $"arcp://uuid,{_uuid}/";
+
   /// TODO: add the following fields:
   ///   - preview (based on Preview class not yet made)
-
   private string _source = string.Empty;
+
   private List<string> _exclude = new();
   private bool _generatePreview;
   private bool _init;
@@ -23,7 +25,7 @@ public class ROCrate
   public RootDataset RootDataset;
 
   public Metadata Metadata;
-  
+
   public Dictionary<string, Entity> Entities = new();
 
   /// <summary>
@@ -81,14 +83,17 @@ public class ROCrate
       {
         RootDataset = entity as RootDataset;
       }
+
       if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
       }
+
       if (entityType.IsSubclassOf(typeof(DataEntity)))
       {
         if (!Entities.ContainsKey(key)) RootDataset.AppendTo("hasPart", entity);
       }
+
       Entities.Add(key, entity);
     }
   }
@@ -135,7 +140,7 @@ public class ROCrate
     Add(file);
     return file;
   }
-  
+
   /// <summary>
   /// Add a dataset to the RO-Crate and return the created <c>Dataset</c> object.
   /// </summary>
@@ -158,5 +163,28 @@ public class ROCrate
     var dataset = new Dataset(this, identifier, properties, source, destPath, fetchRemote, validateUrl);
     Add(dataset);
     return dataset;
+  }
+
+  /// <summary>
+  /// Add a workflow to the RO-Crate and return the created <c>ComputationalWorkflow</c> object.
+  /// </summary>
+  /// <param name="identifier"></param>
+  /// <param name="properties"></param>
+  /// <param name="source"></param>
+  /// <param name="destPath"></param>
+  /// <param name="fetchRemote"></param>
+  /// <param name="validateUrl"></param>
+  /// <returns>A new <c>ComputationalWorkflow</c> with the given parameters.</returns>
+  public ComputationalWorkflow AddWorkflow(string? identifier = null, JsonObject? properties = null,
+    string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
+  {
+    var workflow = new ComputationalWorkflow(this, identifier, properties, source, destPath, fetchRemote, validateUrl);
+    
+    var profiles = Metadata.GetProperty<List<Part>>("conformsTo") ?? new List<Part>();
+    profiles.Add(new Part { Identifier = "https://w3id.org/workflowhub/workflow-ro-crate/1.0" });
+    Metadata.SetProperty("conformsTo", profiles);
+
+    Add(workflow);
+    return workflow;
   }
 }
