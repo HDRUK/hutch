@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HutchManager.Constants;
 using HutchManager.Dto;
 using HutchManager.Services;
@@ -22,17 +23,22 @@ public class ResultsController: ControllerBase
     _apiClient = apiClient;
     _featureManager = featureManager;
   }
-  
+
   /// <summary>
-  /// Endpoint for ROCrates results.
+  /// Endpoint for results.
   /// </summary>
-  /// <param name="roCratesQueryResult"></param>
+  /// <param name="body"></param>
   /// <returns></returns>
   [HttpPost]
-  public async Task<IActionResult> PostRoCrates([FromBody] ROCratesQueryResult roCratesQueryResult)
+  public async Task<IActionResult> PostRoCrates([FromBody] ActivityJob body)
   {
-    QueryResult result = new ResultsTranslator.RoCratesQueryTranslator().TranslateRoCrates(roCratesQueryResult);
-    await _apiClient.ResultsEndpointPost(result.ActivitySourceId, result.JobId, result.Results);
-    return Ok(_apiClient);
+    var result = JsonSerializer.Deserialize<RquestQueryResult>(body.Payload);
+    if (result != null)
+    {
+      await _apiClient.ResultsEndpointPost(body.ActivitySourceId, body.JobId, result);
+      return Ok(_apiClient);
+    }
+    // JSON sent to manager is not valid.
+    return BadRequest(_apiClient);
   }
 }

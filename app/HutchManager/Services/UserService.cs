@@ -7,25 +7,27 @@ using HutchManager.Data;
 using HutchManager.Data.Entities.Identity;
 using HutchManager.Models.User;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.FeatureManagement;
 
 namespace HutchManager.Services;
 
 public class UserService
 {
   private readonly ApplicationDbContext _db;
-  private readonly IFeatureManager _featureManager;
   private readonly IUserClaimsPrincipalFactory<ApplicationUser> _principalFactory;
-
+  private readonly UserManager<ApplicationUser> _users;
+  private readonly RegistrationOptions _registrationOptions;
   public UserService(
     ApplicationDbContext db,
-    IFeatureManager featureManager,
-    IUserClaimsPrincipalFactory<ApplicationUser> principalFactory)
+    IUserClaimsPrincipalFactory<ApplicationUser> principalFactory,
+    IOptions<RegistrationOptions> registrationOptions,
+    UserManager<ApplicationUser> users)
   {
     _db = db;
     _principalFactory = principalFactory;
-    _featureManager = featureManager;
+    _users = users;
+    _registrationOptions = registrationOptions.Value;
   }
 
   /// <summary>
@@ -35,9 +37,18 @@ public class UserService
   /// <param name="email">The email address to check</param>
   /// <returns></returns>
   public async Task<bool> CanRegister(string email)
-    => await _featureManager.IsEnabledAsync(Enum.GetName(FeatureFlags.AllowFreeRegistration)) ||
-        (await _db.RegistrationAllowlist.FindAsync(email) is not null);
-
+  {
+    return _registrationOptions.Registration.Equals(UserRegistrationOptions.Free, StringComparison.OrdinalIgnoreCase) ||
+           (await _db.RegistrationAllowlist.FindAsync(email) is not null);
+  }
+  /// <summary>
+  /// Checks if User Registration is disabled
+  /// </summary>
+  /// <returns></returns>
+  public bool IsDisabled()
+  {
+    return _registrationOptions.Registration.Equals(UserRegistrationOptions.Disabled,StringComparison.OrdinalIgnoreCase);
+  }
   /// <summary>
   /// Build up a client profile for a user
   /// </summary>
@@ -89,6 +100,71 @@ public class UserService
 
     user.UICulture = culture.Name;
 
+    await _db.SaveChangesAsync();
+  }
+
+  /// <summary>
+  /// Create User given a username
+  /// </summary>
+  /// <param name="userModel"></param>
+  public async Task<UserModel> Create(UserModel userModel)
+  {
+    // Autogenerate email address for @username users
+    if (userModel.Username.StartsWith("@"))
+    {
+      userModel.Email = userModel.Username.Trim('@') + "@local";
+    }
+    else
+    {
+      userModel.Email = userModel.Username;
+    }
+    
+    var user = new ApplicationUser()
+    {
+      UserName = userModel.Username,
+      Email = userModel.Email
+    };
+    await _users.CreateAsync(user);
+    return new(user);
+  }
+  
+  /// <summary>
+  /// List all Users
+  /// </summary>
+  /// <returns></returns>
+  public async Task<List<UserModel>> List()
+  {
+    var list = await _db.Users
+      .AsNoTracking()
+      .ToListAsync();
+    var userList=list.ConvertAll<UserModel>(x => new(x));
+    try
+    {
+      userList.Find(e => e.Username == "@admin")!.IsProtected = true;
+
+    }
+    catch
+    {
+      throw new KeyNotFoundException();
+    }
+
+    return userList;
+  }
+  
+  /// <summary>
+  /// Delete User by ID
+  /// </summary>
+  /// <param name="userId"></param>
+  /// <exception cref="KeyNotFoundException"></exception>
+  public async Task Delete(string userId)
+  {
+    var entity = await _db.Users
+      .AsNoTracking()
+      .FirstOrDefaultAsync(x => x.Id == userId);
+    if (entity is null)
+      throw new KeyNotFoundException(
+        $"No User with ID: {userId}");
+    _db.Users.Remove(entity);
     await _db.SaveChangesAsync();
   }
 }

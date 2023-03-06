@@ -45,7 +45,8 @@ or the environment variable DOTNET_Hosted_AdminPassword");
                     UserName = username,
                     FullName = "Super Admin",
                     Email = email,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    AccountConfirmed = true
                 };
 
                 user.PasswordHash = passwords.HashPassword(user, pwd);

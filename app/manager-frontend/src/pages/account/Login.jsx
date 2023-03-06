@@ -17,25 +17,20 @@ import { useTranslation } from "react-i18next";
 import { object, string } from "yup";
 import { useResetState } from "helpers/hooks/useResetState";
 import { useUser } from "contexts/User";
-import { ResendConfirmAlert } from "components/account/ResendConfirmAlert";
 import { useBackendApi } from "contexts/BackendApi";
-import { EmailField } from "components/forms/EmailField";
+import { useBackendConfig } from "contexts/Config";
+import { UsernameField } from "components/forms/UsernameField";
 import { useScrollIntoView } from "helpers/hooks/useScrollIntoView";
 import { HutchLogo } from "components/Logo";
 
 const validationSchema = (t) =>
   object().shape({
     username: string()
-      .test(
-        "valid-username",
-        t("validation.email_valid"),
-        (v) =>
-          // this allows for DECSYS style "@admin" usernames in future
-          // for a non-email seeded superuser
-          string().email().isValidSync(v) ||
-          string().matches(/^@/).isValidSync(v)
+      .test("valid-username", t("validation.username_valid"), (v) =>
+        // this allows "@admin" style usernames
+        string().isValidSync(v)
       )
-      .required(t("validation.email_required")),
+      .required(t("validation.username_required")),
     password: string().required(t("validation.password_required")),
   });
 
@@ -47,6 +42,7 @@ export const Login = () => {
   const {
     account: { login },
   } = useBackendApi();
+  const { config } = useBackendConfig();
 
   // ajax submissions may cause feedback to display
   // but we reset feedback if the page should remount
@@ -72,9 +68,9 @@ export const Login = () => {
           setFeedback({
             status: "error",
             message: result.isUnconfirmedAccount
-              ? t("feedback.account.unconfirmed")
+              ? t("feedback.account.unconfirmedAccount")
               : t("login.feedback.loginFailed"),
-            resendConfirm: result.isUnconfirmedAccount,
+            requireActivation: result.isUnconfirmedAccount,
           });
 
           break;
@@ -115,7 +111,7 @@ export const Login = () => {
           onSubmit={handleSubmit}
           validationSchema={validationSchema(t)}
         >
-          {({ isSubmitting, values }) => (
+          {({ isSubmitting }) => (
             <Form noValidate>
               <VStack align="stretch" spacing={4}>
                 {feedback?.status && (
@@ -124,15 +120,25 @@ export const Login = () => {
                     {feedback.message}
                   </Alert>
                 )}
-                {feedback?.resendConfirm && (
-                  <ResendConfirmAlert userIdOrEmail={values.username} />
-                )}
 
-                <EmailField name="username" autoFocus />
+                {feedback?.requireActivation && (
+                  <Alert status="info">
+                    <AlertIcon />
+                    {t("login.feedback.unconfirmedAccountInfo")}
+                  </Alert>
+                )}
+                <UsernameField name="username" autoFocus />
 
                 <PasswordField
                   fieldTip={
-                    <Link as={RouterLink} to="/account/password/reset">
+                    <Link
+                      onClick={() =>
+                        setFeedback({
+                          status: "info",
+                          message: t("login.feedback.passwordResetInfo"),
+                        })
+                      }
+                    >
                       {t("login.links.forgotPassword")}
                     </Link>
                   }
@@ -149,15 +155,19 @@ export const Login = () => {
                   >
                     {t("buttons.login")}
                   </Button>
-                  <Button
-                    colorScheme="blue"
-                    variant="link"
-                    leftIcon={<FaUserPlus />}
-                  >
-                    <Link as={RouterLink} to="/account/register">
-                      {t("login.links.register")}
-                    </Link>
-                  </Button>
+
+                  {config.Settings.Registration.toLowerCase() ===
+                  "disabled" ? null : (
+                    <Button
+                      colorScheme="blue"
+                      variant="link"
+                      leftIcon={<FaUserPlus />}
+                    >
+                      <Link as={RouterLink} to="/account/register">
+                        {t("login.links.register")}
+                      </Link>
+                    </Button>
+                  )}
                 </HStack>
               </VStack>
             </Form>

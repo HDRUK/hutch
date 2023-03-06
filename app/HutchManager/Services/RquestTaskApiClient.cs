@@ -55,12 +55,12 @@ namespace HutchManager.Services
     /// </summary>
     /// <param name="activitySource"> ActivitySource</param>
     /// <returns>A Task DTO containing a Query to run, or null if none are waiting</returns>
-    public async Task<T?> FetchQuery<T>(ActivitySource activitySource) where T: class, IRquestTask, new()
+    public async Task<T?> FetchQuery<T>(ActivitySource activitySource) where T: class, new()
     {
       var typeSuffix = new T() switch
       {
-        RquestQueryTask _ => RQuestJobTypeSuffixes.AvailabilityQuery,
-        RquestDistributionQueryTask _ => RQuestJobTypeSuffixes.Distribution,
+        AvailabilityQuery _ => RQuestJobTypeSuffixes.AvailabilityQuery,
+        DistributionQuery _ => RQuestJobTypeSuffixes.Distribution,
         _ => string.Empty
         
       };
@@ -86,12 +86,6 @@ namespace HutchManager.Services
         try
         {
           var job = await result.Content.ReadFromJsonAsync<T>();
-
-          // a null job is impossible because the necessary JSON payload
-          // to achieve it would fail deserialization
-          _logger.LogInformation("Found Query with Id: {JobId}", job!.JobId);
-          //Set ActivitySource ID
-          job.ActivitySourceId = activitySource.Id;
           return job;
         }
         catch (JsonException e)
@@ -117,7 +111,7 @@ namespace HutchManager.Services
     /// <param name="activitySourceId">activitySourceId ID</param>
     /// <param name="jobId">Job ID</param>
     /// <param name="result">Results with Count</param>
-    public async Task ResultsEndpointPost(int activitySourceId, string jobId, QueryResultCount result)
+    public async Task ResultsEndpointPost(int activitySourceId, string jobId, RquestQueryResult result)
     {
       var activitySource = await _db.ActivitySources
         .FirstOrDefaultAsync(x => x.Id == activitySourceId);
@@ -134,7 +128,7 @@ namespace HutchManager.Services
         activitySource.ResourceId);
 
       var response = (await _client.PostAsync(
-          requestUri, AsHttpJsonString(new RquestQueryTaskResult(activitySource.ResourceId, jobId, result.Count))))
+          requestUri, AsHttpJsonString(result)))
         .EnsureSuccessStatusCode();
 
       var body = await response.Content.ReadAsStringAsync();

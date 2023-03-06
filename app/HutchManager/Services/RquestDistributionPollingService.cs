@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HutchManager.Constants;
 using HutchManager.Data.Entities;
 using HutchManager.Dto;
 using Microsoft.FeatureManagement;
@@ -10,13 +11,13 @@ public class RquestDistributionPollingService
   private readonly RQuestTaskApiClient _taskApi;
   private readonly ILogger<RquestDistributionPollingService> _logger;
   private readonly IFeatureManager _featureManager;
-  private readonly JobQueueService _jobQueue;
+  private readonly IJobQueueService _jobQueue;
 
   public RquestDistributionPollingService(
     RQuestTaskApiClient taskApi,
     ILogger<RquestDistributionPollingService> logger,
     IFeatureManager featureManager,
-    JobQueueService jobQueue)
+    IJobQueueService jobQueue)
   {
     _taskApi = taskApi;
     _logger = logger;
@@ -26,13 +27,13 @@ public class RquestDistributionPollingService
   
   public async Task Poll(ActivitySource activitySource)
   {
-    RquestDistributionQueryTask? job = null;
+    DistributionQuery? job = null;
 
     do
     {
       try
       {
-        job = await _taskApi.FetchQuery<RquestDistributionQueryTask>(activitySource);
+        job = await _taskApi.FetchQuery<DistributionQuery>(activitySource);
         if (job is null)
         {
           _logger.LogInformation(
@@ -41,7 +42,8 @@ public class RquestDistributionPollingService
           return;
         }
 
-        SendToQueue(job, activitySource.TargetDataSource.Id);
+        var packagedJob = PackageJob(job, activitySource);
+        SendToQueue(packagedJob, activitySource.TargetDataSource.Id);
       }
       catch (Exception e)
       {
@@ -57,10 +59,21 @@ public class RquestDistributionPollingService
     } while (job is null);
   }
   
-  public void SendToQueue(RquestDistributionQueryTask jobPayload, string queueName)
+  private ActivityJob PackageJob(DistributionQuery jobPayload, ActivitySource activitySource)
   {
-    ROCratesQuery roCratesQuery = new QueryTranslator.RquestDistributionQueryTranslator().Translate(jobPayload);
-    _jobQueue.SendMessage(queueName, roCratesQuery);
-    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(roCratesQuery));
+    var job = new ActivityJob
+    {
+      ActivitySourceId = activitySource.Id,
+      Payload = JsonSerializer.SerializeToElement(jobPayload),
+      Type = ActivityJobTypes.DistributionQuery,
+      JobId = jobPayload.Uuid
+    };
+    return job;
+  }
+
+  private void SendToQueue(ActivityJob jobPayload, string queueName)
+  {
+    _jobQueue.SendMessage(queueName, jobPayload);
+    _logger.LogInformation("Sent to Queue {Body}", JsonSerializer.Serialize(jobPayload));
   }
 }

@@ -134,6 +134,9 @@ namespace HutchManager.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("AccountConfirmed")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");

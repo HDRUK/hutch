@@ -39,16 +39,6 @@ services:
     volumes:
       -  # <path to local .pem and .key dir>:/certs:ro
 
-  hutch.agent:
-    image: # image for the manager
-    restart: always
-    depends_on:
-      - hutch.db
-      - hutch.msg_queue
-      - hutch.manager
-    env_file:
-      -  # .env file containing agent config variables; see https://hdruk.github.io/hutch/docs/users/getting-started/configuration/agent
-
 volumes:
   db_data:
   queue_data:

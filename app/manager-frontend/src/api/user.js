@@ -3,6 +3,7 @@ import useSWR from "swr";
 
 const fetchKeys = {
   me: "user/me",
+  userList: "users",
 };
 
 /**
@@ -32,8 +33,28 @@ export const getUserApi = ({ api }) => ({
    * @param {*} culture a culture/locale/language code
    * @returns
    */
+  create: ({ values }) =>
+    api.post("users", {
+      json: values,
+    }),
   setUICulture: (culture) =>
     api.put("user/uiCulture", {
       json: culture,
     }),
+  delete: ({ values, id }) =>
+    api.delete(`users/${id}`, {
+      json: values,
+    }),
 });
+
+export const useUserList = () => {
+  const { apiFetcher } = useBackendApi();
+  return useSWR(
+    fetchKeys.userList,
+    async (url) => {
+      const data = await apiFetcher(url);
+      return data;
+    },
+    { suspense: true }
+  );
+};
