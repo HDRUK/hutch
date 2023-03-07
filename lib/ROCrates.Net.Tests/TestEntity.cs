@@ -5,15 +5,18 @@ using Xunit.Abstractions;
 
 namespace ROCrates.Tests;
 
-public class TestRoCrateEntity
+public class TestEntity
 {
+  private ROCrate _roCrate = new();
+  private string _jsonLd =
+    "{\"@id\": \"./\",\"identifier\": \"https://doi.org/10.4225/59/59672c09f4a4b\",\"@type\": \"Dataset\", \"randomNumber\": 123, \"datePublished\": \"2017\",\"name\": \"Data files associated with the manuscript:Effects of facilitated family case conferencing for ...\",\"description\": \"Palliative care planning for nursing home residents with advanced dementia ...\",\"license\": {\"@id\": \"https://creativecommons.org/licenses/by-nc-sa/3.0/au/\"}}";
+
+  
   [Fact]
   public void TestSetProperty_Updates()
   {
-    var jsonLd =
-      "{\"@id\": \"./\",\"identifier\": \"https://doi.org/10.4225/59/59672c09f4a4b\",\"@type\": \"Dataset\",\"datePublished\": \"2017\",\"name\": \"Data files associated with the manuscript:Effects of facilitated family case conferencing for ...\",\"description\": \"Palliative care planning for nursing home residents with advanced dementia ...\",\"license\": {\"@id\": \"https://creativecommons.org/licenses/by-nc-sa/3.0/au/\"}}";
-    var jsonObject = JsonNode.Parse(jsonLd).AsObject();
-    var entity = new Entity(new ROCrate("my-test.zip"), properties: jsonObject);
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
     var gotValue = entity.Properties.TryGetPropertyValue("datePublished", out var datePublished);
     Assert.True(gotValue);
     Assert.Equal("2017", datePublished.ToString());
@@ -25,10 +28,8 @@ public class TestRoCrateEntity
   [Fact]
   public void TestGetProperty_CorrectTypes()
   {
-    var jsonLd =
-      "{\"randomNumber\": 123, \"@id\": \"./\",\"identifier\": \"https://doi.org/10.4225/59/59672c09f4a4b\",\"@type\": \"Dataset\",\"datePublished\": \"2017\",\"name\": \"Data files associated with the manuscript:Effects of facilitated family case conferencing for ...\",\"description\": \"Palliative care planning for nursing home residents with advanced dementia ...\",\"license\": {\"@id\": \"https://creativecommons.org/licenses/by-nc-sa/3.0/au/\"}}";
-    var jsonObject = JsonNode.Parse(jsonLd).AsObject();
-    var entity = new Entity(new ROCrate("my-test.zip"), properties: jsonObject);
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
     var retrievedInt = entity.GetProperty<int>("randomNumber");
     Assert.IsType<int>(retrievedInt);
     Assert.Equal(123, retrievedInt);
@@ -41,8 +42,7 @@ public class TestRoCrateEntity
   [Fact]
   public void TestDefaultProperties()
   {
-    var entity = new Entity(
-      new ROCrate("my-test.zip"));
+    var entity = new Entity(_roCrate);
     var gotValue = entity.Properties.TryGetPropertyValue("@type", out var type);
     Assert.True(gotValue);
     Assert.Equal("Thing", type.ToString());
@@ -51,14 +51,53 @@ public class TestRoCrateEntity
   [Fact]
   public void TestProperties_Type_Is_AsSpecified()
   {
-    var jsonLd =
-      "{\"randomNumber\": 123, \"@id\": \"./\",\"identifier\": \"https://doi.org/10.4225/59/59672c09f4a4b\",\"@type\": \"Dataset\",\"datePublished\": \"2017\",\"name\": \"Data files associated with the manuscript:Effects of facilitated family case conferencing for ...\",\"description\": \"Palliative care planning for nursing home residents with advanced dementia ...\",\"license\": {\"@id\": \"https://creativecommons.org/licenses/by-nc-sa/3.0/au/\"}}";
-    var jsonObject = JsonNode.Parse(jsonLd).AsObject();
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
     var entity = new Entity(
-      new ROCrate("my-test.zip"),
+      _roCrate,
       properties: jsonObject);
     var gotValue = entity.Properties.TryGetPropertyValue("@type", out var type);
     Assert.True(gotValue);
     Assert.Equal("Dataset", type.ToString());
+  }
+
+  [Fact]
+  public void TestAppendTo_CreatesKey()
+  {
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
+    var entity2 = new Entity(_roCrate);
+    
+    Assert.False(entity.Properties.ContainsKey("hasPart"));
+    entity.AppendTo("hasPart", entity2);
+    Assert.True(entity.Properties.ContainsKey("hasPart"));
+  }
+  
+  [Fact]
+  public void TestAppendTo_MakesSinglePart()
+  {
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
+    var entity2 = new Entity(_roCrate);
+    
+    entity.AppendTo("hasPart", entity2);
+    Assert.True(entity.Properties.TryGetPropertyValue("hasPart", out var outputIdJson));
+    var outputId = outputIdJson.Deserialize<Part>();
+    Assert.Equal(entity2.GetCanonicalId(), outputId.Identifier);
+  }
+  
+  [Fact]
+  public void TestAppendTo_AppendsToList()
+  {
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
+    var entity2 = new Entity(_roCrate);
+    var entity3 = new Entity(_roCrate);
+    
+    entity.AppendTo("hasPart", entity2);
+    entity.AppendTo("hasPart", entity3);
+    
+    entity.Properties.TryGetPropertyValue("hasPart", out var outputIdJson);
+    var outputId = outputIdJson.Deserialize<List<Part>>();
+    Assert.Equal(2, outputId.Count);
   }
 }

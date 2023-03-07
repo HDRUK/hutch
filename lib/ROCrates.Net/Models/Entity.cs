@@ -72,6 +72,50 @@ public class Entity
   }
 
   /// <summary>
+  /// Append a value to the entity's property.
+  /// </summary>
+  /// <param name="key">The element to append the value to.</param>
+  /// <param name="value">The value to be appended.</param>
+  /// <typeparam name="T">The type of <c>Entity</c> to be appended.</typeparam>
+  /// <exception cref="Exception">
+  /// Thrown when attempting to append to reserved key (those starting with '@').
+  /// </exception>
+  /// <exception cref="NullReferenceException">Thrown when <c>value</c> is <c>null</c>.</exception>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var rootDataset = new RootDataset(roCrate);
+  /// var person = new Person(roCrate, identifier: "Alice");
+  /// rootDataset.AppendTo("author", person);
+  /// </code>
+  /// </example>
+  public void AppendTo<T>(string key, T value) where T : Entity
+  {
+    if (key.StartsWith('@')) throw new Exception($"Cannot append to {key}");
+    if (value is null) throw new NullReferenceException("value cannot be null.");
+    
+    var newItem = new Part { Identifier = value.GetCanonicalId() };
+    var itemList = new List<Part>{ newItem };
+    
+    if (Properties.TryGetPropertyValue(key, out var propsJson))
+    {
+      var currentItem = propsJson.Deserialize<Part>();
+      if (currentItem is null)
+      {
+        var currentItems = propsJson.Deserialize<List<Part>>() ?? new List<Part>();
+        if (currentItems.Count > 0) itemList.InsertRange(0, currentItems);
+      }
+      else
+      {
+        itemList.Insert(0, currentItem);
+      }
+    }
+    
+    if (itemList.Count > 1) SetProperty(key, itemList);
+    else SetProperty(key, newItem);
+  }
+
+  /// <summary>
   /// Remove a property from the <c>Properties</c> field.
   /// </summary>
   /// <param name="propertyName"></param>
