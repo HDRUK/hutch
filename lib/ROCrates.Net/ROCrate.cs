@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Models;
 using File = ROCrates.Models.File;
@@ -220,7 +221,7 @@ public class ROCrate
     else if (_mainEntity is not null) suite.SetProperty("mainEntity", _mainEntity);
 
     RootDataset.AppendTo(testRefProp, suite);
-    // Todo: add metadata extra terms.
+    Metadata.ExtraTerms = JsonSerializer.SerializeToNode(new TestingExtraTerms()).AsObject();
     return suite;
   }
 }
