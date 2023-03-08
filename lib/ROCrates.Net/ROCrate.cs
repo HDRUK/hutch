@@ -187,13 +187,37 @@ public class ROCrate
     string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
   {
     var workflow = new ComputationalWorkflow(this, identifier, properties, source, destPath, fetchRemote, validateUrl);
-    
+
     var profiles = Metadata.GetProperty<List<Part>>("conformsTo") ?? new List<Part>();
     profiles.Add(new Part { Identifier = "https://w3id.org/workflowhub/workflow-ro-crate/1.0" });
     Metadata.SetProperty("conformsTo", profiles);
 
     Add(workflow);
     return workflow;
+  }
+
+  /// <summary>
+  /// Add a test definition to the RO-Crate and return the created <c>TestDefinition</c> object.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var testDefinition = roCrate.AddTestDefinition();
+  /// </code>
+  /// </example>
+  /// <param name="identifier">The unique identifier.</param>
+  /// <param name="properties">Additional properties of the test definition.</param>
+  /// <param name="source">The path to the test definition file.</param>
+  /// <param name="destPath">The path to where test definition file will be saved.</param>
+  /// <param name="fetchRemote">Fetch the test definition from remote location?</param>
+  /// <param name="validateUrl">Check the URL?</param>
+  /// <returns>A new <c>TestDefinition</c> with the given parameters.</returns>
+  public TestDefinition AddTestDefinition(string? identifier = null, JsonObject? properties = null,
+    string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false)
+  {
+    var testDefinition = new TestDefinition(this, identifier, properties, source, destPath, fetchRemote, validateUrl);
+    Add(testDefinition);
+    return testDefinition;
   }
 
   /// <summary>
