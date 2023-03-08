@@ -20,9 +20,9 @@ public class TestDefinition : File
     set => SetProperty("engineVersion", value);
   }
 
-  public List<Part> ConformsTo
+  public Part? ConformsTo
   {
-    get => GetProperty<List<Part>>("conformsTo") ?? new List<Part>();
+    get => GetProperty<Part>("conformsTo");
     set => SetProperty("conformsTo", value);
   }
 
