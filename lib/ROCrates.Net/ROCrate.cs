@@ -27,6 +27,7 @@ public class ROCrate
   public Metadata Metadata;
 
   public Dictionary<string, Entity> Entities = new();
+  private Entity? _mainEntity = null;
 
   /// <summary>
   /// Initialise a new empty <c>ROCrate</c> object. This constructor will not create or parse an RO-Crate on disk.
@@ -192,5 +193,34 @@ public class ROCrate
 
     Add(workflow);
     return workflow;
+  }
+
+  /// <summary>
+  /// Add a test suite to the RO-Crate and return the created <c>TestSuite</c> object.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var testSuite = roCrate.AddTestSuite();
+  /// </code>
+  /// </example>
+  /// <param name="identifier">The identifier of the test suite.</param>
+  /// <param name="name">The name of the test suite.</param>
+  /// <param name="mainEntity">The main entity of the test suite.</param>
+  /// <returns>The <c>TestSuite</c> object with the given parameters.</returns>
+  public TestSuite AddTestSuite(string? identifier = null, string? name = null, Entity? mainEntity = null)
+  {
+    var testRefProp = "mentions";
+    if (mainEntity is null && _mainEntity is null) testRefProp = "about";
+    
+    var suite = new TestSuite(this, identifier);
+    suite.Name = name ?? suite.Identifier.TrimStart('#');
+
+    if (mainEntity is not null) suite.SetProperty("mainEntity", mainEntity);
+    else if (_mainEntity is not null) suite.SetProperty("mainEntity", _mainEntity);
+
+    RootDataset.AppendTo(testRefProp, suite);
+    // Todo: add metadata extra terms.
+    return suite;
   }
 }
