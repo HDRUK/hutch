@@ -200,7 +200,7 @@ public class ROCrate
   /// <example>
   /// <code>
   /// var roCrate = new ROCrate();
-  /// var testDefinition = roCrate.AddTestDefinition(roCrate);
+  /// var testDefinition = roCrate.AddTestDefinition();
   /// </code>
   /// </example>
   /// <param name="identifier">The unique identifier.</param>
