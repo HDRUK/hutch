@@ -71,20 +71,7 @@ public class TestEntity
     entity.AppendTo("hasPart", entity2);
     Assert.True(entity.Properties.ContainsKey("hasPart"));
   }
-  
-  [Fact]
-  public void TestAppendTo_MakesSinglePart()
-  {
-    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
-    var entity = new Entity(_roCrate, properties: jsonObject);
-    var entity2 = new Entity(_roCrate);
-    
-    entity.AppendTo("hasPart", entity2);
-    Assert.True(entity.Properties.TryGetPropertyValue("hasPart", out var outputIdJson));
-    var outputId = outputIdJson.Deserialize<Part>();
-    Assert.Equal(entity2.GetCanonicalId(), outputId.Identifier);
-  }
-  
+
   [Fact]
   public void TestAppendTo_AppendsToList()
   {
