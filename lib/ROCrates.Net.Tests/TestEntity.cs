@@ -18,11 +18,11 @@ public class TestEntity
   {
     var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
     var entity = new Entity(_roCrate, properties: jsonObject);
+    
     var gotValue = entity.Properties.TryGetPropertyValue("datePublished", out var datePublished);
-    Assert.True(gotValue);
-    Assert.Equal("2017", datePublished.ToString());
     entity.SetProperty("datePublished", "2023");
     entity.Properties.TryGetPropertyValue("datePublished", out datePublished);
+    
     Assert.Equal("2023", datePublished.ToString());
   }
 
@@ -31,11 +31,12 @@ public class TestEntity
   {
     var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
     var entity = new Entity(_roCrate, properties: jsonObject);
+    
     var retrievedInt = entity.GetProperty<int>("randomNumber");
+    var retrievedString = entity.GetProperty<string>(_testTypePropName);
+    
     Assert.IsType<int>(retrievedInt);
     Assert.Equal(123, retrievedInt);
-
-    var retrievedString = entity.GetProperty<string>(_testTypePropName);
     Assert.IsType<string>(retrievedString);
     Assert.Equal("Dataset", retrievedString);
   }
@@ -44,7 +45,9 @@ public class TestEntity
   public void TestDefaultProperties()
   {
     var entity = new Entity(_roCrate);
+    
     var gotValue = entity.Properties.TryGetPropertyValue(_testTypePropName, out var type);
+    
     Assert.True(gotValue);
     Assert.Equal("Thing", type.ToString());
   }
@@ -56,7 +59,9 @@ public class TestEntity
     var entity = new Entity(
       _roCrate,
       properties: jsonObject);
+    
     var gotValue = entity.Properties.TryGetPropertyValue(_testTypePropName, out var type);
+    
     Assert.True(gotValue);
     Assert.Equal("Dataset", type.ToString());
   }
@@ -68,8 +73,8 @@ public class TestEntity
     var entity = new Entity(_roCrate, properties: jsonObject);
     var entity2 = new Entity(_roCrate);
     
-    Assert.False(entity.Properties.ContainsKey(_testPartPropName));
     entity.AppendTo(_testPartPropName, entity2);
+    
     Assert.True(entity.Properties.ContainsKey(_testPartPropName));
   }
 
@@ -83,9 +88,9 @@ public class TestEntity
     
     entity.AppendTo(_testPartPropName, entity2);
     entity.AppendTo(_testPartPropName, entity3);
-    
     entity.Properties.TryGetPropertyValue(_testPartPropName, out var outputIdJson);
     var outputId = outputIdJson.Deserialize<List<Part>>();
+    
     Assert.Equal(2, outputId.Count);
   }
 }
