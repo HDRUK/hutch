@@ -248,4 +248,31 @@ public class ROCrate
     Metadata.ExtraTerms = JsonSerializer.SerializeToNode(new TestingExtraTerms()).AsObject();
     return suite;
   }
+
+  /// <summary>
+  /// Add a test instance to the RO-Crate and return the <see cref="TestInstance"/> object.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var testInstance = roCrate.AddTestInstance();
+  /// </code>
+  /// </example>
+  /// <param name="testSuite">The suite the test instance is run in.</param>
+  /// <param name="url">The URL to the test instance.</param>
+  /// <param name="resource">The resource of the test instance.</param>
+  /// <param name="testService">The service used to run the test instance.</param>
+  /// <param name="name">The name of the test instance.</param>
+  /// <returns>The <see cref="TestInstance"/> with the given parameters.</returns>
+  public TestInstance AddTestInstance(TestSuite testSuite, string url, string resource = "",  TestService? testService = null, string? name = null)
+  {
+    var testInstance = new TestInstance(this);
+    testInstance.SetProperty("url", url);
+    testInstance.SetProperty("resource", resource);
+    testInstance.Name = name ?? testInstance.Identifier.TrimStart('#');
+    if (testService is not null) testInstance.RunsOn = testService;
+    testSuite.AppendTo("instance", testInstance);
+    Metadata.ExtraTerms = JsonSerializer.SerializeToNode(new TestingExtraTerms()).AsObject();
+    return testInstance;
+  }
 }
