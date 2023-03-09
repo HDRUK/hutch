@@ -12,6 +12,7 @@ public class Metadata : File
   protected const string Profile = "https://w3id.org/ro/crate/1.1";
 
   public RootDataset? RootDataset => RoCrate.RootDataset;
+  public JsonObject? ExtraTerms { get; set; }
 
   public Metadata(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
