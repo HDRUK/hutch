@@ -246,6 +246,7 @@ public class ROCrate
 
     RootDataset.AppendTo(testRefProp, suite);
     Metadata.ExtraTerms = JsonSerializer.SerializeToNode(new TestingExtraTerms()).AsObject();
+    Add(suite);
     return suite;
   }
 
@@ -273,6 +274,7 @@ public class ROCrate
     if (testService is not null) testInstance.RunsOn = testService;
     testSuite.AppendTo("instance", testInstance);
     Metadata.ExtraTerms = JsonSerializer.SerializeToNode(new TestingExtraTerms()).AsObject();
+    Add(testInstance);
     return testInstance;
   }
 }
