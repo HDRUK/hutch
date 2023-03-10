@@ -6,14 +6,14 @@ public class TestFile : IClassFixture<TestFileFixture>
 {
   private readonly ITestOutputHelper _testOutputHelper;
   private TestFileFixture _testFileFixture;
-  private static char _sep = Path.DirectorySeparatorChar;
   private const string _testFileName = "my-test-file.txt";
-  private static readonly string _testBasePath = $"path{_sep}to{_sep}base";
+  private readonly string _testBasePath;
 
   public TestFile(ITestOutputHelper testOutputHelper, TestFileFixture testFileFixture)
   {
     _testOutputHelper = testOutputHelper;
     _testFileFixture = testFileFixture;
+    _testBasePath = testFileFixture.TestBasePath;
   }
 
   [Fact]
@@ -56,18 +56,18 @@ public class TestFile : IClassFixture<TestFileFixture>
 public class TestFileFixture : IDisposable
 {
   private static char _sep = Path.DirectorySeparatorChar;
-  private const string _testFileName = "my-test-file.txt";
-  private static readonly string _testBasePath = $"path{_sep}to{_sep}base";
+  public const string TestFileName = "my-test-file.txt";
+  public readonly string TestBasePath = Path.Combine("file", "test", "path");
   public TestFileFixture()
   {
-    Directory.CreateDirectory(_testBasePath);
-    using var file = new StreamWriter(Path.Combine(_testBasePath, _testFileName));
+    Directory.CreateDirectory(TestBasePath);
+    using var file = new StreamWriter(Path.Combine(TestBasePath, TestFileName));
     file.WriteLine("some content");
   }
   public void Dispose()
   {
-    File.Delete(_testFileName);
-    var rootDir = _testBasePath.Split(Path.DirectorySeparatorChar).First();
+    File.Delete(TestFileName);
+    var rootDir = TestBasePath.Split(Path.DirectorySeparatorChar).First();
     Directory.Delete(rootDir, recursive: true);
   }
 }
