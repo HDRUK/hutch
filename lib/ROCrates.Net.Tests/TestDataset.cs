@@ -1,5 +1,3 @@
-using Xunit.Abstractions;
-
 namespace ROCrates.Tests;
 
 public class TestDataset : IClassFixture<TestDatasetFixture>
@@ -23,7 +21,7 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
     dataset.Write(_testDatasetFixture.TestBasePath);
     Assert.True(Directory.Exists(Path.Combine(_testDatasetFixture.TestBasePath, sourceDir)));
   }
-  
+
   [Fact]
   public void TestWrite_Creates_Dir_From_DestPath()
   {
@@ -38,7 +36,7 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
     dataset.Write(_testDatasetFixture.TestBasePath);
     Assert.True(Directory.Exists(Path.Combine(_testDatasetFixture.TestBasePath, destPath)));
   }
-  
+
   [Fact]
   public void TestWrite_Throws_When_SourceDir_DoesNotExist()
   {
@@ -55,11 +53,12 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
 public class TestDatasetFixture : IDisposable
 {
   public readonly string TestBasePath = Path.Combine("dataset", "test", "path");
-  
+
   public TestDatasetFixture()
   {
     Directory.CreateDirectory(TestBasePath);
   }
+
   public void Dispose()
   {
     Directory.Delete(TestBasePath, recursive: true);
