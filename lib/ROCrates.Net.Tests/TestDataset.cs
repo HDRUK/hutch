@@ -13,18 +13,24 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
   [Fact]
   public void TestWrite_Creates_Dir_From_Source()
   {
+    // Arrange
     var sourceDir = Path.Combine(_testDatasetFixture.TestBasePath, _testDirName);
     Directory.CreateDirectory(sourceDir);
     var dataset = new Models.Dataset(
       new ROCrate(_testDirName),
       source: Path.Combine(_testDatasetFixture.TestBasePath, _testDirName));
+
+    // Act
     dataset.Write(_testDatasetFixture.TestBasePath);
+
+    // Assert
     Assert.True(Directory.Exists(Path.Combine(_testDatasetFixture.TestBasePath, sourceDir)));
   }
 
   [Fact]
   public void TestWrite_Creates_Dir_From_DestPath()
   {
+    // Arrange
     var sourceDir = Path.Combine(_testDatasetFixture.TestBasePath, _testDirName);
     var destPath = Path.Combine(_testDatasetFixture.TestBasePath, "ext", _testDirName);
     Directory.CreateDirectory(sourceDir);
@@ -33,20 +39,30 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
       new ROCrate(_testDirName),
       source: Path.Combine(_testDatasetFixture.TestBasePath, _testDirName),
       destPath: destPath);
+
+    // Act
     dataset.Write(_testDatasetFixture.TestBasePath);
+
+    // Assert
     Assert.True(Directory.Exists(Path.Combine(_testDatasetFixture.TestBasePath, destPath)));
   }
 
   [Fact]
   public void TestWrite_Throws_When_SourceDir_DoesNotExist()
   {
+    // Arrange
     var testDestPath = Path.Combine(_testDatasetFixture.TestBasePath, "ext", _testDirName);
     Directory.CreateDirectory(testDestPath);
     var dataset = new Models.Dataset(
       new ROCrate(_testDirName),
       source: Path.Combine("non", "existent"),
       destPath: testDestPath);
-    Assert.Throws<DirectoryNotFoundException>(() => dataset.Write(_testDatasetFixture.TestBasePath));
+
+    // Act
+    var throwingFunc = () => dataset.Write(_testDatasetFixture.TestBasePath);
+
+    // Assert
+    Assert.Throws<DirectoryNotFoundException>(throwingFunc);
   }
 }
 
