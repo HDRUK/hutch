@@ -25,9 +25,9 @@ public class TestFileOrDir
   {
     var dataEntity = new FileOrDir(
       new ROCrate("my-test.zip"));
-    Assert.Equal("./", dataEntity.Identifier);
+    Assert.Equal("./", dataEntity.Id);
   }
-  
+
   [Fact]
   public void Test_Identifier_Is_FileNameOnly()
   {
@@ -35,13 +35,13 @@ public class TestFileOrDir
     var dataEntity = new FileOrDir(
       new ROCrate("my-test.zip"),
       source: "./path/to/my-file.txt");
-    Assert.Equal("my-file", dataEntity.Identifier);
-    
+    Assert.Equal("my-file", dataEntity.Id);
+
     // remote source
     dataEntity = new FileOrDir(
       new ROCrate("my-test.zip"),
       source: "ftp:///path/to/my-file.txt",
       fetchRemote: true);
-    Assert.Equal("my-file", dataEntity.Identifier);
+    Assert.Equal("my-file", dataEntity.Id);
   }
 }

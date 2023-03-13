@@ -7,7 +7,7 @@ public class ContextEntity : Entity
   public ContextEntity(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate,
     identifier, properties)
   {
-    Identifier = _formatIdentifier(Identifier);
+    Id = _formatIdentifier(Id);
     if (properties is not null) _unpackProperties(properties);
   }
 
@@ -15,7 +15,7 @@ public class ContextEntity : Entity
   {
     if (Uri.IsWellFormedUriString(identifier, UriKind.RelativeOrAbsolute) || identifier.Contains('#'))
       return identifier;
-    
+
     return "#" + identifier;
   }
 }

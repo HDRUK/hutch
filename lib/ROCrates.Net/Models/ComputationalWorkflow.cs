@@ -9,7 +9,7 @@ namespace ROCrates.Models;
 public class ComputationalWorkflow : File
 {
   private protected string[] Types = { "File", "SoftwareSourceCode", "ComputationalWorkflow" };
-  
+
   public ComputationalWorkflow(ROCrate crate, string? identifier = null, JsonObject? properties = null,
     string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate,
     identifier, properties, source, destPath, fetchRemote, validateUrl)
@@ -18,15 +18,17 @@ public class ComputationalWorkflow : File
     if (properties is not null) _unpackProperties(properties);
     SetProperty("@type", Types);
   }
-  
+
   protected new JsonObject _empty()
   {
     var emptyJsonString = new Dictionary<string, string>
     {
-      { "@id", Identifier },
+      { "@id", Id },
       { "@type", DefaultType },
-      { "name", Path.GetFileNameWithoutExtension(
-        Path.GetFileName(Identifier)) }
+      {
+        "name", Path.GetFileNameWithoutExtension(
+          Path.GetFileName(Id))
+      }
     };
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
     return emptyObject;

@@ -13,7 +13,7 @@ public class Dataset : FileOrDir
     DefaultType = "Dataset";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
-    Identifier = _formatIdentifier(Identifier);
+    Id = _formatIdentifier(Id);
   }
 
   /// <summary>
@@ -40,7 +40,7 @@ public class Dataset : FileOrDir
   /// </exception>
   public override void Write(string basePath)
   {
-    var outPath = Path.Join(basePath, Identifier);
+    var outPath = Path.Join(basePath, Id);
     if (Uri.IsWellFormedUriString(_source, UriKind.Absolute))
     {
       if (_validateUrl && !_fetchRemote)
@@ -86,7 +86,7 @@ public class Dataset : FileOrDir
   {
     var emptyJsonString = new Dictionary<string, string>
     {
-      { "@id", Identifier },
+      { "@id", Id },
       { "@type", DefaultType },
       { "datePublished", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture) }
     };
@@ -96,11 +96,9 @@ public class Dataset : FileOrDir
 
   private protected sealed override string _formatIdentifier(string identifier)
   {
-    var newId =  identifier.TrimEnd(Path.DirectorySeparatorChar);
+    var newId = identifier.TrimEnd(Path.DirectorySeparatorChar);
     newId = newId.TrimEnd(Path.AltDirectorySeparatorChar);
     newId += "/";
     return newId;
   }
-  
-  
 }

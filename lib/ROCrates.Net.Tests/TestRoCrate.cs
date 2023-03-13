@@ -19,10 +19,10 @@ public class TestRoCrate
     string validUrl = "https://doi.org/10.4225/59/59672c09f4a4b";
     string invalidUrl = "htps/doi.org/10.4225/59/59672c09f4a4b";
     var crate = new ROCrate("my-test.zip");
-    
+
     string resultValidUrl = crate.ResolveId(validUrl);
-    Assert.Equal(validUrl,resultValidUrl);
-    
+    Assert.Equal(validUrl, resultValidUrl);
+
     string resultInvalidUrl = crate.ResolveId(invalidUrl);
     Assert.StartsWith("arcp://", resultInvalidUrl);
     Assert.EndsWith(invalidUrl, resultInvalidUrl);
@@ -34,15 +34,15 @@ public class TestRoCrate
     string noSlash = "https://doi.org/10.4225/59/59672c09f4a4b";
     string withSlash = noSlash + '/';
     var crate = new ROCrate("my-test.zip");
-    
+
     string resultNoSlash = crate.ResolveId(noSlash);
-    Assert.Equal(noSlash,resultNoSlash);
-    
+    Assert.Equal(noSlash, resultNoSlash);
+
     string resultWithSlash = crate.ResolveId(withSlash);
     Assert.EndsWith(withSlash.TrimEnd('/'), resultWithSlash);
   }
 
-  
+
   [Fact]
   public void TestAdd_AddsRootDataset()
   {
@@ -50,14 +50,14 @@ public class TestRoCrate
     var rootDataset = new RootDataset(roCrate);
 
     roCrate.Add(rootDataset);
-    Assert.Equal(roCrate.RootDataset.Identifier, rootDataset.Identifier);
+    Assert.Equal(roCrate.RootDataset.Id, rootDataset.Id);
     Assert.Equal(roCrate.RootDataset.Properties, rootDataset.Properties);
 
     Assert.True(roCrate.Entities.ContainsKey(rootDataset.GetCanonicalId()));
     Assert.True(roCrate.Entities.TryGetValue(rootDataset.GetCanonicalId(), out var recoveredRootDataset));
     Assert.IsType<RootDataset>(recoveredRootDataset);
   }
-  
+
   [Fact]
   public void TestAdd_AddsMetadata()
   {
@@ -65,14 +65,14 @@ public class TestRoCrate
     var metadata = new Metadata(roCrate);
 
     roCrate.Add(metadata);
-    Assert.Equal(roCrate.Metadata.Identifier, metadata.Identifier);
+    Assert.Equal(roCrate.Metadata.Id, metadata.Id);
     Assert.Equal(roCrate.Metadata.Properties, metadata.Properties);
 
     Assert.True(roCrate.Entities.ContainsKey(metadata.GetCanonicalId()));
     Assert.True(roCrate.Entities.TryGetValue(metadata.GetCanonicalId(), out var recoveredMetadata));
     Assert.IsType<Metadata>(recoveredMetadata);
   }
-  
+
   [Fact]
   public void TestAdd_AddsObjetsOfDifferentTypes()
   {
@@ -86,14 +86,13 @@ public class TestRoCrate
     Assert.True(roCrate.Entities.ContainsKey(person.GetCanonicalId()));
     Assert.True(roCrate.Entities.TryGetValue(person.GetCanonicalId(), out var recoveredPerson));
     Assert.IsType<Person>(recoveredPerson);
-    
+
     Assert.True(roCrate.Entities.ContainsKey(file.GetCanonicalId()));
     Assert.True(roCrate.Entities.TryGetValue(file.GetCanonicalId(), out var recoveredFile));
     Assert.IsType<File>(recoveredFile);
-    
+
     Assert.True(roCrate.Entities.ContainsKey(dataset.GetCanonicalId()));
     Assert.True(roCrate.Entities.TryGetValue(dataset.GetCanonicalId(), out var recoveredDataset));
     Assert.IsType<Dataset>(recoveredDataset);
-    
   }
 }

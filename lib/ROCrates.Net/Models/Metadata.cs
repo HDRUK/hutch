@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace ROCrates.Models;
@@ -21,9 +20,9 @@ public class Metadata : File
     DefaultType = "CreativeWork";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
-    SetProperty("conformsTo", new Dictionary<string, string>{{"@id", Profile}});
-    SetProperty("about", new Dictionary<string, string>{{"@id", "./"}});
-    Identifier = source ?? destPath ?? BaseName;
+    SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
+    SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
+    Id = source ?? destPath ?? BaseName;
   }
 
   private JsonObject _generate()
@@ -34,7 +33,7 @@ public class Metadata : File
 
   public override void Write(string basePath)
   {
-    var outPath = Path.Combine(basePath, Identifier);
+    var outPath = Path.Combine(basePath, Id);
     var metadataJson = _generate();
     System.IO.File.WriteAllText(outPath, metadataJson.ToString());
   }

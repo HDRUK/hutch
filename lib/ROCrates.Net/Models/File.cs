@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace ROCrates.Models;
@@ -28,7 +27,7 @@ public class File : FileOrDir
   ///     If the file is on disk, it will be copied to a new location under "<c>basePath</c>".
   ///   </para>
   ///   <para>
-  ///     In either case, the file will be saved to "<c>basePath/Identifier</c>"
+  ///     In either case, the file will be saved to "<c>basePath/Id</c>"
   ///   </para>
   /// </summary>
   /// <example>
@@ -47,7 +46,7 @@ public class File : FileOrDir
   /// <param name="basePath">The path the file will be written to.</param>
   public override void Write(string basePath)
   {
-    var outFilePath = Path.Join(basePath, Identifier);
+    var outFilePath = Path.Join(basePath, Id);
     var outFileParent = Path.GetDirectoryName(outFilePath);
     if (outFileParent == null) return;
     if (Uri.IsWellFormedUriString(_source, UriKind.Absolute))
