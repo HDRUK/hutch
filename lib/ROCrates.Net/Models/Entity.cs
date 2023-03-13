@@ -11,11 +11,7 @@ public class Entity
   private protected string DefaultType = "Thing";
   public ROCrate RoCrate { get; set; }
 
-  public string Id
-  {
-    get => GetProperty<string>("@id");
-    set => SetProperty("@id", value);
-  }
+  public string Id { get; set; }
 
   public JsonObject Properties { get; set; }
 
