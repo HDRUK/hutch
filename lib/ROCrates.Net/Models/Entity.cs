@@ -10,14 +10,15 @@ public class Entity
 {
   private protected string DefaultType = "Thing";
   public ROCrate RoCrate { get; set; }
-  public string Identifier { get; set; } = Guid.NewGuid().ToString();
+
+  public string Id { get; set; }
 
   public JsonObject Properties { get; set; }
 
   public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
-    if (identifier is not null) Identifier = identifier;
+    Id = identifier ?? Guid.NewGuid().ToString();
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
   }
@@ -28,7 +29,7 @@ public class Entity
   /// <returns></returns>
   public string GetCanonicalId()
   {
-    return RoCrate.ResolveId(Identifier);
+    return RoCrate.ResolveId(Id);
   }
 
   /// <summary>
@@ -93,16 +94,16 @@ public class Entity
   {
     if (key.StartsWith('@')) throw new Exception($"Cannot append to {key}");
     if (value is null) throw new NullReferenceException("value cannot be null.");
-    
+
     var newItem = new Part { Identifier = value.GetCanonicalId() };
-    var itemList = new List<Part>{ newItem };
-    
+    var itemList = new List<Part> { newItem };
+
     if (Properties.TryGetPropertyValue(key, out var propsJson))
     {
       var currentItems = propsJson.Deserialize<List<Part>>() ?? new List<Part>();
       if (currentItems.Count > 0) itemList.InsertRange(0, currentItems);
     }
-    
+
     SetProperty(key, itemList);
   }
 
@@ -119,7 +120,7 @@ public class Entity
   {
     var emptyJsonString = new Dictionary<string, string>
     {
-      { "@id", Identifier },
+      { "@id", Id },
       { "@type", DefaultType }
     };
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();

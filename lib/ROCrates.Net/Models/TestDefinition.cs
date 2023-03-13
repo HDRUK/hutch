@@ -13,7 +13,7 @@ public class TestDefinition : File
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
   }
-  
+
   public string? EngineVersion
   {
     get => GetProperty<string>("engineVersion");
@@ -30,7 +30,7 @@ public class TestDefinition : File
   {
     var emptyJsonString = new Dictionary<string, string>
     {
-      { "@id", Identifier },
+      { "@id", Id },
     };
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
     var typesList = new List<string> { "File", "TestDefinition" };

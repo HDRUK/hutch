@@ -235,9 +235,9 @@ public class ROCrate
   {
     var testRefProp = "mentions";
     if (mainEntity is null && _mainEntity is null) testRefProp = "about";
-    
+
     var suite = new TestSuite(this, identifier);
-    suite.Name = name ?? suite.Identifier.TrimStart('#');
+    suite.Name = name ?? suite.Id.TrimStart('#');
 
     if (mainEntity is not null) suite.SetProperty("mainEntity", mainEntity);
     else if (_mainEntity is not null) suite.SetProperty("mainEntity", _mainEntity);
@@ -263,12 +263,13 @@ public class ROCrate
   /// <param name="testService">The service used to run the test instance.</param>
   /// <param name="name">The name of the test instance.</param>
   /// <returns>The <see cref="TestInstance"/> with the given parameters.</returns>
-  public TestInstance AddTestInstance(TestSuite testSuite, string url, string resource = "",  TestService? testService = null, string? name = null)
+  public TestInstance AddTestInstance(TestSuite testSuite, string url, string resource = "",
+    TestService? testService = null, string? name = null)
   {
     var testInstance = new TestInstance(this);
     testInstance.SetProperty("url", url);
     testInstance.SetProperty("resource", resource);
-    testInstance.Name = name ?? testInstance.Identifier.TrimStart('#');
+    testInstance.Name = name ?? testInstance.Id.TrimStart('#');
     if (testService is not null) testInstance.RunsOn = testService;
     testSuite.AppendTo("instance", testInstance);
     Metadata.ExtraTerms = JsonSerializer.SerializeToNode(new TestingExtraTerms()).AsObject();
