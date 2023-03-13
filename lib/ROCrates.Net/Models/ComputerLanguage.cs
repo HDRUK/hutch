@@ -11,19 +11,19 @@ public class ComputerLanguage : ContextEntity
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
   }
-  
+
   public string? Name
   {
     get => GetProperty<string>("name");
     set => SetProperty("name", value);
   }
-  
+
   public string? Url
   {
     get => GetProperty<string>("url");
     set => SetProperty("url", value);
   }
-  
+
   public string? AlternativeName
   {
     get => GetProperty<string>("alternativeName");
@@ -34,5 +34,11 @@ public class ComputerLanguage : ContextEntity
   {
     get => GetProperty<string>("version");
     set => SetProperty("version", value);
+  }
+
+  public string? Identifier
+  {
+    get => GetProperty<string>("identifier");
+    set => SetProperty("identifier", value);
   }
 }
