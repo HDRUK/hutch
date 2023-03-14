@@ -112,4 +112,18 @@ public class TestEntity
     // Assert
     Assert.Equal(2, outputId.Count);
   }
+
+  [Fact]
+  public void TestSerialised_Entity_Matches_Original_Properties()
+  {
+    // Arrange
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
+
+    // Act
+    var serialisedEntity = JsonSerializer.Serialize(entity);
+
+    // Assert
+    Assert.Equal(_jsonLd, serialisedEntity);
+  }
 }
