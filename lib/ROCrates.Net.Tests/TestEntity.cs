@@ -17,7 +17,7 @@ public class TestEntity
 
   public TestEntity()
   {
-    _jsonLd = File.ReadAllText(_fixtureFileName);
+    _jsonLd = File.ReadAllText(_fixtureFileName).Trim();
   }
 
   [Fact]
