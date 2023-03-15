@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using ROCrates.Serializers;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -143,12 +143,16 @@ public class Entity
     }
   }
 
+  /// <summary>
+  /// Convert <see cref="Entity"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="Entity"/> as a JSON string.</returns>
   public virtual string Serialize()
   {
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new EntitySerializer() }
+      Converters = { new EntityConverter() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
