@@ -24,7 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ROCrates.Net\ROCrates.Net.csproj" />
+    <ProjectReference Include="..\ROCrates.Net\ROCrates.Net.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Update="Fixtures/test-entity.json" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
 </Project>
