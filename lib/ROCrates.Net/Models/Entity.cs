@@ -1,12 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Serializers;
 
 namespace ROCrates.Models;
 
 /// <summary>
 /// This class represents the base Entity used in an ROCrate.
 /// </summary>
-public class Entity
+public class Entity : IEntitySerializable<Entity>
 {
   private protected string DefaultType = "Thing";
   public ROCrate RoCrate { get; set; }
@@ -140,5 +141,21 @@ public class Entity
       var (key, value) = propsEnumerator.Current;
       if (value != null) SetProperty(key, value);
     }
+  }
+
+  public string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new EntitySerializer() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
+  }
+
+  public Entity Deserialize()
+  {
+    throw new NotImplementedException();
   }
 }

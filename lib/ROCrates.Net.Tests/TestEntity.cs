@@ -127,7 +127,7 @@ public class TestEntity
     var entity = new Entity(_roCrate, properties: jsonObject);
 
     // Act
-    var serialisedEntity = JsonSerializer.Serialize(entity);
+    var serialisedEntity = entity.Serialize();
 
     // Assert
     Assert.Equal(_jsonLd, serialisedEntity);
