@@ -2,9 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ROCrates.Models;
 
-namespace ROCrates.Serializers;
+namespace ROCrates.Converters;
 
-public class EntitySerializer : JsonConverter<Entity>
+public class EntityConverter : JsonConverter<Entity>
 {
   public override Entity? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
