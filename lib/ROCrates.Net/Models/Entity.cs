@@ -95,7 +95,7 @@ public class Entity
     if (key.StartsWith('@')) throw new Exception($"Cannot append to {key}");
     if (value is null) throw new NullReferenceException("value cannot be null.");
 
-    var newItem = new Part { Identifier = value.GetCanonicalId() };
+    var newItem = new Part { Id = value.GetCanonicalId() };
     var itemList = new List<Part> { newItem };
 
     if (Properties.TryGetPropertyValue(key, out var propsJson))
