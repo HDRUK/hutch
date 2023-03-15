@@ -7,7 +7,7 @@ namespace ROCrates.Models;
 /// <summary>
 /// This class represents the base Entity used in an ROCrate.
 /// </summary>
-public class Entity : IEntitySerializable<Entity>
+public class Entity
 {
   private protected string DefaultType = "Thing";
   public ROCrate RoCrate { get; set; }
@@ -143,7 +143,7 @@ public class Entity : IEntitySerializable<Entity>
     }
   }
 
-  public string Serialize()
+  public virtual string Serialize()
   {
     var options = new JsonSerializerOptions
     {
