@@ -153,9 +153,4 @@ public class Entity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
-
-  public Entity Deserialize()
-  {
-    throw new NotImplementedException();
-  }
 }
