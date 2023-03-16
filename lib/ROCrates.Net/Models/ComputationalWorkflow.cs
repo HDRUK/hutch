@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -9,6 +10,7 @@ namespace ROCrates.Models;
 public class ComputationalWorkflow : File
 {
   private protected string[] Types = { "File", "SoftwareSourceCode", "ComputationalWorkflow" };
+  private readonly ComputationalWorkflowConverter _converter = new();
 
   public ComputationalWorkflow(ROCrate crate, string? identifier = null, JsonObject? properties = null,
     string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate,
