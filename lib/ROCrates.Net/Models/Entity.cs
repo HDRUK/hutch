@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -9,6 +10,7 @@ namespace ROCrates.Models;
 public class Entity
 {
   private protected string DefaultType = "Thing";
+
   public ROCrate RoCrate { get; set; }
 
   public string Id { get; set; }
@@ -95,7 +97,7 @@ public class Entity
     if (key.StartsWith('@')) throw new Exception($"Cannot append to {key}");
     if (value is null) throw new NullReferenceException("value cannot be null.");
 
-    var newItem = new Part { Identifier = value.GetCanonicalId() };
+    var newItem = new Part { Id = value.GetCanonicalId() };
     var itemList = new List<Part> { newItem };
 
     if (Properties.TryGetPropertyValue(key, out var propsJson))
@@ -140,5 +142,20 @@ public class Entity
       var (key, value) = propsEnumerator.Current;
       if (value != null) SetProperty(key, value);
     }
+  }
+
+  /// <summary>
+  /// Convert <see cref="Entity"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="Entity"/> as a JSON string.</returns>
+  public virtual string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new EntityConverter() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
   }
 }

@@ -1,18 +1,24 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Models;
+using File = System.IO.File;
 
 namespace ROCrates.Tests;
 
 public class TestEntity
 {
+  private static string _fixtureFileName = "Fixtures/test-entity.json";
   private ROCrate _roCrate = new();
 
-  private string _jsonLd =
-    "{\"@id\": \"./\",\"identifier\": \"https://doi.org/10.4225/59/59672c09f4a4b\",\"@type\": \"Dataset\", \"randomNumber\": 123, \"datePublished\": \"2017\",\"name\": \"Data files associated with the manuscript:Effects of facilitated family case conferencing for ...\",\"description\": \"Palliative care planning for nursing home residents with advanced dementia ...\",\"license\": {\"@id\": \"https://creativecommons.org/licenses/by-nc-sa/3.0/au/\"}}";
+  private string _jsonLd;
 
   private const string _testPartPropName = "hasPart";
   private const string _testTypePropName = "@type";
+
+  public TestEntity()
+  {
+    _jsonLd = File.ReadAllText(_fixtureFileName).Trim();
+  }
 
   [Fact]
   public void TestSetProperty_Updates()
@@ -111,5 +117,19 @@ public class TestEntity
 
     // Assert
     Assert.Equal(2, outputId.Count);
+  }
+
+  [Fact]
+  public void TestSerialised_Entity_Matches_Original_Properties()
+  {
+    // Arrange
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
+
+    // Act
+    var serialisedEntity = entity.Serialize();
+
+    // Assert
+    Assert.Equal(_jsonLd, serialisedEntity);
   }
 }

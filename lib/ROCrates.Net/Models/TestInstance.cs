@@ -1,4 +1,6 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -11,28 +13,43 @@ public class TestInstance : ContextEntity
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
   }
-  
+
   public string? Name
   {
     get => GetProperty<string>("name");
     set => SetProperty("name", value);
   }
-  
+
   public string? Url
   {
     get => GetProperty<string>("url");
     set => SetProperty("url", value);
   }
-  
+
   public string? Resource
   {
     get => GetProperty<string>("resource");
     set => SetProperty("resource", value);
   }
-  
+
   public TestService? RunsOn
   {
     get => GetProperty<TestService>("runsOn");
     set => SetProperty("runsOn", value);
+  }
+
+  /// <summary>
+  /// Convert <see cref="TestInstance"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="TestInstance"/> as a JSON string.</returns>
+  public override string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new TestInstanceConverter() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
   }
 }

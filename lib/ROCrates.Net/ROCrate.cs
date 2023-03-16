@@ -187,7 +187,7 @@ public class ROCrate
     var workflow = new ComputationalWorkflow(this, identifier, properties, source, destPath, fetchRemote, validateUrl);
 
     var profiles = Metadata.GetProperty<List<Part>>("conformsTo") ?? new List<Part>();
-    profiles.Add(new Part { Identifier = "https://w3id.org/workflowhub/workflow-ro-crate/1.0" });
+    profiles.Add(new Part { Id = "https://w3id.org/workflowhub/workflow-ro-crate/1.0" });
     Metadata.SetProperty("conformsTo", profiles);
 
     Add(workflow);

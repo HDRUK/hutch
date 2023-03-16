@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ROCrates.Models;
 
 /// <summary>
@@ -5,6 +7,5 @@ namespace ROCrates.Models;
 /// </summary>
 public class Part
 {
-  public const string Key = "@id";
-  public string Identifier { get; set; } = string.Empty;
+  [JsonPropertyName("@id")] public string Id { get; set; } = string.Empty;
 }
