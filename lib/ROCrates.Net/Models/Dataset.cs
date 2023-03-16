@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -100,5 +101,20 @@ public class Dataset : FileOrDir
     newId = newId.TrimEnd(Path.AltDirectorySeparatorChar);
     newId += "/";
     return newId;
+  }
+
+  /// <summary>
+  /// Convert <see cref="Dataset"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="Dataset"/> as a JSON string.</returns>
+  public override string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new DatasetConverter() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
   }
 }
