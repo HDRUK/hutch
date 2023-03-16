@@ -10,7 +10,6 @@ namespace ROCrates.Models;
 public class Entity
 {
   private protected string DefaultType = "Thing";
-  private readonly EntityConverter _converter = new();
 
   public ROCrate RoCrate { get; set; }
 
@@ -154,7 +153,7 @@ public class Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { _converter }
+      Converters = { new EntityConverter() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;

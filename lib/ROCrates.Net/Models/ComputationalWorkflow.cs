@@ -10,7 +10,6 @@ namespace ROCrates.Models;
 public class ComputationalWorkflow : File
 {
   private protected string[] Types = { "File", "SoftwareSourceCode", "ComputationalWorkflow" };
-  private readonly ComputationalWorkflowConverter _converter = new();
 
   public ComputationalWorkflow(ROCrate crate, string? identifier = null, JsonObject? properties = null,
     string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate,
@@ -45,7 +44,7 @@ public class ComputationalWorkflow : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { _converter }
+      Converters = { new ComputationalWorkflowConverter() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;

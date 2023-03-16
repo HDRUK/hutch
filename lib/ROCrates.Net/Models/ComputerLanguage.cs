@@ -6,8 +6,6 @@ namespace ROCrates.Models;
 
 public class ComputerLanguage : ContextEntity
 {
-  private readonly ComputerLanguageConverter _converter = new();
-
   public ComputerLanguage(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate,
     identifier, properties)
   {
@@ -55,7 +53,7 @@ public class ComputerLanguage : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { _converter }
+      Converters = { new ComputerLanguageConverter() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
