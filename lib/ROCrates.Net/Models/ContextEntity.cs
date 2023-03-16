@@ -1,4 +1,6 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -17,5 +19,20 @@ public class ContextEntity : Entity
       return identifier;
 
     return "#" + identifier;
+  }
+
+  /// <summary>
+  /// Convert <see cref="ContextEntity"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="ContextEntity"/> as a JSON string.</returns>
+  public override string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new ContextEntityConverter() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
   }
 }
