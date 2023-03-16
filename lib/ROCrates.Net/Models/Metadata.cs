@@ -1,4 +1,6 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -36,5 +38,20 @@ public class Metadata : File
     var outPath = Path.Combine(basePath, Id);
     var metadataJson = _generate();
     System.IO.File.WriteAllText(outPath, metadataJson.ToString());
+  }
+
+  /// <summary>
+  /// Convert <see cref="Metadata"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="Metadata"/> as a JSON string.</returns>
+  public override string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new MetadataConverter() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
   }
 }
