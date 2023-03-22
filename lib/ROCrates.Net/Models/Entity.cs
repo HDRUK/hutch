@@ -11,13 +11,13 @@ public class Entity
 {
   private protected string DefaultType = "Thing";
 
-  public ROCrate RoCrate { get; set; }
+  public ROCrate? RoCrate { get; set; }
 
   public string Id { get; set; }
 
   public JsonObject Properties { get; set; }
 
-  public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
+  public Entity(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
     Id = identifier ?? Guid.NewGuid().ToString();
