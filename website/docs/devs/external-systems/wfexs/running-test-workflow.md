@@ -5,12 +5,14 @@ sidebar_position: 4
 # Running HutchWorker workflow
 
 ## Rquest Omop Worker Workflows
-The rquest-omop-worker workflows can be found [here](https://github.com/HDRUK/hutch/tree/main/workflows). 
+The rquest-omop-worker workflows can be found [here](https://github.com/HDRUK/hutch/tree/main/workflows).
   - `sec-hutch.cwl`: Main workflow linked in `workflow_id` in WfExS stage file.
   - `sec-hutchx86.cwl`: Same as above but configured for intel chip
 
   - `rquest-oneshot.cwl`: CommandLineTool referenced in main workflow.
   - `rquest-oneshotx86.cwl`: Same as above but configured for intel chip
+
+**Note:** WfExS needs the workflows to be nested as of now, with main workflow linking to the CommandLineTool.
 
 ## Configuration
 ### Set up local DB
