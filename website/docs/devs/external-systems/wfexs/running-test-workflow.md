@@ -54,7 +54,7 @@ An example of a local configuration files can be found [here](https://github.com
 ## Executing the workflow
 Once the DB is set up with the sample data you may execute the workflow using these [steps](running-wfexs.md#running-wfexs). 
 - Where `<path_to_wfexs_config.yaml>` use the [local config](#wfexs-config-file).
-- Where `<stage_file.yaml>` use the [wfExS stage file](#example-stage-file-used-for-executing-rquest-omop-worker-yaml)
+- Where `<stage_file.yaml>` use the [wfExS stage file](#stage-file-for-executing-rquest-omop-worker).
 
 
 
