@@ -158,4 +158,22 @@ public class Entity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  /// <summary>
+  /// Create an <see cref="Entity"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson"></param>
+  /// <param name="roCrate"></param>
+  /// <returns></returns>
+  public static Entity? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new EntityConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Entity>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
