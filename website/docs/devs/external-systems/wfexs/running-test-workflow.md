@@ -18,7 +18,7 @@ The rquest-omop-worker workflows can be found [here](https://github.com/HDRUK/hu
 ### Set up local DB
 - Create a docker image for a postgres DB - [docker postgres image](https://hub.docker.com/_/postgres). Point the DB volume to the directory with the sample data csv files.
 
-- Instructions on setting up the sample data once the DB is created can be found [here](../../../../docs/users/sample-data).
+- Instructions on setting up the sample data once the DB is created can be found [here](../../../users/sample-data).
 
 ### Stage file for executing rquest-omop-worker
 
