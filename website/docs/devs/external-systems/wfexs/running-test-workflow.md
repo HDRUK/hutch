@@ -20,38 +20,36 @@ The rquest-omop-worker workflows can be found [here](https://github.com/HDRUK/hu
 
 - Instructions on setting up the sample data once the DB is created can be found [here](../../../../docs/users/sample-data).
 
-### Example stage file used for executing rquest-omop-worker (.yaml)
+### Stage file for executing rquest-omop-worker
 
 ``` yaml
-workflow_id: '<URI to cwl workflow>' # choice of github public url, workflow RO-Crate zip archive, github repo URL
+workflow_id: # URL to workflow 
+#choice of github public url, workflow RO-Crate zip archive, github repo URL
 workflow_config:
-  container: 'docker' # choice of 'singularity', 'docker', 'podman' or 'none'
+  container: # choice of 'singularity', 'docker', 'podman' or 'none'
   secure: false
 nickname: 'hutch-rquest-worker' # prefix for the randomly generated nickname
-cacheDir: /tmp/wfexszn6siq2jtmpcache
-crypt4gh: 
-  key: cosifer_test1_cwl.wfex.stage.key
-  passphrase: mpel nite ified g
-  pub: cosifer_test1_cwl.wfex.stage.pub
-  # taken from an existing example stage file
+cacheDir: /path/to/chacheDir
+crypt4gh: # four random words here
+  key: /path/to/private-key
+  passphrase: 
+  pub: /path/to/public-key
 outputs:
   output_file:
     c-l-a-s-s: File
     glob: "output.json" # needs to match workflow output
-params:
-
-  body: '{...}' # contains rquest query
+params: # parameters needed to run the workflow
+  body: '{...}' # contains rquest query json
   is_availability: # true or false 
   # Credentials needed to connect to local DB with sample data.
-  db_host: ""
-  db_name: ""
-  db_user: ""
-  db_password: ""
-
+  db_host:
+  db_name:
+  db_user:
+  db_password:
 ```
 
 ### WfExS config file
-Local installation configuration files can be found [here](https://github.com/inab/WfExS-backend/tree/main/workflow_examples). `local_config.yaml` is used to stage the rquest-omop-worker workflow.
+An example of a local configuration files can be found [here](https://github.com/inab/WfExS-backend/tree/main/workflow_examples). More specificaly `local_config.yaml` is used to stage the rquest-omop-worker workflow also found [here](config.md#local-wfexs-configuration).
 
 ## Executing the workflow
 Once the DB is set up with the sample data you may execute the workflow using these [steps](running-wfexs.md#running-wfexs). 
