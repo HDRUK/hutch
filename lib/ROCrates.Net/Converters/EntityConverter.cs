@@ -7,10 +7,23 @@ namespace ROCrates.Converters;
 
 public class EntityConverter : JsonConverter<Entity>
 {
+  private protected string? Id = string.Empty;
+  private protected string? Type = string.Empty;
+
   public override Entity? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
-    string? id = null;
-    string? type = null;
+    var properties = _parseJson(ref reader);
+
+    // Object is invalid if there is no @id or @type key
+    if (Id is null || Type is null)
+      throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
+
+    var entity = new Entity(identifier: Type, properties: properties);
+    return entity;
+  }
+
+  private protected JsonObject _parseJson(ref Utf8JsonReader reader)
+  {
     var properties = new JsonObject();
     string? currentKey = null;
     while (reader.Read())
@@ -25,10 +38,10 @@ public class EntityConverter : JsonConverter<Entity>
           switch (currentKey)
           {
             case "@id":
-              id = reader.GetString();
+              Id = reader.GetString();
               break;
             case "@type":
-              type = reader.GetString();
+              Type = reader.GetString();
               break;
           }
 
@@ -69,12 +82,7 @@ public class EntityConverter : JsonConverter<Entity>
       }
     }
 
-    // Object is invalid if there is no @id or @type key
-    if (id is null || type is null)
-      throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
-
-    var entity = new Entity(identifier: id, properties: properties);
-    return entity;
+    return properties;
   }
 
   public override void Write(Utf8JsonWriter writer, Entity value, JsonSerializerOptions options)
