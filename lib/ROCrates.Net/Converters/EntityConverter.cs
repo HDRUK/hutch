@@ -102,16 +102,25 @@ public class EntityConverter : JsonConverter<Entity>
     var partList = new List<Part>();
     while (reader.Read())
     {
-      var part = _getPart(ref reader);
-      if (part is not null) partList.Add(part);
+      switch (reader.TokenType)
+      {
+        case JsonTokenType.StartObject:
+        {
+          var part = _getPart(ref reader);
+          if (part is not null) partList.Add(part);
+          break;
+        }
+        case JsonTokenType.EndArray:
+          return partList.Count > 0 ? partList : null;
+      }
     }
 
-    return partList.Count > 0 ? partList : null;
+    return null;
   }
 
   private Part? _getPart(ref Utf8JsonReader reader)
   {
-    string? currentKey;
+    string? currentKey = null;
     var id = "";
     while (reader.Read())
     {
@@ -121,7 +130,7 @@ public class EntityConverter : JsonConverter<Entity>
         case JsonTokenType.StartObject:
           break;
         case JsonTokenType.EndObject:
-          break;
+          return id is not null ? new Part { Id = id } : null;
         case JsonTokenType.Comment:
           break;
         // Get property name
@@ -131,13 +140,11 @@ public class EntityConverter : JsonConverter<Entity>
           break;
         // Get the part's ID or throw if invalid type or key found
         case JsonTokenType.String:
-          id = reader.GetString();
+          if (currentKey is not null && currentKey == "@id") id = reader.GetString();
           break;
-        default:
-          throw new InvalidDataException("Illegal property in part.");
       }
     }
 
-    return id is not null ? new Part { Id = id } : null;
+    return null;
   }
 }
