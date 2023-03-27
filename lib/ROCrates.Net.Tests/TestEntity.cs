@@ -144,6 +144,6 @@ public class TestEntity
     var entityByDeserialise = Entity.Deserialize(jsonObject.ToString(), _roCrate);
 
     // Assert
-    Assert.Equal(entity.Properties, entityByDeserialise.Properties);
+    Assert.Equal(entity.Properties.ToString(), entityByDeserialise.Properties.ToString());
   }
 }
