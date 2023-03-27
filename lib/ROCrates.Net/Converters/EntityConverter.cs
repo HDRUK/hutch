@@ -46,7 +46,7 @@ public class EntityConverter : JsonConverter<Entity>
         case JsonTokenType.StartObject:
           var part = _getPart(ref reader);
           var serialisedPart = JsonSerializer.SerializeToNode(part);
-          if (currentKey is not null) properties.Add(currentKey, serialisedPart);
+          if (currentKey is not null && serialisedPart is not null) properties.Add(currentKey, serialisedPart);
           break;
         case JsonTokenType.EndObject:
           break;
@@ -60,6 +60,11 @@ public class EntityConverter : JsonConverter<Entity>
             properties.Add(currentKey, valueAsDouble);
           }
 
+          break;
+        case JsonTokenType.StartArray:
+          var partList = _getPartList(ref reader);
+          var serialisedList = JsonSerializer.SerializeToNode(partList);
+          if (currentKey is not null && serialisedList is not null) properties.Add(currentKey, serialisedList);
           break;
       }
     }
@@ -82,6 +87,18 @@ public class EntityConverter : JsonConverter<Entity>
     }
 
     writer.WriteEndObject();
+  }
+
+  private List<Part>? _getPartList(ref Utf8JsonReader reader)
+  {
+    var partList = new List<Part>();
+    while (reader.Read())
+    {
+      var part = _getPart(ref reader);
+      if (part is not null) partList.Add(part);
+    }
+
+    return partList.Count > 0 ? partList : null;
   }
 
   private Part? _getPart(ref Utf8JsonReader reader)
