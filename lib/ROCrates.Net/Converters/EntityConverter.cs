@@ -18,7 +18,7 @@ public class EntityConverter : JsonConverter<Entity>
     if (Id is null || Type is null)
       throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
 
-    var entity = new Entity(identifier: Type, properties: properties);
+    var entity = new Entity(identifier: Id, properties: properties);
     return entity;
   }
 
