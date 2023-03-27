@@ -6,7 +6,8 @@ namespace ROCrates.Models;
 
 public class RootDataset : Dataset
 {
-  public RootDataset(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
+  public RootDataset(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null,
+    string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {

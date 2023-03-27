@@ -6,7 +6,8 @@ namespace ROCrates.Models;
 
 public class SoftwareApplication : ContextEntity
 {
-  public SoftwareApplication(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate,
+  public SoftwareApplication(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null) : base(
+    crate,
     identifier, properties)
   {
     DefaultType = "SoftwareApplication";

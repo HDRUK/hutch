@@ -6,8 +6,8 @@ namespace ROCrates.Models;
 
 public class DataEntity : Entity
 {
-  public DataEntity(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate, identifier,
-    properties)
+  public DataEntity(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null) : base(crate,
+    identifier, properties)
   {
   }
 

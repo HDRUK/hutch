@@ -6,7 +6,7 @@ namespace ROCrates.Models;
 
 public class ComputerLanguage : ContextEntity
 {
-  public ComputerLanguage(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate,
+  public ComputerLanguage(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null) : base(crate,
     identifier, properties)
   {
     DefaultType = "ComputerLanguage";

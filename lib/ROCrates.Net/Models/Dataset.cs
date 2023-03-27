@@ -7,7 +7,7 @@ namespace ROCrates.Models;
 
 public class Dataset : FileOrDir
 {
-  public Dataset(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
+  public Dataset(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {

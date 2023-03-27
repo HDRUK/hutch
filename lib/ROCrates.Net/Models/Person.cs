@@ -6,7 +6,8 @@ namespace ROCrates.Models;
 
 public class Person : ContextEntity
 {
-  public Person(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate, identifier,
+  public Person(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null) : base(crate,
+    identifier,
     properties)
   {
     DefaultType = "Person";

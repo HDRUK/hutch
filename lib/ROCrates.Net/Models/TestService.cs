@@ -6,7 +6,8 @@ namespace ROCrates.Models;
 
 public class TestService : ContextEntity
 {
-  public TestService(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate, identifier,
+  public TestService(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null) : base(crate,
+    identifier,
     properties)
   {
     DefaultType = "TestService";
