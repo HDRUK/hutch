@@ -55,4 +55,16 @@ public class Metadata : File
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static Metadata? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new MetadataConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Metadata>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
