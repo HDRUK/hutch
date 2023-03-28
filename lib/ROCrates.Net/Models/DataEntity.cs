@@ -30,4 +30,16 @@ public class DataEntity : Entity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static DataEntity? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new DataEntityConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<DataEntity>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
