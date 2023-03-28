@@ -13,8 +13,8 @@ public class WorkflowTriggerService
   public void TriggerWfexs(){
     
     const string cmd = "bash";
-    const string executionArgs = "";
     const string activateVenv = "source " + WorkflowTriggerOptions.VirtualEnvironmentPath;
+    
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
@@ -32,7 +32,6 @@ public class WorkflowTriggerService
       RedirectStandardError = true,
       UseShellExecute = false,
       CreateNoWindow = true,
-      Arguments = executionArgs,
       FileName = cmd,
       WorkingDirectory = WorkflowTriggerOptions.ExecutorPath
     };
@@ -58,6 +57,7 @@ public class WorkflowTriggerService
     var sb = new StringBuilder();
     while (!process.HasExited)
       sb.Append(process.StandardOutput.ReadToEnd());
+    
     // end the process
     process.Close();
   }
