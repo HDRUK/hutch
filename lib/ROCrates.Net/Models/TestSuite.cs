@@ -47,4 +47,16 @@ public class TestSuite : ContextEntity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static TestSuite? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new TestSuiteConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<TestSuite>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
