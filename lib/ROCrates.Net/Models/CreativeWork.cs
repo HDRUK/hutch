@@ -26,4 +26,16 @@ public class CreativeWork : Entity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static CreativeWork? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new CreativeWorkConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<CreativeWork>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
