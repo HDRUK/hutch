@@ -53,5 +53,9 @@ public class WorkflowTriggerService
       streamWriter.Flush();
       streamWriter.Close();
     }
+    
+    var sb = new StringBuilder();
+    while (!process.HasExited)
+      sb.Append(process.StandardOutput.ReadToEnd());
   }
 }
