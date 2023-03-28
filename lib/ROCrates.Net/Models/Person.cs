@@ -29,4 +29,16 @@ public class Person : ContextEntity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static Person? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new PersonConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Person>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
