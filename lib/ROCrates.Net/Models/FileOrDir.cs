@@ -58,4 +58,16 @@ public class FileOrDir : DataEntity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static FileOrDir? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new FileOrDirConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<FileOrDir>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
