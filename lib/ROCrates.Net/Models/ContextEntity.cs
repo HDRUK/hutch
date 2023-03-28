@@ -35,4 +35,16 @@ public class ContextEntity : Entity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static ContextEntity? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new ContextEntityConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<ContextEntity>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
