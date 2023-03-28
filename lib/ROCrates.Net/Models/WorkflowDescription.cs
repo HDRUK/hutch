@@ -31,4 +31,16 @@ public class WorkflowDescription : ComputationalWorkflow
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static WorkflowDescription? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new WorkflowDescriptionConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<WorkflowDescription>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
