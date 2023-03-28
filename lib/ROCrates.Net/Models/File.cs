@@ -92,6 +92,12 @@ public class File : FileOrDir
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="File"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="File"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="File"/></param>
+  /// <returns>The deserialised <see cref="File"/></returns>
   public new static File? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

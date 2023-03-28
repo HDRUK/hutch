@@ -59,6 +59,12 @@ public class ComputerLanguage : ContextEntity
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="ComputerLanguage"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="ComputerLanguage"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="ComputerLanguage"/></param>
+  /// <returns>The deserialised <see cref="ComputerLanguage"/></returns>
   public new static ComputerLanguage? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

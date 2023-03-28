@@ -30,6 +30,12 @@ public class RootDataset : Dataset
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="RootDataset"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="RootDataset"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="RootDataset"/></param>
+  /// <returns>The deserialised <see cref="RootDataset"/></returns>
   public new static RootDataset? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

@@ -50,6 +50,12 @@ public class ComputationalWorkflow : File
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="ComputationalWorkflow"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="ComputationalWorkflow"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="ComputationalWorkflow"/></param>
+  /// <returns>The deserialised <see cref="ComputationalWorkflow"/></returns>
   public new static ComputationalWorkflow? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

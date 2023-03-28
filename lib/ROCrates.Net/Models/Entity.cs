@@ -162,9 +162,9 @@ public class Entity
   /// <summary>
   /// Create an <see cref="Entity"/> from JSON properties.
   /// </summary>
-  /// <param name="entityJson"></param>
-  /// <param name="roCrate"></param>
-  /// <returns></returns>
+  /// <param name="entityJson">The JSON representing the <see cref="Entity"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Entity"/></param>
+  /// <returns>The deserialised <see cref="Entity"/></returns>
   public static Entity? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

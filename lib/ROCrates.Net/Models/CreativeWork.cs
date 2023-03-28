@@ -27,6 +27,12 @@ public class CreativeWork : Entity
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="CreativeWork"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="CreativeWork"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="CreativeWork"/></param>
+  /// <returns>The deserialised <see cref="CreativeWork"/></returns>
   public new static CreativeWork? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

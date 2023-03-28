@@ -30,6 +30,12 @@ public class Person : ContextEntity
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="Person"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Person"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Person"/></param>
+  /// <returns>The deserialised <see cref="Person"/></returns>
   public new static Person? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

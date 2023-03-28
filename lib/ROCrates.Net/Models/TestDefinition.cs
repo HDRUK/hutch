@@ -56,6 +56,12 @@ public class TestDefinition : File
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="TestDefinition"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="TestDefinition"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="TestDefinition"/></param>
+  /// <returns>The deserialised <see cref="TestDefinition"/></returns>
   public new static TestDefinition? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

@@ -118,6 +118,12 @@ public class Dataset : FileOrDir
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="Dataset"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Dataset"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Dataset"/></param>
+  /// <returns>The deserialised <see cref="Dataset"/></returns>
   public new static Dataset? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

@@ -56,6 +56,12 @@ public class Metadata : File
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="Metadata"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Metadata"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Metadata"/></param>
+  /// <returns>The deserialised <see cref="Metadata"/></returns>
   public new static Metadata? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

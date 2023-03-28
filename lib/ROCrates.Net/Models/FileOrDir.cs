@@ -59,6 +59,12 @@ public class FileOrDir : DataEntity
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="FileOrDir"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="FileOrDir"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="FileOrDir"/></param>
+  /// <returns>The deserialised <see cref="FileOrDir"/></returns>
   public new static FileOrDir? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions

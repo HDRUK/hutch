@@ -31,6 +31,12 @@ public class DataEntity : Entity
     return serialised;
   }
 
+  /// <summary>
+  /// Create a <see cref="DataEntity"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="DataEntity"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="DataEntity"/></param>
+  /// <returns>The deserialised <see cref="DataEntity"/></returns>
   public new static DataEntity? Deserialize(string entityJson, ROCrate roCrate)
   {
     var options = new JsonSerializerOptions
