@@ -55,4 +55,16 @@ public class TestDefinition : File
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static TestDefinition? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new TestDefinitionConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<TestDefinition>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
