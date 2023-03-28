@@ -14,7 +14,7 @@ public class FileOrDirConverter : EntityConverter
     if (Id is null || Type is null)
       throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
 
-    var computationalWorkflow = new FileOrDir(identifier: Id, properties: properties);
-    return computationalWorkflow;
+    var fileOrDir = new FileOrDir(identifier: Id, properties: properties);
+    return fileOrDir;
   }
 }

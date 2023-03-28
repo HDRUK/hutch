@@ -14,7 +14,7 @@ public class ComputerLanguageConverter : EntityConverter
     if (Id is null || Type is null)
       throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
 
-    var computationalWorkflow = new ComputerLanguage(identifier: Id, properties: properties);
-    return computationalWorkflow;
+    var computerLanguage = new ComputerLanguage(identifier: Id, properties: properties);
+    return computerLanguage;
   }
 }

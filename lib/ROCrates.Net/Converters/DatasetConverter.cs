@@ -14,7 +14,7 @@ public class DatasetConverter : EntityConverter
     if (Id is null || Type is null)
       throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
 
-    var computationalWorkflow = new Dataset(identifier: Id, properties: properties);
-    return computationalWorkflow;
+    var dataset = new Dataset(identifier: Id, properties: properties);
+    return dataset;
   }
 }

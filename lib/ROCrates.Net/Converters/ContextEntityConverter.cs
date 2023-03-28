@@ -14,7 +14,7 @@ public class ContextEntityConverter : EntityConverter
     if (Id is null || Type is null)
       throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
 
-    var computationalWorkflow = new ContextEntity(identifier: Id, properties: properties);
-    return computationalWorkflow;
+    var contextEntity = new ContextEntity(identifier: Id, properties: properties);
+    return contextEntity;
   }
 }

@@ -14,7 +14,7 @@ public class PersonConverter : EntityConverter
     if (Id is null || Type is null)
       throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
 
-    var computationalWorkflow = new Person(identifier: Id, properties: properties);
-    return computationalWorkflow;
+    var person = new Person(identifier: Id, properties: properties);
+    return person;
   }
 }
