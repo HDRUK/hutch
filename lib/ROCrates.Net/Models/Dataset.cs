@@ -117,4 +117,16 @@ public class Dataset : FileOrDir
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static Dataset? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new DatasetConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Dataset>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
