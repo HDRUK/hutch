@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -8,26 +9,20 @@ namespace ROCrates.Models;
 /// </summary>
 public class Entity
 {
-  private const string _defaultType = "Thing";
+  private protected string DefaultType = "Thing";
+
   public ROCrate RoCrate { get; set; }
-  public string Identifier { get; set; } = Guid.NewGuid().ToString();
+
+  public string Id { get; set; }
 
   public JsonObject Properties { get; set; }
 
   public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
-    if (identifier != null) Identifier = identifier;
+    Id = identifier ?? Guid.NewGuid().ToString();
     Properties = _empty();
-    if (properties != null)
-    {
-      using var propsEnumerator = properties.GetEnumerator();
-      while (propsEnumerator.MoveNext())
-      {
-        var (key, value) = propsEnumerator.Current;
-        if (value != null) SetProperty(key, value);
-      }
-    }
+    if (properties is not null) _unpackProperties(properties);
   }
 
   /// <summary>
@@ -36,7 +31,7 @@ public class Entity
   /// <returns></returns>
   public string GetCanonicalId()
   {
-    return RoCrate.ResolveId(Identifier);
+    return RoCrate.ResolveId(Id);
   }
 
   /// <summary>
@@ -51,9 +46,8 @@ public class Entity
   /// </returns>
   public T? GetProperty<T>(string propertyName)
   {
-    T? deserialisedProperty;
     Properties.TryGetPropertyValue(propertyName, out var property);
-    deserialisedProperty = property.Deserialize<T>();
+    var deserialisedProperty = property.Deserialize<T>();
     return deserialisedProperty;
   }
 
@@ -81,6 +75,41 @@ public class Entity
   }
 
   /// <summary>
+  /// Append a value to the entity's property.
+  /// </summary>
+  /// <param name="key">The element to append the value to.</param>
+  /// <param name="value">The value to be appended.</param>
+  /// <typeparam name="T">The type of <c>Entity</c> to be appended.</typeparam>
+  /// <exception cref="Exception">
+  /// Thrown when attempting to append to reserved key (those starting with '@').
+  /// </exception>
+  /// <exception cref="NullReferenceException">Thrown when <c>value</c> is <c>null</c>.</exception>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// var rootDataset = new RootDataset(roCrate);
+  /// var person = new Person(roCrate, identifier: "Alice");
+  /// rootDataset.AppendTo("author", person);
+  /// </code>
+  /// </example>
+  public void AppendTo<T>(string key, T value) where T : Entity
+  {
+    if (key.StartsWith('@')) throw new Exception($"Cannot append to {key}");
+    if (value is null) throw new NullReferenceException("value cannot be null.");
+
+    var newItem = new Part { Id = value.GetCanonicalId() };
+    var itemList = new List<Part> { newItem };
+
+    if (Properties.TryGetPropertyValue(key, out var propsJson))
+    {
+      var currentItems = propsJson.Deserialize<List<Part>>() ?? new List<Part>();
+      if (currentItems.Count > 0) itemList.InsertRange(0, currentItems);
+    }
+
+    SetProperty(key, itemList);
+  }
+
+  /// <summary>
   /// Remove a property from the <c>Properties</c> field.
   /// </summary>
   /// <param name="propertyName"></param>
@@ -89,14 +118,44 @@ public class Entity
     Properties.Remove(propertyName);
   }
 
-  private JsonObject _empty()
+  private protected JsonObject _empty()
   {
     var emptyJsonString = new Dictionary<string, string>
     {
-      { "@id", Identifier },
-      { "@type", _defaultType }
+      { "@id", Id },
+      { "@type", DefaultType }
     };
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
     return emptyObject;
+  }
+
+  private protected virtual string _formatIdentifier(string identifier)
+  {
+    return identifier;
+  }
+
+  private protected void _unpackProperties(JsonObject props)
+  {
+    using var propsEnumerator = props.GetEnumerator();
+    while (propsEnumerator.MoveNext())
+    {
+      var (key, value) = propsEnumerator.Current;
+      if (value != null) SetProperty(key, value);
+    }
+  }
+
+  /// <summary>
+  /// Convert <see cref="Entity"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="Entity"/> as a JSON string.</returns>
+  public virtual string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new EntityConverter() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
   }
 }

@@ -10,7 +10,7 @@ To run a workflow using WfExS, first stage a workflow:
 ```shell
 ./WfExS_backend.py -L <path_to_wfexs_config.yaml> stage -W <stage_file.yaml>
 ```
-This will prepare the workflow to run and provide a pithy random name to refer to when executing the workflow.
+This will prepare the workflow to run and provide a pithy random name to refer to when executing the workflow. If a nickname is provided in the stage file it will be added as a prefix to this.
 
 To run the workflow use the following command:
 ```shell
@@ -31,6 +31,12 @@ There are a few "gotchas" when running WfExS at the time of writing.
 
 ### Docker needing `sudo` to run
 This can be fixed by following the [post-installation steps](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) for linux.
+
+### `python-dxf` version 9.0.1
+If needed force the downgrade of the python-dxf library by running:
+```
+pip install --force-reinstall python-dxf==9.0.1
+```
 
 ### Correct workflow packing
 WfExS defaults to using `cwltool` to run workflows, which in turn will be written using [Common Workflow Language](https://www.commonwl.org/user_guide/introduction/index.html). Currently there is a bug in `cwltool` which means that sometimes the workflow cannot be processed as expected by WfExS.

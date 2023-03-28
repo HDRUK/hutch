@@ -1,63 +1,84 @@
-using Xunit.Abstractions;
-using Xunit.Sdk;
-
 namespace ROCrates.Tests;
 
-public class TestFile : IDisposable
+public class TestFile : IClassFixture<TestFileFixture>
 {
-  private readonly ITestOutputHelper _testOutputHelper;
-  private static char _sep = Path.DirectorySeparatorChar;
-  private const string _testFileName = "my-test-file.txt";
-  private static readonly string _testBasePath = $"path{_sep}to{_sep}base";
+  private readonly TestFileFixture _testFileFixture;
+  private readonly string _testBasePath;
 
-  public TestFile(ITestOutputHelper testOutputHelper)
+  public TestFile(TestFileFixture testFileFixture)
   {
-    _testOutputHelper = testOutputHelper;
-    Directory.CreateDirectory(_testBasePath);
-    using var file = new StreamWriter(Path.Combine(_testBasePath, _testFileName));
+    _testFileFixture = testFileFixture;
+    _testBasePath = testFileFixture.TestBasePath;
+  }
+
+  [Fact]
+  public void TestWrite_Saves_To_DestPath()
+  {
+    // Arrange
+    var testDestPath = Path.Combine(_testBasePath, "ext", _testFileFixture.TestFileName);
+    var fileEntity = new Models.File(
+      new ROCrate(_testFileFixture.TestFileName),
+      source: Path.Combine(_testBasePath, _testFileFixture.TestFileName),
+      destPath: testDestPath);
+
+    // Act
+    fileEntity.Write(_testBasePath);
+
+    // Assert
+    Assert.True(File.Exists(Path.Combine(_testBasePath, testDestPath)));
+  }
+
+  [Fact]
+  public void TestWrite_Saves_To_Source()
+  {
+    // Arrange
+    var fileEntity = new Models.File(
+      new ROCrate(_testFileFixture.TestFileName),
+      source: Path.Combine(_testBasePath, _testFileFixture.TestFileName));
+
+    // Act
+    fileEntity.Write(_testBasePath);
+
+    // Assert
+    Assert.True(File.Exists(Path.Combine(_testBasePath, _testFileFixture.TestFileName)));
+  }
+
+  [Fact]
+  public void TestWrite_Saves_From_Remote()
+  {
+    // Arrange
+    var url = "https://hdruk.github.io/hutch/docs/devs";
+    var fileName = url.Split('/').Last();
+    var fileEntity = new Models.File(
+      new ROCrate(_testFileFixture.TestFileName),
+      source: url,
+      validateUrl: true,
+      fetchRemote: true);
+
+    // Act
+    fileEntity.Write(_testBasePath);
+
+    // Assert
+    Assert.True(File.Exists(Path.Combine(_testBasePath, fileName)));
+  }
+}
+
+public class TestFileFixture : IDisposable
+{
+  public readonly string TestFileName = "my-test-file.txt";
+  public readonly string TestBasePath = Path.Combine("file", "test", "path");
+
+  public TestFileFixture()
+  {
+    Directory.CreateDirectory(TestBasePath);
+    using var file = new StreamWriter(Path.Combine(TestBasePath, TestFileName));
     file.WriteLine("some content");
   }
 
   public void Dispose()
   {
-    File.Delete(_testFileName);
-    var rootDir = _testBasePath.Split(Path.DirectorySeparatorChar).First();
+    File.Delete(TestFileName);
+    var rootDir = TestBasePath.Split(Path.DirectorySeparatorChar).First();
     Directory.Delete(rootDir, recursive: true);
-  }
-  
-  [Fact]
-  public void TestWrite_Saves_To_DestPath()
-  {
-    var testDestPath = Path.Combine(_testBasePath, "ext", _testFileName);
-    var fileEntity = new Models.File(
-      new ROCrate(_testFileName),
-      source: Path.Combine(_testBasePath, _testFileName),
-      destPath: testDestPath);
-    fileEntity.Write(_testBasePath);
-    Assert.True(File.Exists(Path.Combine(_testBasePath, testDestPath)));
-  }
-  
-  [Fact]
-  public void TestWrite_Saves_To_Source()
-  {
-    var fileEntity = new Models.File(
-      new ROCrate(_testFileName),
-      source: Path.Combine(_testBasePath, _testFileName));
-    fileEntity.Write(_testBasePath);
-    Assert.True(File.Exists(Path.Combine(_testBasePath, _testFileName)));
-  }
-  
-  [Fact]
-  public void TestWrite_Saves_From_Remote()
-  {
-    var url = "https://hdruk.github.io/hutch/docs/devs";
-    var fileName = url.Split('/').Last();
-    var fileEntity = new Models.File(
-      new ROCrate(_testFileName),
-      source: url,
-      validateUrl: true,
-      fetchRemote: true);
-    fileEntity.Write(_testBasePath);
-    Assert.True(File.Exists(Path.Combine(_testBasePath, fileName)));
   }
 }

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 
 namespace ROCrates.Models;
 
@@ -9,22 +10,13 @@ namespace ROCrates.Models;
 /// </summary>
 public class File : FileOrDir
 {
-  private const string _defaultType = "File";
-
-  public File(ROCrate crate, string? identifier = null, JsonObject? properties = null, string source = "./",
+  public File(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {
+    DefaultType = "File";
     Properties = _empty();
-    if (properties != null)
-    {
-      using var propsEnumerator = properties.GetEnumerator();
-      while (propsEnumerator.MoveNext())
-      {
-        var (key, value) = propsEnumerator.Current;
-        if (value != null) SetProperty(key, value);
-      }
-    }
+    if (properties is not null) _unpackProperties(properties);
   }
 
   /// <summary>
@@ -37,7 +29,7 @@ public class File : FileOrDir
   ///     If the file is on disk, it will be copied to a new location under "<c>basePath</c>".
   ///   </para>
   ///   <para>
-  ///     In either case, the file will be saved to "<c>basePath/Identifier</c>"
+  ///     In either case, the file will be saved to "<c>basePath/Id</c>"
   ///   </para>
   /// </summary>
   /// <example>
@@ -54,9 +46,9 @@ public class File : FileOrDir
   /// </code>
   /// </example>
   /// <param name="basePath">The path the file will be written to.</param>
-  public void Write(string basePath)
+  public override void Write(string basePath)
   {
-    var outFilePath = Path.Join(basePath, Identifier);
+    var outFilePath = Path.Join(basePath, Id);
     var outFileParent = Path.GetDirectoryName(outFilePath);
     if (outFileParent == null) return;
     if (Uri.IsWellFormedUriString(_source, UriKind.Absolute))
@@ -68,7 +60,7 @@ public class File : FileOrDir
       {
         SetProperty("contentSize", response.Headers.ContentLength);
         SetProperty("encodingFormat", response.Headers.ContentType);
-        if (!_fetchRemote) 
+        if (!_fetchRemote)
           SetProperty("sdDatePublished", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
       }
 
@@ -85,14 +77,18 @@ public class File : FileOrDir
     }
   }
 
-  private JsonObject _empty()
+  /// <summary>
+  /// Convert <see cref="File"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="File"/> as a JSON string.</returns>
+  public override string Serialize()
   {
-    var emptyJsonString = new Dictionary<string, string>
+    var options = new JsonSerializerOptions
     {
-      { "@id", Identifier },
-      { "@type", _defaultType }
+      WriteIndented = true,
+      Converters = { new FileConverter() }
     };
-    var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
-    return emptyObject;
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
   }
 }
