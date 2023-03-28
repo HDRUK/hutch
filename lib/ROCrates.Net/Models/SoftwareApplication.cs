@@ -29,4 +29,16 @@ public class SoftwareApplication : ContextEntity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static SoftwareApplication? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new SoftwareApplicationConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<SoftwareApplication>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
