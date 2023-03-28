@@ -36,7 +36,8 @@ public class WorkflowTriggerService
       FileName = cmd,
       WorkingDirectory = WorkflowTriggerOptions.ExecutorPath
     };
-
+    
+    // start process
     var process = Process.Start(processStartInfo);
     if (process == null)
       throw new Exception("Could not start process");
@@ -57,5 +58,7 @@ public class WorkflowTriggerService
     var sb = new StringBuilder();
     while (!process.HasExited)
       sb.Append(process.StandardOutput.ReadToEnd());
+    // end the process
+    process.Close();
   }
 }
