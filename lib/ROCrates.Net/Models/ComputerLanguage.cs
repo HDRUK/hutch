@@ -58,4 +58,16 @@ public class ComputerLanguage : ContextEntity
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static ComputerLanguage? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new ComputerLanguageConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<ComputerLanguage>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
