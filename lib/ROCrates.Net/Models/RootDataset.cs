@@ -29,4 +29,16 @@ public class RootDataset : Dataset
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
   }
+
+  public new static RootDataset? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new RootDatasetConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<RootDataset>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
+  }
 }
