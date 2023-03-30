@@ -19,9 +19,6 @@ public class WorkflowTriggerService
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
     {
-      "apt-get install python3-pip",
-      "yes | ./full-installer.bash",
-      "yes | ./singularity-local-installer.bash",
       $"./WfExS-backend.py  -L {WorkflowTriggerOptions.LocalConfigPath} execute -W {WorkflowTriggerOptions.StageFilePath}"
     };
     
@@ -53,11 +50,11 @@ public class WorkflowTriggerService
       streamWriter.Flush();
       streamWriter.Close();
     }
-    
+
     var sb = new StringBuilder();
+    StreamReader reader = process.StandardOutput;
     while (!process.HasExited)
-      sb.Append(process.StandardOutput.ReadToEnd());
-    
+      sb.Append(reader.ReadToEnd());
     // end the process
     process.Close();
   }
