@@ -11,7 +11,7 @@ public class ComputationalWorkflow : File
 {
   private protected string[] Types = { "File", "SoftwareSourceCode", "ComputationalWorkflow" };
 
-  public ComputationalWorkflow(ROCrate crate, string? identifier = null, JsonObject? properties = null,
+  public ComputationalWorkflow(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null,
     string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate,
     identifier, properties, source, destPath, fetchRemote, validateUrl)
   {
@@ -48,5 +48,23 @@ public class ComputationalWorkflow : File
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="ComputationalWorkflow"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="ComputationalWorkflow"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="ComputationalWorkflow"/></param>
+  /// <returns>The deserialised <see cref="ComputationalWorkflow"/></returns>
+  public new static ComputationalWorkflow? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new ComputationalWorkflowConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<ComputationalWorkflow>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

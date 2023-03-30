@@ -11,7 +11,8 @@ public class FileOrDir : DataEntity
   protected bool _fetchRemote;
   protected bool _validateUrl;
 
-  public FileOrDir(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
+  public FileOrDir(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null,
+    string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties)
   {
     _source = source ?? "./";
@@ -56,5 +57,23 @@ public class FileOrDir : DataEntity
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="FileOrDir"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="FileOrDir"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="FileOrDir"/></param>
+  /// <returns>The deserialised <see cref="FileOrDir"/></returns>
+  public new static FileOrDir? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new FileOrDirConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<FileOrDir>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

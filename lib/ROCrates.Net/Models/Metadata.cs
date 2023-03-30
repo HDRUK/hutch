@@ -15,7 +15,8 @@ public class Metadata : File
   public RootDataset? RootDataset => RoCrate.RootDataset;
   public JsonObject? ExtraTerms { get; set; }
 
-  public Metadata(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
+  public Metadata(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null,
+    string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {
@@ -53,5 +54,23 @@ public class Metadata : File
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="Metadata"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Metadata"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Metadata"/></param>
+  /// <returns>The deserialised <see cref="Metadata"/></returns>
+  public new static Metadata? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new MetadataConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Metadata>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

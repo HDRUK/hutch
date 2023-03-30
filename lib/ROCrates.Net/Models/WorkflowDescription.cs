@@ -9,7 +9,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class WorkflowDescription : ComputationalWorkflow
 {
-  public WorkflowDescription(ROCrate crate, string? identifier = null, JsonObject? properties = null,
+  public WorkflowDescription(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null,
     string? source = null, string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate,
     identifier, properties, source, destPath, fetchRemote, validateUrl)
   {
@@ -30,5 +30,23 @@ public class WorkflowDescription : ComputationalWorkflow
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="WorkflowDescription"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="WorkflowDescription"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="WorkflowDescription"/></param>
+  /// <returns>The deserialised <see cref="WorkflowDescription"/></returns>
+  public new static WorkflowDescription? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new WorkflowDescriptionConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<WorkflowDescription>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

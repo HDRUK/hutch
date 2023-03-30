@@ -6,7 +6,8 @@ namespace ROCrates.Models;
 
 public class SoftwareApplication : ContextEntity
 {
-  public SoftwareApplication(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate,
+  public SoftwareApplication(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null) : base(
+    crate,
     identifier, properties)
   {
     DefaultType = "SoftwareApplication";
@@ -27,5 +28,23 @@ public class SoftwareApplication : ContextEntity
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="SoftwareApplication"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="SoftwareApplication"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="SoftwareApplication"/></param>
+  /// <returns>The deserialised <see cref="SoftwareApplication"/></returns>
+  public new static SoftwareApplication? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new SoftwareApplicationConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<SoftwareApplication>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

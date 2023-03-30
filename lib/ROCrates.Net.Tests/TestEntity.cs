@@ -8,6 +8,7 @@ namespace ROCrates.Tests;
 public class TestEntity
 {
   private static string _fixtureFileName = "Fixtures/test-entity.json";
+  private static string _listFileName = "Fixtures/entity-with-list.json";
   private ROCrate _roCrate = new();
 
   private string _jsonLd;
@@ -131,5 +132,34 @@ public class TestEntity
 
     // Assert
     Assert.Equal(_jsonLd, serialisedEntity);
+  }
+
+  [Fact]
+  public void TestDeserialised_Entity_Matches_Original_Properties()
+  {
+    // Arrange
+    var jsonObject = JsonNode.Parse(_jsonLd).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
+
+    // Act
+    var entityByDeserialise = Entity.Deserialize(jsonObject.ToString(), _roCrate);
+
+    // Assert
+    Assert.Equal(entity.Properties.ToString(), entityByDeserialise.Properties.ToString());
+  }
+
+  [Fact]
+  public void TestDeserialise_Handles_ArraysOfParts()
+  {
+    // Arrange
+    var jsonWithArray = File.ReadAllText(_listFileName).Trim();
+    var jsonObject = JsonNode.Parse(jsonWithArray).AsObject();
+    var entity = new Entity(_roCrate, properties: jsonObject);
+
+    // Act
+    var entityByDeserialise = Entity.Deserialize(jsonObject.ToString(), _roCrate);
+
+    // Assert
+    Assert.Equal(entity.Properties.ToString(), entityByDeserialise.Properties.ToString());
   }
 }

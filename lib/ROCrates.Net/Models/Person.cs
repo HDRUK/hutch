@@ -6,7 +6,8 @@ namespace ROCrates.Models;
 
 public class Person : ContextEntity
 {
-  public Person(ROCrate crate, string? identifier = null, JsonObject? properties = null) : base(crate, identifier,
+  public Person(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null) : base(crate,
+    identifier,
     properties)
   {
     DefaultType = "Person";
@@ -27,5 +28,23 @@ public class Person : ContextEntity
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="Person"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Person"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Person"/></param>
+  /// <returns>The deserialised <see cref="Person"/></returns>
+  public new static Person? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new PersonConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Person>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

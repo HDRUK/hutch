@@ -10,7 +10,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class File : FileOrDir
 {
-  public File(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
+  public File(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {
@@ -90,5 +90,23 @@ public class File : FileOrDir
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="File"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="File"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="File"/></param>
+  /// <returns>The deserialised <see cref="File"/></returns>
+  public new static File? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new ContextEntityConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<File>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

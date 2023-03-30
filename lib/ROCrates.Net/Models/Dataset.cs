@@ -7,7 +7,7 @@ namespace ROCrates.Models;
 
 public class Dataset : FileOrDir
 {
-  public Dataset(ROCrate crate, string? identifier = null, JsonObject? properties = null, string? source = null,
+  public Dataset(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null, string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties,
     source, destPath, fetchRemote, validateUrl)
   {
@@ -116,5 +116,23 @@ public class Dataset : FileOrDir
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="Dataset"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Dataset"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Dataset"/></param>
+  /// <returns>The deserialised <see cref="Dataset"/></returns>
+  public new static Dataset? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new DatasetConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Dataset>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }

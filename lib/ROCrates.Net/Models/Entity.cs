@@ -11,13 +11,13 @@ public class Entity
 {
   private protected string DefaultType = "Thing";
 
-  public ROCrate RoCrate { get; set; }
+  public ROCrate? RoCrate { get; set; }
 
   public string Id { get; set; }
 
   public JsonObject Properties { get; set; }
 
-  public Entity(ROCrate crate, string? identifier = null, JsonObject? properties = null)
+  public Entity(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
     Id = identifier ?? Guid.NewGuid().ToString();
@@ -157,5 +157,23 @@ public class Entity
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
+  }
+
+  /// <summary>
+  /// Create an <see cref="Entity"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Entity"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Entity"/></param>
+  /// <returns>The deserialised <see cref="Entity"/></returns>
+  public static Entity? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Converters = { new EntityConverter() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Entity>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 }
