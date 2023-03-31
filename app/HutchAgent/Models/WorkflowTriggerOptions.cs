@@ -2,14 +2,14 @@ namespace HutchAgent.Models;
 
 public class WorkflowTriggerOptions
 {
-  public const string Type = "WfExS";
+  public const string WfexsOptions = "WfexsOptions";
 
-  public const string ExecutorPath = "/home/vasiliki/WfExS-backend/";
+  public string ExecutorPath { get; set; } = string.Empty;
 
-  public const string VirtualEnvironmentPath = ".pyWEenv/bin/activate";
+  public string VirtualEnvironmentPath { get; set; } = string.Empty;
 
-  public const string LocalConfigPath = "workflow_examples/local_config.yaml";
+  public string LocalConfigPath { get; set; } = string.Empty;
   
-  public const string StageFilePath = "workflow_examples/ipc/hutch_cwl.wfex.stage";
+  public string StageFilePath { get; set; } = string.Empty;
 
 }

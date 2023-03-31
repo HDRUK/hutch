@@ -1,25 +1,33 @@
 using System.Diagnostics;
 using System.Text;
 using HutchAgent.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace HutchAgent.Services;
 
 public class WorkflowTriggerService
 {
+  private readonly IConfiguration _configuration;
+
+  public WorkflowTriggerService(IConfiguration configuration)
+  {
+    _configuration = configuration;
+  }
+
   /// <summary>
   /// Install and run WfExS given 
   /// </summary>
   /// <exception cref="Exception"></exception>
-  public void TriggerWfexs(){
-    
+  public void TriggerWfexs()
+  {
     const string cmd = "bash";
-    const string activateVenv = "source " + WorkflowTriggerOptions.VirtualEnvironmentPath;
+    string activateVenv = "source " + _configuration["VirtualEnvironmentPath"];
     
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
     {
-      $"./WfExS-backend.py  -L {WorkflowTriggerOptions.LocalConfigPath} execute -W {WorkflowTriggerOptions.StageFilePath}"
+      $"./WfExS-backend.py  -L {_configuration["LocalConfigPath"]} execute -W {_configuration["StageFilePath"]}"
     };
     
     var processStartInfo = new ProcessStartInfo
@@ -30,7 +38,7 @@ public class WorkflowTriggerService
       UseShellExecute = false,
       CreateNoWindow = true,
       FileName = cmd,
-      WorkingDirectory = WorkflowTriggerOptions.ExecutorPath
+      WorkingDirectory = _configuration["ExecutorPath"]
     };
     
     // start process
