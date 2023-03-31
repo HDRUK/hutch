@@ -9,7 +9,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class Metadata : File
 {
-  protected const string BaseName = "ro-crate-metadata.json";
+  protected const string FileName = "ro-crate-metadata.json";
   protected const string Profile = "https://w3id.org/ro/crate/1.1";
 
   public RootDataset? RootDataset => RoCrate.RootDataset;
@@ -25,7 +25,7 @@ public class Metadata : File
     if (properties is not null) _unpackProperties(properties);
     SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
     SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
-    Id = source ?? destPath ?? BaseName;
+    Id = source ?? destPath ?? FileName;
   }
 
   private JsonObject _generate()
