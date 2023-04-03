@@ -31,7 +31,18 @@ public class Metadata : File
   private JsonObject _generate()
   {
     // Iterate through the entities in the RO-Crate, extract their properties and serialise to JSON.
-    throw new NotImplementedException();
+    var crateJson = new JsonObject();
+    crateJson.Add("@context", "https://w3id.org/ro/crate/1.1/context");
+    var graphArray = new JsonArray();
+
+    graphArray.Add(JsonNode.Parse(Serialize()));
+    foreach (var entity in RoCrate.Entities)
+    {
+      graphArray.Add(JsonNode.Parse(entity.Value.Serialize()));
+    }
+
+    crateJson.Add("@graph", graphArray);
+    return crateJson;
   }
 
   public override void Write(string basePath)
