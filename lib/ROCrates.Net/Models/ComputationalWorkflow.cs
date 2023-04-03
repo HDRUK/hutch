@@ -17,8 +17,8 @@ public class ComputationalWorkflow : File
     identifier, properties, source, destPath, fetchRemote, validateUrl)
   {
     Properties = _empty();
-    if (properties is not null) _unpackProperties(properties);
     SetProperty("@type", Types);
+    if (properties is not null) _unpackProperties(properties);
   }
 
   public ComputationalWorkflow()
