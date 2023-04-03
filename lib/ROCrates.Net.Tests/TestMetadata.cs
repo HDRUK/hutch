@@ -17,27 +17,18 @@ public class TestMetadata
   public void TestMetadata_Writes_Correct_JsonString()
   {
     // Arrange
-    var fileJson = @"{
-  ""@id"": ""cp7glop.ai\"",
-  ""@type"": ""File"",
-  ""name"": ""Diagram showing trend to increase"",
-  ""contentSize"": ""383766"",
-  ""description"": ""Illustrator file for Glop Pot"",
-  ""encodingFormat"": ""application/pdf""
-}";
-    var fileObject = JsonObject.Parse(fileJson).AsObject();
+    var fileJson =
+      "{\"@id\": \"cp7glop.ai\", \"@type\": \"File\", \"name\": \"Diagram showing trend to increase\", \"contentSize\": \"383766\", \"description\": \"Illustrator file for Glop Pot\", \"encodingFormat\": \"application/pdf\"}";
+    var fileProperties = JsonObject.Parse(fileJson).AsObject();
 
-    var datasetJson = @"{
-  ""@id"": ""lots_of_little_files/"",
-  ""@type"": ""Dataset"",
-  ""name"": ""Too many files"",
-  ""description"": ""This directory contains many small files, that we're not going to describe in detail.""
-}";
-    var datasetObject = JsonObject.Parse(datasetJson).AsObject();
+    var datasetJson =
+      "{\"@id\": \"lots_of_little_files/\", \"@type\": \"Dataset\", \"name\": \"Too many files\", \"description\": \"This directory contains many small files, that we're not going to describe in detail.\"}";
+    var datasetProperties = JsonObject.Parse(datasetJson).AsObject();
 
-    var file = new Models.File(crate: _roCrate, identifier: fileObject["@id"].ToString(), properties: fileObject);
-    var dataset = new Models.Dataset(crate: _roCrate, identifier: datasetObject["@id"].ToString(),
-      properties: datasetObject);
+    var file = new Models.File(crate: _roCrate, identifier: fileProperties["@id"].ToString(),
+      properties: fileProperties);
+    var dataset = new Models.Dataset(crate: _roCrate, identifier: datasetProperties["@id"].ToString(),
+      properties: datasetProperties);
 
     var metadataBasePath = "./";
     var metadataFileName = Path.Combine(metadataBasePath, "ro-crate-metadata.json");
