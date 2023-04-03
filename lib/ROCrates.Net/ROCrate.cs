@@ -54,7 +54,7 @@ public class ROCrate
   /// <returns>The resolved URI for the given ID.</returns>
   public string ResolveId(string id)
   {
-    if (Uri.IsWellFormedUriString(id, UriKind.Absolute)) return id.TrimEnd('/');
+    if (Uri.IsWellFormedUriString(id, UriKind.RelativeOrAbsolute)) return id.TrimEnd('/');
 
     var resolvedId = Path.Combine(_arcpBaseUri, id);
     return resolvedId.TrimEnd('/');
