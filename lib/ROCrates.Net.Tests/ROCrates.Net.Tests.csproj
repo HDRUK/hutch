@@ -33,6 +33,7 @@
     <None Update="Fixtures/test-file.json" CopyToOutputDirectory="PreserveNewest"/>
     <None Update="Fixtures/test-dataset.json" CopyToOutputDirectory="PreserveNewest"/>
     <None Update="Fixtures/test-person.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Fixtures/test-computer-language.json" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
 </Project>
