@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -119,6 +120,7 @@ public class Dataset : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<Dataset>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -136,6 +138,7 @@ public class Dataset : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<Dataset>() }
     };
     var deserialized = JsonSerializer.Deserialize<Dataset>(entityJson, options);

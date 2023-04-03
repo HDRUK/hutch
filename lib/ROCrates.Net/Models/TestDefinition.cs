@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -56,6 +57,7 @@ public class TestDefinition : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<TestDefinition>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -73,6 +75,7 @@ public class TestDefinition : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<TestDefinition>() }
     };
     var deserialized = JsonSerializer.Deserialize<TestDefinition>(entityJson, options);

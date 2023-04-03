@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -25,6 +26,7 @@ public class CreativeWork : Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<CreativeWork>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -42,6 +44,7 @@ public class CreativeWork : Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<CreativeWork>() }
     };
     var deserialized = JsonSerializer.Deserialize<CreativeWork>(entityJson, options);

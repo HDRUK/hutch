@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -29,6 +30,7 @@ public class RootDataset : Dataset
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<RootDataset>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -46,6 +48,7 @@ public class RootDataset : Dataset
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<RootDataset>() }
     };
     var deserialized = JsonSerializer.Deserialize<RootDataset>(entityJson, options);

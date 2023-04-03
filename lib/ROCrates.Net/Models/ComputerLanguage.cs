@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -59,6 +60,7 @@ public class ComputerLanguage : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<ComputerLanguage>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -76,6 +78,7 @@ public class ComputerLanguage : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<ComputerLanguage>() }
     };
     var deserialized = JsonSerializer.Deserialize<ComputerLanguage>(entityJson, options);

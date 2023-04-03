@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -58,6 +59,7 @@ public class FileOrDir : DataEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<FileOrDir>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -75,6 +77,7 @@ public class FileOrDir : DataEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<FileOrDir>() }
     };
     var deserialized = JsonSerializer.Deserialize<FileOrDir>(entityJson, options);

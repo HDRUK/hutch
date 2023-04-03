@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -50,6 +51,7 @@ public class ComputationalWorkflow : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<ComputationalWorkflow>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -67,6 +69,7 @@ public class ComputationalWorkflow : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<ComputationalWorkflow>() }
     };
     var deserialized = JsonSerializer.Deserialize<ComputationalWorkflow>(entityJson, options);

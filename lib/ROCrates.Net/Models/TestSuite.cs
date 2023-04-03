@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -48,6 +49,7 @@ public class TestSuite : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<TestSuite>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
@@ -65,6 +67,7 @@ public class TestSuite : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
       Converters = { new EntityConverter<TestSuite>() }
     };
     var deserialized = JsonSerializer.Deserialize<TestSuite>(entityJson, options);
