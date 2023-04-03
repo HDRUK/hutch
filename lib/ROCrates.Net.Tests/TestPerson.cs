@@ -7,7 +7,7 @@ public class TestPerson
   private readonly string _testFileJsonFile = "Fixtures/test-person.json";
 
   [Fact]
-  public void TestFile_Serialises_Correctly()
+  public void TestPerson_Serialises_Correctly()
   {
     // Arrange
     var expectedJson = File.ReadAllText(_testFileJsonFile).TrimEnd();
