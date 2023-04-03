@@ -4,7 +4,7 @@ namespace ROCrates.Tests;
 
 public class TestMetadata
 {
-  private static string _fixtureFileName = "Fixtures/test-entity.json";
+  private static string _fixtureFileName = "Fixtures/metadata-test.json";
   private ROCrate _roCrate = new();
   private string _jsonLd;
 
