@@ -12,12 +12,13 @@ public class WorkflowTriggerService : BackgroundService
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
 
-  public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions, ILogger<WorkflowTriggerService> logger)
+  public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
+    ILogger<WorkflowTriggerService> logger)
   {
     _logger = logger;
     _workflowOptions = workflowOptions.Value;
   }
-  
+
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
     _logger.LogInformation(
@@ -33,14 +34,14 @@ public class WorkflowTriggerService : BackgroundService
   public async Task TriggerWfexs()
   {
     const string cmd = "bash";
-    string activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath ;
+    string activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
     {
       $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}"
     };
-    
+
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -51,7 +52,7 @@ public class WorkflowTriggerService : BackgroundService
       FileName = cmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
-    
+
     // start process
     var process = Process.Start(processStartInfo);
     if (process == null)
@@ -66,6 +67,7 @@ public class WorkflowTriggerService : BackgroundService
       {
         await streamWriter.WriteLineAsync(command);
       }
+
       await streamWriter.FlushAsync();
       streamWriter.Close();
     }
@@ -77,6 +79,7 @@ public class WorkflowTriggerService : BackgroundService
     // end the process
     process.Close();
   }
+
   public override async Task StopAsync(CancellationToken stoppingToken)
   {
     _logger.LogInformation(
@@ -84,6 +87,4 @@ public class WorkflowTriggerService : BackgroundService
 
     await base.StopAsync(stoppingToken);
   }
-
-  
 }
