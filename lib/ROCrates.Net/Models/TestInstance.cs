@@ -15,6 +15,12 @@ public class TestInstance : ContextEntity
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public TestInstance()
+  {
+    DefaultType = "TestInstance";
+    Properties = _empty();
+  }
+
   public string? Name
   {
     get => GetProperty<string>("name");

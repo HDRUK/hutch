@@ -20,6 +20,12 @@ public class ComputationalWorkflow : File
     SetProperty("@type", Types);
   }
 
+  public ComputationalWorkflow()
+  {
+    Properties = _empty();
+    SetProperty("@type", Types);
+  }
+
   protected new JsonObject _empty()
   {
     var emptyJsonString = new Dictionary<string, string>

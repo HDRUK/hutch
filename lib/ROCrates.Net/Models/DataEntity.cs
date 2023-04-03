@@ -11,6 +11,10 @@ public class DataEntity : Entity
   {
   }
 
+  public DataEntity()
+  {
+  }
+
   public virtual void Write(string basePath)
   {
     throw new NotImplementedException();

@@ -15,6 +15,12 @@ public class TestSuite : ContextEntity
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public TestSuite()
+  {
+    DefaultType = "TestSuite";
+    Properties = _empty();
+  }
+
   public string? EngineVersion
   {
     get => GetProperty<string>("engineVersion");

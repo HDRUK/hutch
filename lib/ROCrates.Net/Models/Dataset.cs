@@ -17,6 +17,13 @@ public class Dataset : FileOrDir
     Id = _formatIdentifier(Id);
   }
 
+  public Dataset()
+  {
+    DefaultType = "Dataset";
+    Properties = _empty();
+    Id = _formatIdentifier(Id);
+  }
+
   /// <summary>
   /// <para>Write the contents of a <c>Dataset</c> to disk.</para>
   /// <para>If the <c>Dataset</c>'s source is remote, the contents will be downloaded to <c>basePath</c>.</para>

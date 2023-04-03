@@ -16,6 +16,12 @@ public class TestDefinition : File
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public TestDefinition()
+  {
+    DefaultType = "TestDefinition";
+    Properties = _empty();
+  }
+
   public string? EngineVersion
   {
     get => GetProperty<string>("engineVersion");

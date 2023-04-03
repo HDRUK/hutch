@@ -15,6 +15,12 @@ public class Person : ContextEntity
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public Person()
+  {
+    DefaultType = "Person";
+    Properties = _empty();
+  }
+
   /// <summary>
   /// Convert <see cref="Person"/> to JSON string.
   /// </summary>

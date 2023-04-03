@@ -44,6 +44,11 @@ public class FileOrDir : DataEntity
     }
   }
 
+  public FileOrDir()
+  {
+    _source = "./";
+  }
+
   /// <summary>
   /// Convert <see cref="FileOrDir"/> to JSON string.
   /// </summary>

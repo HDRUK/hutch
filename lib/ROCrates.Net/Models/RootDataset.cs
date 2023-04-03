@@ -15,6 +15,11 @@ public class RootDataset : Dataset
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public RootDataset()
+  {
+    Properties = _empty();
+  }
+
   /// <summary>
   /// Convert <see cref="RootDataset"/> to JSON string.
   /// </summary>

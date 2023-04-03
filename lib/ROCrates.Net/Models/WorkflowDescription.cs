@@ -17,6 +17,12 @@ public class WorkflowDescription : ComputationalWorkflow
     SetProperty("@type", Types);
   }
 
+  public WorkflowDescription()
+  {
+    Types = new[] { "File", "SoftwareSourceCode", "HowTo" };
+    SetProperty("@type", Types);
+  }
+
   /// <summary>
   /// Convert <see cref="WorkflowDescription"/> to JSON string.
   /// </summary>

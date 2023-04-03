@@ -12,6 +12,10 @@ public class CreativeWork : Entity
   {
   }
 
+  public CreativeWork()
+  {
+  }
+
   /// <summary>
   /// Convert <see cref="CreativeWork"/> to JSON string.
   /// </summary>

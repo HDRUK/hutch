@@ -13,6 +13,11 @@ public class ContextEntity : Entity
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public ContextEntity()
+  {
+    Id = _formatIdentifier(Id);
+  }
+
   private protected sealed override string _formatIdentifier(string identifier)
   {
     if (Uri.IsWellFormedUriString(identifier, UriKind.RelativeOrAbsolute) || identifier.Contains('#'))

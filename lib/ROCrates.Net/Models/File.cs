@@ -19,6 +19,12 @@ public class File : FileOrDir
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public File()
+  {
+    DefaultType = "File";
+    Properties = _empty();
+  }
+
   /// <summary>
   ///   <para>Write file contents to the specified path. e.g. The root path of an RO-Crate.</para>
   ///   <para>

@@ -14,6 +14,12 @@ public class ComputerLanguage : ContextEntity
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public ComputerLanguage()
+  {
+    DefaultType = "ComputerLanguage";
+    Properties = _empty();
+  }
+
   public string? Name
   {
     get => GetProperty<string>("name");

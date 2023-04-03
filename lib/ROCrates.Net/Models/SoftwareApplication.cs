@@ -15,6 +15,12 @@ public class SoftwareApplication : ContextEntity
     if (properties is not null) _unpackProperties(properties);
   }
 
+  public SoftwareApplication()
+  {
+    DefaultType = "SoftwareApplication";
+    Properties = _empty();
+  }
+
   /// <summary>
   /// Convert <see cref="SoftwareApplication"/> to JSON string.
   /// </summary>

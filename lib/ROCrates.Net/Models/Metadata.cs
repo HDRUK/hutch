@@ -28,6 +28,15 @@ public class Metadata : File
     Id = source ?? destPath ?? BaseName;
   }
 
+  public Metadata()
+  {
+    DefaultType = "CreativeWork";
+    Properties = _empty();
+    SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
+    SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
+    Id = BaseName;
+  }
+
   private JsonObject _generate()
   {
     // Iterate through the entities in the RO-Crate, extract their properties and serialise to JSON.
