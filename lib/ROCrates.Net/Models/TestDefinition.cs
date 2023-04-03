@@ -56,7 +56,7 @@ public class TestDefinition : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestDefinitionConverter() }
+      Converters = { new EntityConverter<TestDefinition>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -73,7 +73,7 @@ public class TestDefinition : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestDefinitionConverter() }
+      Converters = { new EntityConverter<TestDefinition>() }
     };
     var deserialized = JsonSerializer.Deserialize<TestDefinition>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

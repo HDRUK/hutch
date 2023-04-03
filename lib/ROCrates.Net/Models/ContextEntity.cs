@@ -35,7 +35,7 @@ public class ContextEntity : Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ContextEntityConverter() }
+      Converters = { new EntityConverter<ContextEntity>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -52,7 +52,7 @@ public class ContextEntity : Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ContextEntityConverter() }
+      Converters = { new EntityConverter<ContextEntity>() }
     };
     var deserialized = JsonSerializer.Deserialize<ContextEntity>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

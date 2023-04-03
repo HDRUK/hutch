@@ -29,7 +29,7 @@ public class RootDataset : Dataset
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new RootDatasetConverter() }
+      Converters = { new EntityConverter<RootDataset>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -46,7 +46,7 @@ public class RootDataset : Dataset
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new RootDatasetConverter() }
+      Converters = { new EntityConverter<RootDataset>() }
     };
     var deserialized = JsonSerializer.Deserialize<RootDataset>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

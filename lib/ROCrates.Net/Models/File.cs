@@ -92,7 +92,7 @@ public class File : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new FileConverter() }
+      Converters = { new EntityConverter<File>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -109,7 +109,7 @@ public class File : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ContextEntityConverter() }
+      Converters = { new EntityConverter<File>() }
     };
     var deserialized = JsonSerializer.Deserialize<File>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

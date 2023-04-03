@@ -32,7 +32,7 @@ public class WorkflowDescription : ComputationalWorkflow
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new WorkflowDescriptionConverter() }
+      Converters = { new EntityConverter<WorkflowDescription>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -49,7 +49,7 @@ public class WorkflowDescription : ComputationalWorkflow
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new WorkflowDescriptionConverter() }
+      Converters = { new EntityConverter<WorkflowDescription>() }
     };
     var deserialized = JsonSerializer.Deserialize<WorkflowDescription>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

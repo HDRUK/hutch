@@ -59,7 +59,7 @@ public class ComputerLanguage : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ComputerLanguageConverter() }
+      Converters = { new EntityConverter<ComputerLanguage>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -76,7 +76,7 @@ public class ComputerLanguage : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ComputerLanguageConverter() }
+      Converters = { new EntityConverter<ComputerLanguage>() }
     };
     var deserialized = JsonSerializer.Deserialize<ComputerLanguage>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

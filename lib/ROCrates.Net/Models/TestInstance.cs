@@ -54,7 +54,7 @@ public class TestInstance : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestInstanceConverter() }
+      Converters = { new EntityConverter<TestInstance>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -71,7 +71,7 @@ public class TestInstance : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestInstanceConverter() }
+      Converters = { new EntityConverter<TestInstance>() }
     };
     var deserialized = JsonSerializer.Deserialize<TestInstance>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

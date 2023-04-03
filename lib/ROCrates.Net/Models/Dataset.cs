@@ -119,7 +119,7 @@ public class Dataset : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new DatasetConverter() }
+      Converters = { new EntityConverter<Dataset>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -136,7 +136,7 @@ public class Dataset : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new DatasetConverter() }
+      Converters = { new EntityConverter<Dataset>() }
     };
     var deserialized = JsonSerializer.Deserialize<Dataset>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

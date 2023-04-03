@@ -59,7 +59,7 @@ public class Metadata : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new MetadataConverter() }
+      Converters = { new EntityConverter<Metadata>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -76,7 +76,7 @@ public class Metadata : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new MetadataConverter() }
+      Converters = { new EntityConverter<Metadata>() }
     };
     var deserialized = JsonSerializer.Deserialize<Metadata>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

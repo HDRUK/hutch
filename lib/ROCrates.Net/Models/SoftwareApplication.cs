@@ -30,7 +30,7 @@ public class SoftwareApplication : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new SoftwareApplicationConverter() }
+      Converters = { new EntityConverter<SoftwareApplication>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -47,7 +47,7 @@ public class SoftwareApplication : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new SoftwareApplicationConverter() }
+      Converters = { new EntityConverter<SoftwareApplication>() }
     };
     var deserialized = JsonSerializer.Deserialize<SoftwareApplication>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

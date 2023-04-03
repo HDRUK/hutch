@@ -25,7 +25,7 @@ public class CreativeWork : Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new CreativeWorkConverter() }
+      Converters = { new EntityConverter<CreativeWork>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -42,7 +42,7 @@ public class CreativeWork : Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new CreativeWorkConverter() }
+      Converters = { new EntityConverter<CreativeWork>() }
     };
     var deserialized = JsonSerializer.Deserialize<CreativeWork>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;
