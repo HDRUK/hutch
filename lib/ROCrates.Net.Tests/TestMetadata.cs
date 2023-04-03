@@ -26,9 +26,9 @@ public class TestMetadata
     var datasetProperties = JsonObject.Parse(datasetJson).AsObject();
 
     var file = new Models.File(crate: _roCrate, identifier: fileProperties["@id"].ToString(),
-      properties: fileProperties);
+      properties: fileProperties, source: fileProperties["@id"].ToString());
     var dataset = new Models.Dataset(crate: _roCrate, identifier: datasetProperties["@id"].ToString(),
-      properties: datasetProperties);
+      properties: datasetProperties, source: datasetProperties["@id"].ToString());
 
     var metadataBasePath = "./";
     var metadataFileName = Path.Combine(metadataBasePath, "ro-crate-metadata.json");
