@@ -5,12 +5,12 @@ using ROCrates.Models;
 
 namespace ROCrates.Converters;
 
-public class EntityConverter : JsonConverter<Entity>
+public class EntityConverter<T> : JsonConverter<T> where T : Entity, new()
 {
   private protected string? Id = string.Empty;
   private protected string? Type = string.Empty;
 
-  public override Entity? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+  public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
     var properties = _parseJson(ref reader);
 
@@ -18,7 +18,11 @@ public class EntityConverter : JsonConverter<Entity>
     if (Id is null || Type is null)
       throw new InvalidDataException("Either one of, or both @id and @type are not in the JSON.");
 
-    var entity = new Entity(identifier: Id, properties: properties);
+    var entity = new T
+    {
+      Id = Id,
+      Properties = properties
+    };
     return entity;
   }
 
@@ -85,7 +89,7 @@ public class EntityConverter : JsonConverter<Entity>
     return properties;
   }
 
-  public override void Write(Utf8JsonWriter writer, Entity value, JsonSerializerOptions options)
+  public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
   {
     writer.WriteStartObject();
     foreach (var prop in value.Properties)

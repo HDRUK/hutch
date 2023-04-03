@@ -17,6 +17,12 @@ public class Entity
 
   public JsonObject Properties { get; set; }
 
+  public Entity()
+  {
+    Id = Guid.NewGuid().ToString();
+    Properties = _empty();
+  }
+
   public Entity(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null)
   {
     RoCrate = crate;
@@ -153,7 +159,7 @@ public class Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new EntityConverter() }
+      Converters = { new EntityConverter<Entity>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -170,7 +176,7 @@ public class Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new EntityConverter() }
+      Converters = { new EntityConverter<Entity>() }
     };
     var deserialized = JsonSerializer.Deserialize<Entity>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;
