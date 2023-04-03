@@ -1,33 +1,44 @@
 using System.Diagnostics;
 using System.Text;
 using HutchAgent.Models;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;
 
-public class WorkflowTriggerService
+public class WorkflowTriggerService : BackgroundService
 {
-  private readonly IConfiguration _configuration;
+  private readonly WorkflowTriggerOptions _workflowOptions;
+  private readonly ILogger<WorkflowTriggerService> _logger;
 
-  public WorkflowTriggerService(IConfiguration configuration)
+  public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions, ILogger<WorkflowTriggerService> logger)
   {
-    _configuration = configuration;
+    _logger = logger;
+    _workflowOptions = workflowOptions.Value;
+  }
+  
+  protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+  {
+    _logger.LogInformation(
+      "Executing Workflow with WfExS started.");
+
+    await TriggerWfexs();
   }
 
   /// <summary>
   /// Install and run WfExS given 
   /// </summary>
   /// <exception cref="Exception"></exception>
-  public void TriggerWfexs()
+  public async Task TriggerWfexs()
   {
     const string cmd = "bash";
-    string activateVenv = "source " + _configuration["VirtualEnvironmentPath"];
-    
+    string activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath ;
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
     {
-      $"./WfExS-backend.py  -L {_configuration["LocalConfigPath"]} execute -W {_configuration["StageFilePath"]}"
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}"
     };
     
     var processStartInfo = new ProcessStartInfo
@@ -38,7 +49,7 @@ public class WorkflowTriggerService
       UseShellExecute = false,
       CreateNoWindow = true,
       FileName = cmd,
-      WorkingDirectory = _configuration["ExecutorPath"]
+      WorkingDirectory = _workflowOptions.ExecutorPath
     };
     
     // start process
@@ -50,20 +61,29 @@ public class WorkflowTriggerService
     if (streamWriter.BaseStream.CanWrite)
     {
       // activate python virtual environment
-      streamWriter.WriteLine(activateVenv);
+      await streamWriter.WriteLineAsync(activateVenv);
       foreach (var command in commands)
       {
-        streamWriter.WriteLine(command);
+        await streamWriter.WriteLineAsync(command);
       }
-      streamWriter.Flush();
+      await streamWriter.FlushAsync();
       streamWriter.Close();
     }
 
     var sb = new StringBuilder();
     StreamReader reader = process.StandardOutput;
     while (!process.HasExited)
-      sb.Append(reader.ReadToEnd());
+      sb.Append(await reader.ReadToEndAsync());
     // end the process
     process.Close();
   }
+  public override async Task StopAsync(CancellationToken stoppingToken)
+  {
+    _logger.LogInformation(
+      "Hosted Service is stopping.");
+
+    await base.StopAsync(stoppingToken);
+  }
+
+  
 }

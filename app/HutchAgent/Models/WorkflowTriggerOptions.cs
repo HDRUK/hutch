@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Options;
+
 namespace HutchAgent.Models;
 
 public class WorkflowTriggerOptions
 {
-  public const string WfexsOptions = "WfexsOptions";
 
   public string ExecutorPath { get; set; } = string.Empty;
 
