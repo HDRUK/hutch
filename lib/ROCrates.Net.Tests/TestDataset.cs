@@ -1,9 +1,12 @@
+using System.Text.Json.Nodes;
+
 namespace ROCrates.Tests;
 
 public class TestDataset : IClassFixture<TestDatasetFixture>
 {
   private TestDatasetFixture _testDatasetFixture;
   private const string _testDirName = "my-test-dir/";
+  private readonly string _testFileJsonFile = "Fixtures/test-dataset.json";
 
   public TestDataset(TestDatasetFixture testDatasetFixture)
   {
@@ -63,6 +66,24 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
 
     // Assert
     Assert.Throws<DirectoryNotFoundException>(throwingFunc);
+  }
+
+  [Fact]
+  public void TestDataset_Serialises_Correctly()
+  {
+    // Arrange
+    var expectedJson = File.ReadAllText(_testFileJsonFile).TrimEnd();
+    var jsonObject = JsonNode.Parse(expectedJson).AsObject();
+
+    var dataset = new Models.Dataset(
+      new ROCrate(),
+      properties: jsonObject);
+
+    // Act
+    var actualJson = dataset.Serialize();
+
+    // Assert
+    Assert.Equal(expectedJson, actualJson);
   }
 }
 
