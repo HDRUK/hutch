@@ -1,0 +1,8 @@
+{
+  "@id": "#knime",
+  "@type": "ProgrammingLanguage",
+  "name": "KNIME Analytics Platform",
+  "alternateName": "KNIME",
+  "url": "https://www.knime.com/whats-new-in-knime-41",
+  "version": "4.1.3"
+}

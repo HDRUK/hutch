@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -28,6 +29,15 @@ public class Metadata : File
     Id = source ?? destPath ?? BaseName;
   }
 
+  public Metadata()
+  {
+    DefaultType = "CreativeWork";
+    Properties = _empty();
+    SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
+    SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
+    Id = BaseName;
+  }
+
   private JsonObject _generate()
   {
     // Iterate through the entities in the RO-Crate, extract their properties and serialise to JSON.
@@ -50,7 +60,8 @@ public class Metadata : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new MetadataConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Metadata>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -67,7 +78,8 @@ public class Metadata : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new MetadataConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Metadata>() }
     };
     var deserialized = JsonSerializer.Deserialize<Metadata>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

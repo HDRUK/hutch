@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -13,6 +14,12 @@ public class TestSuite : ContextEntity
     DefaultType = "TestSuite";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
+  }
+
+  public TestSuite()
+  {
+    DefaultType = "TestSuite";
+    Properties = _empty();
   }
 
   public string? EngineVersion
@@ -42,7 +49,8 @@ public class TestSuite : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestSuiteConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<TestSuite>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -59,7 +67,8 @@ public class TestSuite : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestSuiteConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<TestSuite>() }
     };
     var deserialized = JsonSerializer.Deserialize<TestSuite>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

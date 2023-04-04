@@ -30,6 +30,11 @@
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Update="Fixtures/test-entity.json" CopyToOutputDirectory="PreserveNewest"/>
     <None Update="Fixtures/entity-with-list.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Fixtures/test-file.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Fixtures/test-dataset.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Fixtures/test-person.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Fixtures/test-computer-language.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Fixtures/test-computational-workflow.json" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
 </Project>

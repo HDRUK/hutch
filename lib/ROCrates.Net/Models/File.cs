@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -17,6 +18,12 @@ public class File : FileOrDir
     DefaultType = "File";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
+  }
+
+  public File()
+  {
+    DefaultType = "File";
+    Properties = _empty();
   }
 
   /// <summary>
@@ -86,7 +93,8 @@ public class File : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new FileConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<File>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -103,7 +111,8 @@ public class File : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ContextEntityConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<File>() }
     };
     var deserialized = JsonSerializer.Deserialize<File>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

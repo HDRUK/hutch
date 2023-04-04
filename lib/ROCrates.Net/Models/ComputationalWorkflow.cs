@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -16,7 +17,13 @@ public class ComputationalWorkflow : File
     identifier, properties, source, destPath, fetchRemote, validateUrl)
   {
     Properties = _empty();
+    SetProperty("@type", Types);
     if (properties is not null) _unpackProperties(properties);
+  }
+
+  public ComputationalWorkflow()
+  {
+    Properties = _empty();
     SetProperty("@type", Types);
   }
 
@@ -44,7 +51,8 @@ public class ComputationalWorkflow : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ComputationalWorkflowConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<ComputationalWorkflow>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -61,7 +69,8 @@ public class ComputationalWorkflow : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ComputationalWorkflowConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<ComputationalWorkflow>() }
     };
     var deserialized = JsonSerializer.Deserialize<ComputationalWorkflow>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

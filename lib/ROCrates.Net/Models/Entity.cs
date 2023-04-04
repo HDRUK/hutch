@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -16,6 +17,12 @@ public class Entity
   public string Id { get; set; }
 
   public JsonObject Properties { get; set; }
+
+  public Entity()
+  {
+    Id = Guid.NewGuid().ToString();
+    Properties = _empty();
+  }
 
   public Entity(ROCrate? crate = null, string? identifier = null, JsonObject? properties = null)
   {
@@ -153,7 +160,8 @@ public class Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new EntityConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Entity>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -170,7 +178,8 @@ public class Entity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new EntityConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Entity>() }
     };
     var deserialized = JsonSerializer.Deserialize<Entity>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

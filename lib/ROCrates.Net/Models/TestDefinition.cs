@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -14,6 +15,12 @@ public class TestDefinition : File
     DefaultType = "TestDefinition";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
+  }
+
+  public TestDefinition()
+  {
+    DefaultType = "TestDefinition";
+    Properties = _empty();
   }
 
   public string? EngineVersion
@@ -50,7 +57,8 @@ public class TestDefinition : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestDefinitionConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<TestDefinition>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -67,7 +75,8 @@ public class TestDefinition : File
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestDefinitionConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<TestDefinition>() }
     };
     var deserialized = JsonSerializer.Deserialize<TestDefinition>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;
