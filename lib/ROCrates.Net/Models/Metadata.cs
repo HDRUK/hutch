@@ -35,7 +35,7 @@ public class Metadata : File
     Properties = _empty();
     SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
     SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
-    Id = BaseName;
+    Id = FileName;
   }
 
   private JsonObject _generate()
