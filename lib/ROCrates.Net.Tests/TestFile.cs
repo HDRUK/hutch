@@ -1,9 +1,12 @@
+using System.Text.Json.Nodes;
+
 namespace ROCrates.Tests;
 
 public class TestFile : IClassFixture<TestFileFixture>
 {
   private readonly TestFileFixture _testFileFixture;
   private readonly string _testBasePath;
+  private readonly string _testFileJsonFile = "Fixtures/test-file.json";
 
   public TestFile(TestFileFixture testFileFixture)
   {
@@ -60,6 +63,26 @@ public class TestFile : IClassFixture<TestFileFixture>
 
     // Assert
     Assert.True(File.Exists(Path.Combine(_testBasePath, fileName)));
+  }
+
+  [Fact]
+  public void TestFile_Serialises_Correctly()
+  {
+    // Arrange
+    var expectedJson = File.ReadAllText(_testFileJsonFile).TrimEnd();
+    var jsonObject = JsonNode.Parse(expectedJson).AsObject();
+
+    var fileEntity = new Models.File(new ROCrate(),
+      identifier: jsonObject["@id"].ToString(),
+      source: jsonObject["@id"].ToString(),
+      properties: jsonObject
+    );
+
+    // Act
+    var actualJson = fileEntity.Serialize();
+
+    // Assert
+    Assert.Equal(expectedJson, actualJson);
   }
 }
 

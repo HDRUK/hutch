@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -13,6 +14,12 @@ public class TestInstance : ContextEntity
     DefaultType = "TestInstance";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
+  }
+
+  public TestInstance()
+  {
+    DefaultType = "TestInstance";
+    Properties = _empty();
   }
 
   public string? Name
@@ -48,7 +55,8 @@ public class TestInstance : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestInstanceConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<TestInstance>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -65,7 +73,8 @@ public class TestInstance : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new TestInstanceConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<TestInstance>() }
     };
     var deserialized = JsonSerializer.Deserialize<TestInstance>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

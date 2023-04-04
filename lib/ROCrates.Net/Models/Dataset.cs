@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -14,6 +15,13 @@ public class Dataset : FileOrDir
     DefaultType = "Dataset";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
+    Id = _formatIdentifier(Id);
+  }
+
+  public Dataset()
+  {
+    DefaultType = "Dataset";
+    Properties = _empty();
     Id = _formatIdentifier(Id);
   }
 
@@ -112,7 +120,8 @@ public class Dataset : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new DatasetConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Dataset>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -129,7 +138,8 @@ public class Dataset : FileOrDir
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new DatasetConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Dataset>() }
     };
     var deserialized = JsonSerializer.Deserialize<Dataset>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -17,6 +18,12 @@ public class WorkflowDescription : ComputationalWorkflow
     SetProperty("@type", Types);
   }
 
+  public WorkflowDescription()
+  {
+    Types = new[] { "File", "SoftwareSourceCode", "HowTo" };
+    SetProperty("@type", Types);
+  }
+
   /// <summary>
   /// Convert <see cref="WorkflowDescription"/> to JSON string.
   /// </summary>
@@ -26,7 +33,8 @@ public class WorkflowDescription : ComputationalWorkflow
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new WorkflowDescriptionConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<WorkflowDescription>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -43,7 +51,8 @@ public class WorkflowDescription : ComputationalWorkflow
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new WorkflowDescriptionConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<WorkflowDescription>() }
     };
     var deserialized = JsonSerializer.Deserialize<WorkflowDescription>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;

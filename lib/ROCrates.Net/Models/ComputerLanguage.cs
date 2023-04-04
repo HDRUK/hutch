@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Converters;
@@ -12,6 +13,12 @@ public class ComputerLanguage : ContextEntity
     DefaultType = "ComputerLanguage";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
+  }
+
+  public ComputerLanguage()
+  {
+    DefaultType = "ComputerLanguage";
+    Properties = _empty();
   }
 
   public string? Name
@@ -53,7 +60,8 @@ public class ComputerLanguage : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ComputerLanguageConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<ComputerLanguage>() }
     };
     var serialised = JsonSerializer.Serialize(this, options);
     return serialised;
@@ -70,7 +78,8 @@ public class ComputerLanguage : ContextEntity
     var options = new JsonSerializerOptions
     {
       WriteIndented = true,
-      Converters = { new ComputerLanguageConverter() }
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<ComputerLanguage>() }
     };
     var deserialized = JsonSerializer.Deserialize<ComputerLanguage>(entityJson, options);
     if (deserialized is not null) deserialized.RoCrate = roCrate;
