@@ -38,14 +38,29 @@ public class TestFileOrDir
     // Act
     var dataEntityWithLocal = new FileOrDir(
       new ROCrate("my-test.zip"),
-      source: "./path/to/my-file.txt");
+      source: localName);
     var dataEntityWithRemote = new FileOrDir(
       new ROCrate("my-test.zip"),
-      source: "ftp:///path/to/my-file.txt",
+      source: remaoteName,
       fetchRemote: true);
 
     // Assert
     Assert.Equal("my-file.txt", dataEntityWithLocal.Id);
     Assert.Equal("my-file.txt", dataEntityWithRemote.Id);
+  }
+
+  [Fact]
+  public void Test_Identifier_Is_DirName()
+  {
+    // Arrange
+    var dirName = "./path/to/my-dir/";
+
+    // Act
+    var dataEntityWithDir = new FileOrDir(
+      new ROCrate("my-test.zip"),
+      source: dirName);
+
+    // Assert
+    Assert.Equal(dirName, dataEntityWithDir.Id);
   }
 }
