@@ -18,7 +18,7 @@ parser.add_argument(
     "--body",
     dest="body",
     required=True,
-    help="The JSON string containing the query",
+    help="The JSON file containing the query",
 )
 parser.add_argument(
     "-a",
