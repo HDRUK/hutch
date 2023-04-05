@@ -20,7 +20,7 @@ public class TestFile : IClassFixture<TestFileFixture>
     // Arrange
     var testDestPath = Path.Combine(_testBasePath, "ext", _testFileFixture.TestFileName);
     var fileEntity = new Models.File(
-      new ROCrate(_testFileFixture.TestFileName),
+      new ROCrate(),
       source: Path.Combine(_testBasePath, _testFileFixture.TestFileName),
       destPath: testDestPath);
 
@@ -36,7 +36,7 @@ public class TestFile : IClassFixture<TestFileFixture>
   {
     // Arrange
     var fileEntity = new Models.File(
-      new ROCrate(_testFileFixture.TestFileName),
+      new ROCrate(),
       source: Path.Combine(_testBasePath, _testFileFixture.TestFileName));
 
     // Act
@@ -53,7 +53,7 @@ public class TestFile : IClassFixture<TestFileFixture>
     var url = "https://hdruk.github.io/hutch/docs/devs";
     var fileName = url.Split('/').Last();
     var fileEntity = new Models.File(
-      new ROCrate(_testFileFixture.TestFileName),
+      new ROCrate(),
       source: url,
       validateUrl: true,
       fetchRemote: true);
