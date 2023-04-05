@@ -22,11 +22,11 @@ public class Metadata : File
     source, destPath, fetchRemote, validateUrl)
   {
     DefaultType = "CreativeWork";
+    Id = source ?? destPath ?? FileName;
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
     SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
     SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
-    Id = source ?? destPath ?? FileName;
   }
 
   public Metadata()
