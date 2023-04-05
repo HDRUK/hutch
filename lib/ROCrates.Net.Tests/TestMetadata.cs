@@ -17,22 +17,25 @@ public class TestMetadata
   public void TestMetadata_Writes_Correct_JsonString()
   {
     // Arrange
-    var fileJson =
-      "{\"@id\": \"cp7glop.ai\", \"@type\": \"File\", \"name\": \"Diagram showing trend to increase\", \"contentSize\": \"383766\", \"description\": \"Illustrator file for Glop Pot\", \"encodingFormat\": \"application/pdf\"}";
-    var fileProperties = JsonObject.Parse(fileJson).AsObject();
+    var fileJson = File.ReadAllText("Fixtures/test-file.json");
+    var fileProperties = JsonNode.Parse(fileJson).AsObject();
 
-    var datasetJson =
-      "{\"@id\": \"lots_of_little_files/\", \"@type\": \"Dataset\", \"name\": \"Too many files\", \"description\": \"This directory contains many small files, that we're not going to describe in detail.\"}";
-    var datasetProperties = JsonObject.Parse(datasetJson).AsObject();
+    var datasetJson = File.ReadAllText("Fixtures/test-dataset.json");
+    var datasetProperties = JsonNode.Parse(datasetJson).AsObject();
+
+    var rootJson = File.ReadAllText("Fixtures/test-root-dataset.json");
+    var rootProperties = JsonNode.Parse(rootJson).AsObject();
 
     var file = new Models.File(crate: _roCrate, identifier: fileProperties["@id"].ToString(),
       properties: fileProperties, source: fileProperties["@id"].ToString());
     var dataset = new Models.Dataset(crate: _roCrate, identifier: datasetProperties["@id"].ToString(),
       properties: datasetProperties, source: datasetProperties["@id"].ToString());
+    var root = new Models.RootDataset(crate: _roCrate, identifier: rootProperties["@id"].ToString(),
+      properties: rootProperties);
 
     var metadataBasePath = "./";
     var metadataFileName = Path.Combine(metadataBasePath, "ro-crate-metadata.json");
-    _roCrate.Add(file, dataset);
+    _roCrate.Add(root, file, dataset);
 
     // Act
     _roCrate.Metadata.Write(metadataBasePath);
