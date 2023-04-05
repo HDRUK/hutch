@@ -80,7 +80,8 @@ public class File : FileOrDir
     else
     {
       Directory.CreateDirectory(outFileParent);
-      System.IO.File.Copy(_source, outFilePath, overwrite: true);
+      if (System.IO.File.Exists(outFilePath)) return;
+      System.IO.File.Copy(_source, outFilePath);
     }
   }
 
