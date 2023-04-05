@@ -13,9 +13,7 @@
     },
     {
       "@id": "./",
-      "@type": [
-        "Dataset"
-      ],
+      "@type": "Dataset",
       "hasPart": [
         {
           "@id": "cp7glop.ai"
