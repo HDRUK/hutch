@@ -41,11 +41,13 @@ public class Metadata : File
   private JsonObject _generate()
   {
     // Iterate through the entities in the RO-Crate, extract their properties and serialise to JSON.
-    var crateJson = new JsonObject();
-    crateJson.Add("@context", "https://w3id.org/ro/crate/1.1/context");
-    var graphArray = new JsonArray();
+    var crateJson = new JsonObject { { "@context", "https://w3id.org/ro/crate/1.1/context" } };
+    var graphArray = new JsonArray
+    {
+      JsonNode.Parse(Serialize()),
+      JsonNode.Parse(RootDataset.Serialize())
+    };
 
-    graphArray.Add(JsonNode.Parse(Serialize()));
     foreach (var entity in RoCrate.Entities)
     {
       graphArray.Add(JsonNode.Parse(entity.Value.Serialize()));
