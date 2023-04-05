@@ -35,6 +35,7 @@
     <None Update="Fixtures/test-person.json" CopyToOutputDirectory="PreserveNewest"/>
     <None Update="Fixtures/test-computer-language.json" CopyToOutputDirectory="PreserveNewest"/>
     <None Update="Fixtures/test-computational-workflow.json" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Fixtures/test-root-dataset.json" CopyToOutputDirectory="PreserveNewest"/>
     <None Update="Fixtures/metadata-test.json" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
