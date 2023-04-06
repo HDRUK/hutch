@@ -32,8 +32,8 @@ public class TestFileOrDir
   public void Test_Identifier_Is_FileName_With_Extension()
   {
     // Arrange
-    var localName = "./path/to/my-file.txt";
-    var remaoteName = "ftp:///path/to/my-file.txt";
+    const string localName = "./path/to/my-file.txt";
+    const string remoteName = "ftp:///path/to/my-file.txt";
 
     // Act
     var dataEntityWithLocal = new FileOrDir(
@@ -41,7 +41,7 @@ public class TestFileOrDir
       source: localName);
     var dataEntityWithRemote = new FileOrDir(
       new ROCrate("my-test.zip"),
-      source: remaoteName,
+      source: remoteName,
       fetchRemote: true);
 
     // Assert
