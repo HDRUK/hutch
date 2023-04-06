@@ -18,7 +18,7 @@ parser.add_argument(
     "--body",
     dest="body",
     required=True,
-    help="The JSON string containing the query",
+    help="The JSON file containing the query",
 )
 parser.add_argument(
     "-a",
@@ -114,7 +114,8 @@ def main() -> None:
     )
 
     logger.info("Processing query...")
-    query_dict = json.loads(args.body)
+    with open(args.body) as body:
+        query_dict = json.load(body)
     result_modifers = get_results_modifiers_from_str(args.results_modifiers)
     if args.is_availability:
         query = AvailabilityQuery.from_dict(query_dict)
