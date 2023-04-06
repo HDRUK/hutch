@@ -57,7 +57,13 @@ public class Metadata : File
   {
     var outPath = Path.Combine(basePath, Id);
     var metadataJson = _generate();
-    System.IO.File.WriteAllText(outPath, metadataJson.ToString());
+    var serialised = JsonSerializer.Serialize(metadataJson,
+      new JsonSerializerOptions()
+      {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      });
+    System.IO.File.WriteAllText(outPath, serialised);
   }
 
   /// <summary>
