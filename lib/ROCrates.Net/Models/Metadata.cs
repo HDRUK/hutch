@@ -42,11 +42,7 @@ public class Metadata : File
   {
     // Iterate through the entities in the RO-Crate, extract their properties and serialise to JSON.
     var crateJson = new JsonObject { { "@context", "https://w3id.org/ro/crate/1.1/context" } };
-    var graphArray = new JsonArray
-    {
-      JsonNode.Parse(Serialize()),
-      JsonNode.Parse(RootDataset.Serialize())
-    };
+    var graphArray = new JsonArray { JsonNode.Parse(Serialize()) };
 
     foreach (var entity in RoCrate.Entities)
     {
