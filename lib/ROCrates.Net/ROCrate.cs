@@ -54,7 +54,7 @@ public class ROCrate
   /// <returns>The resolved URI for the given ID.</returns>
   public string ResolveId(string id)
   {
-    if (Uri.IsWellFormedUriString(id, UriKind.Absolute)) return id.TrimEnd('/');
+    if (Uri.IsWellFormedUriString(id, UriKind.RelativeOrAbsolute)) return id;
 
     var resolvedId = Path.Combine(_arcpBaseUri, id);
     return resolvedId.TrimEnd('/');
@@ -84,12 +84,12 @@ public class ROCrate
         RootDataset = entity as RootDataset;
       }
 
-      if (entityType == typeof(Metadata))
+      else if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
       }
 
-      if (entityType.IsSubclassOf(typeof(DataEntity)))
+      else if (entityType.IsSubclassOf(typeof(DataEntity)))
       {
         if (!Entities.ContainsKey(key)) RootDataset.AppendTo("hasPart", entity);
       }

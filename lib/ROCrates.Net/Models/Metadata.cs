@@ -10,7 +10,7 @@ namespace ROCrates.Models;
 /// </summary>
 public class Metadata : File
 {
-  protected const string BaseName = "ro-crate-metadata.json";
+  protected const string FileName = "ro-crate-metadata.json";
   protected const string Profile = "https://w3id.org/ro/crate/1.1";
 
   public RootDataset? RootDataset => RoCrate.RootDataset;
@@ -22,11 +22,11 @@ public class Metadata : File
     source, destPath, fetchRemote, validateUrl)
   {
     DefaultType = "CreativeWork";
+    Id = source ?? destPath ?? FileName;
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
     SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
     SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
-    Id = source ?? destPath ?? BaseName;
   }
 
   public Metadata()
@@ -35,20 +35,35 @@ public class Metadata : File
     Properties = _empty();
     SetProperty("conformsTo", new Dictionary<string, string> { { "@id", Profile } });
     SetProperty("about", new Dictionary<string, string> { { "@id", "./" } });
-    Id = BaseName;
+    Id = FileName;
   }
 
   private JsonObject _generate()
   {
     // Iterate through the entities in the RO-Crate, extract their properties and serialise to JSON.
-    throw new NotImplementedException();
+    var crateJson = new JsonObject { { "@context", "https://w3id.org/ro/crate/1.1/context" } };
+    var graphArray = new JsonArray { JsonNode.Parse(Serialize()) };
+
+    foreach (var entity in RoCrate.Entities)
+    {
+      graphArray.Add(JsonNode.Parse(entity.Value.Serialize()));
+    }
+
+    crateJson.Add("@graph", graphArray);
+    return crateJson;
   }
 
   public override void Write(string basePath)
   {
     var outPath = Path.Combine(basePath, Id);
     var metadataJson = _generate();
-    System.IO.File.WriteAllText(outPath, metadataJson.ToString());
+    var serialised = JsonSerializer.Serialize(metadataJson,
+      new JsonSerializerOptions()
+      {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      });
+    System.IO.File.WriteAllText(outPath, serialised);
   }
 
   /// <summary>

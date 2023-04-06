@@ -110,10 +110,21 @@ public class Entity
     if (Properties.TryGetPropertyValue(key, out var propsJson))
     {
       var currentItems = propsJson.Deserialize<List<Part>>() ?? new List<Part>();
-      if (currentItems.Count > 0) itemList.InsertRange(0, currentItems);
+      if (currentItems.Count > 0 && !_containsPart(currentItems, newItem))
+        itemList.InsertRange(0, currentItems);
     }
 
     SetProperty(key, itemList);
+  }
+
+  private bool _containsPart(List<Part> parts, Part partToCheck)
+  {
+    foreach (var part in parts)
+    {
+      if (partToCheck.Id == part.Id) return true;
+    }
+
+    return false;
   }
 
   /// <summary>
