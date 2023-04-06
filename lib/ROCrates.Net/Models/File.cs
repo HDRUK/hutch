@@ -27,29 +27,26 @@ public class File : FileOrDir
   }
 
   /// <summary>
-  ///   <para>Write file contents to the specified path. e.g. The root path of an RO-Crate.</para>
-  ///   <para>
-  ///     If the file is a remote file, and <c>fetchUrl</c> is set to <c>true</c>, the file will be downloaded under
-  ///     "<c>basePath</c>".
-  ///   </para>
-  ///   <para>
-  ///     If the file is on disk, it will be copied to a new location under "<c>basePath</c>".
-  ///   </para>
-  ///   <para>
-  ///     In either case, the file will be saved to "<c>basePath/Id</c>"
-  ///   </para>
+  /// <para>Write file contents to the specified path. e.g. The root path of an RO-Crate.</para>
+  /// <para>
+  /// If the file is a remote file, and <c>fetchUrl</c> is set to <c>true</c>, the file will be downloaded under
+  /// "<c>basePath</c>".
+  /// </para>
+  /// <para>
+  /// If the file is on disk, it will be copied to a new location under "<c>basePath</c>".
+  /// </para>
+  /// <para>In either case, the file will be saved to "<c>basePath/Id</c>"</para>
   /// </summary>
   /// <example>
   /// <code>
   /// var url = "https://hdruk.github.io/hutch/docs/devs";
   /// var fileName = url.Split('/').Last();
   /// var fileEntity = new Models.File(
-  ///    new ROCrate("myCrate.zip"),
+  ///    new ROCrate(),
   ///    source: url,
   ///    validateUrl: true,
   ///    fetchRemote: true);
   /// fileEntity.Write("myCrate");
-  /// Assert.True(File.Exists(Path.Combine("myCrate", fileName)));
   /// </code>
   /// </example>
   /// <param name="basePath">The path the file will be written to.</param>
@@ -80,7 +77,8 @@ public class File : FileOrDir
     else
     {
       Directory.CreateDirectory(outFileParent);
-      System.IO.File.Copy(_source, outFilePath, overwrite: true);
+      if (System.IO.File.Exists(outFilePath)) return;
+      System.IO.File.Copy(_source, outFilePath);
     }
   }
 
