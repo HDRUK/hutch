@@ -84,12 +84,12 @@ public class ROCrate
         RootDataset = entity as RootDataset;
       }
 
-      if (entityType == typeof(Metadata))
+      else if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
       }
 
-      if (entityType.IsSubclassOf(typeof(DataEntity)))
+      else if (entityType.IsSubclassOf(typeof(DataEntity)))
       {
         if (!Entities.ContainsKey(key)) RootDataset.AppendTo("hasPart", entity);
       }
