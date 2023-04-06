@@ -33,11 +33,11 @@ public class FileOrDir : DataEntity
     }
     else if (Uri.IsWellFormedUriString(_source, UriKind.RelativeOrAbsolute) && _fetchRemote)
     {
-      Id = Path.GetFileNameWithoutExtension(_source);
+      Id = Path.GetFileName(_source);
     }
     else if (Path.GetFileName(_source) != String.Empty)
     {
-      Id = Path.GetFileNameWithoutExtension(_source);
+      Id = Path.GetFileName(_source);
     }
     else
     {
