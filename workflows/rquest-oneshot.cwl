@@ -18,7 +18,7 @@ requirements:
 baseCommand: [rquest-omop-worker]
 inputs:
     body:
-        type: string
+        type: File
         inputBinding:
             position: 1
             prefix: --body
