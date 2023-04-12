@@ -5,7 +5,7 @@ label: hutch-workflow
 
 inputs:
     body:
-        type: string
+        type: File
     result_modifiers:
         type: string?
     is_availability:

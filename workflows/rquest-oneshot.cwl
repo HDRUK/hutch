@@ -15,10 +15,10 @@ requirements:
             DATASOURCE_DB_USERNAME: $(inputs.db_user)
             DATASOURCE_DB_PASSWORD: $(inputs.db_password)
 
-baseCommand: [rquest-omop-agent]
+baseCommand: [rquest-omop-worker]
 inputs:
     body:
-        type: string
+        type: File
         inputBinding:
             position: 1
             prefix: --body
