@@ -5,7 +5,7 @@ namespace ROCrates.Models;
 
 public class Preview : File
 {
-  protected const string FileName = "ro-crate-metadata.json";
+  protected const string FileName = "ro-crate-preview.json";
 
   public Preview()
   {
