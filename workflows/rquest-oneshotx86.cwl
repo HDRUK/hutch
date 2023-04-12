@@ -17,7 +17,7 @@ requirements:
 baseCommand: [rquest-omop-agent]
 inputs:
     body:
-        type: string
+        type: File
         inputBinding:
             position: 1
             prefix: --body
