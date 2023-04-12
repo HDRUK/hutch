@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{{ crate.name or "New RO Crate" }}</title>
+  <title>{{ crate.name ?? "New RO Crate" }}</title>
   <meta name="keywords" content="RO Crate">
   <style type="text/css">
     html {
@@ -112,85 +112,85 @@
       c-0.5,2.9-2.8,4.9-5.1,6.5c-6.1,4.3-13.5,6.3-20.6,8.1c-14.4,3.5-29.4,2.5-44.1,2.6c-13.3-1.2-27.2-3.3-38.6-10.8
       c-3.3-2.6-6.9-6.2-6.4-10.7c0.2-6.9,2.4-13.9,7.3-18.8C253.8,242.4,264.2,238.6,274.5,236.6z"/>
   </svg>
-  <h1>{{ crate.name or "New RO Crate" }}</h1>
+  <h1>{{ crate.name ?? "New RO Crate" }}</h1>
   <p>
-    {% if crate.description %}
+    {{ if crate.description }}
     {{ crate.description }}
-    {%endif %}
+    {{ end }}
   </p>
 
-  {% if crate.image %}
+  {{ if crate.image }}
   <img src="{{ crate.image }}" class="wf_image"/>
-  {%endif %}
+  {{ end }}
 
   <dl>
-    {% if crate.creator %}
-    {% if is_object_list(crate.creator) %}
+    {{ if crate.creator }}
+    {{ if is_object_list(crate.creator) }}
     <dt>Creators</dt>
-    {% for obj in crate.creator %}
+    {{ for obj in crate.creator }}
     <dd>{{ stringify(obj) }}</dd>
-    {% endfor %}
-    {% else %}
+    {{ end }}
+    {{ else }}
     <dt>Creator</dt>
     <dd>{{ stringify(crate.creator) }}</dd>
-    {%endif %}
-    {%endif %}
+    {{ end }}
+    {{ end }}
 
-    {% if crate.publisher %}
-    {% if is_object_list(crate.publisher) %}
+    {{ if crate.publisher }}
+    {{ if is_object_list(crate.publisher) }}
     <dt>Publishers</dt>
-    {% for obj in crate.publisher %}
+    {{ for obj in crate.publisher }}
     <dd>{{ stringify(obj) }}</dd>
-    {% endfor %}
-    {% else %}
+    {{ end }}
+    {{ else }}
     <dt>Publisher</dt>
     <dd>{{ stringify(crate.publisher) }}</dd>
-    {%endif %}
-    {%endif %}
+    {{ end }}
+    {{ end }}
 
-    {% if crate.url %}
+    {{ if crate.url }}
     <dt>URL</dt>
     <dd><a href="{{ crate.url }}" target="{{ crate.url }}"></a></dd>
-    {%endif %}
+    {{ end }}
 
-    {% if crate.license %}
+    {{ if crate.license }}
     <dt>License</dt>
     <dd>{{ crate.license }}</dd>
-    {%endif %}
+    {{ end }}
 
-    {% if crate.keywords %}
+    {{ if crate.keywords }}
     <dt>Keyword(s)</dt>
     <dd>{{ stringify(crate.keywords) }}</dd>
-    {%endif %}
+    {{ end }}
 
-    {% if crate.isBasedOn %}
+    {{ if crate.isBasedOn }}
     <dt>isBasedOn</dt>
     <dd>{{ crate.isBasedOn }}</dd>
-    {%endif %}
+    {{ end }}
 
-    {% if crate.datePublished %}
+    {{ if crate.datePublished }}
     <dt>datePublished</dt>
     <dd>{{ crate.datePublished }}</dd>
-    {%endif %}
+    {{ end }}
 
-    {% if crate.CreativeWorkStatus %}
+    {{ if crate.CreativeWorkStatus }}
     <dt>CreativeWorkStatus</dt>
     <dd>{{ crate.CreativeWorkStatus }}</dd>
-    {%endif %}
+    {{ end }}
   </dl>
 
   <h2>Contents</h2>
   <div id="contents">
-    {% for entry in data %}
+    {{ for entry in data }}
     <div class="data-entity" id="">
       <strong>Data entity</strong>
       <a class="data-entity-link" href="{{ entry['@id'] }}">{{ entry['@id'] }}</a>
       <p>Type: {{ stringify(entry['@type']) }}</p>
-      {% if entry['programmingLanguage'] %}
+      {{ if entry['programmingLanguage'] }}
       <p>ProgrammingLanguage: {{ entry['programmingLanguage']['@id'] }}</p>
-      {% endif %}
+      {{ end }}
     </div>
-    {% endfor %}
+    {{ end }}
   </div>
 </div>
 </body>
