@@ -11,6 +11,7 @@ public class Preview : File
   public Preview()
   {
     DefaultType = "CreativeWork";
+    Id = FileName;
     Properties = _empty();
   }
 
@@ -19,6 +20,7 @@ public class Preview : File
     source, destPath, fetchRemote, validateUrl)
   {
     DefaultType = "CreativeWork";
+    Id = source ?? destPath ?? FileName;
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
   }
