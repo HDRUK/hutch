@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{{ crate.name ?? "New RO Crate" }}</title>
+  <title>{{ root_dataset.name ?? "New RO Crate" }}</title>
   <meta name="keywords" content="RO Crate">
   <style type="text/css">
     html {
@@ -112,70 +112,70 @@
       c-0.5,2.9-2.8,4.9-5.1,6.5c-6.1,4.3-13.5,6.3-20.6,8.1c-14.4,3.5-29.4,2.5-44.1,2.6c-13.3-1.2-27.2-3.3-38.6-10.8
       c-3.3-2.6-6.9-6.2-6.4-10.7c0.2-6.9,2.4-13.9,7.3-18.8C253.8,242.4,264.2,238.6,274.5,236.6z"/>
   </svg>
-  <h1>{{ crate.name ?? "New RO Crate" }}</h1>
+  <h1>{{ root_dataset.name ?? "New RO Crate" }}</h1>
   <p>
-    {{ if crate.description }}
-    {{ crate.description }}
+    {{ if root_dataset.description }}
+    {{ root_dataset.description }}
     {{ end }}
   </p>
 
-  {{ if crate.image }}
-  <img src="{{ crate.image }}" class="wf_image"/>
+  {{ if root_dataset.image }}
+  <img src="{{ root_dataset.image }}" class="wf_image"/>
   {{ end }}
 
   <dl>
-    {{ if crate.creator }}
-    {{ if is_object_list(crate.creator) }}
+    {{ if root_dataset.creator }}
+    {{ if is_object_list(root_dataset.creator) }}
     <dt>Creators</dt>
-    {{ for obj in crate.creator }}
+    {{ for obj in root_dataset.creator }}
     <dd>{{ stringify(obj) }}</dd>
     {{ end }}
     {{ else }}
     <dt>Creator</dt>
-    <dd>{{ stringify(crate.creator) }}</dd>
+    <dd>{{ stringify(root_dataset.creator) }}</dd>
     {{ end }}
     {{ end }}
 
-    {{ if crate.publisher }}
-    {{ if is_object_list(crate.publisher) }}
+    {{ if root_dataset.publisher }}
+    {{ if is_object_list(root_dataset.publisher) }}
     <dt>Publishers</dt>
-    {{ for obj in crate.publisher }}
+    {{ for obj in root_dataset.publisher }}
     <dd>{{ stringify(obj) }}</dd>
     {{ end }}
     {{ else }}
     <dt>Publisher</dt>
-    <dd>{{ stringify(crate.publisher) }}</dd>
+    <dd>{{ stringify(root_dataset.publisher) }}</dd>
     {{ end }}
     {{ end }}
 
-    {{ if crate.url }}
+    {{ if root_dataset.url }}
     <dt>URL</dt>
-    <dd><a href="{{ crate.url }}" target="{{ crate.url }}"></a></dd>
+    <dd><a href="{{ root_dataset.url }}" target="{{ root_dataset.url }}"></a></dd>
     {{ end }}
 
-    {{ if crate.license }}
+    {{ if root_dataset.license }}
     <dt>License</dt>
-    <dd>{{ crate.license }}</dd>
+    <dd>{{ root_dataset.license }}</dd>
     {{ end }}
 
-    {{ if crate.keywords }}
+    {{ if root_dataset.keywords }}
     <dt>Keyword(s)</dt>
-    <dd>{{ stringify(crate.keywords) }}</dd>
+    <dd>{{ stringify(root_dataset.keywords) }}</dd>
     {{ end }}
 
-    {{ if crate.isBasedOn }}
+    {{ if root_dataset.isBasedOn }}
     <dt>isBasedOn</dt>
-    <dd>{{ crate.isBasedOn }}</dd>
+    <dd>{{ root_dataset.isBasedOn }}</dd>
     {{ end }}
 
-    {{ if crate.datePublished }}
+    {{ if root_dataset.datePublished }}
     <dt>datePublished</dt>
-    <dd>{{ crate.datePublished }}</dd>
+    <dd>{{ root_dataset.datePublished }}</dd>
     {{ end }}
 
-    {{ if crate.CreativeWorkStatus }}
+    {{ if root_dataset.CreativeWorkStatus }}
     <dt>CreativeWorkStatus</dt>
-    <dd>{{ crate.CreativeWorkStatus }}</dd>
+    <dd>{{ root_dataset.CreativeWorkStatus }}</dd>
     {{ end }}
   </dl>
 
