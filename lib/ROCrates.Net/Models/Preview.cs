@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Scriban;
 
 namespace ROCrates.Models;
 
@@ -20,6 +21,19 @@ public class Preview : File
     DefaultType = "CreativeWork";
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
+  }
+
+  /// <summary>
+  /// Write the HTML preview of the RO-Crate.
+  /// </summary>
+  /// <param name="basePath">The directory where the preview file will be written.</param>
+  public override void Write(string basePath)
+  {
+    var templateString = System.IO.File.ReadAllText("Templates/ro-crates-preview.html");
+    var template = Template.Parse(templateString);
+    var result = template.Render(new { Crate = RoCrate });
+
+    System.IO.File.WriteAllText(Path.Combine(basePath, FileName), result);
   }
 
   protected new JsonObject _empty()
