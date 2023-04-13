@@ -31,7 +31,9 @@ public class Preview : File
   {
     var templateString = System.IO.File.ReadAllText("Templates/ro-crates-preview.html");
     var template = Template.Parse(templateString);
-    var result = template.Render(new { Crate = RoCrate });
+
+    var data = from entity in RoCrate.Entities.Values select entity.Properties;
+    var result = template.Render(new { data = data, root_dataset = RoCrate?.RootDataset });
 
     System.IO.File.WriteAllText(Path.Combine(basePath, FileName), result);
   }
