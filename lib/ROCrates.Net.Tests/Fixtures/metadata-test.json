@@ -12,6 +12,13 @@
       }
     },
     {
+      "@id": "ro-crate-preview.html",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      }
+    },
+    {
       "@id": "./",
       "@type": "Dataset",
       "datePublished": "04/04/2023 14:08:13",
