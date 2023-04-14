@@ -11,4 +11,8 @@
     <PackageReference Include="Scriban" Version="5.7.0"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Templates/*.html" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
 </Project>
