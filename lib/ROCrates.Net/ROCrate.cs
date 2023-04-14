@@ -13,8 +13,6 @@ public class ROCrate
   private static string _uuid = Guid.NewGuid().ToString();
   private string _arcpBaseUri = $"arcp://uuid,{_uuid}/";
 
-  /// TODO: add the following fields:
-  ///   - preview (based on Preview class not yet made)
   private string _source = string.Empty;
 
   private List<string> _exclude = new();
@@ -22,8 +20,8 @@ public class ROCrate
   private bool _init;
 
   public RootDataset RootDataset;
-
   public Metadata Metadata;
+  public Preview Preview;
 
   public Dictionary<string, Entity> Entities = new();
   private Entity? _mainEntity = null;
@@ -35,6 +33,7 @@ public class ROCrate
   {
     RootDataset = new RootDataset(this);
     Metadata = new Metadata(this);
+    Preview = new Preview(this);
   }
 
   public ROCrate(string source, bool generatePreview = false, bool init = false, List<string>? exclude = null)
@@ -45,6 +44,7 @@ public class ROCrate
     if (exclude is not null) _exclude = exclude;
     RootDataset = new RootDataset(this);
     Metadata = new Metadata(this);
+    Preview = new Preview(this);
   }
 
   /// <summary>
@@ -87,6 +87,11 @@ public class ROCrate
       else if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
+      }
+
+      else if (entityType == typeof(Preview))
+      {
+        Preview = entity as Preview;
       }
 
       else if (entityType.IsSubclassOf(typeof(DataEntity)))
