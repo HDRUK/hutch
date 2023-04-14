@@ -1,6 +1,8 @@
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Converters;
 using Scriban;
 
 namespace ROCrates.Models;
@@ -42,6 +44,41 @@ public class Preview : File
     var result = template.Render(new { data = data, root_dataset = RoCrate?.RootDataset });
 
     System.IO.File.WriteAllText(Path.Combine(basePath, FileName), result);
+  }
+
+  /// <summary>
+  /// Convert <see cref="Preview"/> to JSON string.
+  /// </summary>
+  /// <returns>The <see cref="Preview"/> as a JSON string.</returns>
+  public override string Serialize()
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Preview>() }
+    };
+    var serialised = JsonSerializer.Serialize(this, options);
+    return serialised;
+  }
+
+  /// <summary>
+  /// Create a <see cref="Preview"/> from JSON properties.
+  /// </summary>
+  /// <param name="entityJson">The JSON representing the <see cref="Preview"/></param>
+  /// <param name="roCrate">The RO-Crate for the <see cref="Preview"/></param>
+  /// <returns>The deserialised <see cref="Preview"/></returns>
+  public new static Preview? Deserialize(string entityJson, ROCrate roCrate)
+  {
+    var options = new JsonSerializerOptions
+    {
+      WriteIndented = true,
+      Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+      Converters = { new EntityConverter<Preview>() }
+    };
+    var deserialized = JsonSerializer.Deserialize<Preview>(entityJson, options);
+    if (deserialized is not null) deserialized.RoCrate = roCrate;
+    return deserialized;
   }
 
   protected new JsonObject _empty()
