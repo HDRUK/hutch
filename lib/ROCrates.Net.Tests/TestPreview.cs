@@ -3,9 +3,15 @@ using ROCrates.Models;
 
 namespace ROCrates.Tests;
 
-public class TestPreview
+public class TestPreview : IClassFixture<TestPreviewFixture>
 {
   private ROCrate _roCrate = new();
+  private readonly TestPreviewFixture _testPreviewFixture;
+
+  public TestPreview(TestPreviewFixture testPreviewFixture)
+  {
+    _testPreviewFixture = testPreviewFixture;
+  }
 
   [Fact]
   public void TestWrite_Creates_PreviewFile()
@@ -19,14 +25,23 @@ public class TestPreview
     var previewProperties = JsonNode.Parse(previewJson).AsObject();
     var preview = new Preview(_roCrate, properties: previewProperties);
 
-    var previewBasePath = "./";
-    var previewFileName = Path.Combine(previewBasePath, "ro-crate-preview.html");
+
     _roCrate.Add(rootDataset, preview);
 
     // Act
-    preview.Write(previewBasePath);
+    preview.Write(Path.GetDirectoryName(_testPreviewFixture.OutputPath));
 
     // Assert
-    Assert.True(System.IO.File.Exists(previewFileName));
+    Assert.True(System.IO.File.Exists(_testPreviewFixture.OutputPath));
+  }
+}
+
+public class TestPreviewFixture : IDisposable
+{
+  public readonly string OutputPath = Path.Combine("./", "ro-crate-preview.html");
+
+  public void Dispose()
+  {
+    if (System.IO.File.Exists(OutputPath)) System.IO.File.Delete(OutputPath);
   }
 }
