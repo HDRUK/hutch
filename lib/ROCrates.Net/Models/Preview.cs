@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Scriban;
@@ -31,7 +32,10 @@ public class Preview : File
   /// <param name="basePath">The directory where the preview file will be written.</param>
   public override void Write(string basePath)
   {
-    var templateString = System.IO.File.ReadAllText("Templates/ro-crates-preview.html");
+    var templatePath = Path.Combine(
+      Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+      "Templates/ro-crates-preview.html");
+    var templateString = System.IO.File.ReadAllText(templatePath);
     var template = Template.Parse(templateString);
 
     var data = from entity in RoCrate.Entities.Values select entity.Properties;
