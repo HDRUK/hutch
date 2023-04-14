@@ -24,8 +24,9 @@ public class TestPreview
     _roCrate.Add(rootDataset, preview);
 
     // Act
-    preview.Write(previewJson);
+    preview.Write(previewBasePath);
 
     // Assert
+    Assert.True(System.IO.File.Exists(previewFileName));
   }
 }
