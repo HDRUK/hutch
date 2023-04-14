@@ -86,10 +86,10 @@ public class Preview : File
     var emptyJsonString = new Dictionary<string, string>
     {
       { "@id", FileName },
-      { "@type", DefaultType },
-      { "about", "./" }
+      { "@type", DefaultType }
     };
     var emptyObject = JsonSerializer.SerializeToNode(emptyJsonString).AsObject();
+    emptyObject.Add("about", JsonSerializer.SerializeToNode(new Part { Id = "./" }));
     return emptyObject;
   }
 }
