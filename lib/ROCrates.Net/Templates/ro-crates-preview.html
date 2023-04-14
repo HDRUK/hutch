@@ -137,14 +137,9 @@
     {{ end }}
 
     {{ if root_dataset.publisher }}
-    {{ if is_object_list(root_dataset.publisher) }}
     <dt>Publishers</dt>
     {{ for obj in root_dataset.publisher }}
-    <dd>{{ stringify(obj) }}</dd>
-    {{ end }}
-    {{ else }}
-    <dt>Publisher</dt>
-    <dd>{{ stringify(root_dataset.publisher) }}</dd>
+    <dd>{{ obj['@id'] }}</dd>
     {{ end }}
     {{ end }}
 
@@ -185,7 +180,7 @@
     <div class="data-entity" id="">
       <strong>Data entity</strong>
       <a class="data-entity-link" href="{{ entry['@id'] }}">{{ entry['@id'] }}</a>
-      <p>Type: {{ stringify(entry['@type']) }}</p>
+      <p>Type: {{ entry['@type'] }}</p>
       {{ if entry['programmingLanguage'] }}
       <p>ProgrammingLanguage: {{ entry['programmingLanguage']['@id'] }}</p>
       {{ end }}
