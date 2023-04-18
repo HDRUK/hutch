@@ -1,14 +1,13 @@
 ---
-- hosts: tre_server
+- name: Set up TRE
+  hosts: tre_server
   tasks:
-  - name: Clone HUTCH
-    ansible.builtin.git:
-      repo: https://github.com/HDRUK/hutch
-      dest: $HOME/hutch
+    - name: Clone HUTCH
+      ansible.builtin.git:
+        repo: https://github.com/HDRUK/hutch
+        dest: $HOME/hutch
 
-  - name: Clone WfExS
-    ansible.builtin.git:
-      repo: https://github.com/inab/WfExS-backend
-      dest: $HOME/WfExS-backend
-
-  - name: Install WfExS
+    - name: Clone WfExS
+      ansible.builtin.git:
+        repo: https://github.com/inab/WfExS-backend
+        dest: $HOME/WfExS-backend
