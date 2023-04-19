@@ -7,7 +7,4 @@
         repo: https://github.com/HDRUK/hutch
         dest: $HOME/hutch
 
-    - name: Clone WfExS
-      ansible.builtin.git:
-        repo: https://github.com/inab/WfExS-backend
-        dest: $HOME/WfExS-backend
+- ansible.builtin.import_playbook: playbooks/wfexs.yml
