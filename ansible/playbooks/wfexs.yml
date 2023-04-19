@@ -1,0 +1,19 @@
+---
+- name: Install WfExS
+  hosts: tre_server
+  tasks:
+    - name: Clone WfExS
+      ansible.builtin.git:
+        repo: https://github.com/inab/WfExS-backend
+        dest: $HOME/WfExS-backend
+
+    - name: WfExS enviroment
+      ansible.builtin.command:
+        cmd: python3 -m venv .pyWEenv
+        chdir: $HOME/WfExS-backend
+        creates: $HOME/WfExS-backend/.pyWEenv
+
+    - name: Install WfExS basic requirements
+      ansible.builtin.command:
+        cmd: ./full-installer.bash
+        chdir: $HOME/WfExS-backend
