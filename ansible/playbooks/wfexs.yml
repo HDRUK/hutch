@@ -4,10 +4,11 @@
   tasks:
     - name: Clone WfExS
       ansible.builtin.git:
-        repo: https://github.com/inab/WfExS-backend
+        repo: https://github.com/dcl10/WfExS-backend.git
         dest: $HOME/WfExS-backend
+        version: singularity-fix
 
-    - name: WfExS enviroment
+    - name: WfExS virtual enviroment
       ansible.builtin.command:
         cmd: python3 -m venv .pyWEenv
         chdir: $HOME/WfExS-backend
