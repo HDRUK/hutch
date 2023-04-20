@@ -47,6 +47,7 @@ params: # parameters needed to run the workflow
   db_user:
   db_password:
 ```
+**Note:** If `workflow_id` is set to an absolute path, WfExS expects it to be a path to an RO-Crate.
 
 ### WfExS config file
 An example of a local configuration files can be found [here](https://github.com/inab/WfExS-backend/tree/main/workflow_examples). More specificaly `local_config.yaml` is used to stage the rquest-omop-worker workflow also found [here](config.md#local-wfexs-configuration).
