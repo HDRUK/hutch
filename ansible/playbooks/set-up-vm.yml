@@ -3,6 +3,7 @@
   hosts: tre_server
   tasks:
     - name: Install pip, venv and build-essential
+      become: true
       ansible.builtin.apt:
         name:
           - python3-pip
