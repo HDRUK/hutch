@@ -18,3 +18,8 @@
       ansible.builtin.command:
         cmd: ./full-installer.bash
         chdir: $HOME/WfExS-backend
+
+    - name: Install singularity for WfExS
+      ansible.builtin.command:
+        cmd: ./singularity-local-installer.bash
+        chdir: $HOME/WfExS-backend
