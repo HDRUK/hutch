@@ -1,6 +1,17 @@
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+using HutchAgent.Models;
+using HutchAgent.Services;
 
-app.MapGet("/", () => "Hello World!");
+var b = WebApplication.CreateBuilder(args);
+
+b.Services
+  .AddControllersWithViews();
+b.Services
+  .Configure<WorkflowTriggerOptions>(b.Configuration.GetSection("JobQueue"))
+  .AddScoped<WorkflowTriggerService>();
+
+var app = b.Build();
+
+app.UseRouting();
+app.MapControllers();
 
 app.Run();
