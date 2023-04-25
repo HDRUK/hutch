@@ -1,21 +1,6 @@
-﻿using HutchAgent.Models;
-using HutchAgent.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
 
-namespace HutchAgent;
+app.MapGet("/", () => "Hello World!");
 
-public class Program
-{
-  public static void Main(string[] args)
-  {
-    IHost host = Host.CreateDefaultBuilder(args)
-      .ConfigureServices((hostContext, services) =>
-      {
-        services.AddHostedService<WorkflowTriggerService>();
-        services.AddOptions<WorkflowTriggerOptions>().Bind(hostContext.Configuration.GetSection("Wfexs"));
-      })
-      .Build();
-    host.Run();
-  }
-}
+app.Run();
