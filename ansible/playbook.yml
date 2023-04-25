@@ -1,0 +1,11 @@
+---
+- name: Set up TRE
+  hosts: tre_server
+  tasks:
+    - name: Clone HUTCH
+      ansible.builtin.git:
+        repo: https://github.com/HDRUK/hutch
+        dest: $HOME/hutch
+
+- ansible.builtin.import_playbook: playbooks/set-up-vm.yml
+- ansible.builtin.import_playbook: playbooks/wfexs.yml

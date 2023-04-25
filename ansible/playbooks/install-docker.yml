@@ -1,0 +1,30 @@
+---
+- name: Install Docker
+  hosts: tre_server
+  tasks:
+    - name: Install Docker pre-requisites
+      become: true
+      ansible.builtin.apt:
+        pkg:
+          - ca-certificates
+          - curl
+          - gnupg
+        update_cache: true
+
+    - name: Ensure repository key is installed
+      become: true
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Install docker-ce
+      become: true
+      ansible.builtin.apt:
+        name: docker-ce
+        update_cache: true
