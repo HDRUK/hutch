@@ -42,3 +42,9 @@ nexus:
     - "8082:8082" # port for the docker registry
     - "8083:8083" # port for the git system
 ```
+
+## Getting the admin password
+The admin password can be obtained by running the following command in the terminal.
+```shell
+docker exec nexus cat /nexus-data/admin.password 
+```
