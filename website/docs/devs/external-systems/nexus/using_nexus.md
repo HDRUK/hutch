@@ -11,6 +11,10 @@ docker pull sonatype/nexus3
 ```
 Information about the image as will as other versions are available [here](https://hub.docker.com/r/sonatype/nexus3/).
 
+:::warning
+Nexus only has `amd64`-based images, so performance may vary depending on your machine's processor.
+:::
+
 ## Running Nexus
 When running Nexus in Docker, you expose a port and map it to port `8081` inside the container. This will let you view the web console at `localhost:8081` in the browser.
 ```shell
