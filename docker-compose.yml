@@ -21,3 +21,11 @@ services:
     ports:
       - 5672:5672 # port for the queue
       - 15672:15672 # port for the in-browser manager
+
+  nexus:
+    image: sonatype/nexus3:3.52.0
+    restart: always
+    ports:
+      - "8081:8081" # web portal port
+      - "8082:8082" # port for the docker registry
+      - "8083:8083" # port for the git system
