@@ -28,3 +28,9 @@
       ansible.builtin.apt:
         name: docker-ce
         update_cache: true
+
+    - name: Install docker-compose
+      become: true
+      ansible.builtin.apt:
+        name: docker-compose
+        update_cache: true
