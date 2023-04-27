@@ -32,7 +32,7 @@ You will also need to expose additional ports for your repository services as we
 docker run -p "8081:8081" -p "8082:8082" -p "8083:8083" sonatype/nexus3
 ```
 
-If you use `docker-compose`, a sample Nexus service might look like this:
+If you use `docker-compose`, a Nexus service might look like this:
 ```yaml
 nexus:
   image: sonatype/nexus3
@@ -47,4 +47,62 @@ nexus:
 The admin password can be obtained by running the following command in the terminal.
 ```shell
 docker exec nexus cat /nexus-data/admin.password 
+```
+
+
+## Making a hosted Docker registry
+Navigate to the web portal in the web browaser (`localhost:8081`, or the port you mapped the portal to on the host) and sign in.
+
+:::note
+The first time you attempt to login, it will give you the username and tell you to find the admin password (see above). Once logged in you will be promtped to provide a new password for the admin user.
+:::
+
+Go to the server administration tab and select "Repositories" under "Repository".
+
+---
+
+![](/images/find-repos.png)
+
+Click "Create repository" and the select "Docker (hosted)" from the list.
+
+---
+
+![](/images/create-repo.png)
+
+![](/images/repo-kind.png)
+
+Give the repository a name and allocate one of the additional ports you specified when running the container. You can either do HTTP (not recommended for production), and/or HTTPS. You will need a separate port for each.
+
+---
+
+![](/images/setup-repo.png)
+
+## Pushing and pulling the Docker registry
+### Pushing
+
+First, login to the resgistry.
+```shell
+docker login localhost:8081
+```
+Give the user name and password for account on Nexus, such as the admin account, when asked.
+
+Tag your image with the path to the registry.
+```shell
+docker tag <my image> localhost:8081/<my image>:<some tag>
+```
+
+Then push the new tag.
+```shell
+docker push localhost:8081/<my image>:<some tag>
+```
+
+### Pulling
+First, login to the resgistry.
+```shell
+docker login localhost:8081
+```
+
+Then pull the new tag.
+```shell
+docker pull localhost:8081/<my image>:<some tag>
 ```
