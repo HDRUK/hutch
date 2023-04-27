@@ -9,7 +9,7 @@ The easiest way to install nexus is by using Docker.
 ```shell
 docker pull sonatype/nexus3
 ```
-Information about the image as will as other versions are available [here](https://hub.docker.com/r/sonatype/nexus3/).
+Information about the image as well as other versions are available [here](https://hub.docker.com/r/sonatype/nexus3/).
 
 :::warning
 Nexus only has `amd64`-based images, so performance may vary depending on your machine's processor.
