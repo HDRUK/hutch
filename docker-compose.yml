@@ -21,3 +21,21 @@ services:
     ports:
       - 5672:5672 # port for the queue
       - 15672:15672 # port for the in-browser manager
+
+  nexus:
+    image: sonatype/nexus3:3.52.0
+    restart: always
+    ports:
+      - "8081:8081" # web portal port
+      - "8082:8082" # port for the docker registry
+      - "8083:8083" # port for the git system
+
+  minio:
+    image: minio/minio:RELEASE.2023-04-20T17-56-55Z
+    restart: always
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # web console
+    volumes:
+      - $HOME/minio-data:$HOME/minio-data
+    command: minio server $HOME/minio-data --console-address ":9001"
