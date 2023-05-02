@@ -47,6 +47,33 @@ public class MinioService
     _logger.LogInformation($"Successfully uploaded {objectName} to {_options.BucketName}.");
   }
 
+  /// <summary>
+  /// Check if a file already exists in an S3 bucket.
+  /// </summary>
+  /// <param name="filePath">The name of the file to check in the bucket.</param>
+  /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
+  /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
+  public async Task<bool> FileExistsInBucket(string filePath)
+  {
+    if (!await _bucketExists())
+      throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
+
+    var statObjectArgs = new StatObjectArgs()
+      .WithBucket(_options.BucketName)
+      .WithObject(filePath);
+
+    _logger.LogInformation($"Looking for {filePath} in {_options.BucketName}...");
+    var stat = await _minioClient.StatObjectAsync(statObjectArgs);
+    if (stat is not null)
+    {
+      _logger.LogInformation($"Found {filePath} in {_options.BucketName}.");
+      return true;
+    }
+
+    _logger.LogInformation($"Could not find {filePath} in {_options.BucketName}.");
+    return false;
+  }
+
   private async Task<bool> _bucketExists()
   {
     var args = new BucketExistsArgs().WithBucket(_options.BucketName);
