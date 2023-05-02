@@ -6,7 +6,7 @@ var b = WebApplication.CreateBuilder(args);
 b.Services
   .AddControllersWithViews();
 b.Services
-  .Configure<WorkflowTriggerOptions>(b.Configuration.GetSection("JobQueue"))
+  .Configure<WorkflowTriggerOptions>(b.Configuration.GetSection("Wfexs"))
   .AddScoped<WorkflowTriggerService>();
 
 var app = b.Build();
