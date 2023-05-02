@@ -9,46 +9,47 @@ public class MinioService
 {
   private readonly MinioClient _minioClient;
   private readonly ILogger<MinioService> _logger;
+  private readonly MinioOptions _options;
 
-  public MinioService(IOptions<MinioOptions> minioOptions, ILogger<MinioService> logger)
+  public MinioService(IOptions<MinioOptions> minioOptions, ILogger<MinioService> logger, IOptions<MinioOptions> options)
   {
     _logger = logger;
+    _options = options.Value;
     _minioClient = new MinioClient()
-      .WithEndpoint(minioOptions.Value.Endpoint)
-      .WithCredentials(minioOptions.Value.AccessKey, minioOptions.Value.SecretKey)
-      .WithSSL(minioOptions.Value.Secure)
+      .WithEndpoint(_options.Endpoint)
+      .WithCredentials(_options.AccessKey, _options.SecretKey)
+      .WithSSL(_options.Secure)
       .Build();
   }
 
   /// <summary>
   /// Upload a file to an S3 bucket.
   /// </summary>
-  /// <param name="bucketName">The name of the bucket to which the file will be uploaded.</param>
   /// <param name="filePath">The path of the file to be uploaded.</param>
   /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
   /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
   /// <exception cref="FileNotFoundException">Thrown when the file to be uploaded does not exist.</exception>
-  public async Task UploadToBucket(string bucketName, string filePath)
+  public async Task UploadToBucket(string filePath)
   {
-    var exists = await _bucketExists(bucketName);
-    if (!exists) throw new BucketNotFoundException(bucketName, $"No such bucket: {bucketName}");
+    var exists = await _bucketExists();
+    if (!exists) throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
 
     if (!System.IO.File.Exists(filePath)) throw new FileNotFoundException();
 
     var objectName = System.IO.Path.GetFileName(filePath);
     var putObjectArgs = new PutObjectArgs()
-      .WithBucket(bucketName)
+      .WithBucket(_options.BucketName)
       .WithFileName(filePath)
       .WithObject(objectName);
 
-    _logger.LogInformation($"Uploading {objectName} to {bucketName}...");
+    _logger.LogInformation($"Uploading {objectName} to {_options.BucketName}...");
     await _minioClient.PutObjectAsync(putObjectArgs);
-    _logger.LogInformation($"Successfully uploaded {objectName} to {bucketName}.");
+    _logger.LogInformation($"Successfully uploaded {objectName} to {_options.BucketName}.");
   }
 
-  private async Task<bool> _bucketExists(string bucketName)
+  private async Task<bool> _bucketExists()
   {
-    var args = new BucketExistsArgs().WithBucket(bucketName);
+    var args = new BucketExistsArgs().WithBucket(_options.BucketName);
     return await _minioClient.BucketExistsAsync(args);
   }
 }
