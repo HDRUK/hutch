@@ -7,10 +7,12 @@ namespace HutchAgent.Services;
 
 public class MinioService
 {
-  private MinioClient _minioClient;
+  private readonly MinioClient _minioClient;
+  private readonly ILogger<MinioService> _logger;
 
-  public MinioService(IOptions<MinioOptions> minioOptions)
+  public MinioService(IOptions<MinioOptions> minioOptions, ILogger<MinioService> logger)
   {
+    _logger = logger;
     _minioClient = new MinioClient()
       .WithEndpoint(minioOptions.Value.Endpoint)
       .WithCredentials(minioOptions.Value.AccessKey, minioOptions.Value.SecretKey)
@@ -33,11 +35,15 @@ public class MinioService
 
     if (!System.IO.File.Exists(filePath)) throw new FileNotFoundException();
 
+    var objectName = System.IO.Path.GetFileName(filePath);
     var putObjectArgs = new PutObjectArgs()
       .WithBucket(bucketName)
       .WithFileName(filePath)
-      .WithObject(System.IO.Path.GetFileName(filePath));
+      .WithObject(objectName);
+
+    _logger.LogInformation($"Uploading {objectName} to {bucketName}...");
     await _minioClient.PutObjectAsync(putObjectArgs);
+    _logger.LogInformation($"Successfully uploaded {objectName} to {bucketName}.");
   }
 
   private async Task<bool> _bucketExists(string bucketName)
