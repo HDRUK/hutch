@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
+  .Configure<MinioOptions>(builder.Configuration.GetSection("WatchFolder"))
   .AddTransient<MinioService>();
 
 #endregion
