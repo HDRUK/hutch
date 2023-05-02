@@ -1,11 +1,13 @@
 using HutchAgent.Config;
+using HutchAgent.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 #region Configure Service
 
 builder.Services
-  .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"));
+  .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
+  .AddScoped<MinioService>();
 
 #endregion
 
