@@ -23,7 +23,7 @@ public class WorkflowTriggerService
     _workflowOptions = workflowOptions.Value;
   }
 
-  public ROCrate ParseCrate(string jsonFile)
+  private ROCrate ParseCrate(string jsonFile)
   {
     var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
     metadataProperties.TryGetPropertyValue("@graph", out var graph);
@@ -34,7 +34,7 @@ public class WorkflowTriggerService
     return _roCrate;
   }
 
-  public void UnpackCrate(Stream stream)
+  private void UnpackCrate(Stream stream)
   {
     using var archive = new ZipArchive(stream);
     {
@@ -94,7 +94,7 @@ public class WorkflowTriggerService
     if (process == null)
       throw new Exception("Could not start process");
 
-    using var streamWriter = process.StandardInput;
+    await using var streamWriter = process.StandardInput;
     if (streamWriter.BaseStream.CanWrite)
     {
       // activate python virtual environment

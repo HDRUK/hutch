@@ -23,7 +23,7 @@ public class JobsController : ControllerBase
       return BadRequest();
     try
     {
-      using var sr = job.OpenReadStream();
+      await using var sr = job.OpenReadStream();
 
       {
         await _workflowTriggerService.TriggerWfexs(sr);
