@@ -15,6 +15,7 @@ public class WorkflowTriggerService
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly ROCrate _roCrate = new();
+
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger)
   {
@@ -24,42 +25,40 @@ public class WorkflowTriggerService
 
   public ROCrate ParseCrate(string jsonFile)
   {
-    
-      var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
-      metadataProperties.TryGetPropertyValue("@graph", out var graph);
-      var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
-      var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
-      _roCrate.Add(datasetRoot);
+    var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
+    metadataProperties.TryGetPropertyValue("@graph", out var graph);
+    var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
+    var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
+    _roCrate.Add(datasetRoot);
 
-      return _roCrate;
+    return _roCrate;
   }
 
   public void UnpackCrate(Stream stream)
   {
-      using var archive = new ZipArchive(stream);
+    using var archive = new ZipArchive(stream);
+    {
+      // Extract to Directory
+      archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
+
+      // Validate it is an ROCrate
+      var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "*metadata.json");
+      var fileJson = File.ReadAllText(file[0]);
+      // Parse Crate metadata
+      var crate = ParseCrate(fileJson);
+      var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
+      var mainEntityPath = Path.Combine(_workflowOptions.CrateExtractPath, mainEntity.Id);
+      // Check main entity is present and a stage file
+      if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
+                                          mainEntityPath.EndsWith(".yml")))
       {
-        // Extract to Directory
-        archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
-        
-        // Validate it is an ROCrate
-        var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern:"*metadata.json");
-        var fileJson = File.ReadAllText(file[0]);
-        // Parse Crate metadata
-        var crate = ParseCrate(fileJson);
-        var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-        var mainEntityPath = Path.Combine(_workflowOptions.CrateExtractPath, mainEntity.Id);
-        // Check main entity is present and a stage file
-        if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") || mainEntityPath.EndsWith(".yml") ) )
-        {
-          _workflowOptions.StageFilePath = mainEntityPath;
-        }
-        else
-        {
-          throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
-        }
-        
+        _workflowOptions.StageFilePath = mainEntityPath;
       }
-    
+      else
+      {
+        throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
+      }
+    }
   }
 
   /// <summary>
