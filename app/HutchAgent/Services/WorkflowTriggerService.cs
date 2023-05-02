@@ -23,17 +23,29 @@ public class WorkflowTriggerService
     _workflowOptions = workflowOptions.Value;
   }
 
+  /// <summary>
+  /// Parse ROCrate metadata using the ROCrates library
+  /// </summary>
+  /// <param name="jsonFile"></param>
+  /// <returns></returns>
   private ROCrate ParseCrate(string jsonFile)
   {
+    // get metadata from manifest
     var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
     metadataProperties.TryGetPropertyValue("@graph", out var graph);
+    // get RootDataset Properties and add them to an ROCrates object
     var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
     var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
+    
     _roCrate.Add(datasetRoot);
 
     return _roCrate;
   }
-
+  /// <summary>
+  /// Unpack an ROCrate
+  /// </summary>
+  /// <param name="stream"></param>
+  /// <exception cref="FileNotFoundException"></exception>
   private void UnpackCrate(Stream stream)
   {
     using var archive = new ZipArchive(stream);
@@ -46,6 +58,7 @@ public class WorkflowTriggerService
       var fileJson = File.ReadAllText(file[0]);
       // Parse Crate metadata
       var crate = ParseCrate(fileJson);
+      // Get mainEntity from metadata
       var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
       var mainEntityPath = Path.Combine(_workflowOptions.CrateExtractPath, mainEntity.Id);
       // Check main entity is present and a stage file
