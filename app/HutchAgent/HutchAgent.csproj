@@ -4,14 +4,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>df41069b-0ae3-46bc-9e8d-46307f3d8fb7</UserSecretsId>
+    <UserSecretsId>df36f031-2e7f-429f-8099-5433e79fc8b1</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\lib\ROCrates.Net\ROCrates.Net.csproj"/>
-  </PropertyGroup>
-
-  <ItemGroup>
     <PackageReference Include="Minio" Version="4.0.7"/>
   </ItemGroup>
 
