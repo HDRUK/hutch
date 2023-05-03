@@ -21,18 +21,10 @@ public class JobsController : ControllerBase
   {
     if (job == null)
       return BadRequest();
-    try
+    await using var sr = job.OpenReadStream();
     {
-      await using var sr = job.OpenReadStream();
-
-      {
-        await _workflowTriggerService.TriggerWfexs(sr);
-        return Accepted();
-      }
-    }
-    catch
-    {
-      return StatusCode(500);
+      await _workflowTriggerService.TriggerWfexs(sr);
+      return Accepted();
     }
   }
 }
