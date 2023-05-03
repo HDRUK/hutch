@@ -1,15 +1,22 @@
 using HutchAgent.Models;
 using HutchAgent.Services;
+using HutchAgent.Config;
 
-var b = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-b.Services
+#region Configure Service
+
+builder.Services
   .AddControllersWithViews();
-b.Services
-  .Configure<WorkflowTriggerOptions>(b.Configuration.GetSection("Wfexs"))
-  .AddScoped<WorkflowTriggerService>();
+builder.Services
+  .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
+  .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
+  .AddScoped<WorkflowTriggerService>()
+  .AddTransient<MinioService>();
 
-var app = b.Build();
+#endregion
+
+var app = builder.Build();
 
 app.UseRouting();
 app.MapControllers();
