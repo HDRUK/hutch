@@ -26,21 +26,30 @@ public class WorkflowTriggerService
   /// <summary>
   /// Parse ROCrate metadata using the ROCrates library
   /// </summary>
-  /// <param name="jsonFile"></param>
-  /// <returns></returns>
+  /// <param name="jsonFile"> JSON Metadata file</param>
+  /// <returns> ROCrate object </returns>
   private ROCrate ParseCrate(string jsonFile)
   {
-    // get metadata from manifest
-    var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
-    metadataProperties.TryGetPropertyValue("@graph", out var graph);
-    // get RootDataset Properties and add them to an ROCrates object
-    var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
-    var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
-    
-    _roCrate.Add(datasetRoot);
+    try
+    {
+      // get metadata from manifest
+      var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
+      metadataProperties.TryGetPropertyValue("@graph", out var graph);
 
-    return _roCrate;
+      // get RootDataset Properties and add them to an ROCrates object
+      var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
+      var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
+
+      _roCrate.Add(datasetRoot ?? throw new InvalidOperationException());
+
+      return _roCrate;
+    }
+    catch
+    {
+      throw new Exception("Metadata JSON could not be parsed");
+    }
   }
+
   /// <summary>
   /// Unpack an ROCrate
   /// </summary>

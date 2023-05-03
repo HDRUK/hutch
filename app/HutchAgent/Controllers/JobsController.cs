@@ -32,7 +32,7 @@ public class JobsController : ControllerBase
     }
     catch
     {
-      return BadRequest();
+      return StatusCode(500);
     }
   }
 }
