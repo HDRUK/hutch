@@ -166,7 +166,7 @@ public class WorkflowTriggerService
   private async Task _createProvCrate(string runId)
   {
     var outputCrateName = Path.Combine(_watchFolderOptions.Path, $"{runId}.zip");
-    var command = $@"./WfExS_backend.py \
+    var command = $@"./WfExS-backend.py \
   -L {_workflowOptions.LocalConfigPath} \
   staged-workdir create-prov-crate {runId} {outputCrateName} \
   --full";
