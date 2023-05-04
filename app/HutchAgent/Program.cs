@@ -1,10 +1,12 @@
-using HutchAgent.Config;
 using HutchAgent.Services;
+using HutchAgent.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
 #region Configure Service
 
+builder.Services
+  .AddControllersWithViews();
 builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
   .Configure<WatchFolderOptions>(builder.Configuration.GetSection("WatchFolder"))
@@ -17,6 +19,7 @@ builder.Services
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
+app.UseRouting();
+app.MapControllers();
 
 app.Run();
