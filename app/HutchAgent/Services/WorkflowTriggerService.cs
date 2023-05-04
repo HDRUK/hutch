@@ -1,10 +1,8 @@
 using System.Diagnostics;
+using System.IO.Compression;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
-using System.IO.Compression;
-using System.Text;
-using System.Text.Json.Nodes;
-using HutchAgent.Models;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -12,7 +10,7 @@ using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
-public class WorkflowTriggerService : BackgroundService
+public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
@@ -69,7 +67,8 @@ public class WorkflowTriggerService : BackgroundService
       archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
       // Validate it is an ROCrate
       var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
-      if (file == null) throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
+      if (file == null)
+        throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
       var fileJson = File.ReadAllText(file[0]);
       // Parse Crate metadata
       var crate = ParseCrate(fileJson);
@@ -87,15 +86,6 @@ public class WorkflowTriggerService : BackgroundService
         throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
       }
     }
-    await TriggerWfexs();
-
-    if (_workDirName is null)
-    {
-      _logger.LogError("Unable to determine Run ID.");
-      return;
-    }
-
-    await _createProvCrate(_workDirName);
   }
 
   /// <summary>
@@ -156,6 +146,15 @@ public class WorkflowTriggerService : BackgroundService
 
     // end the process
     process.Close();
+
+    // create the output RO-Crate
+    if (_workDirName is null)
+    {
+      _logger.LogError("Unable to get Run ID; cannot create output RO-Crate.");
+      return;
+    }
+
+    await _createProvCrate(_workDirName);
   }
 
   /// <summary>
@@ -206,14 +205,6 @@ public class WorkflowTriggerService : BackgroundService
 
     // end the process
     process.Close();
-  }
-
-  public override async Task StopAsync(CancellationToken stoppingToken)
-  {
-    _logger.LogInformation(
-      "Hosted Service is stopping.");
-
-    await base.StopAsync(stoppingToken);
   }
 
   private string? _findRunName(string text)

@@ -1,5 +1,5 @@
-using HutchAgent.Services;
 using HutchAgent.Config;
+using HutchAgent.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,10 +10,10 @@ builder.Services
 builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
   .Configure<WatchFolderOptions>(builder.Configuration.GetSection("WatchFolder"))
-  .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowTriggering"))
+  .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
+  .AddScoped<WorkflowTriggerService>()
   .AddTransient<MinioService>()
-  .AddHostedService<WatchFolderService>()
-  .AddHostedService<WorkflowTriggerService>();
+  .AddHostedService<WatchFolderService>();
 
 #endregion
 
