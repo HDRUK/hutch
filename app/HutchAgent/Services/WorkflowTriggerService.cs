@@ -96,8 +96,6 @@ public class WorkflowTriggerService
   public async Task TriggerWfexs(Stream stream)
   {
     UnpackCrate(stream);
-    const string cmd = "bash";
-    string activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
@@ -185,7 +183,7 @@ public class WorkflowTriggerService
     if (process == null)
       throw new Exception("Could not start process");
 
-    using var streamWriter = process.StandardInput;
+    await using var streamWriter = process.StandardInput;
     if (streamWriter.BaseStream.CanWrite)
     {
       // activate python virtual environment
