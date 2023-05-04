@@ -227,6 +227,10 @@ public class WorkflowTriggerService
       return null;
     }
 
+    var matchIndexes = regex.GetGroupNumbers();
+    Console.WriteLine(matchIndexes);
+    Console.WriteLine(match.Groups.Values.ToString());
+
     // Get the matched UUID pattern
     var uuid = match.Groups.ToString();
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
