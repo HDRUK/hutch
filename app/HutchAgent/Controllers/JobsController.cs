@@ -19,7 +19,6 @@ public class JobsController : ControllerBase
   [HttpPost]
   public async Task<IActionResult> Unpack(IFormFile? job)
   {
-    Console.WriteLine("hit the endpoint!");
     if (job == null)
       return BadRequest();
     await using var sr = job.OpenReadStream();

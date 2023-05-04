@@ -63,12 +63,10 @@ public class WorkflowTriggerService
   /// <exception cref="FileNotFoundException"></exception>
   private void UnpackCrate(Stream stream)
   {
-    _logger.LogInformation("Unpacking crate.");
     using var archive = new ZipArchive(stream);
     {
       // Extract to Directory
       archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
-      _logger.LogInformation($"Unpacked crate at {_workflowOptions.CrateExtractPath}.");
       // Validate it is an ROCrate
       var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
       if (file == null)
@@ -141,14 +139,11 @@ public class WorkflowTriggerService
     StreamReader reader = process.StandardOutput;
     var errorReader = process.StandardError;
     var errorMsg = await errorReader.ReadToEndAsync();
-    Console.WriteLine($"Is process alive? {!process.HasExited}");
-    Console.WriteLine("Error msg:");
-    Console.WriteLine(errorMsg);
     while (!process.HasExited)
     {
-      var stdOutLine = await reader.ReadToEndAsync();
+      var stdOutLine = await reader.ReadLineAsync();
       Console.WriteLine(stdOutLine);
-      // if (stdOutLine is null) continue;
+      if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
       if (runName is not null) _workDirName = runName;
     }
