@@ -106,6 +106,7 @@ public class WorkflowTriggerService
     {
       $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}"
     };
+    Console.WriteLine(commands[0]);
 
     var processStartInfo = new ProcessStartInfo
     {
