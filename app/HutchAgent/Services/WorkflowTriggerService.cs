@@ -139,7 +139,6 @@ public class WorkflowTriggerService
     while (!process.HasExited)
     {
       var stdOutLine = await reader.ReadLineAsync();
-      Console.WriteLine(stdOutLine);
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
       if (runName is not null) _workDirName = runName;
