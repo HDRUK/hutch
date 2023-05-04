@@ -13,6 +13,7 @@ namespace HutchAgent.Services;
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
+  private readonly WatchFolderOptions _watchFolderOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
@@ -20,9 +21,10 @@ public class WorkflowTriggerService
   private readonly ROCrate _roCrate = new();
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger)
+    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions)
   {
     _logger = logger;
+    _watchFolderOptions = watchFolderOptions.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
   }
@@ -162,9 +164,10 @@ public class WorkflowTriggerService
   /// <exception cref="Exception"></exception>
   private async Task _createProvCrate(string runId)
   {
+    var outputCrateName = Path.Combine(_watchFolderOptions.Path, $"{runId}.zip");
     var command = $@"./WfExS_backend.py \
-  -L <path_to_wfexs_config.yaml> \
-  staged-workdir create-prov-crate {runId} ROCrate.zip \
+  -L {_workflowOptions.LocalConfigPath} \
+  staged-workdir create-prov-crate {runId} {outputCrateName} \
   --full";
 
     var processStartInfo = new ProcessStartInfo
