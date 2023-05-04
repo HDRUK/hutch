@@ -140,9 +140,9 @@ public class WorkflowTriggerService
     StreamReader reader = process.StandardOutput;
     while (!process.HasExited)
     {
-      var stdOutLine = await reader.ReadLineAsync();
+      var stdOutLine = await reader.ReadToEndAsync();
       Console.WriteLine(stdOutLine);
-      if (stdOutLine is null) continue;
+      // if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
       if (runName is not null) _workDirName = runName;
     }
