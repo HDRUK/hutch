@@ -104,7 +104,6 @@ public class WorkflowTriggerService
     {
       $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}"
     };
-    Console.WriteLine(commands[0]);
 
     var processStartInfo = new ProcessStartInfo
     {
@@ -137,15 +136,17 @@ public class WorkflowTriggerService
     }
 
     StreamReader reader = process.StandardOutput;
-    var errorReader = process.StandardError;
-    var errorMsg = await errorReader.ReadToEndAsync();
     while (!process.HasExited)
     {
       var stdOutLine = await reader.ReadLineAsync();
       Console.WriteLine(stdOutLine);
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
-      if (runName is not null) _workDirName = runName;
+      if (runName is not null)
+      {
+        _workDirName = runName;
+        Console.WriteLine(_workDirName);
+      }
     }
 
     // end the process
@@ -226,7 +227,7 @@ public class WorkflowTriggerService
     }
 
     // Get the matched UUID pattern
-    var uuid = match.Captures.GetEnumerator().Current.ToString();
+    var uuid = match.Captures.ToString();
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 }
