@@ -145,6 +145,7 @@ public class WorkflowTriggerService
       if (runName is not null)
       {
         _workDirName = runName;
+        Console.WriteLine("The run id is:");
         Console.WriteLine(_workDirName);
       }
     }
@@ -227,7 +228,7 @@ public class WorkflowTriggerService
     }
 
     // Get the matched UUID pattern
-    var uuid = match.Captures.ToString();
+    var uuid = match.Groups.ToString();
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 }
