@@ -1,16 +1,20 @@
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Text;
+using System.Text.Json.Nodes;
 using HutchAgent.Models;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ROCrates;
+using ROCrates.Models;
+using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
-public class WorkflowTriggerService : BackgroundService
+public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
+  private readonly ROCrate _roCrate = new();
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger)
@@ -19,20 +23,74 @@ public class WorkflowTriggerService : BackgroundService
     _workflowOptions = workflowOptions.Value;
   }
 
-  protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+  /// <summary>
+  /// Parse ROCrate metadata using the ROCrates library
+  /// </summary>
+  /// <param name="jsonFile"> JSON Metadata file</param>
+  /// <returns> ROCrate object </returns>
+  private ROCrate ParseCrate(string jsonFile)
   {
-    _logger.LogInformation(
-      "Executing Workflow with WfExS started.");
+    try
+    {
+      // get metadata from manifest
+      var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
+      metadataProperties.TryGetPropertyValue("@graph", out var graph);
 
-    await TriggerWfexs();
+      // get RootDataset Properties and add them to an ROCrates object
+      var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
+      var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
+
+      _roCrate.Add(datasetRoot ?? throw new InvalidOperationException());
+
+      return _roCrate;
+    }
+    catch
+    {
+      throw new Exception("Metadata JSON could not be parsed");
+    }
+  }
+
+  /// <summary>
+  /// Unpack an ROCrate
+  /// </summary>
+  /// <param name="stream"></param>
+  /// <exception cref="FileNotFoundException"></exception>
+  private void UnpackCrate(Stream stream)
+  {
+    using var archive = new ZipArchive(stream);
+    {
+      // Extract to Directory
+      archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
+      // Validate it is an ROCrate
+      var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
+      if (file == null) throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
+      var fileJson = File.ReadAllText(file[0]);
+      // Parse Crate metadata
+      var crate = ParseCrate(fileJson);
+      // Get mainEntity from metadata
+      var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
+      var mainEntityPath = Path.Combine(_workflowOptions.CrateExtractPath, mainEntity.Id);
+      // Check main entity is present and a stage file
+      if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
+                                          mainEntityPath.EndsWith(".yml")))
+      {
+        _workflowOptions.StageFilePath = mainEntityPath;
+      }
+      else
+      {
+        throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
+      }
+    }
   }
 
   /// <summary>
   /// Install and run WfExS given 
   /// </summary>
+  /// <param name="stream"></param>
   /// <exception cref="Exception"></exception>
-  public async Task TriggerWfexs()
+  public async Task TriggerWfexs(Stream stream)
   {
+    UnpackCrate(stream);
     const string cmd = "bash";
     string activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     // Commands to install WfExS and execute a workflow
@@ -58,7 +116,7 @@ public class WorkflowTriggerService : BackgroundService
     if (process == null)
       throw new Exception("Could not start process");
 
-    using var streamWriter = process.StandardInput;
+    await using var streamWriter = process.StandardInput;
     if (streamWriter.BaseStream.CanWrite)
     {
       // activate python virtual environment
@@ -78,13 +136,5 @@ public class WorkflowTriggerService : BackgroundService
       sb.Append(await reader.ReadToEndAsync());
     // end the process
     process.Close();
-  }
-
-  public override async Task StopAsync(CancellationToken stoppingToken)
-  {
-    _logger.LogInformation(
-      "Hosted Service is stopping.");
-
-    await base.StopAsync(stoppingToken);
   }
 }

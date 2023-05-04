@@ -11,4 +11,6 @@ public class WorkflowTriggerOptions
   public string LocalConfigPath { get; set; } = string.Empty;
 
   public string StageFilePath { get; set; } = string.Empty;
+
+  public string CrateExtractPath { get; set; } = string.Empty;
 }

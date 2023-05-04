@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\lib\ROCrates.Net\ROCrates.Net.csproj"/>
     <PackageReference Include="Minio" Version="4.0.7"/>
   </ItemGroup>
 
