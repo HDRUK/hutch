@@ -63,10 +63,12 @@ public class WorkflowTriggerService
   /// <exception cref="FileNotFoundException"></exception>
   private void UnpackCrate(Stream stream)
   {
+    _logger.LogInformation("Unpacking crate.");
     using var archive = new ZipArchive(stream);
     {
       // Extract to Directory
       archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
+      _logger.LogInformation($"Unpacked crate at {_workflowOptions.CrateExtractPath}.");
       // Validate it is an ROCrate
       var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
       if (file == null)
