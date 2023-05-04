@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using HutchAgent.Models;
+using HutchAgent.Config;
 using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;

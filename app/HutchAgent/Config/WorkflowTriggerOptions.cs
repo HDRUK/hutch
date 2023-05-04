@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Options;
-
-namespace HutchAgent.Models;
+namespace HutchAgent.Config;
 
 public class WorkflowTriggerOptions
 {

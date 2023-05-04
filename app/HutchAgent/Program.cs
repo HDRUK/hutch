@@ -1,5 +1,4 @@
 using HutchAgent.Config;
-using HutchAgent.Models;
 using HutchAgent.Services;
 
 var builder = WebApplication.CreateBuilder(args);
