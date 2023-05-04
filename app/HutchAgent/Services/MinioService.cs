@@ -62,15 +62,18 @@ public class MinioService
       .WithBucket(_options.BucketName)
       .WithObject(filePath);
 
-    _logger.LogInformation($"Looking for {filePath} in {_options.BucketName}...");
-    var stat = await _minioClient.StatObjectAsync(statObjectArgs);
-    if (stat is not null)
+    try
     {
+      _logger.LogInformation($"Looking for {filePath} in {_options.BucketName}...");
+      await _minioClient.StatObjectAsync(statObjectArgs);
       _logger.LogInformation($"Found {filePath} in {_options.BucketName}.");
       return true;
     }
+    catch (ObjectNotFoundException e)
+    {
+      _logger.LogInformation($"Could not find {filePath} in {_options.BucketName}.");
+    }
 
-    _logger.LogInformation($"Could not find {filePath} in {_options.BucketName}.");
     return false;
   }
 
