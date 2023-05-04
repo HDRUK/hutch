@@ -217,7 +217,12 @@ public class WorkflowTriggerService
     var regex = new Regex(pattern);
 
     var match = regex.Match(text);
-    if (!match.Success) return null;
+    if (!match.Success)
+    {
+      _logger.LogError("Didn't match the pattern!");
+      return null;
+    }
+
     // Get the matched UUID pattern
     var uuid = match.Captures.GetEnumerator().Current.ToString();
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
