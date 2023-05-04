@@ -27,6 +27,14 @@ public class WorkflowTriggerService : BackgroundService
       "Executing Workflow with WfExS started.");
 
     await TriggerWfexs();
+
+    if (_workDirName is null)
+    {
+      _logger.LogError("Unable to determine Run ID.");
+      return;
+    }
+
+    await _createProvCrate(_workDirName);
   }
 
   /// <summary>
@@ -79,6 +87,56 @@ public class WorkflowTriggerService : BackgroundService
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
       if (runName is not null) _workDirName = runName;
+    }
+
+    // end the process
+    process.Close();
+  }
+
+  /// <summary>
+  /// Command WfExS to build the RO-Crate of the workflow.
+  /// </summary>
+  /// <param name="runId">The UUID of the run for which to output the RO-Crate.</param>
+  /// <exception cref="Exception"></exception>
+  private async Task _createProvCrate(string runId)
+  {
+    var command = $@"./WfExS_backend.py \
+  -L <path_to_wfexs_config.yaml> \
+  staged-workdir create-prov-crate {runId} ROCrate.zip \
+  --full";
+
+    var processStartInfo = new ProcessStartInfo
+    {
+      RedirectStandardOutput = false,
+      RedirectStandardInput = false,
+      RedirectStandardError = false,
+      UseShellExecute = false,
+      CreateNoWindow = true,
+      FileName = _bashCmd,
+      WorkingDirectory = _workflowOptions.ExecutorPath
+    };
+
+    // start process
+    var process = Process.Start(processStartInfo);
+    if (process == null)
+      throw new Exception("Could not start process");
+
+    using var streamWriter = process.StandardInput;
+    if (streamWriter.BaseStream.CanWrite)
+    {
+      // activate python virtual environment
+      await streamWriter.WriteLineAsync(_activateVenv);
+      // execute command to build RO-Crate
+      await streamWriter.WriteLineAsync(command);
+
+      await streamWriter.FlushAsync();
+      streamWriter.Close();
+    }
+
+    // Wait for the process to exit
+    while (!process.HasExited)
+    {
+      await Task.Delay(TimeSpan.FromSeconds(1));
     }
 
     // end the process
