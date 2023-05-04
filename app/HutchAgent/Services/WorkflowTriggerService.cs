@@ -1,8 +1,7 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using HutchAgent.Models;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;
@@ -86,5 +85,18 @@ public class WorkflowTriggerService : BackgroundService
       "Hosted Service is stopping.");
 
     await base.StopAsync(stoppingToken);
+  }
+
+  private string? _findRunName(string text)
+  {
+    var pattern =
+      "-\\sInstance\\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})";
+    var regex = new Regex(pattern);
+
+    var match = regex.Match(text);
+    if (!match.Success) return null;
+    // Get the matched UUID pattern
+    var uuid = match.Captures.GetEnumerator().Current.ToString();
+    return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 }
