@@ -142,12 +142,7 @@ public class WorkflowTriggerService
       Console.WriteLine(stdOutLine);
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
-      if (runName is not null)
-      {
-        _workDirName = runName;
-        Console.WriteLine("The run id is:");
-        Console.WriteLine(_workDirName);
-      }
+      if (runName is not null) _workDirName = runName;
     }
 
     // end the process
@@ -179,7 +174,7 @@ public class WorkflowTriggerService
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = false,
-      RedirectStandardInput = false,
+      RedirectStandardInput = true,
       RedirectStandardError = false,
       UseShellExecute = false,
       CreateNoWindow = true,
@@ -226,10 +221,6 @@ public class WorkflowTriggerService
       _logger.LogError("Didn't match the pattern!");
       return null;
     }
-
-    var matchIndexes = regex.GetGroupNumbers();
-    Console.WriteLine(matchIndexes);
-    Console.WriteLine(match.Groups[1].Value);
 
     // Get the matched UUID pattern
     var uuid = match.Groups[1].Value;
