@@ -139,7 +139,11 @@ public class WorkflowTriggerService
     }
 
     StreamReader reader = process.StandardOutput;
+    var errorReader = process.StandardError;
+    var errorMsg = await errorReader.ReadToEndAsync();
     Console.WriteLine($"Is process alive? {!process.HasExited}");
+    Console.WriteLine("Error msg:");
+    Console.WriteLine(errorMsg);
     while (!process.HasExited)
     {
       var stdOutLine = await reader.ReadToEndAsync();
