@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text;
 using System.Text.RegularExpressions;
 using HutchAgent.Models;
 using Microsoft.Extensions.Options;
@@ -10,6 +9,7 @@ public class WorkflowTriggerService : BackgroundService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
+  private string? _workDirName = null;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger)
@@ -71,10 +71,15 @@ public class WorkflowTriggerService : BackgroundService
       streamWriter.Close();
     }
 
-    var sb = new StringBuilder();
     StreamReader reader = process.StandardOutput;
     while (!process.HasExited)
-      sb.Append(await reader.ReadToEndAsync());
+    {
+      var stdOutLine = await reader.ReadLineAsync();
+      if (stdOutLine is null) continue;
+      var runName = _findRunName(stdOutLine);
+      if (runName is not null) _workDirName = runName;
+    }
+
     // end the process
     process.Close();
   }
