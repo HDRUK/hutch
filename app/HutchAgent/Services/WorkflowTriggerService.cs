@@ -174,7 +174,7 @@ public class WorkflowTriggerService
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = false,
-      RedirectStandardInput = false,
+      RedirectStandardInput = true,
       RedirectStandardError = false,
       UseShellExecute = false,
       CreateNoWindow = true,
