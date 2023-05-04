@@ -215,7 +215,7 @@ public class WorkflowTriggerService
   private string? _findRunName(string text)
   {
     var pattern =
-      "-\\sInstance\\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12})";
+      @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*";
     var regex = new Regex(pattern);
 
     var match = regex.Match(text);
