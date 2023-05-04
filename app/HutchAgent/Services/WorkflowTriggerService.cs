@@ -9,6 +9,8 @@ public class WorkflowTriggerService : BackgroundService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
+  private readonly string _activateVenv;
+  private const string _bashCmd = "bash";
   private string? _workDirName = null;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
@@ -16,6 +18,7 @@ public class WorkflowTriggerService : BackgroundService
   {
     _logger = logger;
     _workflowOptions = workflowOptions.Value;
+    _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
   }
 
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -32,8 +35,6 @@ public class WorkflowTriggerService : BackgroundService
   /// <exception cref="Exception"></exception>
   public async Task TriggerWfexs()
   {
-    const string cmd = "bash";
-    string activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
@@ -48,7 +49,7 @@ public class WorkflowTriggerService : BackgroundService
       RedirectStandardError = true,
       UseShellExecute = false,
       CreateNoWindow = true,
-      FileName = cmd,
+      FileName = _bashCmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
 
@@ -61,7 +62,7 @@ public class WorkflowTriggerService : BackgroundService
     if (streamWriter.BaseStream.CanWrite)
     {
       // activate python virtual environment
-      await streamWriter.WriteLineAsync(activateVenv);
+      await streamWriter.WriteLineAsync(_activateVenv);
       foreach (var command in commands)
       {
         await streamWriter.WriteLineAsync(command);
