@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Text;
 using System.Text.Json.Nodes;
-using HutchAgent.Models;
+using System.Text.RegularExpressions;
+using HutchAgent.Config;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -13,14 +13,20 @@ namespace HutchAgent.Services;
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
+  private readonly WatchFolderOptions _watchFolderOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
+  private readonly string _activateVenv;
+  private const string _bashCmd = "bash";
+  private string? _workDirName = null;
   private readonly ROCrate _roCrate = new();
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger)
+    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions)
   {
     _logger = logger;
+    _watchFolderOptions = watchFolderOptions.Value;
     _workflowOptions = workflowOptions.Value;
+    _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
   }
 
   /// <summary>
@@ -63,7 +69,8 @@ public class WorkflowTriggerService
       archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
       // Validate it is an ROCrate
       var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
-      if (file == null) throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
+      if (file == null)
+        throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
       var fileJson = File.ReadAllText(file[0]);
       // Parse Crate metadata
       var crate = ParseCrate(fileJson);
@@ -91,8 +98,6 @@ public class WorkflowTriggerService
   public async Task TriggerWfexs(Stream stream)
   {
     UnpackCrate(stream);
-    const string cmd = "bash";
-    string activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
@@ -107,7 +112,7 @@ public class WorkflowTriggerService
       RedirectStandardError = true,
       UseShellExecute = false,
       CreateNoWindow = true,
-      FileName = cmd,
+      FileName = _bashCmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
 
@@ -120,7 +125,7 @@ public class WorkflowTriggerService
     if (streamWriter.BaseStream.CanWrite)
     {
       // activate python virtual environment
-      await streamWriter.WriteLineAsync(activateVenv);
+      await streamWriter.WriteLineAsync(_activateVenv);
       foreach (var command in commands)
       {
         await streamWriter.WriteLineAsync(command);
@@ -130,11 +135,94 @@ public class WorkflowTriggerService
       streamWriter.Close();
     }
 
-    var sb = new StringBuilder();
     StreamReader reader = process.StandardOutput;
     while (!process.HasExited)
-      sb.Append(await reader.ReadToEndAsync());
+    {
+      var stdOutLine = await reader.ReadLineAsync();
+      if (stdOutLine is null) continue;
+      var runName = _findRunName(stdOutLine);
+      if (runName is not null) _workDirName = runName;
+    }
+
     // end the process
     process.Close();
+
+    // create the output RO-Crate
+    if (_workDirName is null)
+    {
+      _logger.LogError("Unable to get Run ID; cannot create output RO-Crate.");
+      return;
+    }
+
+    await _createProvCrate(_workDirName);
+  }
+
+  /// <summary>
+  /// Command WfExS to build the RO-Crate of the workflow.
+  /// </summary>
+  /// <param name="runId">The UUID of the run for which to output the RO-Crate.</param>
+  /// <exception cref="Exception"></exception>
+  private async Task _createProvCrate(string runId)
+  {
+    var outputCrateName = Path.Combine(_watchFolderOptions.Path, $"{runId}.zip");
+    var command = $@"./WfExS-backend.py \
+  -L {_workflowOptions.LocalConfigPath} \
+  staged-workdir create-prov-crate {runId} {outputCrateName} \
+  --full";
+
+    var processStartInfo = new ProcessStartInfo
+    {
+      RedirectStandardOutput = false,
+      RedirectStandardInput = true,
+      RedirectStandardError = false,
+      UseShellExecute = false,
+      CreateNoWindow = true,
+      FileName = _bashCmd,
+      WorkingDirectory = _workflowOptions.ExecutorPath
+    };
+
+    // start process
+    var process = Process.Start(processStartInfo);
+    if (process == null)
+      throw new Exception("Could not start process");
+
+    await using var streamWriter = process.StandardInput;
+    if (streamWriter.BaseStream.CanWrite)
+    {
+      // activate python virtual environment
+      await streamWriter.WriteLineAsync(_activateVenv);
+      // execute command to build RO-Crate
+      await streamWriter.WriteLineAsync(command);
+
+      await streamWriter.FlushAsync();
+      streamWriter.Close();
+    }
+
+    // Wait for the process to exit
+    while (!process.HasExited)
+    {
+      await Task.Delay(TimeSpan.FromSeconds(1));
+    }
+
+    // end the process
+    process.Close();
+  }
+
+  private string? _findRunName(string text)
+  {
+    var pattern =
+      @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*";
+    var regex = new Regex(pattern);
+
+    var match = regex.Match(text);
+    if (!match.Success)
+    {
+      _logger.LogError("Didn't match the pattern!");
+      return null;
+    }
+
+    // Get the matched UUID pattern
+    var uuid = match.Groups[1].Value;
+    return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 }
