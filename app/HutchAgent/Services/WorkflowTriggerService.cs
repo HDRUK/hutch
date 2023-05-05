@@ -35,7 +35,6 @@ public class WorkflowTriggerService
       // get metadata from manifest
       var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
       metadataProperties.TryGetPropertyValue("@graph", out var graph);
-
       // get RootDataset Properties and add them to an ROCrates object
       var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
       var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
@@ -61,6 +60,7 @@ public class WorkflowTriggerService
     {
       // Extract to Directory
       archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
+      _logger.LogInformation($"ROCrate successfully extracted to {_workflowOptions.CrateExtractPath}");
       // Validate it is an ROCrate
       var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
       if (file == null) throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
@@ -74,7 +74,40 @@ public class WorkflowTriggerService
       if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
                                           mainEntityPath.EndsWith(".yml")))
       {
+        _logger.LogInformation($"main Entity is a Wfexs stage file and can be found at {mainEntityPath}");
         _workflowOptions.StageFilePath = mainEntityPath;
+        // Create a copy of the wfexs stage file
+        var copyFilePath = Path.Combine(_workflowOptions.CrateExtractPath, "copy_" + mainEntity.Id);
+        try
+        {
+          File.Copy(mainEntityPath,copyFilePath, true);
+        }
+        // Catch exception if the file was already copied.
+        catch (IOException copyError)
+        {
+          Console.WriteLine(copyError.Message);
+        }
+        // Rewrite stage file parameter inputs to an absolute path
+        // based on "crate" protocol
+        using (var stageFileWriter = new StreamWriter(mainEntityPath))
+        using (var stageFileReader = new StreamReader(copyFilePath))
+        {
+          string? line;
+          while ((line = stageFileReader.ReadLine()) != null)
+          {
+            
+            if (line.Trim().StartsWith("- crate"))
+            {
+              stageFileWriter.WriteLine(_rewritePath(line));
+            }
+            else
+            {
+              stageFileWriter.WriteLine(line);
+            }
+            
+          }
+        }
+
       }
       else
       {
@@ -136,5 +169,14 @@ public class WorkflowTriggerService
       sb.Append(await reader.ReadToEndAsync());
     // end the process
     process.Close();
+  }
+
+  private string _rewritePath(string? line)
+  {
+    var newInputPath = line.Split("///");
+    // keep line whitespaces for yaml formatting purposes
+    var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file:///";
+    var newLine = Path.Combine(newAbsolutePath, _workflowOptions.CrateExtractPath, newInputPath[1]);
+    return newLine;
   }
 }
