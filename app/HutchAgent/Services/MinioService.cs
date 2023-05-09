@@ -11,7 +11,7 @@ public class MinioService
   private readonly ILogger<MinioService> _logger;
   private readonly MinioOptions _options;
 
-  public MinioService(IOptions<MinioOptions> minioOptions, ILogger<MinioService> logger, IOptions<MinioOptions> options)
+  public MinioService(ILogger<MinioService> logger, IOptions<MinioOptions> options)
   {
     _logger = logger;
     _options = options.Value;
