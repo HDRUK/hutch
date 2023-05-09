@@ -1,4 +1,4 @@
-using HutchAgent.Models;
+using HutchAgent.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HutchAgent.Data;

@@ -1,4 +1,4 @@
-namespace HutchAgent.Models;
+namespace HutchAgent.Data.Entities;
 
 /// <summary>
 /// Represents a run of WfExS. Contains the path to where the RO-Crate should be unpacked, the ID of the WfExS run
