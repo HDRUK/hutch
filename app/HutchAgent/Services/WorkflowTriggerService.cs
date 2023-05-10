@@ -17,13 +17,15 @@ public class WorkflowTriggerService
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
-  private string? _workDirName = null;
   private readonly ROCrate _roCrate = new();
+  private readonly WfexsJobService _wfexsJobService;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions)
+    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions,
+    WfexsJobService wfexsJobService)
   {
     _logger = logger;
+    _wfexsJobService = wfexsJobService;
     _watchFolderOptions = watchFolderOptions.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
