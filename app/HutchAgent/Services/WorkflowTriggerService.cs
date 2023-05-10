@@ -249,7 +249,7 @@ public class WorkflowTriggerService
     // keep line whitespaces for yaml formatting purposes
     var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file://";
     var newLine = newAbsolutePath + Path.Combine(Path.GetFullPath(_workflowOptions.CrateExtractPath), newInputPath[1]);
-    _logger.LogInformation($"Created new input path {newLine}");
+    _logger.LogInformation($"Writing absolute input path {newLine}");
 
     return newLine;
   }
