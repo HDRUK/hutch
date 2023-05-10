@@ -24,7 +24,7 @@ builder.Services
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .AddScoped<WorkflowTriggerService>()
   .AddTransient<MinioService>()
-  .AddTransient<SqliteService>()
+  .AddTransient<WfexsJobService>()
   .AddHostedService<WatchFolderService>();
 
 #endregion

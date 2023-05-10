@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HutchAgent.Services;
 
-public class SqliteService
+public class WfexsJobService
 {
   private readonly HutchAgentContext _db;
 
-  public SqliteService(HutchAgentContext db)
+  public WfexsJobService(HutchAgentContext db)
   {
     _db = db;
   }
