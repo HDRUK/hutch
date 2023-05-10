@@ -177,9 +177,8 @@ public class WorkflowTriggerService
     var newInputPath = line.Split("///");
     
     // keep line whitespaces for yaml formatting purposes
-    var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file:///";
-    _logger.LogInformation($"Created new input path {newAbsolutePath}");
-    var newLine = Path.Combine(newAbsolutePath, _workflowOptions.CrateExtractPath, newInputPath[1]);
+    var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file://";
+    var newLine = newAbsolutePath + Path.Combine(Path.GetFullPath(_workflowOptions.CrateExtractPath), newInputPath[1]);
     _logger.LogInformation($"Created new input path {newLine}");
 
     return newLine;
