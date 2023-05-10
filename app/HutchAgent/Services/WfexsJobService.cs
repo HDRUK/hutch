@@ -20,9 +20,19 @@ public class WfexsJobService
   /// <returns>The created <see cref="WfexsJob"/></returns>
   public async Task<WfexsJob> Create(WfexsJob job)
   {
-    var entry = await _db.WfexsJobs.AddAsync(job);
+    var jobToAdd = new WfexsJob()
+    {
+      UnpackedPath = job.UnpackedPath,
+      RunFinished = job.RunFinished,
+      WfexsRunId = job.WfexsRunId
+    };
+    await _db.AddAsync(jobToAdd);
     await _db.SaveChangesAsync();
-    return entry.Entity;
+    return new WfexsJob()
+    {
+      Id = jobToAdd.Id, RunFinished = jobToAdd.RunFinished, UnpackedPath = jobToAdd.UnpackedPath,
+      WfexsRunId = jobToAdd.WfexsRunId
+    };
   }
 
   /// <summary>
