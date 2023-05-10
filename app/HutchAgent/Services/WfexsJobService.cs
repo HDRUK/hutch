@@ -73,8 +73,7 @@ public class WfexsJobService
   /// <exception cref="KeyNotFoundException"></exception>
   public async Task<WfexsJob> Set(WfexsJob job)
   {
-    var entity = await _db.WfexsJobs.SingleOrDefaultAsync()
-                 ?? throw new KeyNotFoundException();
+    var entity = await _db.WfexsJobs.FindAsync(job.Id) ?? throw new KeyNotFoundException();
     entity.UnpackedPath = job.UnpackedPath;
     entity.WfexsRunId = job.WfexsRunId;
     entity.RunFinished = job.RunFinished;

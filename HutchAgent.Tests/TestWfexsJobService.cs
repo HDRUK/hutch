@@ -100,7 +100,7 @@ public class TestWfexsJobService
   }
 
   [Fact]
-  public async void Get_ThrowsKeyNotFoundExceptions_WhenKeyNotFound()
+  public async void Get_Throws_KeyNotFoundExceptionWhenKeyNotFound()
   {
     // Arrange
     var objectThatShouldExist = new WfexsJob()
@@ -121,6 +121,77 @@ public class TestWfexsJobService
 
     // Act
     var action = async () => await service.Get(keyThatShouldNotExist);
+
+    // Assert
+    await Assert.ThrowsAsync<KeyNotFoundException>(action);
+  }
+
+  [Fact]
+  public async void Set_Updates_PropertiesAsSpecified()
+  {
+    // Arrange
+    var originalObject = new WfexsJob()
+    {
+      Id = 1,
+      UnpackedPath = "path/to",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = true
+    };
+
+    var newObject = new WfexsJob()
+    {
+      Id = originalObject.Id,
+      UnpackedPath = "path/to/elsewhere",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = false
+    };
+
+    var mockSet = new Mock<DbSet<WfexsJob>>();
+    mockSet.Setup(m => m.FindAsync(originalObject.Id)).Returns(ValueTask.FromResult(originalObject));
+    var mockContext = new Mock<HutchAgentContext>();
+    mockContext.Setup(m => m.WfexsJobs).Returns(mockSet.Object);
+
+    var service = new WfexsJobService(mockContext.Object);
+
+    // Act
+    var updatedObject = await service.Set(newObject);
+
+    // Assert
+    Assert.Equal(newObject.Id, updatedObject.Id);
+    Assert.Equal(newObject.UnpackedPath, updatedObject.UnpackedPath);
+    Assert.Equal(newObject.WfexsRunId, updatedObject.WfexsRunId);
+    Assert.Equal(newObject.RunFinished, updatedObject.RunFinished);
+  }
+
+  [Fact]
+  public async void Set_Throws_KeyNotFoundExceptionWhenKeyNotFound()
+  {
+    // Arrange
+    var originalObject = new WfexsJob()
+    {
+      Id = 1,
+      UnpackedPath = "path/to",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = true
+    };
+
+    var newObject = new WfexsJob()
+    {
+      Id = 2,
+      UnpackedPath = "path/to/elsewhere",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = false
+    };
+
+    var mockSet = new Mock<DbSet<WfexsJob>>();
+    mockSet.Setup(m => m.FindAsync(originalObject.Id)).Returns(ValueTask.FromResult(originalObject));
+    var mockContext = new Mock<HutchAgentContext>();
+    mockContext.Setup(m => m.WfexsJobs).Returns(mockSet.Object);
+
+    var service = new WfexsJobService(mockContext.Object);
+
+    // Act
+    var action = async () => await service.Set(newObject);
 
     // Assert
     await Assert.ThrowsAsync<KeyNotFoundException>(action);
