@@ -98,4 +98,31 @@ public class TestWfexsJobService
     // Assert
     Assert.Equal(expectedObject.Id, actualObject.Id);
   }
+
+  [Fact]
+  public async void Get_ThrowsKeyNotFoundExceptions_WhenKeyNotFound()
+  {
+    // Arrange
+    var objectThatShouldExist = new WfexsJob()
+    {
+      Id = 1,
+      UnpackedPath = "path/to",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = true
+    };
+    var keyThatShouldNotExist = 2;
+
+    var mockSet = new Mock<DbSet<WfexsJob>>();
+    mockSet.Setup(m => m.FindAsync(objectThatShouldExist.Id)).Returns(ValueTask.FromResult(objectThatShouldExist));
+    var mockContext = new Mock<HutchAgentContext>();
+    mockContext.Setup(m => m.WfexsJobs).Returns(mockSet.Object);
+
+    var service = new WfexsJobService(mockContext.Object);
+
+    // Act
+    var action = async () => await service.Get(keyThatShouldNotExist);
+
+    // Assert
+    await Assert.ThrowsAsync<KeyNotFoundException>(action);
+  }
 }
