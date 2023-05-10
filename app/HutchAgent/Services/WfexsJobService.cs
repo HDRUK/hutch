@@ -67,6 +67,12 @@ public class WfexsJobService
     return job;
   }
 
+  /// <summary>
+  /// Update a <see cref="WfexsJob"/> in the database with the 
+  /// </summary>
+  /// <param name="job"></param>
+  /// <returns></returns>
+  /// <exception cref="KeyNotFoundException"></exception>
   public async Task<WfexsJob> Set(WfexsJob job)
   {
     var entity = await _db.WfexsJobs.SingleOrDefaultAsync()
