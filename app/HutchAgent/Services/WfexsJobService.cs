@@ -88,7 +88,7 @@ public class WfexsJobService
   /// <returns></returns>
   public async Task Delete(int jobId)
   {
-    var entry = await _db.WfexsJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == jobId);
+    var entry = await _db.WfexsJobs.FindAsync(jobId) ?? throw new KeyNotFoundException();
     if (entry is null) throw new KeyNotFoundException($"No Job with ID: {jobId}");
     _db.WfexsJobs.Remove(entry);
     await _db.SaveChangesAsync();

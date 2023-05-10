@@ -196,4 +196,59 @@ public class TestWfexsJobService
     // Assert
     await Assert.ThrowsAsync<KeyNotFoundException>(action);
   }
+
+  [Fact]
+  public async void Delete_Removes_JobWithSpecifiedId()
+  {
+    // Arrange
+    var originalObject = new WfexsJob()
+    {
+      Id = 1,
+      UnpackedPath = "path/to",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = true
+    };
+
+    var mockSet = new Mock<DbSet<WfexsJob>>();
+    mockSet.Setup(m => m.FindAsync(originalObject.Id)).Returns(ValueTask.FromResult(originalObject));
+    var mockContext = new Mock<HutchAgentContext>();
+    mockContext.Setup(m => m.WfexsJobs).Returns(mockSet.Object);
+    mockContext.Setup(m => m.Remove(It.IsAny<WfexsJob>()));
+
+    var service = new WfexsJobService(mockContext.Object);
+
+    // Act
+    await service.Delete(originalObject.Id);
+
+    // Assert
+    mockContext.Verify(m => m.WfexsJobs.Remove(originalObject), Times.Once);
+  }
+
+  [Fact]
+  public async void Delete_Throws_KeyNotFoundExceptionWhenKeyNotFound()
+  {
+    // Arrange
+    var originalObject = new WfexsJob()
+    {
+      Id = 1,
+      UnpackedPath = "path/to",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = true
+    };
+
+    var mockSet = new Mock<DbSet<WfexsJob>>();
+    mockSet.Setup(m => m.FindAsync(originalObject.Id)).Returns(ValueTask.FromResult(originalObject));
+    var mockContext = new Mock<HutchAgentContext>();
+    mockContext.Setup(m => m.WfexsJobs).Returns(mockSet.Object);
+    mockContext.Setup(m => m.Remove(It.IsAny<WfexsJob>()));
+
+    var service = new WfexsJobService(mockContext.Object);
+
+    // Act
+    var action = async () => await service.Delete(2);
+
+    // Assert
+    await Assert.ThrowsAsync<KeyNotFoundException>(action);
+    mockContext.Verify(m => m.WfexsJobs.Remove(originalObject), Times.Never);
+  }
 }
