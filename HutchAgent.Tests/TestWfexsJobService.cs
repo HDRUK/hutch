@@ -161,6 +161,7 @@ public class TestWfexsJobService
     Assert.Equal(newObject.UnpackedPath, updatedObject.UnpackedPath);
     Assert.Equal(newObject.WfexsRunId, updatedObject.WfexsRunId);
     Assert.Equal(newObject.RunFinished, updatedObject.RunFinished);
+    mockContext.Verify(m => m.SaveChangesAsync(CancellationToken.None), Times.Once);
   }
 
   [Fact]
@@ -195,6 +196,7 @@ public class TestWfexsJobService
 
     // Assert
     await Assert.ThrowsAsync<KeyNotFoundException>(action);
+    mockContext.Verify(m => m.SaveChangesAsync(CancellationToken.None), Times.Never);
   }
 
   [Fact]
