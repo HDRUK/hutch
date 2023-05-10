@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
+using HutchAgent.Data.Entities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -63,22 +64,28 @@ public class WorkflowTriggerService
   /// </summary>
   /// <param name="stream"></param>
   /// <exception cref="FileNotFoundException"></exception>
-  private void UnpackCrate(Stream stream)
+  private WfexsJob UnpackCrate(Stream stream)
   {
+    var wfexsJob = new WfexsJob
+    {
+      UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
+      RunFinished = false
+    };
     using var archive = new ZipArchive(stream);
     {
       // Extract to Directory
-      archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
+      Directory.CreateDirectory(wfexsJob.UnpackedPath);
+      archive.ExtractToDirectory(wfexsJob.UnpackedPath, true);
       // Validate it is an ROCrate
-      var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
+      var file = Directory.GetFiles(wfexsJob.UnpackedPath, searchPattern: "ro-crate-metadata.json");
       if (file == null)
-        throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
+        throw new FileNotFoundException($"No metadata JSON found in directory {wfexsJob.UnpackedPath}");
       var fileJson = File.ReadAllText(file[0]);
       // Parse Crate metadata
       var crate = ParseCrate(fileJson);
       // Get mainEntity from metadata
       var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-      var mainEntityPath = Path.Combine(_workflowOptions.CrateExtractPath, mainEntity.Id);
+      var mainEntityPath = Path.Combine(wfexsJob.UnpackedPath, mainEntity.Id);
       // Check main entity is present and a stage file
       if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
                                           mainEntityPath.EndsWith(".yml")))
@@ -90,6 +97,8 @@ public class WorkflowTriggerService
         throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
       }
     }
+    // Tell the queue were the crate was extracted
+    return _wfexsJobService.Create(wfexsJob).Result;
   }
 
   /// <summary>
