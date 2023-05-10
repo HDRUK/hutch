@@ -73,4 +73,29 @@ public class TestWfexsJobService
     Assert.Equal("second/path", actualValues[1].UnpackedPath);
     Assert.Equal("third/path", actualValues[2].UnpackedPath);
   }
+
+  [Fact]
+  public async void Get_Returns_JobWithSpecifiedId()
+  {
+    // Arrange
+    var expectedObject = new WfexsJob()
+    {
+      UnpackedPath = "path/to",
+      WfexsRunId = Guid.NewGuid().ToString(),
+      RunFinished = true
+    };
+
+    var mockSet = new Mock<DbSet<WfexsJob>>();
+    mockSet.Setup(m => m.FindAsync(expectedObject.Id)).Returns(ValueTask.FromResult(expectedObject));
+    var mockContext = new Mock<HutchAgentContext>();
+    mockContext.Setup(m => m.WfexsJobs).Returns(mockSet.Object);
+
+    var service = new WfexsJobService(mockContext.Object);
+
+    // Act
+    var actualObject = await service.Get(expectedObject.Id);
+
+    // Assert
+    Assert.Equal(expectedObject.Id, actualObject.Id);
+  }
 }

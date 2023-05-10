@@ -61,20 +61,8 @@ public class WfexsJobService
   /// <returns></returns>
   public async Task<WfexsJob> Get(int jobId)
   {
-    var job = await _db.WfexsJobs
-      .AsNoTracking()
-      .Where(x => x.Id == jobId)
-      .Select(x => new WfexsJob
-        {
-          Id = x.Id,
-          UnpackedPath = x.UnpackedPath,
-          WfexsRunId = x.WfexsRunId,
-          RunFinished = x.RunFinished
-        }
-      )
-      .SingleOrDefaultAsync() ?? throw new KeyNotFoundException();
-
-    return job;
+    var job = await _db.WfexsJobs.FindAsync(jobId);
+    return job ?? throw new KeyNotFoundException();
   }
 
   /// <summary>
