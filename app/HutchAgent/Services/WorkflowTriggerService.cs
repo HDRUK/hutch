@@ -108,7 +108,9 @@ public class WorkflowTriggerService
   /// <exception cref="Exception"></exception>
   public async Task TriggerWfexs(Stream stream)
   {
-    UnpackCrate(stream);
+    // Unpack the crate and get the queued message to track the WfExS job.
+    var wfexsJob = UnpackCrate(stream);
+
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
@@ -147,25 +149,43 @@ public class WorkflowTriggerService
     }
 
     StreamReader reader = process.StandardOutput;
+    String? _wfexsRunId = null;
     while (!process.HasExited)
     {
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
-      if (runName is not null) _workDirName = runName;
+      if (runName is not null)
+      {
+        _wfexsRunId = runName;
+        wfexsJob.WfexsRunId = runName;
+      }
     }
 
     // end the process
     process.Close();
 
     // create the output RO-Crate
-    if (_workDirName is null)
+    if (_wfexsRunId is null)
     {
       _logger.LogError("Unable to get Run ID; cannot create output RO-Crate.");
       return;
     }
 
-    await _createProvCrate(_workDirName);
+    try
+    {
+      await _createProvCrate(_wfexsRunId);
+      wfexsJob.RunFinished = true;
+    }
+    catch (Exception)
+    {
+      _logger.LogError($"Could not create the results RO-Crate for run {_wfexsRunId}");
+      // Make sure the job is marked as unfinished.
+      wfexsJob.RunFinished = false;
+    }
+
+    // Update the job in the queue.
+    await _wfexsJobService.Set(wfexsJob);
   }
 
   /// <summary>
