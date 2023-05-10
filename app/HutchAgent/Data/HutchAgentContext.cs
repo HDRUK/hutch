@@ -9,5 +9,9 @@ public class HutchAgentContext : DbContext
   {
   }
 
-  public DbSet<WfexsJob> WfexsJobs => Set<WfexsJob>();
+  public HutchAgentContext()
+  {
+  }
+
+  public virtual DbSet<WfexsJob> WfexsJobs => Set<WfexsJob>();
 }
