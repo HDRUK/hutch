@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\app\HutchAgent\HutchAgent.csproj"/>
+    <ProjectReference Include="..\HutchAgent\HutchAgent.csproj"/>
   </ItemGroup>
 
 </Project>
