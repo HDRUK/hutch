@@ -66,7 +66,7 @@ public class WfexsJobService
   }
 
   /// <summary>
-  /// Update a <see cref="WfexsJob"/> in the database with the 
+  /// Update a <see cref="WfexsJob"/> in the database with the properties of the passed job.
   /// </summary>
   /// <param name="job"></param>
   /// <returns></returns>
