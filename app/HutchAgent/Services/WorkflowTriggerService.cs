@@ -92,7 +92,7 @@ public class WorkflowTriggerService
         // Catch exception if the file was already copied.
         catch (IOException copyError)
         {
-          Console.WriteLine(copyError.Message);
+          _logger.LogError(copyError.Message);
         }
         // Rewrite stage file parameter inputs to an absolute path
         // based on "crate" protocol
