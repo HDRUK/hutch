@@ -9,13 +9,15 @@ public class WatchFolderService : BackgroundService
   private readonly WatchFolderOptions _options;
   private readonly ILogger<WatchFolderService> _logger;
   private readonly MinioService _minioService;
+  private readonly WfexsJobService _wfexsJobService;
 
   public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger,
-    MinioService minioService)
+    MinioService minioService, WfexsJobService wfexsJobService)
   {
     _options = options.Value;
     _logger = logger;
     _minioService = minioService;
+    _wfexsJobService = wfexsJobService;
   }
 
   /// <summary>
