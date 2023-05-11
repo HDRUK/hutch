@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
+using HutchAgent.Data.Entities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -17,13 +18,15 @@ public class WorkflowTriggerService
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
-  private string? _workDirName = null;
   private readonly ROCrate _roCrate = new();
+  private readonly WfexsJobService _wfexsJobService;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions)
+    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions,
+    WfexsJobService wfexsJobService)
   {
     _logger = logger;
+    _wfexsJobService = wfexsJobService;
     _watchFolderOptions = watchFolderOptions.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
@@ -61,22 +64,28 @@ public class WorkflowTriggerService
   /// </summary>
   /// <param name="stream"></param>
   /// <exception cref="FileNotFoundException"></exception>
-  private void UnpackCrate(Stream stream)
+  private WfexsJob UnpackCrate(Stream stream)
   {
+    var wfexsJob = new WfexsJob
+    {
+      UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
+      RunFinished = false
+    };
     using var archive = new ZipArchive(stream);
     {
       // Extract to Directory
-      archive.ExtractToDirectory(_workflowOptions.CrateExtractPath, true);
+      Directory.CreateDirectory(wfexsJob.UnpackedPath);
+      archive.ExtractToDirectory(wfexsJob.UnpackedPath, true);
       // Validate it is an ROCrate
-      var file = Directory.GetFiles(_workflowOptions.CrateExtractPath, searchPattern: "ro-crate-metadata.json");
+      var file = Directory.GetFiles(wfexsJob.UnpackedPath, searchPattern: "ro-crate-metadata.json");
       if (file == null)
-        throw new FileNotFoundException($"No metadata JSON found in directory {_workflowOptions.CrateExtractPath}");
+        throw new FileNotFoundException($"No metadata JSON found in directory {wfexsJob.UnpackedPath}");
       var fileJson = File.ReadAllText(file[0]);
       // Parse Crate metadata
       var crate = ParseCrate(fileJson);
       // Get mainEntity from metadata
       var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-      var mainEntityPath = Path.Combine(_workflowOptions.CrateExtractPath, mainEntity.Id);
+      var mainEntityPath = Path.Combine(wfexsJob.UnpackedPath, mainEntity.Id);
       // Check main entity is present and a stage file
       if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
                                           mainEntityPath.EndsWith(".yml")))
@@ -88,6 +97,8 @@ public class WorkflowTriggerService
         throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
       }
     }
+    // Tell the queue were the crate was extracted
+    return _wfexsJobService.Create(wfexsJob).Result;
   }
 
   /// <summary>
@@ -97,7 +108,9 @@ public class WorkflowTriggerService
   /// <exception cref="Exception"></exception>
   public async Task TriggerWfexs(Stream stream)
   {
-    UnpackCrate(stream);
+    // Unpack the crate and get the queued message to track the WfExS job.
+    var wfexsJob = UnpackCrate(stream);
+
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
@@ -136,25 +149,43 @@ public class WorkflowTriggerService
     }
 
     StreamReader reader = process.StandardOutput;
+    String? _wfexsRunId = null;
     while (!process.HasExited)
     {
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
-      if (runName is not null) _workDirName = runName;
+      if (runName is not null)
+      {
+        _wfexsRunId = runName;
+        wfexsJob.WfexsRunId = runName;
+      }
     }
 
     // end the process
     process.Close();
 
     // create the output RO-Crate
-    if (_workDirName is null)
+    if (_wfexsRunId is null)
     {
       _logger.LogError("Unable to get Run ID; cannot create output RO-Crate.");
       return;
     }
 
-    await _createProvCrate(_workDirName);
+    try
+    {
+      await _createProvCrate(_wfexsRunId);
+      wfexsJob.RunFinished = true;
+    }
+    catch (Exception)
+    {
+      _logger.LogError($"Could not create the results RO-Crate for run {_wfexsRunId}");
+      // Make sure the job is marked as unfinished.
+      wfexsJob.RunFinished = false;
+    }
+
+    // Update the job in the queue.
+    await _wfexsJobService.Set(wfexsJob);
   }
 
   /// <summary>

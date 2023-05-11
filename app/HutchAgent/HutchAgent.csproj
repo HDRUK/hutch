@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\lib\ROCrates.Net\ROCrates.Net.csproj"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.4"/>
     <PackageReference Include="Minio" Version="4.0.7"/>
   </ItemGroup>
 
