@@ -75,6 +75,42 @@ public class TestWfexsJobService
   }
 
   [Fact]
+  public async void ListFinished_Returns_OnlyFinishedJobs()
+  {
+    // Arrange
+    var expectedValues = new List<WfexsJob>()
+    {
+      new() { UnpackedPath = "first/path", RunFinished = true },
+      new() { UnpackedPath = "second/path", RunFinished = false },
+      new() { UnpackedPath = "third/path", RunFinished = false }
+    }.AsQueryable();
+
+    var mockSet = new Mock<DbSet<WfexsJob>>();
+    mockSet.As<IAsyncEnumerable<WfexsJob>>()
+      .Setup(m => m.GetAsyncEnumerator(CancellationToken.None))
+      .Returns(new AsyncEnumerator<WfexsJob>(expectedValues.GetEnumerator()));
+
+    mockSet.As<IQueryable<WfexsJob>>()
+      .Setup(m => m.Provider)
+      .Returns(new AsyncQueryProvider<WfexsJob>(expectedValues.Provider));
+
+    mockSet.As<IQueryable<WfexsJob>>().Setup(m => m.Expression).Returns(expectedValues.Expression);
+    mockSet.As<IQueryable<WfexsJob>>().Setup(m => m.ElementType).Returns(expectedValues.ElementType);
+    mockSet.As<IQueryable<WfexsJob>>().Setup(m => m.GetEnumerator()).Returns(expectedValues.GetEnumerator());
+
+    var mockContext = new Mock<HutchAgentContext>();
+    mockContext.Setup(m => m.WfexsJobs).Returns(mockSet.Object);
+
+    var service = new WfexsJobService(mockContext.Object);
+
+    // Act
+    var actualValues = await service.ListFinishedJobs();
+
+    // Assert
+    Assert.Single(actualValues);
+  }
+
+  [Fact]
   public async void Get_Returns_JobWithSpecifiedId()
   {
     // Arrange
