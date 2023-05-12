@@ -1,3 +1,5 @@
+using System.IO.Compression;
+
 namespace HutchAgent.Services;
 
 /// <summary>
@@ -21,19 +23,26 @@ public class CrateMergerService
     var destinationInfo = new DirectoryInfo(mergeInto);
     if (!destinationInfo.Exists) throw new DirectoryNotFoundException($"{mergeInto} does not exist.");
 
-    // Get the parent directory of the merge destination
-    var parentInfo = destinationInfo.Parent;
-    if (parentInfo is null) throw new DirectoryNotFoundException($"Cannot get parent of {mergeInto}.");
-    var parent = parentInfo!.ToString();
-
     // Copy the result RO-Crate (`file`) into the unzipped original RO-Crate
     File.Copy(sourceZip, Path.Combine(mergeInto, Path.GetFileName(sourceZip)));
 
     // Todo: Alter the input RO-Crate ro-crate-metadata.json
+  }
 
-    // Zip the original crate, now containing the zipped result crate, and upload to S3.
-    // var fileNoExt = destinationInfo.Name;
-    // var zipFile = $"{fileNoExt}-merged.zip";
-    // ZipFile.CreateFromDirectory(mergeInto, Path.Combine(parent, zipFile));
+  /// <summary>
+  /// Zip a directory containing the contents of an RO-Crate, saving it in the directory's parent directory
+  /// with a name like "cratePath-merged.zip".
+  /// </summary>
+  /// <param name="cratePath">The path to the unzipped RO-Crate.</param>
+  /// <exception cref="DirectoryNotFoundException">
+  /// Thrown when the directory of the RO-Crate does not exists.
+  /// </exception>
+  public void ZipCrate(string cratePath)
+  {
+    var dirInfo = new DirectoryInfo(cratePath);
+    if (!dirInfo.Exists) throw new DirectoryNotFoundException($"{cratePath} does not exists.");
+    var parent = dirInfo.Parent;
+    var zipFile = $"{dirInfo.Name}-merged.zip";
+    ZipFile.CreateFromDirectory(cratePath, Path.Combine(parent!.ToString(), zipFile));
   }
 }
