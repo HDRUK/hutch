@@ -22,14 +22,13 @@ public class WorkflowTriggerService
   private readonly WfexsJobService _wfexsJobService;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions,
-    WfexsJobService wfexsJobService)
+    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions, IServiceProvider serviceProvider)
   {
     _logger = logger;
-    _wfexsJobService = wfexsJobService;
     _watchFolderOptions = watchFolderOptions.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
+    _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
   }
 
   /// <summary>

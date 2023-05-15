@@ -8,16 +8,15 @@ public class WatchFolderService : BackgroundService
 {
   private readonly WatchFolderOptions _options;
   private readonly ILogger<WatchFolderService> _logger;
-  private readonly MinioService _minioService;
-  private readonly WfexsJobService _wfexsJobService;
+  private readonly IServiceProvider _serviceProvider;
+  private MinioService? _minioService;
+  private WfexsJobService? _wfexsJobService;
 
-  public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger,
-    MinioService minioService, WfexsJobService wfexsJobService)
+  public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger, IServiceProvider serviceProvider)
   {
     _options = options.Value;
     _logger = logger;
-    _minioService = minioService;
-    _wfexsJobService = wfexsJobService;
+    _serviceProvider = serviceProvider;
   }
 
   /// <summary>
@@ -30,8 +29,11 @@ public class WatchFolderService : BackgroundService
 
     while (!stoppingToken.IsCancellationRequested)
     {
-      _watchFolder();
-
+      using (var scope = _serviceProvider.CreateScope()) {
+        _minioService = scope.ServiceProvider.GetService<MinioService>() ?? throw new InvalidOperationException();
+        _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
+        _watchFolder();
+      }
       await Task.Delay(TimeSpan.FromSeconds(_options.PollingIntervalSeconds), stoppingToken);
     }
   }
