@@ -70,7 +70,7 @@ public class CrateMergerService
       throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
 
     var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
-    var file = new ROCrates.Models.File(source: fileToAdd).Serialize();
+    var file = new ROCrates.Models.File(source: Path.GetFileName(fileToAdd)).Serialize();
     rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(file));
 
     File.WriteAllText(pathToMetadata, metadata.ToString());

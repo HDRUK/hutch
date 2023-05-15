@@ -10,14 +10,16 @@ public class WatchFolderService : BackgroundService
   private readonly ILogger<WatchFolderService> _logger;
   private readonly MinioService _minioService;
   private readonly WfexsJobService _wfexsJobService;
+  private readonly CrateMergerService _crateMergerService;
 
   public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger,
-    MinioService minioService, WfexsJobService wfexsJobService)
+    IServiceProvider serviceProvider)
   {
     _options = options.Value;
     _logger = logger;
-    _minioService = minioService;
-    _wfexsJobService = wfexsJobService;
+    _minioService = serviceProvider.GetService<MinioService>() ?? throw new InvalidOperationException();
+    _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
+    _crateMergerService = serviceProvider.GetService<CrateMergerService>() ?? throw new InvalidOperationException();
   }
 
   /// <summary>
@@ -31,6 +33,7 @@ public class WatchFolderService : BackgroundService
     while (!stoppingToken.IsCancellationRequested)
     {
       _watchFolder();
+      MergeResults();
 
       await Task.Delay(TimeSpan.FromSeconds(_options.PollingIntervalSeconds), stoppingToken);
     }
@@ -71,6 +74,37 @@ public class WatchFolderService : BackgroundService
       {
         _logger.LogError($"Unable to upload {file} to S3. An error occurred with the S3 server.");
       }
+    }
+  }
+
+  private async void MergeResults()
+  {
+    var finishedJobs = await _wfexsJobService.ListFinishedJobs();
+    foreach (var job in finishedJobs)
+    {
+      var sourceZip = Path.Combine(_options.Path, $"{job.WfexsRunId}.zip");
+      var pathToMetadata = Path.Combine(job.UnpackedPath, "ro-crate-metadata.json");
+      var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
+      var mergeDirParent = mergeDirInfo.Parent;
+      var mergedZip = Path.Combine(mergeDirParent!.ToString(), $"{mergeDirInfo.Name}-merged.zip");
+
+      if (!File.Exists(sourceZip))
+      {
+        _logger.LogError($"Could not locate {sourceZip}.");
+        continue;
+      }
+
+      _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
+      _crateMergerService.UpdateMetadata(pathToMetadata, sourceZip);
+      _crateMergerService.ZipCrate(job.UnpackedPath);
+
+      if (!await _minioService.FileExistsInBucket(Path.Combine(mergeDirParent.ToString(), mergedZip)))
+      {
+        _logger.LogError($"Could not locate merged RO-Crate {mergedZip}.");
+        continue;
+      }
+
+      await _minioService.UploadToBucket(Path.Combine(mergeDirParent.ToString(), mergedZip));
     }
   }
 }

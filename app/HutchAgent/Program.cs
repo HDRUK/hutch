@@ -25,6 +25,7 @@ builder.Services
   .AddScoped<WorkflowTriggerService>()
   .AddTransient<MinioService>()
   .AddTransient<WfexsJobService>()
+  .AddTransient<CrateMergerService>()
   .AddHostedService<WatchFolderService>();
 
 #endregion
