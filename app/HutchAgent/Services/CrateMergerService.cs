@@ -46,16 +46,22 @@ public class CrateMergerService
   }
 
   /// <summary>
-  /// Update the metadata of a 
+  /// Update the target metadata file in an RO-Crate.
   /// </summary>
-  /// <param name="pathToMetadata"></param>
-  /// <param name="fileToAdd"></param>
-  /// <exception cref="FileNotFoundException"></exception>
-  /// <exception cref="InvalidDataException"></exception>
+  /// <param name="pathToMetadata">The path to the metadata file that needs updating.</param>
+  /// <param name="fileToAdd">The path of the file to add to the metadata.</param>
+  /// <exception cref="FileNotFoundException">
+  /// Metadata file and/or file to be added to the metadata could not be found.
+  /// </exception>
+  /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
   public void UpdateMetadata(string pathToMetadata, string fileToAdd)
   {
     if (!File.Exists(pathToMetadata))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
+
+    if (!File.Exists(fileToAdd))
+      throw new FileNotFoundException("Could not locate the file to add to the metadata.");
+
     var metadataJson = File.ReadAllText(pathToMetadata);
     var metadata = JsonNode.Parse(metadataJson);
     if (metadata is null) throw new InvalidDataException($"{pathToMetadata} is not a valid JSON file.");
@@ -64,7 +70,6 @@ public class CrateMergerService
       throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
 
     var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
-    var rootDatasetPath = rootDatasetProperties.GetPath();
     var file = new ROCrates.Models.File(source: fileToAdd).Serialize();
     rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(file));
 
