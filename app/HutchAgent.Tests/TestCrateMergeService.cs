@@ -1,4 +1,7 @@
 using HutchAgent.Services;
+using ROCrates;
+using ROCrates.Models;
+using File = System.IO.File;
 
 namespace HutchAgent.Tests;
 
@@ -82,5 +85,51 @@ public class TestCrateMergeService
 
     // Assert
     Assert.Throws<DirectoryNotFoundException>(action);
+  }
+
+  [Fact]
+  public void UpdateMetadata_Throws_WhenSourceNonExistent()
+  {
+    // Arrange
+    var pathToMetadata = "non/existent/ro-crate-metadata.json";
+    var filToAdd = "my-file.txt";
+    var service = new CrateMergerService();
+
+    // Act
+    var action = () => service.UpdateMetadata(pathToMetadata, filToAdd);
+
+    // Assert
+    Assert.Throws<FileNotFoundException>(action);
+  }
+
+  [Fact]
+  public void UpdateMetadata_Adds_MergedEntity()
+  {
+    // Arrange
+    var crate = new ROCrate();
+    var rootDataset = new RootDataset(crate: crate);
+    var dataset = new Dataset(crate: crate, source: "some-source");
+    crate.Add(rootDataset, dataset);
+    crate.Metadata.Write("./");
+
+
+    var fileToAdd = new FileInfo("fileToAdd.zip");
+    var fileObject = new ROCrates.Models.File(crate: crate, source: fileToAdd.Name);
+    fileToAdd.Create().Close();
+    crate.Add(fileObject);
+
+    var service = new CrateMergerService();
+
+    // Act
+    service.UpdateMetadata(crate.Metadata.Id, fileToAdd.Name);
+    var output = File.ReadAllText(crate.Metadata.Id);
+    var pattern = "\"@id\": " + "\"" + $"{fileToAdd.Name}" + "\"";
+
+    // Assert
+    Assert.Contains(pattern, output);
+
+    // Clean up
+    if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
+    if (fileToAdd.Exists) fileToAdd.Delete();
   }
 }

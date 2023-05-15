@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Text.Json.Nodes;
 
 namespace HutchAgent.Services;
 
@@ -25,8 +26,6 @@ public class CrateMergerService
 
     // Copy the result RO-Crate (`file`) into the unzipped original RO-Crate
     File.Copy(sourceZip, Path.Combine(mergeInto, Path.GetFileName(sourceZip)));
-
-    // Todo: Alter the input RO-Crate ro-crate-metadata.json
   }
 
   /// <summary>
@@ -44,5 +43,31 @@ public class CrateMergerService
     var parent = dirInfo.Parent;
     var zipFile = $"{dirInfo.Name}-merged.zip";
     ZipFile.CreateFromDirectory(cratePath, Path.Combine(parent!.ToString(), zipFile));
+  }
+
+  /// <summary>
+  /// Update the metadata of a 
+  /// </summary>
+  /// <param name="pathToMetadata"></param>
+  /// <param name="fileToAdd"></param>
+  /// <exception cref="FileNotFoundException"></exception>
+  /// <exception cref="InvalidDataException"></exception>
+  public void UpdateMetadata(string pathToMetadata, string fileToAdd)
+  {
+    if (!File.Exists(pathToMetadata))
+      throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
+    var metadataJson = File.ReadAllText(pathToMetadata);
+    var metadata = JsonNode.Parse(metadataJson);
+    if (metadata is null) throw new InvalidDataException($"{pathToMetadata} is not a valid JSON file.");
+
+    if (!metadata.AsObject().TryGetPropertyValue("@graph", out var graph))
+      throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
+
+    var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
+    var rootDatasetPath = rootDatasetProperties.GetPath();
+    var file = new ROCrates.Models.File(source: fileToAdd).Serialize();
+    rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(file));
+
+    File.WriteAllText(pathToMetadata, metadata.ToString());
   }
 }
