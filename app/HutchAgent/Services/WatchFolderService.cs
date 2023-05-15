@@ -11,15 +11,16 @@ public class WatchFolderService : BackgroundService
   private readonly MinioService _minioService;
   private readonly WfexsJobService _wfexsJobService;
   private readonly CrateMergerService _crateMergerService;
+  private readonly IServiceProvider _serviceProvider;
 
-  public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger,
-    IServiceProvider serviceProvider)
+  public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger, IServiceProvider serviceProvider)
   {
     _options = options.Value;
     _logger = logger;
     _minioService = serviceProvider.GetService<MinioService>() ?? throw new InvalidOperationException();
     _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
     _crateMergerService = serviceProvider.GetService<CrateMergerService>() ?? throw new InvalidOperationException();
+    _serviceProvider = serviceProvider;
   }
 
   /// <summary>
@@ -32,8 +33,12 @@ public class WatchFolderService : BackgroundService
 
     while (!stoppingToken.IsCancellationRequested)
     {
-      _watchFolder();
-      MergeResults();
+      using (var scope = _serviceProvider.CreateScope()) {
+        _minioService = scope.ServiceProvider.GetService<MinioService>() ?? throw new InvalidOperationException();
+        _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
+        _watchFolder();
+        MergeResults();
+      }
 
       await Task.Delay(TimeSpan.FromSeconds(_options.PollingIntervalSeconds), stoppingToken);
     }
