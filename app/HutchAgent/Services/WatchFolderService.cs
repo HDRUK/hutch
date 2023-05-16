@@ -37,7 +37,7 @@ public class WatchFolderService : BackgroundService
         _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
         _crateMergerService = scope.ServiceProvider.GetService<CrateMergerService>() ??
                               throw new InvalidOperationException();
-        _watchFolder();
+        WatchFolder();
         MergeResults();
       }
 
@@ -56,11 +56,11 @@ public class WatchFolderService : BackgroundService
     await base.StopAsync(stoppingToken);
   }
 
-  private async void _watchFolder()
+  private async void WatchFolder()
   {
     foreach (var file in Directory.EnumerateFiles(_options.Path))
     {
-      if (await _minioService.FileExistsInBucket(Path.GetFileName(file)))
+      if (await _minioService.ResultExists(Path.GetFileName(file)))
       {
         _logger.LogInformation($"{Path.GetFileName(file)} already exists in S3.");
         continue;
@@ -69,7 +69,7 @@ public class WatchFolderService : BackgroundService
       try
       {
         _logger.LogInformation($"Attempting to upload {file} to S3.");
-        await _minioService.UploadToBucket(file);
+        await _minioService.WriteToStore(file);
         _logger.LogInformation($"Successfully uploaded {file} to S3.");
       }
       catch (BucketNotFoundException e)
@@ -104,13 +104,13 @@ public class WatchFolderService : BackgroundService
       _crateMergerService.UpdateMetadata(pathToMetadata, sourceZip);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
-      if (!await _minioService.FileExistsInBucket(Path.Combine(mergeDirParent.ToString(), mergedZip)))
+      if (!await _minioService.ResultExists(Path.Combine(mergeDirParent.ToString(), mergedZip)))
       {
         _logger.LogError($"Could not locate merged RO-Crate {mergedZip}.");
         continue;
       }
 
-      await _minioService.UploadToBucket(Path.Combine(mergeDirParent.ToString(), mergedZip));
+      await _minioService.WriteToStore(Path.Combine(mergeDirParent.ToString(), mergedZip));
     }
   }
 }
