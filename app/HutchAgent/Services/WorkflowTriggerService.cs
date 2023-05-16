@@ -91,7 +91,7 @@ public class WorkflowTriggerService
         _logger.LogInformation($"main Entity is a Wfexs stage file and can be found at {mainEntityPath}");
         _workflowOptions.StageFilePath = mainEntityPath;
         // Create a copy of the wfexs stage file
-        var copyFilePath = Path.Combine(_workflowOptions.CrateExtractPath, "copy_" + mainEntity.Id);
+        var copyFilePath = Path.Combine(wfexsJob.UnpackedPath, "copy_" + mainEntity.Id);
         try
         {
           File.Copy(mainEntityPath,copyFilePath, true);
@@ -113,7 +113,7 @@ public class WorkflowTriggerService
             if (line.Trim().StartsWith("- crate"))
             {
               _logger.LogInformation($"Found line matching crate protocol {line}");
-              stageFileWriter.WriteLine(_rewritePath(line));
+              stageFileWriter.WriteLine(RewritePath(line));
             }
             else
             {
@@ -271,7 +271,7 @@ public class WorkflowTriggerService
     process.Close();
   }
 
-  private string _rewritePath(string? line)
+  private string RewritePath(string? line)
   {
     var newInputPath = line.Split("///");
     
