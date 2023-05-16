@@ -54,6 +54,11 @@ public class WfexsJobService
     return list;
   }
 
+  public async Task<List<WfexsJob>> ListFinishedJobs()
+  {
+    return await _db.WfexsJobs.AsNoTracking().Where(x => x.RunFinished).ToListAsync();
+  }
+
   /// <summary>
   /// Get a <see cref="WfexsJob"/> with the given ID from the database.
   /// </summary>
