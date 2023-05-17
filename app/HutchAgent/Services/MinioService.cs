@@ -25,11 +25,10 @@ public class MinioService : IResultsStoreWriterAsync
   /// <summary>
   /// Check if a given S3 bucket exists.
   /// </summary>
-  /// <param name="location">The name of the S3 bucket.</param>
   /// <returns><c>true</c> if the bucket exists, else <c>false</c>.</returns>
-  public async Task<bool> StoreExists(string location)
+  public async Task<bool> StoreExists()
   {
-    var args = new BucketExistsArgs().WithBucket(location);
+    var args = new BucketExistsArgs().WithBucket(_options.BucketName);
     return await _minioClient.BucketExistsAsync(args);
   }
 
@@ -42,12 +41,12 @@ public class MinioService : IResultsStoreWriterAsync
   /// <exception cref="FileNotFoundException">Thrown when the file to be uploaded does not exist.</exception>
   public async Task WriteToStore(string resultPath)
   {
-    var exists = await StoreExists(_options.BucketName);
-    if (!exists) throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
+    if (!await StoreExists())
+      throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
 
     if (!File.Exists(resultPath)) throw new FileNotFoundException();
 
-    var objectName = System.IO.Path.GetFileName(resultPath);
+    var objectName = Path.GetFileName(resultPath);
     var putObjectArgs = new PutObjectArgs()
       .WithBucket(_options.BucketName)
       .WithFileName(resultPath)
@@ -66,7 +65,7 @@ public class MinioService : IResultsStoreWriterAsync
   /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
   public async Task<bool> ResultExists(string resultPath)
   {
-    if (!await StoreExists(_options.BucketName))
+    if (!await StoreExists())
       throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
 
     var statObjectArgs = new StatObjectArgs()

@@ -2,7 +2,7 @@ namespace HutchAgent.Services;
 
 public interface IResultsStoreWriterAsync
 {
-  public Task<bool> StoreExists(string location);
+  public Task<bool> StoreExists();
 
   public Task WriteToStore(string resultPath);
 
