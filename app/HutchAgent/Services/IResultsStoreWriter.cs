@@ -2,7 +2,7 @@ namespace HutchAgent.Services;
 
 public interface IResultsStoreWriter
 {
-  public bool StoreExists(string location);
+  public bool StoreExists();
 
   public void WriteToStore(string resultPath);
 
