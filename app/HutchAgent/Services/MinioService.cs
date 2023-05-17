@@ -5,7 +5,7 @@ using Minio.Exceptions;
 
 namespace HutchAgent.Services;
 
-public class MinioService : IResultsStoreWriterAsync
+public class MinioService : IResultsStoreWriter
 {
   private readonly MinioClient _minioClient;
   private readonly ILogger<MinioService> _logger;

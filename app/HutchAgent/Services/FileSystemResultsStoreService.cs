@@ -19,9 +19,9 @@ public class FileSystemResultsStoreService : IResultsStoreWriter
   /// Check if the location of the store folder exists on disk.
   /// </summary>
   /// <returns><c>true</c>if the store location exists, else <c>false</c>.</returns>
-  public bool StoreExists()
+  public Task<bool> StoreExists()
   {
-    return Directory.Exists(_options.Path);
+    return Task.FromResult(Directory.Exists(_options.Path));
   }
 
   /// <summary>
@@ -30,9 +30,9 @@ public class FileSystemResultsStoreService : IResultsStoreWriter
   /// <param name="resultPath">The path to the result file to be written to the store.</param>
   /// <exception cref="DirectoryNotFoundException">The results store does not exists.</exception>
   /// <exception cref="FileNotFoundException">The file to write to the store does not exist.</exception>
-  public void WriteToStore(string resultPath)
+  public Task WriteToStore(string resultPath)
   {
-    if (!StoreExists()) throw new DirectoryNotFoundException($"No such bucket: {_options.Path}");
+    if (!StoreExists().Result) throw new DirectoryNotFoundException($"No such bucket: {_options.Path}");
 
     if (!File.Exists(resultPath)) throw new FileNotFoundException();
 
@@ -42,6 +42,7 @@ public class FileSystemResultsStoreService : IResultsStoreWriter
       Path.Combine(_options.Path, Path.GetFileName(resultPath))
     );
     _logger.LogInformation($"Successfully uploaded {resultPath} to {_options.Path}.");
+    return Task.CompletedTask;
   }
 
   /// <summary>
@@ -49,9 +50,9 @@ public class FileSystemResultsStoreService : IResultsStoreWriter
   /// </summary>
   /// <param name="resultPath"></param>
   /// <returns><c>true</c>if the item exists in the results store, else <c>false</c>.</returns>
-  public bool ResultExists(string resultPath)
+  public Task<bool> ResultExists(string resultPath)
   {
     var result = Path.GetFileName(resultPath);
-    return File.Exists(Path.Combine(_options.Path, result));
+    return Task.FromResult(File.Exists(Path.Combine(_options.Path, result)));
   }
 }
