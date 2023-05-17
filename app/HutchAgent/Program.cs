@@ -1,5 +1,6 @@
 using HutchAgent.Config;
 using HutchAgent.Data;
+using HutchAgent.Extensions;
 using HutchAgent.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,7 @@ builder.Services
   .Configure<WatchFolderOptions>(builder.Configuration.GetSection("WatchFolder"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .AddScoped<WorkflowTriggerService>()
-  .AddTransient<MinioService>()
+  .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
   .AddTransient<CrateMergerService>()
   .AddHostedService<WatchFolderService>();
