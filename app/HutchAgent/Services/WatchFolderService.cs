@@ -8,7 +8,7 @@ public class WatchFolderService : BackgroundService
 {
   private readonly WatchFolderOptions _options;
   private readonly ILogger<WatchFolderService> _logger;
-  private MinioService? _minioService;
+  private IResultsStoreWriter? _resultsStoreWriter;
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
@@ -33,11 +33,12 @@ public class WatchFolderService : BackgroundService
     {
       using (var scope = _serviceProvider.CreateScope())
       {
-        _minioService = scope.ServiceProvider.GetService<MinioService>() ?? throw new InvalidOperationException();
+        _resultsStoreWriter = scope.ServiceProvider.GetService<IResultsStoreWriter>() ??
+                              throw new InvalidOperationException();
         _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
         _crateMergerService = scope.ServiceProvider.GetService<CrateMergerService>() ??
                               throw new InvalidOperationException();
-        _watchFolder();
+        WatchFolder();
         MergeResults();
       }
 
@@ -56,11 +57,11 @@ public class WatchFolderService : BackgroundService
     await base.StopAsync(stoppingToken);
   }
 
-  private async void _watchFolder()
+  private async void WatchFolder()
   {
     foreach (var file in Directory.EnumerateFiles(_options.Path))
     {
-      if (await _minioService.FileExistsInBucket(Path.GetFileName(file)))
+      if (await _resultsStoreWriter.ResultExists(Path.GetFileName(file)))
       {
         _logger.LogInformation($"{Path.GetFileName(file)} already exists in S3.");
         continue;
@@ -69,7 +70,7 @@ public class WatchFolderService : BackgroundService
       try
       {
         _logger.LogInformation($"Attempting to upload {file} to S3.");
-        await _minioService.UploadToBucket(file);
+        await _resultsStoreWriter.WriteToStore(file);
         _logger.LogInformation($"Successfully uploaded {file} to S3.");
       }
       catch (BucketNotFoundException e)
@@ -104,13 +105,13 @@ public class WatchFolderService : BackgroundService
       _crateMergerService.UpdateMetadata(pathToMetadata, sourceZip);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
-      if (!await _minioService.FileExistsInBucket(Path.Combine(mergeDirParent.ToString(), mergedZip)))
+      if (!await _resultsStoreWriter.ResultExists(Path.Combine(mergeDirParent.ToString(), mergedZip)))
       {
         _logger.LogError($"Could not locate merged RO-Crate {mergedZip}.");
         continue;
       }
 
-      await _minioService.UploadToBucket(Path.Combine(mergeDirParent.ToString(), mergedZip));
+      await _resultsStoreWriter.WriteToStore(Path.Combine(mergeDirParent.ToString(), mergedZip));
     }
   }
 }
