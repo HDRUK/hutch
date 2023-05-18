@@ -43,7 +43,6 @@ public class WorkflowTriggerService
       // get metadata from manifest
       var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
       metadataProperties.TryGetPropertyValue("@graph", out var graph);
-
       // get RootDataset Properties and add them to an ROCrates object
       var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
       var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
@@ -89,7 +88,41 @@ public class WorkflowTriggerService
       if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
                                           mainEntityPath.EndsWith(".yml")))
       {
+        _logger.LogInformation($"main Entity is a Wfexs stage file and can be found at {mainEntityPath}");
         _workflowOptions.StageFilePath = mainEntityPath;
+        // Create a copy of the wfexs stage file
+        var copyFilePath = Path.Combine(wfexsJob.UnpackedPath, "copy_" + mainEntity.Id);
+        try
+        {
+          File.Copy(mainEntityPath,copyFilePath, true);
+        }
+        // Catch exception if the file was already copied.
+        catch (IOException copyError)
+        {
+          _logger.LogError(copyError.Message);
+        }
+        // Rewrite stage file parameter inputs to an absolute path
+        // based on "crate" protocol
+        using (var stageFileWriter = new StreamWriter(mainEntityPath))
+        using (var stageFileReader = new StreamReader(copyFilePath))
+        {
+          string? line;
+          while ((line = stageFileReader.ReadLine()) != null)
+          {
+            
+            if (line.Trim().StartsWith("- crate"))
+            {
+              _logger.LogInformation($"Found line matching crate protocol {line}");
+              stageFileWriter.WriteLine(RewritePath(wfexsJob,line));
+            }
+            else
+            {
+              stageFileWriter.WriteLine(line);
+            }
+            
+          }
+        }
+
       }
       else
       {
@@ -238,6 +271,17 @@ public class WorkflowTriggerService
     process.Close();
   }
 
+  private string RewritePath(WfexsJob wfexsJob,string? line)
+  {
+    var newInputPath = line.Split("///");
+    
+    // keep line whitespaces for yaml formatting purposes
+    var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file://";
+    var newLine = newAbsolutePath + Path.Combine(Path.GetFullPath(wfexsJob.UnpackedPath), newInputPath[1]);
+    _logger.LogInformation($"Writing absolute input path {newLine}");
+
+    return newLine;
+  }
   private string? _findRunName(string text)
   {
     var pattern =
