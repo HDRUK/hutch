@@ -1,19 +1,20 @@
 using HutchAgent.Config;
+using HutchAgent.Services;
 using Microsoft.Extensions.Options;
 using Minio.Exceptions;
 
-namespace HutchAgent.Services;
+namespace HutchAgent.HostedServices;
 
-public class WatchFolderService : BackgroundService
+public class WatchFolderHostedService : BackgroundService
 {
   private readonly WatchFolderOptions _options;
-  private readonly ILogger<WatchFolderService> _logger;
+  private readonly ILogger<WatchFolderHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
 
-  public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger,
+  public WatchFolderHostedService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderHostedService> logger,
     IServiceProvider serviceProvider)
   {
     _options = options.Value;
