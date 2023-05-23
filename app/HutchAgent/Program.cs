@@ -36,4 +36,15 @@ var app = builder.Build();
 app.UseRouting();
 app.MapControllers();
 
+#region Automatic Migrations
+
+using (var scope = app.Services.CreateScope())
+{
+  var dbContext = scope.ServiceProvider.GetRequiredService<HutchAgentContext>();
+
+  dbContext.Database.Migrate();
+}
+
+#endregion
+
 app.Run();
