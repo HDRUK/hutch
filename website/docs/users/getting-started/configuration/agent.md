@@ -37,6 +37,12 @@ The agent can be configured via its `appsettings*.json` files or .NET user secre
   // Watch Folder configuration
   "WatchFolder": {
     "Path": "/Users/daniel/Desktop/TestMinioUpload/"
+  },
+
+  // Connection strings for different services
+  "ConnectionStrings": {
+    // The database tracking the jobs in the agent
+    "AgentDb": "Data Source=HutchAgent.db"
   }
 }
 ```
