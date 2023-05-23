@@ -1,6 +1,7 @@
 using HutchAgent.Config;
 using HutchAgent.Data;
 using HutchAgent.Extensions;
+using HutchAgent.HostedServices;
 using HutchAgent.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,7 +28,7 @@ builder.Services
   .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
   .AddTransient<CrateMergerService>()
-  .AddHostedService<WatchFolderService>();
+  .AddHostedService<WatchFolderHostedService>();
 
 #endregion
 

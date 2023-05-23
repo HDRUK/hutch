@@ -1,19 +1,20 @@
 using HutchAgent.Config;
+using HutchAgent.Services;
 using Microsoft.Extensions.Options;
 using Minio.Exceptions;
 
-namespace HutchAgent.Services;
+namespace HutchAgent.HostedServices;
 
-public class WatchFolderService : BackgroundService
+public class WatchFolderHostedService : BackgroundService
 {
   private readonly WatchFolderOptions _options;
-  private readonly ILogger<WatchFolderService> _logger;
+  private readonly ILogger<WatchFolderHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
 
-  public WatchFolderService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderService> logger,
+  public WatchFolderHostedService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderHostedService> logger,
     IServiceProvider serviceProvider)
   {
     _options = options.Value;
@@ -59,27 +60,30 @@ public class WatchFolderService : BackgroundService
 
   private async void WatchFolder()
   {
-    foreach (var file in Directory.EnumerateFiles(_options.Path))
+    var finishedJobs = await _wfexsJobService.ListFinishedJobs();
+    foreach (var job in finishedJobs)
     {
-      if (await _resultsStoreWriter.ResultExists(Path.GetFileName(file)))
+      var pathToUpload = Path.Combine(_options.Path, $"{job.WfexsRunId}.zip");
+
+      if (await _resultsStoreWriter.ResultExists(Path.GetFileName(pathToUpload)))
       {
-        _logger.LogInformation($"{Path.GetFileName(file)} already exists in S3.");
+        _logger.LogInformation($"{Path.GetFileName(pathToUpload)} already exists in S3.");
         continue;
       }
 
       try
       {
-        _logger.LogInformation($"Attempting to upload {file} to S3.");
-        await _resultsStoreWriter.WriteToStore(file);
-        _logger.LogInformation($"Successfully uploaded {file} to S3.");
+        _logger.LogInformation($"Attempting to upload {pathToUpload} to S3.");
+        await _resultsStoreWriter.WriteToStore(pathToUpload);
+        _logger.LogInformation($"Successfully uploaded {pathToUpload}.zip to S3.");
       }
-      catch (BucketNotFoundException e)
+      catch (BucketNotFoundException)
       {
-        _logger.LogCritical($"Unable to upload {file} to S3. The configured bucket does not exist.");
+        _logger.LogCritical($"Unable to upload {pathToUpload} to S3. The configured bucket does not exist.");
       }
-      catch (MinioException e)
+      catch (MinioException)
       {
-        _logger.LogError($"Unable to upload {file} to S3. An error occurred with the S3 server.");
+        _logger.LogError($"Unable to upload {pathToUpload} to S3. An error occurred with the S3 server.");
       }
     }
   }
