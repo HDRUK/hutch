@@ -289,7 +289,10 @@ public class ROCrate
   /// <summary>
   /// Save the RO-Crate to disk. 
   /// </summary>
-  /// <param name="location"></param>
+  /// <param name="location">
+  /// The directory where the data entities will be written. This will become a .zip file with the name
+  /// {location}.zip if <c>zip</c> is <c>true</c>.
+  /// </param>
   /// <param name="zip">
   /// If <c>true</c>, save the RO-Crate as a .zip file, else save to a directory. Default: <c>false</c>
   /// </param>
