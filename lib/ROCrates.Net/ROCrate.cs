@@ -296,11 +296,15 @@ public class ROCrate
   public void Save(string? location = null, bool zip = false)
   {
     var saveLocation = location ?? Directory.GetCurrentDirectory();
+    if (!Directory.Exists(saveLocation)) Directory.CreateDirectory(saveLocation);
+
     foreach (var entity in _dataEntities)
     {
       entity.Write(saveLocation);
     }
 
-    if (zip) ZipFile.CreateFromDirectory(saveLocation, $"{saveLocation}.zip");
+    if (!zip) return;
+    ZipFile.CreateFromDirectory(saveLocation, $"{saveLocation}.zip");
+    Directory.Delete(saveLocation, recursive: true);
   }
 }
