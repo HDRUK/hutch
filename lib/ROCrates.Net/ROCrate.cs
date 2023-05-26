@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.IO.Compression;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using ROCrates.Models;
 using File = ROCrates.Models.File;
@@ -72,7 +73,7 @@ public class ROCrate
   /// roCrate.Add(textFile, imageFile, person);
   /// </code>
   /// </example>
-  /// <param name="entities">The entities to add the the <c>ROCrate</c>.</param>
+  /// <param name="entities">The entities to add the RO-Crate.</param>
   public void Add(params Entity[] entities)
   {
     foreach (var entity in entities)
@@ -87,16 +88,19 @@ public class ROCrate
       else if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
+        _dataEntities.Add(entity as Metadata);
       }
 
       else if (entityType == typeof(Preview))
       {
         Preview = entity as Preview;
+        _dataEntities.Add(entity as Preview);
       }
 
       else if (entityType.IsSubclassOf(typeof(DataEntity)))
       {
         if (!Entities.ContainsKey(key)) RootDataset.AppendTo("hasPart", entity);
+        _dataEntities.Add(entity as DataEntity);
       }
 
       Entities.Add(key, entity);
@@ -280,5 +284,30 @@ public class ROCrate
     Metadata.ExtraTerms = JsonSerializer.SerializeToNode(new TestingExtraTerms()).AsObject();
     Add(testInstance);
     return testInstance;
+  }
+
+  /// <summary>
+  /// Save the RO-Crate to disk. 
+  /// </summary>
+  /// <param name="location">
+  /// The directory where the data entities will be written. This will become a .zip file with the name
+  /// {location}.zip if <c>zip</c> is <c>true</c>.
+  /// </param>
+  /// <param name="zip">
+  /// If <c>true</c>, save the RO-Crate as a .zip file, else save to a directory. Default: <c>false</c>
+  /// </param>
+  public void Save(string? location = null, bool zip = false)
+  {
+    var saveLocation = location ?? Directory.GetCurrentDirectory();
+    if (!Directory.Exists(saveLocation)) Directory.CreateDirectory(saveLocation);
+
+    foreach (var entity in _dataEntities)
+    {
+      entity.Write(saveLocation);
+    }
+
+    if (!zip) return;
+    ZipFile.CreateFromDirectory(saveLocation, $"{saveLocation}.zip");
+    Directory.Delete(saveLocation, recursive: true);
   }
 }
