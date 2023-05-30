@@ -195,25 +195,6 @@ public class WorkflowTriggerService
     // end the process
     process.Close();
 
-    // create the output RO-Crate
-    if (_wfexsRunId is null)
-    {
-      _logger.LogError("Unable to get Run ID; cannot create output RO-Crate.");
-      return;
-    }
-
-    try
-    {
-      await _createProvCrate(_wfexsRunId);
-      wfexsJob.RunFinished = true;
-    }
-    catch (Exception)
-    {
-      _logger.LogError($"Could not create the results RO-Crate for run {_wfexsRunId}");
-      // Make sure the job is marked as unfinished.
-      wfexsJob.RunFinished = false;
-    }
-
     // Update the job in the queue.
     await _wfexsJobService.Set(wfexsJob);
   }
