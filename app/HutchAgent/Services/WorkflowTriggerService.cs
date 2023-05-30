@@ -179,18 +179,17 @@ public class WorkflowTriggerService
       streamWriter.Close();
     }
 
-    StreamReader reader = process.StandardOutput;
-    String? _wfexsRunId = null;
-    while (!process.HasExited)
+    // Read the stdout of the WfExS run to get the run ID
+    var reader = process.StandardOutput;
+    string? _wfexsRunId = null;
+    while (!process.HasExited && _wfexsRunId is null)
     {
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
-      if (runName is not null)
-      {
-        _wfexsRunId = runName;
-        wfexsJob.WfexsRunId = runName;
-      }
+      if (runName is null) continue;
+      _wfexsRunId = runName;
+      wfexsJob.WfexsRunId = runName;
     }
 
     // end the process
