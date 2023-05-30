@@ -165,6 +165,9 @@ public class WorkflowTriggerService
     if (process == null)
       throw new Exception("Could not start process");
 
+    // Get process PID
+    wfexsJob.Pid = process.Id;
+
     await using var streamWriter = process.StandardInput;
     if (streamWriter.BaseStream.CanWrite)
     {
