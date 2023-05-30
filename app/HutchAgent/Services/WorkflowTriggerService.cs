@@ -22,7 +22,8 @@ public class WorkflowTriggerService
   private readonly WfexsJobService _wfexsJobService;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions, IServiceProvider serviceProvider)
+    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions,
+    IServiceProvider serviceProvider)
   {
     _logger = logger;
     _watchFolderOptions = watchFolderOptions.Value;
@@ -94,13 +95,14 @@ public class WorkflowTriggerService
         var copyFilePath = Path.Combine(wfexsJob.UnpackedPath, "copy_" + mainEntity.Id);
         try
         {
-          File.Copy(mainEntityPath,copyFilePath, true);
+          File.Copy(mainEntityPath, copyFilePath, true);
         }
         // Catch exception if the file was already copied.
         catch (IOException copyError)
         {
           _logger.LogError(copyError.Message);
         }
+
         // Rewrite stage file parameter inputs to an absolute path
         // based on "crate" protocol
         using (var stageFileWriter = new StreamWriter(mainEntityPath))
@@ -109,20 +111,17 @@ public class WorkflowTriggerService
           string? line;
           while ((line = stageFileReader.ReadLine()) != null)
           {
-            
             if (line.Trim().StartsWith("- crate"))
             {
               _logger.LogInformation($"Found line matching crate protocol {line}");
-              stageFileWriter.WriteLine(RewritePath(wfexsJob,line));
+              stageFileWriter.WriteLine(RewritePath(wfexsJob, line));
             }
             else
             {
               stageFileWriter.WriteLine(line);
             }
-            
           }
         }
-
       }
       else
       {
@@ -220,61 +219,10 @@ public class WorkflowTriggerService
     await _wfexsJobService.Set(wfexsJob);
   }
 
-  /// <summary>
-  /// Command WfExS to build the RO-Crate of the workflow.
-  /// </summary>
-  /// <param name="runId">The UUID of the run for which to output the RO-Crate.</param>
-  /// <exception cref="Exception"></exception>
-  private async Task _createProvCrate(string runId)
-  {
-    var outputCrateName = Path.Combine(_watchFolderOptions.Path, $"{runId}.zip");
-    var command = $@"./WfExS-backend.py \
-  -L {_workflowOptions.LocalConfigPath} \
-  staged-workdir create-prov-crate {runId} {outputCrateName} \
-  --full";
-
-    var processStartInfo = new ProcessStartInfo
-    {
-      RedirectStandardOutput = false,
-      RedirectStandardInput = true,
-      RedirectStandardError = false,
-      UseShellExecute = false,
-      CreateNoWindow = true,
-      FileName = _bashCmd,
-      WorkingDirectory = _workflowOptions.ExecutorPath
-    };
-
-    // start process
-    var process = Process.Start(processStartInfo);
-    if (process == null)
-      throw new Exception("Could not start process");
-
-    await using var streamWriter = process.StandardInput;
-    if (streamWriter.BaseStream.CanWrite)
-    {
-      // activate python virtual environment
-      await streamWriter.WriteLineAsync(_activateVenv);
-      // execute command to build RO-Crate
-      await streamWriter.WriteLineAsync(command);
-
-      await streamWriter.FlushAsync();
-      streamWriter.Close();
-    }
-
-    // Wait for the process to exit
-    while (!process.HasExited)
-    {
-      await Task.Delay(TimeSpan.FromSeconds(1));
-    }
-
-    // end the process
-    process.Close();
-  }
-
-  private string RewritePath(WfexsJob wfexsJob,string? line)
+  private string RewritePath(WfexsJob wfexsJob, string? line)
   {
     var newInputPath = line.Split("///");
-    
+
     // keep line whitespaces for yaml formatting purposes
     var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file://";
     var newLine = newAbsolutePath + Path.Combine(Path.GetFullPath(wfexsJob.UnpackedPath), newInputPath[1]);
@@ -282,6 +230,7 @@ public class WorkflowTriggerService
 
     return newLine;
   }
+
   private string? _findRunName(string text)
   {
     var pattern =
