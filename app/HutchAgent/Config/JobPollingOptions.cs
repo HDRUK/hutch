@@ -1,7 +1,6 @@
 namespace HutchAgent.Config;
 
-public class WatchFolderOptions
+public class JobPollingOptions
 {
-  public string Path { get; set; } = string.Empty;
   public int PollingIntervalSeconds { get; set; } = 5;
 }
