@@ -28,7 +28,7 @@ builder.Services
   .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
   .AddTransient<CrateMergerService>()
-  .AddHostedService<WatchFolderHostedService>();
+  .AddHostedService<JobPollingHostedService>();
 
 #endregion
 

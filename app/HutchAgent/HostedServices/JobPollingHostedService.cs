@@ -6,18 +6,18 @@ using Minio.Exceptions;
 
 namespace HutchAgent.HostedServices;
 
-public class WatchFolderHostedService : BackgroundService
+public class JobPollingHostedService : BackgroundService
 {
   private readonly JobPollingOptions _options;
   private readonly WorkflowTriggerOptions _workflowTriggerOptions;
-  private readonly ILogger<WatchFolderHostedService> _logger;
+  private readonly ILogger<JobPollingHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
 
-  public WatchFolderHostedService(IOptions<JobPollingOptions> options,
-    IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<WatchFolderHostedService> logger,
+  public JobPollingHostedService(IOptions<JobPollingOptions> options,
+    IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<JobPollingHostedService> logger,
     IServiceProvider serviceProvider)
   {
     _options = options.Value;
