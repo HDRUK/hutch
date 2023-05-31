@@ -138,7 +138,7 @@ public class WatchFolderHostedService : BackgroundService
       catch (ArgumentException)
       {
         job.RunFinished = true;
-        _wfexsJobService.Set(job);
+        await _wfexsJobService.Set(job);
       }
     }
   }
