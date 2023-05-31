@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
@@ -39,6 +40,7 @@ public class WatchFolderHostedService : BackgroundService
         _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
         _crateMergerService = scope.ServiceProvider.GetService<CrateMergerService>() ??
                               throw new InvalidOperationException();
+        await CheckJobsFinished();
         WatchFolder();
         MergeResults();
       }
@@ -116,6 +118,28 @@ public class WatchFolderHostedService : BackgroundService
       }
 
       await _resultsStoreWriter.WriteToStore(Path.Combine(mergeDirParent.ToString(), mergedZip));
+    }
+  }
+
+  /// <summary>
+  /// Check if WfExS jobs are finished and update the database.
+  /// </summary>
+  private async Task CheckJobsFinished()
+  {
+    var unfinishedJobs = await _wfexsJobService.List();
+    unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
+
+    foreach (var job in unfinishedJobs)
+    {
+      try
+      {
+        Process.GetProcessById(job.Pid);
+      }
+      catch (ArgumentException)
+      {
+        job.RunFinished = true;
+        _wfexsJobService.Set(job);
+      }
     }
   }
 }
