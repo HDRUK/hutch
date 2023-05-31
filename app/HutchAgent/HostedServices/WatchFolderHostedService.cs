@@ -75,25 +75,33 @@ public class WatchFolderHostedService : BackgroundService
         "outputs",
         "execution.crate.zip");
 
-      if (await _resultsStoreWriter.ResultExists(Path.GetFileName(pathToUpload)))
+      // Rename the execution crate to match the run ID so it is unique.
+      var pathToUploadInfo = new FileInfo(pathToUpload);
+      pathToUploadInfo.MoveTo(
+        pathToUploadInfo.FullName.Replace(
+          "execution.crate",
+          job.WfexsRunId)
+      );
+
+      if (await _resultsStoreWriter.ResultExists(pathToUploadInfo.Name))
       {
-        _logger.LogInformation($"{Path.GetFileName(pathToUpload)} already exists in S3.");
+        _logger.LogInformation($"{pathToUploadInfo.Name} already exists in S3.");
         continue;
       }
 
       try
       {
-        _logger.LogInformation($"Attempting to upload {pathToUpload} to S3.");
-        await _resultsStoreWriter.WriteToStore(pathToUpload);
-        _logger.LogInformation($"Successfully uploaded {pathToUpload}.zip to S3.");
+        _logger.LogInformation($"Attempting to upload {pathToUploadInfo.Name} to S3.");
+        await _resultsStoreWriter.WriteToStore(pathToUploadInfo.Name);
+        _logger.LogInformation($"Successfully uploaded {pathToUploadInfo.Name}.zip to S3.");
       }
       catch (BucketNotFoundException)
       {
-        _logger.LogCritical($"Unable to upload {pathToUpload} to S3. The configured bucket does not exist.");
+        _logger.LogCritical($"Unable to upload {pathToUploadInfo.Name} to S3. The configured bucket does not exist.");
       }
       catch (MinioException)
       {
-        _logger.LogError($"Unable to upload {pathToUpload} to S3. An error occurred with the S3 server.");
+        _logger.LogError($"Unable to upload {pathToUploadInfo.Name} to S3. An error occurred with the S3 server.");
       }
     }
   }
@@ -103,7 +111,12 @@ public class WatchFolderHostedService : BackgroundService
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
-      var sourceZip = Path.Combine(_options.Path, $"{job.WfexsRunId}.zip");
+      var sourceZip = Path.Combine(
+        _workflowTriggerOptions.ExecutorPath,
+        "wfexs-backend-test_WorkDir",
+        job.WfexsRunId,
+        "outputs",
+        $"{job.WfexsRunId}.zip");
       var pathToMetadata = Path.Combine(job.UnpackedPath, "ro-crate-metadata.json");
       var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
       var mergeDirParent = mergeDirInfo.Parent;
