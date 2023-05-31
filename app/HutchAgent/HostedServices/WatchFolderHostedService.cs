@@ -8,19 +8,22 @@ namespace HutchAgent.HostedServices;
 
 public class WatchFolderHostedService : BackgroundService
 {
-  private readonly WatchFolderOptions _options;
+  private readonly JobPollingOptions _options;
+  private readonly WorkflowTriggerOptions _workflowTriggerOptions;
   private readonly ILogger<WatchFolderHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
 
-  public WatchFolderHostedService(IOptions<WatchFolderOptions> options, ILogger<WatchFolderHostedService> logger,
+  public WatchFolderHostedService(IOptions<JobPollingOptions> options,
+    IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<WatchFolderHostedService> logger,
     IServiceProvider serviceProvider)
   {
     _options = options.Value;
     _logger = logger;
     _serviceProvider = serviceProvider;
+    _workflowTriggerOptions = workflowTriggerOptions.Value;
   }
 
   /// <summary>
@@ -29,7 +32,7 @@ public class WatchFolderHostedService : BackgroundService
   /// <param name="stoppingToken"></param>
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
-    _logger.LogInformation($"Starting to watch folder {_options.Path}");
+    _logger.LogInformation("Polling WfExS Jobs.");
 
     while (!stoppingToken.IsCancellationRequested)
     {
@@ -55,7 +58,7 @@ public class WatchFolderHostedService : BackgroundService
   /// <param name="stoppingToken"></param>
   public override async Task StopAsync(CancellationToken stoppingToken)
   {
-    _logger.LogInformation($"Stopping watching folder {_options.Path}");
+    _logger.LogInformation("Stopping polling WfExS jobs.");
 
     await base.StopAsync(stoppingToken);
   }

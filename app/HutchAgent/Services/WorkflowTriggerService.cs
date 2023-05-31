@@ -14,7 +14,7 @@ namespace HutchAgent.Services;
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
-  private readonly WatchFolderOptions _watchFolderOptions;
+  private readonly JobPollingOptions _jobPollingOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
@@ -22,11 +22,11 @@ public class WorkflowTriggerService
   private readonly WfexsJobService _wfexsJobService;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions,
+    ILogger<WorkflowTriggerService> logger, IOptions<JobPollingOptions> watchFolderOptions,
     IServiceProvider serviceProvider)
   {
     _logger = logger;
-    _watchFolderOptions = watchFolderOptions.Value;
+    _jobPollingOptions = watchFolderOptions.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();

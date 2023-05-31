@@ -22,7 +22,7 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
 // All other services
 builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
-  .Configure<WatchFolderOptions>(builder.Configuration.GetSection("WatchFolder"))
+  .Configure<JobPollingOptions>(builder.Configuration.GetSection("WatchFolder"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .AddScoped<WorkflowTriggerService>()
   .AddResultsStore(builder.Configuration)
