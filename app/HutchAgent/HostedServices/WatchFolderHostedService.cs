@@ -41,8 +41,8 @@ public class WatchFolderHostedService : BackgroundService
         _crateMergerService = scope.ServiceProvider.GetService<CrateMergerService>() ??
                               throw new InvalidOperationException();
         await CheckJobsFinished();
-        WatchFolder();
-        MergeResults();
+        await WatchFolder();
+        await MergeResults();
       }
 
       await Task.Delay(TimeSpan.FromSeconds(_options.PollingIntervalSeconds), stoppingToken);
@@ -60,7 +60,7 @@ public class WatchFolderHostedService : BackgroundService
     await base.StopAsync(stoppingToken);
   }
 
-  private async void WatchFolder()
+  private async Task WatchFolder()
   {
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
@@ -90,7 +90,7 @@ public class WatchFolderHostedService : BackgroundService
     }
   }
 
-  private async void MergeResults()
+  private async Task MergeResults()
   {
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
