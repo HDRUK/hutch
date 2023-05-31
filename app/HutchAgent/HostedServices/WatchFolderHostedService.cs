@@ -44,7 +44,7 @@ public class WatchFolderHostedService : BackgroundService
         _crateMergerService = scope.ServiceProvider.GetService<CrateMergerService>() ??
                               throw new InvalidOperationException();
         await CheckJobsFinished();
-        await WatchFolder();
+        await UploadResults();
         await MergeResults();
       }
 
@@ -63,12 +63,17 @@ public class WatchFolderHostedService : BackgroundService
     await base.StopAsync(stoppingToken);
   }
 
-  private async Task WatchFolder()
+  private async Task UploadResults()
   {
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
-      var pathToUpload = Path.Combine(_options.Path, $"{job.WfexsRunId}.zip");
+      var pathToUpload = Path.Combine(
+        _workflowTriggerOptions.ExecutorPath,
+        "wfexs-backend-test_WorkDir",
+        job.WfexsRunId,
+        "outputs",
+        "execution.crate.zip");
 
       if (await _resultsStoreWriter.ResultExists(Path.GetFileName(pathToUpload)))
       {
