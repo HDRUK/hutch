@@ -4,6 +4,7 @@ using HutchAgent.Extensions;
 using HutchAgent.HostedServices;
 using HutchAgent.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +29,8 @@ builder.Services
   .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
   .AddTransient<CrateMergerService>()
-  .AddHostedService<JobPollingHostedService>();
+  .AddHostedService<JobPollingHostedService>()
+  .AddFeatureManagement();
 
 #endregion
 
