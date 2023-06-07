@@ -48,5 +48,5 @@ services:
       - "443:443" # HTTPS
     volumes:
       - $HOME/nginx.conf:/etc/nginx/nginx.conf:ro
-      - $HOME/cert.cem:/etc/nginx/cert.pem:ro
-      - $HOME/key.cem:/etc/nginx/key.pem:ro
+      - $HOME/cert.pem:/etc/nginx/cert.pem:ro
+      - $HOME/key.pem:/etc/nginx/key.pem:ro
