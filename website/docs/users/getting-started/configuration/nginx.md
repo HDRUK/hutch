@@ -14,12 +14,12 @@ Then in your `nginx.conf` file, add the following to your server block:
 ```
 # send requests to the v1 docker API
 location /v1/ {
-  proxy_pass https://localhost:8082
+  proxy_pass https://localhost:8082;
 }
 
 # send requests to the v2 docker API
 location /v2/ {
-  proxy_pass https://localhost:8082
+  proxy_pass https://localhost:8082;
 }
 ```
 :::note
@@ -32,12 +32,12 @@ Hutch can use Nexus as a place to store Docker images. If you stand up a Nginx i
 ```
 # send requests to the v1 docker API
 location /v1/ {
-  proxy_pass https://my_nexus:8082
+  proxy_pass https://my_nexus:8082;
 }
 
 # send requests to the v2 docker API
 location /v2/ {
-  proxy_pass https://my_nexus:8082
+  proxy_pass https://my_nexus:8082;
 }
 ```
 
