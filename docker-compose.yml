@@ -39,3 +39,12 @@ services:
     volumes:
       - $HOME/minio-data:$HOME/minio-data
     command: minio server $HOME/minio-data --console-address ":9001"
+
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+    volumes:
+      - $HOME/nginx.conf:/etc/nginx/nginx.conf:ro
