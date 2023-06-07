@@ -7,7 +7,7 @@ To redirect traffic to Docker to `localhost` / `127.0.0.1`, edit your `/etc/host
 
 ```
 # Redirect WorkflowHub traffic
-127.0.0.1 index.docker.io
+127.0.0.1 registry-1.docker.io
 ```
 
 Then in your `nginx.conf` file, add the following to your server block:
