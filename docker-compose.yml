@@ -40,13 +40,26 @@ services:
       - $HOME/minio-data:$HOME/minio-data
     command: minio server $HOME/minio-data --console-address ":9001"
 
-  nginx:
-    image: nginx
+  # nginx:
+  #   image: nginx
+  #   restart: always
+  #   ports:
+  #     - "80:80" # HTTP
+  #     - "443:443" # HTTPS
+  #   volumes:
+  #     - $HOME/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - $HOME/cert.pem:/etc/nginx/cert.pem:ro
+  #     - $HOME/key.pem:/etc/nginx/key.pem:ro
+
+  docker-proxy:
+    image: tiangolo/docker-registry-proxy
     restart: always
     ports:
-      - "80:80" # HTTP
-      - "443:443" # HTTPS
+      - "3128:3128"
     volumes:
-      - $HOME/nginx.conf:/etc/nginx/nginx.conf:ro
-      - $HOME/cert.pem:/etc/nginx/cert.pem:ro
-      - $HOME/key.pem:/etc/nginx/key.pem:ro
+      - $HOME/docker_mirror_cache:/docker_mirror_cache
+      - $HOME/docker_mirror_certs:/ca
+    environment:
+      - REGISTRIES=nexus:8082
+      - AUTH_REGISTRIES=nexus:8082::admin::admin
+      - AUTH_REGISTRY_DELIMITER="::"
