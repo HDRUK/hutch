@@ -59,4 +59,33 @@ nginx:
     - "443:443" # HTTPS
   volumes:
     - /path/to/nginx.conf:/etc/nginx/nginx.conf:ro
+    - /path/to/cert.pem:/etc/nginx/cert.pem:ro
+    - /path/to/key.pem:/etc/nginx/key.pem:ro
+```
+
+## Example `nginx.conf`
+```
+# nginx.conf
+events {
+  worker_connections  1024;
+}
+
+http {
+  server {
+    listen 443 ssl;
+    ssl_certificate /etc/nginx/cert.pem
+    ssl_certificate_key /etc/nginx/key.pem
+
+    # send requests to the v1 docker API
+    location /v1/ {
+      proxy_pass https://my_nexus:8082;
+    }
+
+    # send requests to the v2 docker API
+    location /v2/ {
+      proxy_pass https://my_nexus:8082;
+    }
+  }
+}
+
 ```
