@@ -77,7 +77,7 @@ public class WorkflowTriggerService
       archive.ExtractToDirectory(wfexsJob.UnpackedPath, true);
       // Validate it is an ROCrate
       var file = Directory.GetFiles(wfexsJob.UnpackedPath, searchPattern: "ro-crate-metadata.json");
-      if (file == null)
+      if (file.Length == 0)
         throw new FileNotFoundException($"No metadata JSON found in directory {wfexsJob.UnpackedPath}");
       var fileJson = File.ReadAllText(file[0]);
       // Parse Crate metadata
