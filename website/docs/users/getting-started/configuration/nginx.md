@@ -2,66 +2,25 @@
 
 When running Hutch in a secure environment with no internet access, you will need to redirect links to some external resources to your internal equivalents.
 
-## Docker
-To redirect traffic to Docker to `localhost` / `127.0.0.1`, edit your `/etc/hosts` file by adding the following:
+## WorkflowHub
+To redirect traffic to WorkflowHub to `localhost` / `127.0.0.1`, edit your `/etc/hosts` file by adding the following:
 
 ```
 # Redirect WorkflowHub traffic
-127.0.0.1 registry-1.docker.io
+127.0.0.1 workflowhub.eu
 ```
 
 Then in your `nginx.conf` file, add the following to your server block:
 ```
-# send requests to the v1 docker API
-location /v1/ {
-  proxy_pass https://localhost:8082;
-}
-
-# send requests to the v2 docker API
-location /v2/ {
-  proxy_pass https://localhost:8082;
+# rewrite and redirect the URL
+location = /workflows {
+  rewrite ^/([0-9]+)?version=[0-9]+$ http://nexus:8081/repository/hutchfiles/workflows/$1\.crate\.zip;
 }
 ```
+
 :::note
-This example assumes that you have your Docker replacement on port 8082 on your machine. Change it as necessary.
+This example assumes that you have your WorkflowHub replacement on port 8081 on your machine. Change it as necessary. It also assumes that you have a file store called `hutchfiles` with the workflows saved under a directory called `workflows`. The file name pattern will match a number followed by `.crate.zip`, e.g. `123.crate.zip`.
 :::
-
-### Nginx + Nexus using Docker Compose
-Hutch can use Nexus as a place to store Docker images. If you stand up a Nginx instance in Docker Compose along with your nexus instance, replace `localhost` in the above example with the name of your Nexus service, e.g.:
-
-```
-# send requests to the v1 docker API
-location /v1/ {
-  proxy_pass https://my_nexus:8082;
-}
-
-# send requests to the v2 docker API
-location /v2/ {
-  proxy_pass https://my_nexus:8082;
-}
-```
-
-The Docker Compose services might look like this:
-
-```yaml
-nexus:
-  image: sonatype/nexus3:3.52.0
-  restart: always
-  ports:
-    - "8081:8081" # web portal port
-    - "8082:8082" # port for the docker registry
-
-nginx:
-  image: nginx
-  restart: always
-  ports:
-    - "80:80" # HTTP
-    - "443:443" # HTTPS
-  volumes:
-    - /path/to/nginx.conf:/etc/nginx/nginx.conf:ro
-    - /path/to/cert.pem:/etc/nginx/cert.pem:ro
-    - /path/to/key.pem:/etc/nginx/key.pem:ro
-```
 
 ## Example `nginx.conf`
 ```
@@ -73,17 +32,12 @@ events {
 http {
   server {
     listen 443 ssl;
-    ssl_certificate /etc/nginx/cert.pem
-    ssl_certificate_key /etc/nginx/key.pem
+    ssl_certificate /etc/nginx/cert.pem;
+    ssl_certificate_key /etc/nginx/key.pem;
 
-    # send requests to the v1 docker API
-    location /v1/ {
-      proxy_pass https://my_nexus:8082;
-    }
-
-    # send requests to the v2 docker API
-    location /v2/ {
-      proxy_pass https://my_nexus:8082;
+    # rewrite and redirect the URL
+    location /workflows/ {
+      rewrite ^/([0-9]+)?version=[0-9]+$ $scheme://nexus:8081/repository/hutchfiles/workflows/$1\.crate\.zip break;
     }
   }
 }
