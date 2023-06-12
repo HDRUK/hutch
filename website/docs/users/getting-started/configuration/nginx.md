@@ -12,9 +12,9 @@ To redirect traffic to WorkflowHub to `localhost` / `127.0.0.1`, edit your `/etc
 
 Then in your `nginx.conf` file, add the following to your server block:
 ```
-# rewrite and redirect the URL
-location = /workflows {
-  rewrite ^/([0-9]+)?version=[0-9]+$ http://nexus:8081/repository/hutchfiles/workflows/$1\.crate\.zip;
+# capture workflow ID and redirect the internal store
+location ~ ^\/workflows\/([0-9]+)?$ {
+  proxy_pass http://nexus:8081/repository/hutchfiles/workflows/$1.crate.zip;
 }
 ```
 
@@ -35,9 +35,14 @@ http {
     ssl_certificate /etc/nginx/cert.pem;
     ssl_certificate_key /etc/nginx/key.pem;
 
-    # rewrite and redirect the URL
-    location /workflows/ {
-      rewrite ^/([0-9]+)?version=[0-9]+$ $scheme://nexus:8081/repository/hutchfiles/workflows/$1\.crate\.zip break;
+    # capture workflow ID and redirect the internal store
+    location ~ ^\/workflows\/([0-9]+)$ {
+      proxy_pass http://nexus:8081/repository/hutchfiles/workflows/$1.crate.zip;
+    }
+
+    # root location must be defined for the set up to work
+    location / {
+      proxy_pass http://nexus:8081/service/rest/repository/browse/hutchfiles/;
     }
   }
 }
