@@ -43,6 +43,15 @@ cp cert.crt /usr/share/ca-certificates/cert.crt
 This command should be executed as `root`.
 :::
 
+4. Activate the new certificate.
+
+```bash
+update-ca-certificates
+```
+:::info
+This command should be executed as `root`.
+:::
+
 ### Re-routing to the workflow store
 Then in your `nginx.conf` file, add the following to your server block:
 ```
