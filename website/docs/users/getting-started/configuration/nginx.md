@@ -46,7 +46,7 @@ This command should be executed as `root`.
 4. Activate the new certificate.
 
 ```bash
-update-ca-certificates
+dpkg-reconfigure ca-certificates
 ```
 :::info
 This command should be executed as `root`.
