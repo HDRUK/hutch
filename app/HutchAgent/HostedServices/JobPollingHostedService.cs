@@ -93,7 +93,7 @@ public class JobPollingHostedService : BackgroundService
       {
         _logger.LogInformation($"Attempting to upload {pathToUploadInfo.Name} to S3.");
         await _resultsStoreWriter.WriteToStore(pathToUploadInfo.FullName);
-        _logger.LogInformation($"Successfully uploaded {pathToUploadInfo.Name}.zip to S3.");
+        _logger.LogInformation($"Successfully uploaded {pathToUploadInfo.Name} to S3.");
       }
       catch (BucketNotFoundException)
       {

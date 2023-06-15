@@ -65,23 +65,24 @@ public class MinioService : IResultsStoreWriter
   /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
   public async Task<bool> ResultExists(string resultPath)
   {
+    var resultName = Path.GetFileName(resultPath);
     if (!await StoreExists())
       throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
 
     var statObjectArgs = new StatObjectArgs()
       .WithBucket(_options.BucketName)
-      .WithObject(resultPath);
+      .WithObject(resultName);
 
     try
     {
-      _logger.LogInformation($"Looking for {resultPath} in {_options.BucketName}...");
+      _logger.LogInformation($"Looking for {resultName} in {_options.BucketName}...");
       await _minioClient.StatObjectAsync(statObjectArgs);
-      _logger.LogInformation($"Found {resultPath} in {_options.BucketName}.");
+      _logger.LogInformation($"Found {resultName} in {_options.BucketName}.");
       return true;
     }
-    catch (ObjectNotFoundException e)
+    catch (ObjectNotFoundException)
     {
-      _logger.LogInformation($"Could not find {resultPath} in {_options.BucketName}.");
+      _logger.LogInformation($"Could not find {resultName} in {_options.BucketName}.");
     }
 
     return false;
