@@ -132,13 +132,13 @@ public class JobPollingHostedService : BackgroundService
       _crateMergerService.UpdateMetadata(pathToMetadata, sourceZip);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
-      if (!await _resultsStoreWriter.ResultExists(Path.Combine(mergeDirParent.ToString(), mergedZip)))
+      if (await _resultsStoreWriter.ResultExists(mergedZip))
       {
         _logger.LogError($"Could not locate merged RO-Crate {mergedZip}.");
         continue;
       }
 
-      await _resultsStoreWriter.WriteToStore(Path.Combine(mergeDirParent.ToString(), mergedZip));
+      await _resultsStoreWriter.WriteToStore(mergedZip);
       await _wfexsJobService.Delete(job.Id);
     }
   }
