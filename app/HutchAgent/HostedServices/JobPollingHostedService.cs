@@ -92,8 +92,8 @@ public class JobPollingHostedService : BackgroundService
       try
       {
         _logger.LogInformation($"Attempting to upload {pathToUploadInfo.Name} to S3.");
-        await _resultsStoreWriter.WriteToStore(pathToUploadInfo.Name);
-        _logger.LogInformation($"Successfully uploaded {pathToUploadInfo.Name}.zip to S3.");
+        await _resultsStoreWriter.WriteToStore(pathToUploadInfo.FullName);
+        _logger.LogInformation($"Successfully uploaded {pathToUploadInfo.Name} to S3.");
       }
       catch (BucketNotFoundException)
       {
@@ -132,13 +132,14 @@ public class JobPollingHostedService : BackgroundService
       _crateMergerService.UpdateMetadata(pathToMetadata, sourceZip);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
-      if (!await _resultsStoreWriter.ResultExists(Path.Combine(mergeDirParent.ToString(), mergedZip)))
+      if (await _resultsStoreWriter.ResultExists(mergedZip))
       {
-        _logger.LogError($"Could not locate merged RO-Crate {mergedZip}.");
+        _logger.LogInformation($"Merged Crate {mergedZip} already exists in results store.");
         continue;
       }
 
-      await _resultsStoreWriter.WriteToStore(Path.Combine(mergeDirParent.ToString(), mergedZip));
+      await _resultsStoreWriter.WriteToStore(mergedZip);
+      await _wfexsJobService.Delete(job.Id);
     }
   }
 
