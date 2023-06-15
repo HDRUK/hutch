@@ -92,7 +92,7 @@ public class JobPollingHostedService : BackgroundService
       try
       {
         _logger.LogInformation($"Attempting to upload {pathToUploadInfo.Name} to S3.");
-        await _resultsStoreWriter.WriteToStore(pathToUploadInfo.Name);
+        await _resultsStoreWriter.WriteToStore(pathToUploadInfo.FullName);
         _logger.LogInformation($"Successfully uploaded {pathToUploadInfo.Name}.zip to S3.");
       }
       catch (BucketNotFoundException)
@@ -139,6 +139,7 @@ public class JobPollingHostedService : BackgroundService
       }
 
       await _resultsStoreWriter.WriteToStore(Path.Combine(mergeDirParent.ToString(), mergedZip));
+      await _wfexsJobService.Delete(job.Id);
     }
   }
 
