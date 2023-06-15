@@ -134,7 +134,7 @@ public class JobPollingHostedService : BackgroundService
 
       if (await _resultsStoreWriter.ResultExists(mergedZip))
       {
-        _logger.LogError($"Could not locate merged RO-Crate {mergedZip}.");
+        _logger.LogInformation($"Merged Crate {mergedZip} already exists in results store.");
         continue;
       }
 
