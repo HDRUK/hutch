@@ -193,6 +193,7 @@ public class WorkflowTriggerService
       if (runName is null) continue;
       _wfexsRunId = runName;
       wfexsJob.WfexsRunId = runName;
+      wfexsJob.RunFinished = true;
     }
 
     // end the process
