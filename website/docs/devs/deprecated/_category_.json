@@ -1,0 +1,8 @@
+{
+  "label": "Deprecated",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Items in this section are now deprecated and will be removed soon."
+  }
+}
