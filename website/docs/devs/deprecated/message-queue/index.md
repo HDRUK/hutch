@@ -1,8 +1,8 @@
----
-sidebar_position: 4
----
-
 # Message Queue
+
+:::danger Deprecated
+The use of RabbitMQ is now deprecated and will be removed soon.
+:::
 
 Hutch uses [RabbitMQ] for its Message Queue.
 
