@@ -1,60 +1,48 @@
-# Hutch Worker
+# `rquest-omop-worker`
 
-### Installation
-First, make sure you install [`hatch`](https://hatch.pypa.io/latest/install/).
+This workflow can be used to solve Availablity and Distribution queries from Rquest.
 
-Run the following commands in `app/HutchWorker`.
+Example workflows can be found on the [Hutch monorepo](https://github.com/HDRUK/hutch).
 
-Once you have `hatch` installed, run:
-```shell
-hatch env create
+## Workflow inputs
+- `body`: The file path containing the body of the request.
+- `results_modifiers`: A JSON string containing results modifier parameters.
+- `is_availability`: a flag denoating the query is an availability query (**cannot be used with `is_distribution`**).
+- `is_distribution`: a flag denoating the query is an distribution query (**cannot be used with `is_availability`**).
+- `results`: (*Optional*) an input that specifies the output path for the results.
+- `db_host`: the host for the database containing the OMOP data.
+- `db_name`: the name of the OMOP database.
+- `db_user`: a username with access to the database.
+- `db_password`: the password for the database user.
+
+# Executing using WfExS
+An example WfExS stage file to run `rquest-omop-worker` might look like the following:
+
+```yaml
+# rquest-omop-worker.stage.yaml
+
+workflow_id: https://raw.githubusercontent.com/HDRUK/hutch/main/workflows/sec-hutchx86.cwl
+workflow_config:
+  container: 'docker'
+  secure: false
+nickname: 'myNickName'
+cacheDir: /tmp/wfexszn6siq2jtmpcache
+crypt4gh:
+  key: rquest-omop-worker.stage.key
+  passphrase: mpel nite ified g
+  pub: rquest-omop-worker.stage.pub
+outputs:
+  output_file:
+    c-l-a-s-s: File
+    glob: "output.json"
+params:
+  body:
+    c-l-a-s-s: File
+    url:
+      - https://raw.githubusercontent.com/HDRUK/hutch/main/workflows/inputs/rquest-query.json
+  is_availability: true
+  db_host: "localhost"
+  db_name: "hutch"
+  db_user: "postgres"
+  db_password: "example"
 ```
-and this will set up your environment to use the worker with RabbitMQ and Postgres.
-
-If you would like to set the worker up to work with another database, run:
-```shell
-hatch env create mysql
-```
-for MySQL, or:
-```shell
-hatch env create sqlserver
-```
-to work with SQL Server.
-
-
-### DB for logging
-The worker writes logs to a database. It also writes to the standard output as a backup in case the connection fails. The creation of the logging database is handled by `HutchManager` normally, but if you want to work with the worker without the manager for development purposes, perform the following steps:
-
-At the root of the repo run:
-```shell
-docker-compose up -d
-```
-and you will get a fresh postgresql db.
-
-Then in `app/HutchWorker`, run:
-```shell
-hatch run [env:]build-log-db -u <username> -p <password> -d <database> --drivername <drivername>
-```
-Help can be found by running:
-```shell
-hatch run [env:]build-log-db --help
-```
-
-### Building
-```shell
-hatch build
-```
-That's it!
-
-To add a shared library to the build, such as those in the `lib` directory of the repo, in `pyproject.toml`, go to the section named `[tool.hatch.build.targets.wheel.force-include]` and `[tool.hatch.build.targets.sdist.force-include]` and add the relative path to the packages you wish to include like so: `../../lib/name_of_shared_lib = shared_lib`.
-
-:::info
-It is recommended that you add your shared libs to the `lib` folder at the root of the repo. Make sure they contain a `__init__.py` file (which can be empty).
-:::
-
-### Adding and removing deps
-To add a dependency to the whole project, in `pyproject.toml`, go to `dependencies` in `[project]` and add the name of the package you wish to add to the list. You should also add a version number to get more repeatable builds.
-
-If you want to only add dependencies to a non-default environment, such as `mysql` or `sqlserver`, go to the `[tool.hatch.envs.<env_name>]` sections in `pyproject.toml` and add the dependency to the `extra-dependencies` list. The other dependencies are inherited from the default environment.
-
-Further information about adding dependencies to a hatch `pyproject.toml` can be found [on the hatch site](https://hatch.pypa.io/latest/config/dependency/)
