@@ -60,9 +60,11 @@ Configuration guidance for the apps in the stack can be found in the documentati
 # Associated Organisations
 [![HDR UK](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/hdruk_logo.svg)][HDR UK Home] &nbsp;
 [![University of Nottingham](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/uon_white_text_web.png)][UoN Home] &nbsp;
-[![UKRI](./website/static/img/UKRI_logo.jpeg)][UoN Home]
+[![UKRI](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/UKRI_logo.jpeg)][UKRI Home] &nbsp;
+[![DARE UK](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/DARE-UK_logo.png)][UKRI Home]
 
 [HDR UK Home]: https://www.hdruk.ac.uk/
 [Cohort Discovery]: https://www.healthdatagateway.org/about/cohort-discovery
 [UoN Home]: https://nottingham.ac.uk
 [UKRI Home]: https://www.ukri.org/
+[DARE UK HOME]: https://dareuk.org.uk/
