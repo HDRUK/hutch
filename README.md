@@ -62,7 +62,7 @@ Configuration guidance for the apps in the stack can be found in the documentati
 [![University of Nottingham](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/uon_white_text_web.png)][UoN Home] &nbsp;
 [![UKRI](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/UKRI_logo.jpeg)][UKRI Home] &nbsp;
 [![DARE UK](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/DARE-UK_logo.png)][DARE UK Home] &nbsp;
-[![TRE-FX](./website/static/img/tre-fx_logo.svg)][TRE-FX Home]
+[![TRE-FX](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/tre-fx_logo.svg)][TRE-FX Home]
 
 [HDR UK Home]: https://www.hdruk.ac.uk/
 [Cohort Discovery]: https://www.healthdatagateway.org/about/cohort-discovery
