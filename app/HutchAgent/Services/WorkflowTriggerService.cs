@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Net;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
@@ -22,7 +23,8 @@ public class WorkflowTriggerService
   private readonly WfexsJobService _wfexsJobService;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions, IServiceProvider serviceProvider)
+    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions,
+    IServiceProvider serviceProvider)
   {
     _logger = logger;
     _watchFolderOptions = watchFolderOptions.Value;
@@ -69,65 +71,54 @@ public class WorkflowTriggerService
       UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
       RunFinished = false
     };
-    using var archive = new ZipArchive(stream);
+    ExtractCrate(wfexsJob, stream);
+    var fileJson = ValidateCrate(wfexsJob.UnpackedPath);
+    // Parse Crate metadata
+    var crate = ParseCrate(fileJson);
+    // Get mainEntity from metadata
+    var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
+    var mainEntityPath = Path.Combine(wfexsJob.UnpackedPath, mainEntity.Id);
+    // Check main entity is present and a stage file
+    if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
+                                        mainEntityPath.EndsWith(".yml")))
     {
-      // Extract to Directory
-      Directory.CreateDirectory(wfexsJob.UnpackedPath);
-      archive.ExtractToDirectory(wfexsJob.UnpackedPath, true);
-      // Validate it is an ROCrate
-      var file = Directory.GetFiles(wfexsJob.UnpackedPath, searchPattern: "ro-crate-metadata.json");
-      if (file == null)
-        throw new FileNotFoundException($"No metadata JSON found in directory {wfexsJob.UnpackedPath}");
-      var fileJson = File.ReadAllText(file[0]);
-      // Parse Crate metadata
-      var crate = ParseCrate(fileJson);
-      // Get mainEntity from metadata
-      var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-      var mainEntityPath = Path.Combine(wfexsJob.UnpackedPath, mainEntity.Id);
-      // Check main entity is present and a stage file
-      if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
-                                          mainEntityPath.EndsWith(".yml")))
+      _logger.LogInformation($"main Entity is a Wfexs stage file and can be found at {mainEntityPath}");
+      _workflowOptions.StageFilePath = mainEntityPath;
+      // Create a copy of the wfexs stage file
+      var copyFilePath = Path.Combine(wfexsJob.UnpackedPath, "copy_" + mainEntity.Id);
+      try
       {
-        _logger.LogInformation($"main Entity is a Wfexs stage file and can be found at {mainEntityPath}");
-        _workflowOptions.StageFilePath = mainEntityPath;
-        // Create a copy of the wfexs stage file
-        var copyFilePath = Path.Combine(wfexsJob.UnpackedPath, "copy_" + mainEntity.Id);
-        try
+        File.Copy(mainEntityPath, copyFilePath, true);
+      }
+      // Catch exception if the file was already copied.
+      catch (IOException copyError)
+      {
+        _logger.LogError(copyError.Message);
+      }
+
+      // Rewrite stage file parameter inputs to an absolute path
+      // based on "crate" protocol
+      using (var stageFileWriter = new StreamWriter(mainEntityPath))
+      using (var stageFileReader = new StreamReader(copyFilePath))
+      {
+        string? line;
+        while ((line = stageFileReader.ReadLine()) != null)
         {
-          File.Copy(mainEntityPath,copyFilePath, true);
-        }
-        // Catch exception if the file was already copied.
-        catch (IOException copyError)
-        {
-          _logger.LogError(copyError.Message);
-        }
-        // Rewrite stage file parameter inputs to an absolute path
-        // based on "crate" protocol
-        using (var stageFileWriter = new StreamWriter(mainEntityPath))
-        using (var stageFileReader = new StreamReader(copyFilePath))
-        {
-          string? line;
-          while ((line = stageFileReader.ReadLine()) != null)
+          if (line.Trim().StartsWith("- crate"))
           {
-            
-            if (line.Trim().StartsWith("- crate"))
-            {
-              _logger.LogInformation($"Found line matching crate protocol {line}");
-              stageFileWriter.WriteLine(RewritePath(wfexsJob,line));
-            }
-            else
-            {
-              stageFileWriter.WriteLine(line);
-            }
-            
+            _logger.LogInformation($"Found line matching crate protocol {line}");
+            stageFileWriter.WriteLine(RewritePath(wfexsJob, line));
+          }
+          else
+          {
+            stageFileWriter.WriteLine(line);
           }
         }
-
       }
-      else
-      {
-        throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
-      }
+    }
+    else
+    {
+      throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
     }
     // Tell the queue were the crate was extracted
     return _wfexsJobService.Create(wfexsJob).Result;
@@ -187,11 +178,10 @@ public class WorkflowTriggerService
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
-      if (runName is not null)
-      {
-        _wfexsRunId = runName;
-        wfexsJob.WfexsRunId = runName;
-      }
+      if (runName is null) continue;
+      _wfexsRunId = runName;
+      wfexsJob.WfexsRunId = runName;
+      wfexsJob.RunFinished = true;
     }
 
     // end the process
@@ -271,10 +261,10 @@ public class WorkflowTriggerService
     process.Close();
   }
 
-  private string RewritePath(WfexsJob wfexsJob,string? line)
+  private string RewritePath(WfexsJob wfexsJob, string? line)
   {
     var newInputPath = line.Split("///");
-    
+
     // keep line whitespaces for yaml formatting purposes
     var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file://";
     var newLine = newAbsolutePath + Path.Combine(Path.GetFullPath(wfexsJob.UnpackedPath), newInputPath[1]);
@@ -298,5 +288,25 @@ public class WorkflowTriggerService
     // Get the matched UUID pattern
     var uuid = match.Groups[1].Value;
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
+  }
+
+  public string ValidateCrate(string cratePath)
+  {
+    // Validate it is an ROCrate
+    var file = Directory.GetFiles(cratePath, searchPattern: "ro-crate-metadata.json");
+    if (file.Length == 0)
+      throw new FileNotFoundException($"No metadata JSON found in directory {cratePath}");
+    var fileJson = File.ReadAllText(file[0]);
+    return fileJson;
+  }
+
+  public void ExtractCrate(WfexsJob wfexsJob, Stream stream)
+  {
+    using var archive = new ZipArchive(stream);
+    {
+      // Extract to Directory
+      Directory.CreateDirectory(wfexsJob.UnpackedPath);
+      archive.ExtractToDirectory(wfexsJob.UnpackedPath, true);
+    }
   }
 }
