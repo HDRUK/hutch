@@ -1,7 +1,10 @@
 using HutchAgent.Config;
 using HutchAgent.Data;
+using HutchAgent.Extensions;
+using HutchAgent.HostedServices;
 using HutchAgent.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +23,14 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
 // All other services
 builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
-  .Configure<WatchFolderOptions>(builder.Configuration.GetSection("WatchFolder"))
+  .Configure<JobPollingOptions>(builder.Configuration.GetSection("WatchFolder"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .AddScoped<WorkflowTriggerService>()
-  .AddTransient<MinioService>()
+  .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
-  .AddHostedService<WatchFolderService>();
+  .AddTransient<CrateMergerService>()
+  .AddHostedService<JobPollingHostedService>()
+  .AddFeatureManagement();
 
 #endregion
 
@@ -33,5 +38,16 @@ var app = builder.Build();
 
 app.UseRouting();
 app.MapControllers();
+
+#region Automatic Migrations
+
+using (var scope = app.Services.CreateScope())
+{
+  var dbContext = scope.ServiceProvider.GetRequiredService<HutchAgentContext>();
+
+  dbContext.Database.Migrate();
+}
+
+#endregion
 
 app.Run();

@@ -15,7 +15,7 @@ namespace HutchAgent.Services;
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
-  private readonly WatchFolderOptions _watchFolderOptions;
+  private readonly JobPollingOptions _jobPollingOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
@@ -23,11 +23,11 @@ public class WorkflowTriggerService
   private readonly WfexsJobService _wfexsJobService;
 
   public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<WatchFolderOptions> watchFolderOptions,
+    ILogger<WorkflowTriggerService> logger, IOptions<JobPollingOptions> jobPollingOptions,
     IServiceProvider serviceProvider)
   {
     _logger = logger;
-    _watchFolderOptions = watchFolderOptions.Value;
+    _jobPollingOptions = jobPollingOptions.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
@@ -157,6 +157,9 @@ public class WorkflowTriggerService
     if (process == null)
       throw new Exception("Could not start process");
 
+    // Get process PID
+    wfexsJob.Pid = process.Id;
+
     await using var streamWriter = process.StandardInput;
     if (streamWriter.BaseStream.CanWrite)
     {
@@ -171,9 +174,10 @@ public class WorkflowTriggerService
       streamWriter.Close();
     }
 
-    StreamReader reader = process.StandardOutput;
-    String? _wfexsRunId = null;
-    while (!process.HasExited)
+    // Read the stdout of the WfExS run to get the run ID
+    var reader = process.StandardOutput;
+    string? _wfexsRunId = null;
+    while (!process.HasExited && _wfexsRunId is null)
     {
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
@@ -187,78 +191,8 @@ public class WorkflowTriggerService
     // end the process
     process.Close();
 
-    // create the output RO-Crate
-    if (_wfexsRunId is null)
-    {
-      _logger.LogError("Unable to get Run ID; cannot create output RO-Crate.");
-      return;
-    }
-
-    try
-    {
-      await _createProvCrate(_wfexsRunId);
-      wfexsJob.RunFinished = true;
-    }
-    catch (Exception)
-    {
-      _logger.LogError($"Could not create the results RO-Crate for run {_wfexsRunId}");
-      // Make sure the job is marked as unfinished.
-      wfexsJob.RunFinished = false;
-    }
-
     // Update the job in the queue.
     await _wfexsJobService.Set(wfexsJob);
-  }
-
-  /// <summary>
-  /// Command WfExS to build the RO-Crate of the workflow.
-  /// </summary>
-  /// <param name="runId">The UUID of the run for which to output the RO-Crate.</param>
-  /// <exception cref="Exception"></exception>
-  private async Task _createProvCrate(string runId)
-  {
-    var outputCrateName = Path.Combine(_watchFolderOptions.Path, $"{runId}.zip");
-    var command = $@"./WfExS-backend.py \
-  -L {_workflowOptions.LocalConfigPath} \
-  staged-workdir create-prov-crate {runId} {outputCrateName} \
-  --full";
-
-    var processStartInfo = new ProcessStartInfo
-    {
-      RedirectStandardOutput = false,
-      RedirectStandardInput = true,
-      RedirectStandardError = false,
-      UseShellExecute = false,
-      CreateNoWindow = true,
-      FileName = _bashCmd,
-      WorkingDirectory = _workflowOptions.ExecutorPath
-    };
-
-    // start process
-    var process = Process.Start(processStartInfo);
-    if (process == null)
-      throw new Exception("Could not start process");
-
-    await using var streamWriter = process.StandardInput;
-    if (streamWriter.BaseStream.CanWrite)
-    {
-      // activate python virtual environment
-      await streamWriter.WriteLineAsync(_activateVenv);
-      // execute command to build RO-Crate
-      await streamWriter.WriteLineAsync(command);
-
-      await streamWriter.FlushAsync();
-      streamWriter.Close();
-    }
-
-    // Wait for the process to exit
-    while (!process.HasExited)
-    {
-      await Task.Delay(TimeSpan.FromSeconds(1));
-    }
-
-    // end the process
-    process.Close();
   }
 
   private string RewritePath(WfexsJob wfexsJob, string? line)
