@@ -72,6 +72,12 @@ const config = {
           },
           {
             type: "doc",
+            docId: "workflows/index",
+            position: "left",
+            label: "Workflows",
+          },
+          {
+            type: "doc",
             docId: "devs/index",
             position: "right",
             label: "For Developers",
@@ -97,6 +103,10 @@ const config = {
               {
                 label: "For Developers",
                 to: "/docs/devs",
+              },
+              {
+                label: "Workflows",
+                to: "/docs/workflows",
               },
             ],
           },

@@ -1,4 +1,8 @@
-# Hutch Manager
+# Installation
+
+:::danger Deprecated
+The Hutch Manager is now deprecated and will be removed soon.
+:::
 
 ## Prerequisites
 
@@ -43,4 +47,31 @@ Basically, where you might normally use `npm` or `yarn`, please use `pnpm` comma
 
 You don't need to install anything special; Corepack will.
 
-A brief pnpm cheatsheet is provided [here](pnpm-cheatsheet).
+A brief pnpm cheatsheet is provided [here](/docs/devs/getting-started/pnpm-cheatsheet).
+
+## Local installation
+
+Find a [release of the Manager][manager-releases]
+- Releases with timestamps are frequent releases of the current in development version
+- Releases with version numbers are stable versions
+
+[get-net6]: https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime
+[manager-releases]: https://github.com/hdruk/hutch/releases?q=manager&expanded=false
+
+## Cloud
+
+The Manager can easily run anywhere .NET 6 web applications can run.
+
+For example, Azure App Service supports running .NET applications in a "Cloud Native" manner, not requiring a dedicated VM.
+
+:::info Coming soon!
+A Cloud native strategy is to use Hutch Manager with a Cloud message queue, such as [Azure Queue Storage](https://azure.microsoft.com/en-gb/products/storage/queues/) or [AWS SQS](https://aws.amazon.com/sqs/), etc.
+:::
+
+## Docker
+
+Docker images are available [here](https://github.com/hdruk/hutch/pkgs/container/hutch%2Fmanager) and can be [configured](/docs/devs/deprecated/manager/configuration) by Environment Variables.
+
+## Network connectivity requirements
+
+It will need outbound connectivity on whatever ports any desired Activity Sources are running on; typically 443 (HTTPS)

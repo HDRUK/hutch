@@ -1,0 +1,8 @@
+{
+  "label": "Rquest OMOP Worker",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "A workflow for parsing Rquest data requests and returning the results."
+  }
+}

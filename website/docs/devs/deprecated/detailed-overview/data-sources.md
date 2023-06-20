@@ -12,4 +12,4 @@ At this time Hutch Agents only support PostgreSQL.
 
 The initially targeted "Data Source" schema for Hutch is the [OMOP CDM](https://github.com/OHDSI/CommonDataModel) 5.3.
 
-[Sample Datasets for querying in the OMOP Common Data Model](../sample-data/omop-53)
+[Sample Datasets for querying in the OMOP Common Data Model](/docs/workflows/sample-data/omop-53)
