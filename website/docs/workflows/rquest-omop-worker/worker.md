@@ -1,14 +1,14 @@
 # `rquest-omop-worker`
 
-This workflow can be used to solve Availablity and Distribution queries from Rquest.
+This workflow can be used to solve Availability and Distribution queries from Rquest.
 
 Example workflows can be found on the [Hutch monorepo](https://github.com/HDRUK/hutch).
 
 ## Workflow inputs
 - `body`: The file path containing the body of the request.
 - `results_modifiers`: A JSON string containing results modifier parameters.
-- `is_availability`: a flag denoating the query is an availability query (**cannot be used with `is_distribution`**).
-- `is_distribution`: a flag denoating the query is an distribution query (**cannot be used with `is_availability`**).
+- `is_availability`: a flag denoting the query is an availability query (**cannot be used with `is_distribution`**).
+- `is_distribution`: a flag denoting the query is an distribution query (**cannot be used with `is_availability`**).
 - `results`: (*Optional*) an input that specifies the output path for the results.
 - `db_host`: the host for the database containing the OMOP data.
 - `db_name`: the name of the OMOP database.
