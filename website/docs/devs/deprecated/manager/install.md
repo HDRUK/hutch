@@ -47,7 +47,7 @@ Basically, where you might normally use `npm` or `yarn`, please use `pnpm` comma
 
 You don't need to install anything special; Corepack will.
 
-A brief pnpm cheatsheet is provided [here](pnpm-cheatsheet).
+A brief pnpm cheatsheet is provided [here](/docs/devs/getting-started/pnpm-cheatsheet).
 
 ## Local installation
 
@@ -70,7 +70,7 @@ A Cloud native strategy is to use Hutch Manager with a Cloud message queue, such
 
 ## Docker
 
-Docker images are available [here](https://github.com/hdruk/hutch/pkgs/container/hutch%2Fmanager) and can be [configured](../configuration/manager) by Environment Variables.
+Docker images are available [here](https://github.com/hdruk/hutch/pkgs/container/hutch%2Fmanager) and can be [configured](/docs/devs/deprecated/manager/configuration) by Environment Variables.
 
 ## Network connectivity requirements
 
