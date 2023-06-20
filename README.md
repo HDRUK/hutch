@@ -3,29 +3,21 @@
 
 # 📤🐇 Hutch
 
-**Hutch** is an application stack for **Federated Data Discovery**.
+**Hutch** is an application stack for **Federated Analytics**.
 
 - 🔒 Make your data discoverable **safely** and **securely**, without directly sharing it.
-- ✅ Hutch is being developed for use in HDR UK's [Cohort Discovery] toolset.
-  - Hutch allows federated access to summary statistics of medical data at institutions.
+- ✅ Hutch is being developed for use in Trusted Research Environments (TRE) or Secure Data Environments (SDE).
+  - It will enable researchers to run various workflows, such as those on [WorkflowHub](https://workflowhub.eu/) or custom workflows produced by researchers themselves.
 
 The stack consists of:
-- a Web application "Manager" GUI
-  - React frontend
-  - .NET backend API
-- Agents which retrieve data
-  - e.g. a Python app to execute queries against OMOP data in PostgreSQL.
-- a Message Queue for queuing agent jobs
-  - RabbitMQ
+- A submission layer that will be able to receive requests from third-party federated analytics providers as well as directly.
+- An Agent that receives queries in the form of RO-Crates and uploads the outputs to a store.
+- [WfExS](https://github.com/inab/WfExS-backend) (*Not produced by the Hutch team*).
+- A results store, where the results can be held for approval for release by the TRE/SDE.
 
 ### Tech Stack
 
 ![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![RabbitMQ](https://img.shields.io/badge/rabbitmq-%23FF6600.svg?&style=for-the-badge&logo=rabbitmq&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
 
 # ➡️ Getting Started
 
@@ -35,18 +27,19 @@ User and Developer Guidance can be found in the [documentation](https://hdruk.gi
 
 | Path | Description | Notes |
 |-|-|-|
-| `app/HutchManager` | .NET6 Backend API | |
-| `app/HutchAgent` | Python Agent | The agent will:<br /><ul><li>read data requests from a queue</li><li>find the data in a database</li><li>perform obfuscation, low count filtering, etc</li><li>place results in a results queue</li></ul> |
-| `app/manger-frontend` | React (Vite) Client SPA for the Manager | |
+| `app/HutchManager` | (**Deprecated**) .NET6 Backend API | |
+| `app/HutchAgent` | .NET6 Agent | <ul><li>Unpack incoming workflow RO-Crates</li><li>Trigger workflow execution</li><li>Deposit results in the results store</li></ul> |
+| `app/manger-frontend` | (**Deprecated**) React (Vite) Client SPA for the Manager | |
+| `app/rquest-omop-worker`| Source code for RQuest federated discovery app | Used in example workflows in `workflows` |
 | `.github` | GitHub Actions | workflows for building and deploying the applications |
 | `assets` | Asset source files | Logos etc. |
 | `website` | Docusaurus 2 site | The source for https://hdruk.github.io/hutch |
+| `workflows` | Example CWL workflow files | |
 
 # ⚙️ App Configuration
 
 Configuration guidance for the apps in the stack can be found in the documentation:
 
-- [Manager](https://hdruk.github.io/hutch/docs/users/getting-started/configuration/manager)
 - [Agent](https://hdruk.github.io/hutch/docs/users/getting-started/configuration/agent)
 
 # ⚖️ License and Contribution
