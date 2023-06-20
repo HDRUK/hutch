@@ -62,7 +62,8 @@ Configuration guidance for the apps in the stack can be found in the documentati
 [![University of Nottingham](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/uon_white_text_web.png)][UoN Home] &nbsp;
 [![UKRI](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/UKRI_logo.jpeg)][UKRI Home] &nbsp;
 [![DARE UK](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/DARE-UK_logo.png)][DARE UK Home] &nbsp;
-[![BY-COVID](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/BY-COVID_logo.png)][BY-COVID Home]
+[![BY-COVID](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/BY-COVID_logo.png)][BY-COVID Home] &nbsp;
+[![Alleviate](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/alleviate_logo.jpeg)][Alleviate Home]
 
 [HDR UK Home]: https://www.hdruk.ac.uk/
 [Cohort Discovery]: https://www.healthdatagateway.org/about/cohort-discovery
@@ -70,3 +71,4 @@ Configuration guidance for the apps in the stack can be found in the documentati
 [UKRI Home]: https://www.ukri.org/
 [DARE UK Home]: https://dareuk.org.uk/
 [BY-COVID Home]: https://by-covid.org/
+[Alleviate Home]: https://alleviate.ac.uk/
