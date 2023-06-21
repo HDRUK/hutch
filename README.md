@@ -3,7 +3,7 @@
 
 # 📤🐇 Hutch
 
-**Hutch** is an application stack for **Federated Analytics**.
+**Hutch** is an application stack for **Federated Activities**, such as Analytics, Data Discovery or Machine Learning.
 
 - 🔒 Make your data discoverable **safely** and **securely**, without directly sharing it.
 - ✅ Hutch is being developed for use in Trusted Research Environments (TRE) or Secure Data Environments (SDE).
