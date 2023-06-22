@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import { Heading, Text, SimpleGrid, VStack, HStack } from "@chakra-ui/react";
+import { Heading, Text, SimpleGrid, VStack, HStack, UnorderedList, ListItem } from "@chakra-ui/react";
 import { FaBook, FaDownload } from "react-icons/fa";
 import { Features } from "@site/src/components/homepage/Features";
 import LinkButton from "../components/LinkButton";
@@ -51,8 +51,10 @@ const HeroBanner = () => {
         textAlign="center"
         color={`${randColor()}.200`}
       >
-        <Text as="span">Federated Data Discovery</Text>
+        <Text as="span">Federated Analysis / Discovery / Learning</Text>
       </Heading>
+
+      <Heading size="md">Enable federated activities in Trusted Research Environments</Heading>
 
       <HStack spacing={16}>
         <HeroButton
