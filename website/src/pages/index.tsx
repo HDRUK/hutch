@@ -1,8 +1,9 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import { Heading, Text, SimpleGrid, VStack, HStack, UnorderedList, ListItem } from "@chakra-ui/react";
+import { Heading, Text, SimpleGrid, VStack, HStack } from "@chakra-ui/react";
 import { FaBook, FaDownload } from "react-icons/fa";
 import { Features } from "@site/src/components/homepage/Features";
+import { Funders } from "../components/homepage/Funders";
 import LinkButton from "../components/LinkButton";
 import HutchLogo from "@site/static/img/hutch_logo-color-white.svg";
 
@@ -92,8 +93,10 @@ const LinkCardSection = () => (
 const Index = () => {
   return (
     <Layout>
-      <VStack mb={5} align="stretch">
+      <VStack mb={5} align="stretch" spacing={0}>
         <HeroBanner />
+
+        <Funders />
 
         <Features />
 
