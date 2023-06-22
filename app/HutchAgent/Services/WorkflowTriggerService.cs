@@ -123,6 +123,31 @@ public class WorkflowTriggerService
     // Tell the queue were the crate was extracted
     return _wfexsJobService.Create(wfexsJob).Result;
   }
+  
+  public async Task FetchCrate(Stream stream)
+  {
+    var wfexsJob = new WfexsJob
+    {
+      UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
+      RunFinished = false
+    };
+    ExtractCrate(wfexsJob, stream);
+    var cratePath = Path.Combine(wfexsJob.UnpackedPath, "data");
+    var fileJson = ValidateCrate(cratePath);
+    // Parse Crate metadata
+    var crate = ParseCrate(fileJson);
+    // Get mainEntity from metadata
+    var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
+    var mainEntityPath = Path.Combine(wfexsJob.UnpackedPath, mainEntity.Id);
+    var splitWorkflowURL = Regex.Split(mainEntity.Id, @"(?=[?])");
+    
+    var downloadAddress = splitWorkflowURL[0] + "/ro_crate" + splitWorkflowURL[1];
+    using (var client = new WebClient())
+    {
+      client.DownloadFile(downloadAddress, cratePath + "/workflow.zip");
+    }
+    
+  }
 
   /// <summary>
   /// Install and run WfExS given 

@@ -23,14 +23,15 @@ public class JobsController : ControllerBase
   [HttpPost]
   public async Task<IActionResult> Unpack(IFormFile? job)
   {
-    if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
-    {
-      throw new NotSupportedException();
-    }
+    
     if (job == null)
       return BadRequest();
     await using var sr = job.OpenReadStream();
     {
+      if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
+      {
+        await _workflowTriggerService.FetchCrate(sr);
+      }
       await _workflowTriggerService.TriggerWfexs(sr);
       return Accepted();
     }
