@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# (Optional) WorkflowHub in a TRE
+# WorkflowHub in a TRE
 
 :::info
 This page assumes you are using Ubuntu Linux as your OS and that you will have `root` or `sudo` privileges.
