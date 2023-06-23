@@ -4,59 +4,40 @@ sidebar_position: 1
 
 # Introduction
 
-Hutch is an open source tool that allows you to make your data discoverable without compromising its integrity or security.
+Hutch is an open-source tool that enables federated activities on your data. Third parties can run analyses, train machine learning models and much more against your data without it ever leaving your custody.
 
-✅ You do not need to grant any external systems or people access to your data.<br />
-✅ You do not need to share your data with any other parties.<br />
-✅ You do not need to allow external services to make incoming requests to your network.
+Hutch is ideal for Trusted Research Environments (TREs) or Secure Data Environments (SDEs).
+
+✅ No need to grant any external systems or people access to your data.<br />
+✅ No need to share your data with any other parties.<br />
+✅ No need to allow inbound requests to your network.
 
 ## The Architecture of Hutch
 
 Hutch is an "application stack" rather than just one application.
 
-This affords it a great deal of flexibility in terms of how users may want to run it in different setups, and enables it to be easily extended to support new formats or functionality.
+This affords it a great deal of flexibility in terms of how users may want to run it in different setups and enables it to be easily extended to support new formats or functionality.
 
-Components of the stack are as follows:
+The main components of the stack are as follows:
+- The submission layer
+- The agent
+- A results store
+- [WfExS](https://github.com/inab/WfExS-backend)
 
-- Manager
-- Agent
-- Configuration Datastore
-- Message Queue
-- (Activity Source)
-- (Data Source)
+Additionally, you may require your own:
+- Container registry
+- Workflow repository
 
-The stack features a central **Manager** which is responsible for configuration (via a GUI) and interacting with external **Activity Sources**, queueing jobs when they are picked up.
+### The Submission Layer
 
-Jobs are in turn picked up by **Agents** who execute the job in question against a **Data Source** and return the results of execution to the **Manager**, which in turn returns the results to the **Activity Source** the job came from.
+The submission layer is an interoperable part of the stack which can accept requests from various federated activity providers in the form of an RO-Crate. It sits just outside the TRE/SDE, still only allowing outbound requests for activities to be run. External services cannot directly put jobs into the TRE/SDE to be run. This is the only application the agent will be able to interact with.
 
-### The Manager
+The submission layer aims to reduce or prevent "vendor lock-in" whereby you enable federated activities only with researchers with access to one specific product. This increases the reach of your data in the research community.
 
-The Manager is the only application in the stack that needs to communicate outside of your network. It makes outbound requests only to supported **Activity Sources** to poll for jobs.
+### The Agent
 
-The Manager application also serves a web-based GUI, so that you can configure it from the local machine or across a network easily, without the need for a special client installation.
+The agent sits inside the TRE/SDE and runs workflows passed to it from the submission layer. The RO-Crate in the request is unpacked and executed using WfExS. Upon completion of the job, the results are merged back into the original RO-Crate and stored in the results store.
 
-The Manager performs translation between supported Activity Source native formats and Hutch's internal transport formats, facilitating easy interoperability with different Activity Sources.
+### Results Store
 
-The Manager requires access to a datastore to save configuration details. This store can be independent of any target Data Sources. The Manager never needs access to your data.
-
-### The Agents
-
-Agents are configured to access a Data Source, and require access to the **Manager** and the Message Queue.
-
-An Agent tells the **Manager** the name of its configured Data Source, and then checks the Queue for any jobs for that **Data Source**. It is possible to run multiple agents for the same **Data Source** concurrently; the queue ensures an individual job will not be picked up by more than one Agent.
-
-The Agent executes the job against the Data Source and returns the results to the Manager. All of this is done using internal transport data formats.
-
-Agents are capable of modifying results prior to returning to the Manager, e.g. an aggregate record count results may be obfuscated to suppress a low number of results below a configured threshold.
-
-### Activity Sources
-
-Activity Sources are external to the Hutch stack (and usually your network). They are the source of job requests to be fulfilled by Hutch.
-
-For example, an **Activity Source** may provide requests to query counts of records within your dataset. Hutch will fulfill that request against your **Data Source** and return the results as configured.
-
-### Data Sources
-
-Data Sources are external to the Hutch stack (but typically within your network). A Data Source contains a dataset belonging to you that you wish to make discoverable.
-
-Only Hutch **Agents** require access to your Data Source for Hutch to work.
+The results store serves as a place to put the results of analyses to check they comply with governance agreements before releasing them to the outside world. This may be a manual check or any automated process you have in place inside your TRE/SDE.
