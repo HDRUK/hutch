@@ -8,7 +8,7 @@ on:
         required: true
         default: release
   push:
-    branches: [main, push-to-docker-hub]
+    branches: [main]
 
 jobs:
   generate-timestamp:
