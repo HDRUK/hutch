@@ -7,5 +7,6 @@
         "**/README.md",
         "**/*.txt",
         "**/*.md"
-    ]
+    ],
+    "grammarly.config.documentDialect": "british"
 }

@@ -13,7 +13,7 @@ export const Features = () => (
   <HStack p={5} justify="center" align="start" spacing={150}>
     <OpenSource />
     <Secure />
-    <Hdr />
+    <Interoperable />
   </HStack>
 );
 
@@ -71,6 +71,14 @@ const Secure = () => {
         securely
       </Text>
       , without directly sharing it.
+    </Feature>
+  );
+};
+
+const Interoperable = () => {
+  return (
+    <Feature graphic={<Text fontSize={72}>🛠️</Text>}>
+      Hutch's submission API makes it work with any federated data tool.
     </Feature>
   );
 };

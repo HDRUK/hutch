@@ -2,7 +2,7 @@
 sidebar_position: 4
 ---
 
-# (Optional) Docker Images in a TRE
+# Docker Images in a TRE
 
 Inside a Trusted Research Environment (TRE) there will be no internet access. This means that images cannot be pulled from Docker Hub or any other remote container registry.
 

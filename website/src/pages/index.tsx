@@ -3,6 +3,7 @@ import Layout from "@theme/Layout";
 import { Heading, Text, SimpleGrid, VStack, HStack } from "@chakra-ui/react";
 import { FaBook, FaDownload } from "react-icons/fa";
 import { Features } from "@site/src/components/homepage/Features";
+import { Funders } from "../components/homepage/Funders";
 import LinkButton from "../components/LinkButton";
 import HutchLogo from "@site/static/img/hutch_logo-color-white.svg";
 
@@ -51,8 +52,10 @@ const HeroBanner = () => {
         textAlign="center"
         color={`${randColor()}.200`}
       >
-        <Text as="span">Federated Data Discovery</Text>
+        <Text as="span">Federated Analysis / Discovery / Learning</Text>
       </Heading>
+
+      <Heading size="md">Enable federated activities in Trusted Research Environments</Heading>
 
       <HStack spacing={16}>
         <HeroButton
@@ -90,8 +93,10 @@ const LinkCardSection = () => (
 const Index = () => {
   return (
     <Layout>
-      <VStack mb={5} align="stretch">
+      <VStack mb={5} align="stretch" spacing={0}>
         <HeroBanner />
+
+        <Funders />
 
         <Features />
 
