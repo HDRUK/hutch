@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
@@ -48,7 +49,6 @@ public class WorkflowTriggerService
       // get RootDataset Properties and add them to an ROCrates object
       var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
       var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
-
       _roCrate.Add(datasetRoot ?? throw new InvalidOperationException());
 
       return _roCrate;
@@ -123,7 +123,7 @@ public class WorkflowTriggerService
     // Tell the queue were the crate was extracted
     return _wfexsJobService.Create(wfexsJob).Result;
   }
-  
+
   public async Task FetchCrate(Stream stream)
   {
     var wfexsJob = new WfexsJob
@@ -137,16 +137,22 @@ public class WorkflowTriggerService
     // Parse Crate metadata
     var crate = ParseCrate(fileJson);
     // Get mainEntity from metadata
+    // Contains workflow location
     var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-    var mainEntityPath = Path.Combine(wfexsJob.UnpackedPath, mainEntity.Id);
     var splitWorkflowURL = Regex.Split(mainEntity.Id, @"(?=[?])");
-    
+    // Compose download url for workflowHub
     var downloadAddress = splitWorkflowURL[0] + "/ro_crate" + splitWorkflowURL[1];
     using (var client = new WebClient())
     {
       client.DownloadFile(downloadAddress, cratePath + "/workflow.zip");
+      _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
-    
+    // In progress
+    var json = new {id="newId",time="time"};
+    var jsonObject = JsonNode.Parse(JsonSerializer.Serialize(json)).AsObject();
+    var entity = new Entity(crate, "#extractid", jsonObject);
+    crate.Add(entity);
+    crate.RootDataset.AppendTo("mentions",entity);
   }
 
   /// <summary>
@@ -231,6 +237,7 @@ public class WorkflowTriggerService
 
     return newLine;
   }
+
   private string? _findRunName(string text)
   {
     var pattern =
@@ -267,5 +274,6 @@ public class WorkflowTriggerService
       Directory.CreateDirectory(wfexsJob.UnpackedPath);
       archive.ExtractToDirectory(wfexsJob.UnpackedPath, true);
     }
+    _logger.LogInformation($"Crate extracted at {wfexsJob.UnpackedPath}");
   }
 }
