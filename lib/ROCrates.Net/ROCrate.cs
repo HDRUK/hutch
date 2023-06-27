@@ -14,12 +14,6 @@ public class ROCrate
   private static string _uuid = Guid.NewGuid().ToString();
   private string _arcpBaseUri = $"arcp://uuid,{_uuid}/";
 
-  private string _source = string.Empty;
-
-  private List<string> _exclude = new();
-  private bool _generatePreview;
-  private bool _init;
-
   public RootDataset RootDataset;
   public Metadata Metadata;
   public Preview Preview;
@@ -37,12 +31,8 @@ public class ROCrate
     Preview = new Preview(this);
   }
 
-  public ROCrate(string source, bool generatePreview = false, bool init = false, List<string>? exclude = null)
+  public ROCrate(string source)
   {
-    _source = source;
-    _generatePreview = generatePreview;
-    _init = init;
-    if (exclude is not null) _exclude = exclude;
     RootDataset = new RootDataset(this);
     Metadata = new Metadata(this);
     Preview = new Preview(this);
