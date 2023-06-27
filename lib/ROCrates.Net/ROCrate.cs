@@ -306,9 +306,27 @@ public class ROCrate
     if (!Directory.Exists(source))
       throw new DirectoryNotFoundException($"{source} does not exist or is not a directory.");
 
-    if (!System.IO.File.Exists(Path.Combine(source, "ro-crate-metadata.json")))
+    var metadataPath = Path.Combine(source, "ro-crate-metadata.json");
+    if (!System.IO.File.Exists(metadataPath))
       throw new FileNotFoundException(
         $@"Metadata file not found in {source}. If you would like this to be an RO-Crate, use Convert to convert it."
       );
+
+    var json = System.IO.File.ReadAllText(metadataPath);
+    JsonNode? metadataJson;
+    try
+    {
+      metadataJson = JsonNode.Parse(json);
+      if (metadataJson is null) throw new JsonException("Metadata file contains no metadata");
+    }
+    catch (JsonException)
+    {
+      throw new JsonException("Metadata file contains no metadata");
+    }
+
+    var metadataObject = metadataJson.AsObject();
+
+    if (!(metadataObject.ContainsKey("@context") || metadataObject.ContainsKey("@graph")))
+      throw new InvalidDataException("Metadata is missing @context, @graph or both.");
   }
 }

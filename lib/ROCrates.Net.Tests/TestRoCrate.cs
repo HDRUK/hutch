@@ -1,18 +1,11 @@
+using System.Text.Json;
 using ROCrates.Models;
-using Xunit.Abstractions;
 using File = ROCrates.Models.File;
 
 namespace ROCrates.Tests;
 
 public class TestRoCrate
 {
-  private readonly ITestOutputHelper _testOutputHelper;
-
-  public TestRoCrate(ITestOutputHelper testOutputHelper)
-  {
-    _testOutputHelper = testOutputHelper;
-  }
-
   [Fact]
   public void ResolveId_Combines_GoodAndBad_Uris()
   {
@@ -186,5 +179,49 @@ public class TestRoCrate
 
     // Clean up
     if (testFile.Exists) testFile.Delete();
+  }
+
+  [Fact]
+  public void Initialise_Throws_WhenMetadataIsEmpty()
+  {
+    // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    testDir.Create();
+    var testFile = new FileInfo(Path.Combine(testDir.FullName, "ro-crate-metadata.json"));
+    testFile.Create().Close();
+    var roCrate = new ROCrate();
+
+    // Act
+    var action = () => roCrate.Initialise(testDir.FullName);
+
+    // Assert
+    Assert.Throws<JsonException>(action);
+
+    // Clean up
+    if (testDir.Exists) testDir.Delete(recursive: true);
+  }
+
+  [Fact]
+  public void Initialise_Throws_WhenMetadataMissingContextAndGraph()
+  {
+    // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    testDir.Create();
+    var testFile = new FileInfo(Path.Combine(testDir.FullName, "ro-crate-metadata.json"));
+    using (var s = testFile.CreateText())
+    {
+      s.Write("{}");
+    }
+
+    var roCrate = new ROCrate();
+
+    // Act
+    var action = () => roCrate.Initialise(testDir.FullName);
+
+    // Assert
+    Assert.Throws<InvalidDataException>(action);
+
+    // Clean up
+    if (testDir.Exists) testDir.Delete(recursive: true);
   }
 }
