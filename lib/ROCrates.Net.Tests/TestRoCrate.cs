@@ -1,4 +1,4 @@
-using System.Text.Json;
+using ROCrates.Exceptions;
 using ROCrates.Models;
 using File = ROCrates.Models.File;
 
@@ -143,7 +143,7 @@ public class TestRoCrate
     var action = () => roCrate.Initialise(testDir.FullName);
 
     // Assert
-    Assert.Throws<FileNotFoundException>(action);
+    Assert.Throws<CrateReadException>(action);
 
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);
@@ -160,7 +160,7 @@ public class TestRoCrate
     var action = () => roCrate.Initialise(testDir.FullName);
 
     // Assert
-    Assert.Throws<DirectoryNotFoundException>(action);
+    Assert.Throws<CrateReadException>(action);
   }
 
   [Fact]
@@ -175,7 +175,7 @@ public class TestRoCrate
     var action = () => roCrate.Initialise(testFile.FullName);
 
     // Assert
-    Assert.Throws<DirectoryNotFoundException>(action);
+    Assert.Throws<CrateReadException>(action);
 
     // Clean up
     if (testFile.Exists) testFile.Delete();
@@ -195,7 +195,7 @@ public class TestRoCrate
     var action = () => roCrate.Initialise(testDir.FullName);
 
     // Assert
-    Assert.Throws<JsonException>(action);
+    Assert.Throws<CrateReadException>(action);
 
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);
@@ -219,7 +219,7 @@ public class TestRoCrate
     var action = () => roCrate.Initialise(testDir.FullName);
 
     // Assert
-    Assert.Throws<InvalidDataException>(action);
+    Assert.Throws<CrateReadException>(action);
 
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);

@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Exceptions;
 using ROCrates.Models;
 using File = ROCrates.Models.File;
 
@@ -301,7 +302,36 @@ public class ROCrate
     Directory.Delete(saveLocation, recursive: true);
   }
 
+  /// <summary>
+  /// Initialise an <c>ROCrate</c> object from the contents of a directory that is a valid RO-Crate.
+  /// </summary>
+  /// <param name="source">
+  /// The path to the directory containing the RO-Crate to initialise an <c>ROCrate</c> from.
+  /// </param>
+  /// <exception cref="CrateReadException">Thrown when there is an issue reading the RO-Crate.</exception>
   public void Initialise(string source)
+  {
+    try
+    {
+      CheckSourceMetadata(source);
+    }
+    catch (Exception e)
+    {
+      throw new CrateReadException($"Could not read RO-Crate at {source}.", e);
+    }
+  }
+
+  /// <summary>
+  /// Check the metadata of an RO-Crate.
+  /// </summary>
+  /// <param name="source">
+  /// The path to the directory containing the RO-Crate to initialise an <c>ROCrate</c> from.
+  /// </param>
+  /// <exception cref="DirectoryNotFoundException">Can't find the source directory.</exception>
+  /// <exception cref="FileNotFoundException">Can't find the metadata JSON file.</exception>
+  /// <exception cref="JsonException">The metadata file is invalid JSON.</exception>
+  /// <exception cref="InvalidDataException">The metadata format is not satisfied.</exception>
+  private void CheckSourceMetadata(string source)
   {
     if (!Directory.Exists(source))
       throw new DirectoryNotFoundException($"{source} does not exist or is not a directory.");
