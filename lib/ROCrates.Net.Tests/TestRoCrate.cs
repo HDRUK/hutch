@@ -137,4 +137,54 @@ public class TestRoCrate
     if (Directory.Exists(outputDir)) Directory.Delete(outputDir, recursive: true);
     if (System.IO.File.Exists(outputZipFile)) System.IO.File.Delete(outputZipFile);
   }
+
+  [Fact]
+  public void Initialise_Throws_WithNoMetadataJsonFile()
+  {
+    // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    testDir.Create();
+    var roCrate = new ROCrate();
+
+    // Act
+    var action = () => roCrate.Initialise(testDir.FullName);
+
+    // Assert
+    Assert.Throws<FileNotFoundException>(action);
+
+    // Clean up
+    if (testDir.Exists) testDir.Delete(recursive: true);
+  }
+
+  [Fact]
+  public void Initialise_Throws_WhenSourceNonExistent()
+  {
+    // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    var roCrate = new ROCrate();
+
+    // Act
+    var action = () => roCrate.Initialise(testDir.FullName);
+
+    // Assert
+    Assert.Throws<DirectoryNotFoundException>(action);
+  }
+
+  [Fact]
+  public void Initialise_Throws_WhenSourceIsNotADirectory()
+  {
+    // Arrange
+    var testFile = new FileInfo(Guid.NewGuid().ToString());
+    testFile.Create();
+    var roCrate = new ROCrate();
+
+    // Act
+    var action = () => roCrate.Initialise(testFile.FullName);
+
+    // Assert
+    Assert.Throws<DirectoryNotFoundException>(action);
+
+    // Clean up
+    if (testFile.Exists) testFile.Delete();
+  }
 }

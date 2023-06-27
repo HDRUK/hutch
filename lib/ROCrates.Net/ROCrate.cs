@@ -300,4 +300,15 @@ public class ROCrate
     ZipFile.CreateFromDirectory(saveLocation, $"{saveLocation}.zip");
     Directory.Delete(saveLocation, recursive: true);
   }
+
+  public void Initialise(string source)
+  {
+    if (!Directory.Exists(source))
+      throw new DirectoryNotFoundException($"{source} does not exist or is not a directory.");
+
+    if (!System.IO.File.Exists(Path.Combine(source, "ro-crate-metadata.json")))
+      throw new FileNotFoundException(
+        $@"Metadata file not found in {source}. If you would like this to be an RO-Crate, use Convert to convert it."
+      );
+  }
 }
