@@ -195,7 +195,7 @@ public class TestRoCrate
     var action = () => roCrate.Initialise(testDir.FullName);
 
     // Assert
-    Assert.Throws<CrateReadException>(action);
+    Assert.Throws<MetadataException>(action);
 
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);
@@ -242,6 +242,32 @@ public class TestRoCrate
 
     // Assert
     Assert.Throws<MetadataException>(action);
+
+    // Clean up
+    if (testDir.Exists) testDir.Delete(recursive: true);
+  }
+
+  [Fact]
+  public void Initialise_Reads_EntitiesToROCrateObject()
+  {
+    // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    testDir.Create();
+    System.IO.File.Copy(
+      "Fixtures/metadata-test.json",
+      Path.Combine(testDir.FullName, "ro-crate-metadata.json")
+    );
+    var roCrate = new ROCrate();
+
+    // Act
+    roCrate.Initialise(testDir.FullName);
+
+    // Assert
+    Assert.Contains("./", roCrate.Entities.Keys);
+    Assert.Contains("ro-crate-metadata.json", roCrate.Entities.Keys);
+    Assert.Contains("ro-crate-preview.html", roCrate.Entities.Keys);
+    Assert.Contains("cp7glop.ai", roCrate.Entities.Keys);
+    Assert.Contains("lots_of_little_files/", roCrate.Entities.Keys);
 
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);
