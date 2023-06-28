@@ -330,13 +330,13 @@ public class ROCrate
       select g;
     var metadataProperties = filteredGraph.First().AsObject();
 
-    if (metadataProperties is null) throw new CrateReadException("Could not find the metadata properties.");
+    if (metadataProperties is null) throw new MetadataException("Could not find the metadata properties.");
     Metadata.Properties = metadataProperties;
 
     // Add objects to the crate
     foreach (var g in graph)
     {
-      if (g?["@type"] is null || g["@id"] is null) throw new CrateReadException("Invalid element in @graph.");
+      if (g?["@type"] is null || g["@id"] is null) throw new MetadataException("Invalid element in @graph.");
       var type = g["@type"]!.ToString();
       switch (type)
       {

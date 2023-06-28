@@ -1,3 +1,5 @@
+using System.Runtime.Serialization;
+
 namespace ROCrates.Exceptions;
 
 /// <summary>
@@ -14,6 +16,10 @@ public class CrateReadException : Exception
   }
 
   public CrateReadException(string? message) : base(message)
+  {
+  }
+
+  protected CrateReadException(SerializationInfo info, StreamingContext context) : base(info, context)
   {
   }
 }
