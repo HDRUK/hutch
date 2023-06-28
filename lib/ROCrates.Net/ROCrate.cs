@@ -303,7 +303,11 @@ public class ROCrate
   }
 
   /// <summary>
-  /// Initialise an <c>ROCrate</c> object from the contents of a directory that is a valid RO-Crate.
+  /// <para>Initialise an <c>ROCrate</c> object from the contents of a directory that is a valid RO-Crate.</para>
+  /// <para>
+  /// This method assumes that all files and directories described by the metadata exist on disk.
+  /// It will not fetch them from remote locations.
+  /// </para>
   /// </summary>
   /// <param name="source">
   /// The path to the directory containing the RO-Crate to initialise an <c>ROCrate</c> from.
@@ -346,16 +350,16 @@ public class ROCrate
     foreach (var g in graph)
     {
       if (g?["@type"] is null || g["@id"] is null) throw new MetadataException("Invalid element in @graph.");
-      var type = g["@type"]!.ToString();
+      var type = g["@type"]!.ToJsonString();
       switch (type)
       {
-        case "ComputationalWorkflow":
-          Add(new ComputationalWorkflow(this, g["@id"]!.ToString(), g.AsObject()));
+        case @"[""File"",""SoftwareSourceCode"",""ComputationalWorkflow""]":
+          Add(new ComputationalWorkflow(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
           break;
-        case "ComputerLanguage":
+        case @"""ComputerLanguage""":
           Add(new ComputerLanguage(this, g["@id"]!.ToString(), g.AsObject()));
           break;
-        case "CreativeWork":
+        case @"""CreativeWork""":
           switch (g["@id"]!.ToString())
           {
             case "ro-crate-metadata.json":
@@ -376,37 +380,37 @@ public class ROCrate
           }
 
           break;
-        case "Dataset":
+        case @"""Dataset""":
           Add(g["@id"]!.ToString() == "./"
             ? new RootDataset(this, source: g["@id"]!.ToString(), properties: g.AsObject())
             : new Dataset(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
 
           break;
-        case "File":
+        case @"""File""":
           Add(new File(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
           break;
-        case "Person":
+        case @"""Person""":
           Add(new Person(this, g["@id"]!.ToString(), g.AsObject()));
           break;
-        case "SoftwareApplication":
+        case @"""SoftwareApplication""":
           Add(new SoftwareApplication(this, g["@id"]!.ToString(), g.AsObject()));
           break;
-        case "TestDefinition":
+        case @"""TestDefinition""":
           Add(new TestDefinition(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
           break;
-        case "TestInstance":
+        case @"""TestInstance""":
           Add(new TestInstance(this, g["@id"]!.ToString(), g.AsObject()));
           break;
-        case "TestService":
+        case @"""TestService""":
           Add(new TestService(this, g["@id"]!.ToString(), g.AsObject()));
           break;
-        case "TestSuite":
+        case @"""TestSuite""":
           Add(new TestSuite(this, g["@id"]!.ToString(), g.AsObject()));
           break;
-        case "Workflow":
+        case @"[""File"",""SoftwareSourceCode"",""Workflow""]":
           Add(new Workflow(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
           break;
-        case "WorkflowDescription":
+        case @"[""File"",""SoftwareSourceCode"",""WorkflowDescription""]":
           Add(new WorkflowDescription(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
           break;
         default:
