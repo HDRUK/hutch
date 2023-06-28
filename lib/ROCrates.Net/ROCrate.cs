@@ -309,11 +309,20 @@ public class ROCrate
   /// The path to the directory containing the RO-Crate to initialise an <c>ROCrate</c> from.
   /// </param>
   /// <exception cref="CrateReadException">Thrown when there is an issue reading the RO-Crate.</exception>
+  /// <exception cref="MetadataException">Thrown when there is an issue with the RO-Crate's metadata.</exception>
   public void Initialise(string source)
   {
     try
     {
       CheckSourceMetadata(source);
+    }
+    catch (JsonException e)
+    {
+      throw new MetadataException("The RO-Crate metadata is invalid", e);
+    }
+    catch (InvalidDataException e)
+    {
+      throw new MetadataException("The RO-Crate metadata is invalid", e);
     }
     catch (Exception e)
     {

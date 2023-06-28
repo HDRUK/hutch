@@ -202,7 +202,7 @@ public class TestRoCrate
   }
 
   [Fact]
-  public void Initialise_Throws_WhenMetadataMissingContextAndGraph()
+  public void Initialise_Throws_WhenMetadataMissingContentAndGraph()
   {
     // Arrange
     var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
@@ -219,7 +219,7 @@ public class TestRoCrate
     var action = () => roCrate.Initialise(testDir.FullName);
 
     // Assert
-    Assert.Throws<CrateReadException>(action);
+    Assert.Throws<MetadataException>(action);
 
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);
