@@ -319,6 +319,92 @@ public class ROCrate
     {
       throw new CrateReadException($"Could not read RO-Crate at {source}.", e);
     }
+
+    // Read metadata and update the Metadata object
+    var metadataPath = Path.Combine(source, "ro-crate-metadata.json");
+    var json = System.IO.File.ReadAllText(metadataPath);
+    var metadataJson = JsonNode.Parse(json);
+    var graph = metadataJson!["@graph"]!.AsArray();
+    var filteredGraph = from g in graph
+      where g["@id"].ToString() == "ro-crate-metadata.json"
+      select g;
+    var metadataProperties = filteredGraph.First().AsObject();
+
+    if (metadataProperties is null) throw new CrateReadException("Could not find the metadata properties.");
+    Metadata.Properties = metadataProperties;
+
+    // Add objects to the crate
+    foreach (var g in graph)
+    {
+      if (g?["@type"] is null || g["@id"] is null) throw new CrateReadException("Invalid element in @graph.");
+      var type = g["@type"]!.ToString();
+      switch (type)
+      {
+        case "ComputationalWorkflow":
+          Add(new ComputationalWorkflow(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case "ComputerLanguage":
+          Add(new ComputerLanguage(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case "CreativeWork":
+          switch (g["@id"]!.ToString())
+          {
+            case "ro-crate-metadata.json":
+            {
+              var metadata = new Metadata(this, source: g["@id"]!.ToString(), properties: g.AsObject());
+              Add(metadata);
+              break;
+            }
+            case "ro-crate-preview.html":
+            {
+              var preview = new Preview(this, source: g["@id"]!.ToString(), properties: g.AsObject());
+              Add(preview);
+              break;
+            }
+            default:
+              Add(new CreativeWork(this, g["@id"]!.ToString(), g.AsObject()));
+              break;
+          }
+
+          break;
+        case "Dataset":
+          Add(g["@id"]!.ToString() == "./"
+            ? new RootDataset(this, source: g["@id"]!.ToString(), properties: g.AsObject())
+            : new Dataset(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+
+          break;
+        case "File":
+          Add(new File(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        case "Person":
+          Add(new Person(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case "SoftwareApplication":
+          Add(new SoftwareApplication(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case "TestDefinition":
+          Add(new TestDefinition(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        case "TestInstance":
+          Add(new TestInstance(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case "TestService":
+          Add(new TestService(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case "TestSuite":
+          Add(new TestSuite(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case "Workflow":
+          Add(new Workflow(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        case "WorkflowDescription":
+          Add(new WorkflowDescription(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        default:
+          Add(new ContextEntity(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+      }
+    }
   }
 
   /// <summary>
