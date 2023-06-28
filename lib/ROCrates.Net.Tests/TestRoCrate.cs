@@ -224,4 +224,26 @@ public class TestRoCrate
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);
   }
+
+  [Fact]
+  public void Initialise_Throws_WhenGraphElementIsInvalid()
+  {
+    // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    testDir.Create();
+    System.IO.File.Copy(
+      "Fixtures/test-invalid-metadata.json",
+      Path.Combine(testDir.FullName, "ro-crate-metadata.json")
+    );
+    var roCrate = new ROCrate();
+
+    // Act
+    var action = () => roCrate.Initialise(testDir.FullName);
+
+    // Assert
+    Assert.Throws<MetadataException>(action);
+
+    // Clean up
+    if (testDir.Exists) testDir.Delete(recursive: true);
+  }
 }
