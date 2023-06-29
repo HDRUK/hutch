@@ -27,9 +27,14 @@ public class ROCrate
   /// </summary>
   public ROCrate()
   {
-    RootDataset = new RootDataset(this);
     Metadata = new Metadata(this);
+    Add(Metadata);
+
     Preview = new Preview(this);
+    Add(Preview);
+
+    RootDataset = new RootDataset(this);
+    Add(RootDataset);
   }
 
   /// <summary>
