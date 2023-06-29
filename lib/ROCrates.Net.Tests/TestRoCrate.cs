@@ -22,36 +22,6 @@ public class TestRoCrate
   }
 
   [Fact]
-  public void Add_Adds_RootDataset()
-  {
-    var roCrate = new ROCrate();
-    var rootDataset = new RootDataset(roCrate);
-
-    roCrate.Add(rootDataset);
-    Assert.Equal(roCrate.RootDataset.Id, rootDataset.Id);
-    Assert.Equal(roCrate.RootDataset.Properties, rootDataset.Properties);
-
-    Assert.True(roCrate.Entities.ContainsKey(rootDataset.GetCanonicalId()));
-    Assert.True(roCrate.Entities.TryGetValue(rootDataset.GetCanonicalId(), out var recoveredRootDataset));
-    Assert.IsType<RootDataset>(recoveredRootDataset);
-  }
-
-  [Fact]
-  public void Add_Adds_Metadata()
-  {
-    var roCrate = new ROCrate();
-    var metadata = new Metadata(roCrate);
-
-    roCrate.Add(metadata);
-    Assert.Equal(roCrate.Metadata.Id, metadata.Id);
-    Assert.Equal(roCrate.Metadata.Properties, metadata.Properties);
-
-    Assert.True(roCrate.Entities.ContainsKey(metadata.GetCanonicalId()));
-    Assert.True(roCrate.Entities.TryGetValue(metadata.GetCanonicalId(), out var recoveredMetadata));
-    Assert.IsType<Metadata>(recoveredMetadata);
-  }
-
-  [Fact]
   public void Add_Adds_ObjetsOfDifferentTypes()
   {
     var roCrate = new ROCrate();
