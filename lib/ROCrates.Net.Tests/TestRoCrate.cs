@@ -11,7 +11,7 @@ public class TestRoCrate
   {
     string validUrl = "https://doi.org/10.4225/59/59672c09f4a4b";
     string invalidUrl = "https://do i.org/10.4225/59/59672c09f4a4b";
-    var crate = new ROCrate("my-test.zip");
+    var crate = new ROCrate();
 
     string resultValidUrl = crate.ResolveId(validUrl);
     Assert.Equal(validUrl, resultValidUrl);

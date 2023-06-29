@@ -32,13 +32,6 @@ public class ROCrate
     Preview = new Preview(this);
   }
 
-  public ROCrate(string source)
-  {
-    RootDataset = new RootDataset(this);
-    Metadata = new Metadata(this);
-    Preview = new Preview(this);
-  }
-
   /// <summary>
   /// Resolves URI for a given ID.
   /// </summary>
