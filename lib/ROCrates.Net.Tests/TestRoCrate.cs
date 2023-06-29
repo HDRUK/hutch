@@ -297,4 +297,32 @@ public class TestRoCrate
     // Clean up
     if (testDir.Exists) testDir.Delete(recursive: true);
   }
+
+  [Fact]
+  public void Convert_Creates_PreviewAndMetadata()
+  {
+    // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    testDir.Create();
+    var roCrate = new ROCrate();
+
+    // Act
+    roCrate.Convert(testDir.FullName);
+
+    // Assert
+    Assert.True(System.IO.File.Exists(Path.Combine(testDir.FullName, roCrate.Metadata.Id)));
+    Assert.True(System.IO.File.Exists(Path.Combine(testDir.FullName, roCrate.Preview.Id)));
+
+    // Clean up
+    if (testDir.Exists) testDir.Delete(recursive: true);
+  }
+
+  [Fact]
+  public void Convert_Creates_ROCrateWithAllEntities()
+  {
+    // Arrange
+    // Act
+    // Assert
+    // Clean up
+  }
 }
