@@ -421,6 +421,40 @@ public class ROCrate
   }
 
   /// <summary>
+  /// <para>Convert a directory into an RO-Crate.</para>
+  /// <para>
+  /// This method iterates over the files and directories contained inside <paramref name="source"/>
+  /// and populates an <c>ROCrate</c> object with entities representing the contents of the RO-Crate.
+  /// The <c>ro-crate-metadata.json</c> and <c>ro-crate-preview.html</c> files are then saved into
+  /// <paramref name="source"/>
+  /// </para>
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// roCrate.Convert("convertMe");
+  /// </code>
+  /// </example>
+  /// <param name="source">The path to the directory to be converted to an RO-Crate.</param>
+  public void Convert(string source)
+  {
+    var dirInfo = new DirectoryInfo(source);
+
+    foreach (var dir in dirInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
+    {
+      var dataset = AddDataset(source: Path.GetRelativePath(dirInfo.FullName, dir.FullName));
+      foreach (var fileInfo in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+      {
+        var file = AddFile(source: fileInfo.Name);
+        dataset.AppendTo("hasPart", file);
+      }
+    }
+
+    Metadata.Write(source);
+    Preview.Write(source);
+  }
+
+  /// <summary>
   /// Check the metadata of an RO-Crate.
   /// </summary>
   /// <param name="source">
