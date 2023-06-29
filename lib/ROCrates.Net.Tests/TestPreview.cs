@@ -17,16 +17,11 @@ public class TestPreview : IClassFixture<TestPreviewFixture>
   public void TestWrite_Creates_PreviewFile()
   {
     // Arrange
-    var rootJson = System.IO.File.ReadAllText("Fixtures/test-root-dataset.json").TrimEnd();
-    var rootProperties = JsonNode.Parse(rootJson).AsObject();
-    var rootDataset = new RootDataset(_roCrate, properties: rootProperties);
-
     var previewJson = System.IO.File.ReadAllText("Fixtures/test-preview.json").TrimEnd();
     var previewProperties = JsonNode.Parse(previewJson).AsObject();
     var preview = new Preview(_roCrate, properties: previewProperties);
 
-
-    _roCrate.Add(rootDataset, preview);
+    _roCrate.Preview = preview;
 
     // Act
     preview.Write(Path.GetDirectoryName(_testPreviewFixture.OutputPath));
