@@ -1,11 +1,7 @@
-using System.Text.Json.Nodes;
-using ROCrates.Models;
-
 namespace ROCrates.Tests;
 
 public class TestPreview : IClassFixture<TestPreviewFixture>
 {
-  private ROCrate _roCrate = new();
   private readonly TestPreviewFixture _testPreviewFixture;
 
   public TestPreview(TestPreviewFixture testPreviewFixture)
@@ -17,14 +13,10 @@ public class TestPreview : IClassFixture<TestPreviewFixture>
   public void TestWrite_Creates_PreviewFile()
   {
     // Arrange
-    var previewJson = System.IO.File.ReadAllText("Fixtures/test-preview.json").TrimEnd();
-    var previewProperties = JsonNode.Parse(previewJson).AsObject();
-    var preview = new Preview(_roCrate, properties: previewProperties);
-
-    _roCrate.Preview = preview;
+    var roCrate = new ROCrate();
 
     // Act
-    preview.Write(Path.GetDirectoryName(_testPreviewFixture.OutputPath));
+    roCrate.Preview.Write(Path.GetDirectoryName(_testPreviewFixture.OutputPath));
 
     // Assert
     Assert.True(System.IO.File.Exists(_testPreviewFixture.OutputPath));
