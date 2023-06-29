@@ -78,7 +78,7 @@ public class ROCrate
       else if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
-        _dataEntities.Remove(entity as Metadata);
+        _dataEntities.Remove(Metadata);
         _dataEntities.Add(entity as Metadata);
         Entities.Remove(entity.Id);
       }
@@ -86,7 +86,7 @@ public class ROCrate
       else if (entityType == typeof(Preview))
       {
         Preview = entity as Preview;
-        _dataEntities.Remove(entity as Preview);
+        _dataEntities.Remove(Preview);
         _dataEntities.Add(entity as Preview);
         Entities.Remove(entity.Id);
       }
