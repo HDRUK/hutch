@@ -321,8 +321,31 @@ public class TestRoCrate
   public void Convert_Creates_ROCrateWithAllEntities()
   {
     // Arrange
+    var testDir = new DirectoryInfo(Guid.NewGuid().ToString());
+    testDir.Create();
+    var subDir = testDir.CreateSubdirectory(Guid.NewGuid().ToString());
+    var topLevelFile = new FileInfo($"{Guid.NewGuid().ToString()}.json");
+    topLevelFile.Create().Close();
+    topLevelFile.MoveTo(Path.Combine(testDir.FullName, topLevelFile.Name));
+    var subDirFile = new FileInfo($"{Guid.NewGuid().ToString()}.json");
+    subDirFile.Create().Close();
+    subDirFile.MoveTo(Path.Combine(subDir.FullName, subDirFile.Name));
+    var roCrate = new ROCrate();
+
     // Act
+    roCrate.Convert(testDir.FullName);
+
     // Assert
+    Assert.Contains(topLevelFile.Name, roCrate.Entities.Keys);
+    Assert.Contains(
+      Path.GetRelativePath(
+        testDir.FullName,
+        subDir.FullName
+      ) + "/",
+      roCrate.Entities.Keys
+    );
+
     // Clean up
+    if (testDir.Exists) testDir.Delete(recursive: true);
   }
 }
