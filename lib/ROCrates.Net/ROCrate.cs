@@ -72,18 +72,23 @@ public class ROCrate
       if (entityType == typeof(RootDataset))
       {
         RootDataset = entity as RootDataset;
+        Entities.Remove(entity.Id);
       }
 
       else if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
+        _dataEntities.Remove(entity as Metadata);
         _dataEntities.Add(entity as Metadata);
+        Entities.Remove(entity.Id);
       }
 
       else if (entityType == typeof(Preview))
       {
         Preview = entity as Preview;
+        _dataEntities.Remove(entity as Preview);
         _dataEntities.Add(entity as Preview);
+        Entities.Remove(entity.Id);
       }
 
       else if (entityType.IsSubclassOf(typeof(DataEntity)))
