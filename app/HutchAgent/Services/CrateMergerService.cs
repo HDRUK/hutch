@@ -25,11 +25,11 @@ public class CrateMergerService
     if (!destinationInfo.Exists) throw new DirectoryNotFoundException($"{mergeInto} does not exist.");
 
     // Create output directory `Data/outputs/` to extract execution crate
-    var outputs = Path.Combine(mergeInto, "Data", "outputs");
-    Directory.CreateDirectory(outputs);
+    var outputDir = Path.Combine(mergeInto, "Data", "outputs");
+    Directory.CreateDirectory(outputDir);
     
     // Extract the result (RO-Crate) into the unzipped original RO-Crate
-    ZipFile.ExtractToDirectory(sourceZip, outputs);
+    ZipFile.ExtractToDirectory(sourceZip, outputDir);
   }
 
   /// <summary>
