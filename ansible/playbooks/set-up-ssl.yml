@@ -21,3 +21,23 @@
         privatekey_path: $HOME/key.pem
         csr_path: $HOME/crt.csr
         provider: selfsigned
+
+    - name: Copy cert.crt to trust store
+      become: true
+      ansible.builtin.copy:
+        src: $HOME/cert.crt
+        dest: /usr/share/ca-certificates/cert.crt
+        remote_src: true
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Add cert.crt to /etc/ca-certificates.conf
+      become: true
+      ansible.builtin.lineinfile:
+        path: /etc/ca-certificates.conf
+        line: cert.crt
+
+    - name: Update CA certificates
+      ansible.builtin.command:
+        cmd: update-ca-certificates
