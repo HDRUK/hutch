@@ -47,3 +47,8 @@
         owner: root
         group: root
         mode: '0644'
+
+    - name: Make workflowhub.eu traffic redirect to localhost
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: 127.0.0.1 workflowhub.eu
