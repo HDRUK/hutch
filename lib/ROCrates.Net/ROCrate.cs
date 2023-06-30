@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ROCrates.Exceptions;
 using ROCrates.Models;
 using File = ROCrates.Models.File;
 
@@ -14,12 +15,6 @@ public class ROCrate
   private static string _uuid = Guid.NewGuid().ToString();
   private string _arcpBaseUri = $"arcp://uuid,{_uuid}/";
 
-  private string _source = string.Empty;
-
-  private List<string> _exclude = new();
-  private bool _generatePreview;
-  private bool _init;
-
   public RootDataset RootDataset;
   public Metadata Metadata;
   public Preview Preview;
@@ -32,20 +27,14 @@ public class ROCrate
   /// </summary>
   public ROCrate()
   {
-    RootDataset = new RootDataset(this);
     Metadata = new Metadata(this);
-    Preview = new Preview(this);
-  }
+    Add(Metadata);
 
-  public ROCrate(string source, bool generatePreview = false, bool init = false, List<string>? exclude = null)
-  {
-    _source = source;
-    _generatePreview = generatePreview;
-    _init = init;
-    if (exclude is not null) _exclude = exclude;
-    RootDataset = new RootDataset(this);
-    Metadata = new Metadata(this);
     Preview = new Preview(this);
+    Add(Preview);
+
+    RootDataset = new RootDataset(this);
+    Add(RootDataset);
   }
 
   /// <summary>
@@ -83,18 +72,23 @@ public class ROCrate
       if (entityType == typeof(RootDataset))
       {
         RootDataset = entity as RootDataset;
+        Entities.Remove(entity.Id);
       }
 
       else if (entityType == typeof(Metadata))
       {
         Metadata = entity as Metadata;
+        _dataEntities.Remove(Metadata);
         _dataEntities.Add(entity as Metadata);
+        Entities.Remove(entity.Id);
       }
 
       else if (entityType == typeof(Preview))
       {
         Preview = entity as Preview;
+        _dataEntities.Remove(Preview);
         _dataEntities.Add(entity as Preview);
+        Entities.Remove(entity.Id);
       }
 
       else if (entityType.IsSubclassOf(typeof(DataEntity)))
@@ -309,5 +303,203 @@ public class ROCrate
     if (!zip) return;
     ZipFile.CreateFromDirectory(saveLocation, $"{saveLocation}.zip");
     Directory.Delete(saveLocation, recursive: true);
+  }
+
+  /// <summary>
+  /// <para>Initialise an <c>ROCrate</c> object from the contents of a directory that is a valid RO-Crate.</para>
+  /// <para>
+  /// This method assumes that all files and directories described by the metadata exist on disk.
+  /// It will not fetch them from remote locations.
+  /// </para>
+  /// </summary>
+  /// <param name="source">
+  /// The path to the directory containing the RO-Crate to initialise an <c>ROCrate</c> from.
+  /// </param>
+  /// <exception cref="CrateReadException">Thrown when there is an issue reading the RO-Crate.</exception>
+  /// <exception cref="MetadataException">Thrown when there is an issue with the RO-Crate's metadata.</exception>
+  public void Initialise(string source)
+  {
+    try
+    {
+      CheckSourceMetadata(source);
+    }
+    catch (JsonException e)
+    {
+      throw new MetadataException("The RO-Crate metadata is invalid", e);
+    }
+    catch (InvalidDataException e)
+    {
+      throw new MetadataException("The RO-Crate metadata is invalid", e);
+    }
+    catch (Exception e)
+    {
+      throw new CrateReadException($"Could not read RO-Crate at {source}.", e);
+    }
+
+    // Read metadata and update the Metadata object
+    var metadataPath = Path.Combine(source, "ro-crate-metadata.json");
+    var json = System.IO.File.ReadAllText(metadataPath);
+    var metadataJson = JsonNode.Parse(json);
+    var graph = metadataJson!["@graph"]!.AsArray();
+    var filteredGraph = from g in graph
+      where g["@id"].ToString() == "ro-crate-metadata.json"
+      select g;
+    var metadataProperties = filteredGraph.First().AsObject();
+
+    if (metadataProperties is null) throw new MetadataException("Could not find the metadata properties.");
+    Metadata.Properties = metadataProperties;
+
+    // Add objects to the crate
+    foreach (var g in graph)
+    {
+      if (g?["@type"] is null || g["@id"] is null) throw new MetadataException("Invalid element in @graph.");
+      var type = g["@type"]!.ToJsonString();
+      switch (type)
+      {
+        case @"[""File"",""SoftwareSourceCode"",""ComputationalWorkflow""]":
+          Add(new ComputationalWorkflow(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        case @"""ComputerLanguage""":
+          Add(new ComputerLanguage(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case @"""CreativeWork""":
+          switch (g["@id"]!.ToString())
+          {
+            case "ro-crate-metadata.json":
+            {
+              var metadata = new Metadata(this, source: g["@id"]!.ToString(), properties: g.AsObject());
+              Add(metadata);
+              break;
+            }
+            case "ro-crate-preview.html":
+            {
+              var preview = new Preview(this, source: g["@id"]!.ToString(), properties: g.AsObject());
+              Add(preview);
+              break;
+            }
+            default:
+              Add(new CreativeWork(this, g["@id"]!.ToString(), g.AsObject()));
+              break;
+          }
+
+          break;
+        case @"""Dataset""":
+          Add(g["@id"]!.ToString() == "./"
+            ? new RootDataset(this, source: g["@id"]!.ToString(), properties: g.AsObject())
+            : new Dataset(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+
+          break;
+        case @"""File""":
+          Add(new File(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        case @"""Person""":
+          Add(new Person(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case @"""SoftwareApplication""":
+          Add(new SoftwareApplication(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case @"""TestDefinition""":
+          Add(new TestDefinition(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        case @"""TestInstance""":
+          Add(new TestInstance(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case @"""TestService""":
+          Add(new TestService(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case @"""TestSuite""":
+          Add(new TestSuite(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+        case @"[""File"",""SoftwareSourceCode"",""Workflow""]":
+          Add(new Workflow(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        case @"[""File"",""SoftwareSourceCode"",""WorkflowDescription""]":
+          Add(new WorkflowDescription(this, source: g["@id"]!.ToString(), properties: g.AsObject()));
+          break;
+        default:
+          Add(new ContextEntity(this, g["@id"]!.ToString(), g.AsObject()));
+          break;
+      }
+    }
+  }
+
+  /// <summary>
+  /// <para>Convert a directory into an RO-Crate.</para>
+  /// <para>
+  /// This method iterates over the files and directories contained inside <paramref name="source"/>
+  /// and populates an <c>ROCrate</c> object with entities representing the contents of the RO-Crate.
+  /// The <c>ro-crate-metadata.json</c> and <c>ro-crate-preview.html</c> files are then saved into
+  /// <paramref name="source"/>
+  /// </para>
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var roCrate = new ROCrate();
+  /// roCrate.Convert("convertMe");
+  /// </code>
+  /// </example>
+  /// <param name="source">The path to the directory to be converted to an RO-Crate.</param>
+  public void Convert(string source)
+  {
+    var dirInfo = new DirectoryInfo(source);
+
+    // Add directories and files contained in those directories
+    foreach (var dir in dirInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
+    {
+      var dataset = AddDataset(source: Path.GetRelativePath(dirInfo.FullName, dir.FullName));
+      foreach (var fileInfo in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+      {
+        var file = AddFile(source: fileInfo.Name);
+        dataset.AppendTo("hasPart", file);
+      }
+    }
+
+    // Add files in the top level of `source`
+    foreach (var f in dirInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+    {
+      AddFile(source: f.Name);
+    }
+
+    Metadata.Write(source);
+    Preview.Write(source);
+  }
+
+  /// <summary>
+  /// Check the metadata of an RO-Crate.
+  /// </summary>
+  /// <param name="source">
+  /// The path to the directory containing the RO-Crate to initialise an <c>ROCrate</c> from.
+  /// </param>
+  /// <exception cref="DirectoryNotFoundException">Can't find the source directory.</exception>
+  /// <exception cref="FileNotFoundException">Can't find the metadata JSON file.</exception>
+  /// <exception cref="JsonException">The metadata file is invalid JSON.</exception>
+  /// <exception cref="InvalidDataException">The metadata format is not satisfied.</exception>
+  private void CheckSourceMetadata(string source)
+  {
+    if (!Directory.Exists(source))
+      throw new DirectoryNotFoundException($"{source} does not exist or is not a directory.");
+
+    var metadataPath = Path.Combine(source, "ro-crate-metadata.json");
+    if (!System.IO.File.Exists(metadataPath))
+      throw new FileNotFoundException(
+        $@"Metadata file not found in {source}. If you would like this to be an RO-Crate, use Convert to convert it."
+      );
+
+    var json = System.IO.File.ReadAllText(metadataPath);
+    JsonNode? metadataJson;
+    try
+    {
+      metadataJson = JsonNode.Parse(json);
+      if (metadataJson is null) throw new JsonException("Metadata file contains no metadata");
+    }
+    catch (JsonException)
+    {
+      throw new JsonException("Metadata file contains no metadata");
+    }
+
+    var metadataObject = metadataJson.AsObject();
+
+    if (!(metadataObject.ContainsKey("@context") || metadataObject.ContainsKey("@graph")))
+      throw new InvalidDataException("Metadata is missing @context, @graph or both.");
   }
 }

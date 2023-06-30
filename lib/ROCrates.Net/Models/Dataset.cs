@@ -13,16 +13,16 @@ public class Dataset : FileOrDir
     source, destPath, fetchRemote, validateUrl)
   {
     DefaultType = "Dataset";
+    Id = _formatIdentifier(Id);
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
-    Id = _formatIdentifier(Id);
   }
 
   public Dataset()
   {
     DefaultType = "Dataset";
-    Properties = _empty();
     Id = _formatIdentifier(Id);
+    Properties = _empty();
   }
 
   /// <summary>

@@ -20,7 +20,7 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
     var sourceDir = Path.Combine(_testDatasetFixture.TestBasePath, _testDirName);
     Directory.CreateDirectory(sourceDir);
     var dataset = new Models.Dataset(
-      new ROCrate(_testDirName),
+      new ROCrate(),
       source: Path.Combine(_testDatasetFixture.TestBasePath, _testDirName));
 
     // Act
@@ -39,7 +39,7 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
     Directory.CreateDirectory(sourceDir);
     Directory.CreateDirectory(destPath);
     var dataset = new Models.Dataset(
-      new ROCrate(_testDirName),
+      new ROCrate(),
       source: Path.Combine(_testDatasetFixture.TestBasePath, _testDirName),
       destPath: destPath);
 
@@ -57,7 +57,7 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
     var testDestPath = Path.Combine(_testDatasetFixture.TestBasePath, "ext", _testDirName);
     Directory.CreateDirectory(testDestPath);
     var dataset = new Models.Dataset(
-      new ROCrate(_testDirName),
+      new ROCrate(),
       source: Path.Combine("non", "existent"),
       destPath: testDestPath);
 
