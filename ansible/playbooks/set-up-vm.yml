@@ -12,6 +12,5 @@
           - dotnet-sdk-6.0
           - aspnetcore-runtime-6.0
           - default-jre
+          - podman
         update_cache: true
-
-- ansible.builtin.import_playbook: install-docker.yml
