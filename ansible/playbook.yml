@@ -2,6 +2,9 @@
 - name: Set up VM
   ansible.builtin.import_playbook: playbooks/set-up-vm.yml
 
+- name: Set up SSL
+  ansible.builtin.import_playbook: playbooks/set-up-ssl.yml
+
 - name: Install Docker and Docker Compose
   ansible.builtin.import_playbook: playbooks/install-docker.yml
 

@@ -1,0 +1,23 @@
+---
+- name: Set up SSL
+  hosts: tre_server
+  tasks:
+    - name: Generate an private key
+      become: true
+      community.crypto.openssl_privatekey:
+        path: $HOME/key.pem
+
+    - name: Generate certificate signing request
+      become: true
+      community.crypto.openssl_csr:
+        path: $HOME/crt.csr
+        privatekey_path: $HOME/key.pem
+        common_name: workflowhub.eu
+
+    - name: Generate self-signed certificate
+      become: true
+      community.crypto.x509_certificate:
+        path: $HOME/cert.crt
+        privatekey_path: $HOME/key.pem
+        csr_path: $HOME/crt.csr
+        provider: selfsigned
