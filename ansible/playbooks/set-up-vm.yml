@@ -38,3 +38,12 @@
         owner: root
         group: root
         mode: '0644'
+
+    - name: Add nginx.conf
+      become: true
+      ansible.builtin.copy:
+        src: files/nginx.conf
+        dest: $HOME/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
