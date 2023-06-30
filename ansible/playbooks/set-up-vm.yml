@@ -29,3 +29,12 @@
       ansible.builtin.apt:
         name:
           - podman
+
+    - name: Add registries.conf
+      become: true
+      ansible.builtin.copy:
+        src: files/registries.conf
+        dest: /etc/containers/registries.conf
+        owner: root
+        group: root
+        mode: '0644'
