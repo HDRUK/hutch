@@ -9,7 +9,7 @@ namespace HutchAgent.Services;
 public class CrateMergerService
 {
   /// <summary>
-  /// Copy a source zipped RO-Crate into an unzipped destination RO-Crate and zip the
+  /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
   /// </summary>
   /// <param name="sourceZip"></param>
@@ -24,8 +24,12 @@ public class CrateMergerService
     var destinationInfo = new DirectoryInfo(mergeInto);
     if (!destinationInfo.Exists) throw new DirectoryNotFoundException($"{mergeInto} does not exist.");
 
-    // Copy the result RO-Crate (`file`) into the unzipped original RO-Crate
-    File.Copy(sourceZip, Path.Combine(mergeInto, Path.GetFileName(sourceZip)));
+    // Create output directory `Data/outputs/` to extract execution crate
+    var outputDir = Path.Combine(mergeInto, "Data", "outputs");
+    Directory.CreateDirectory(outputDir);
+    
+    // Extract the result (RO-Crate) into the unzipped original RO-Crate
+    ZipFile.ExtractToDirectory(sourceZip, outputDir);
   }
 
   /// <summary>

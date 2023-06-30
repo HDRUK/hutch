@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using HutchAgent.Services;
 using ROCrates;
 using ROCrates.Models;
@@ -8,15 +9,22 @@ namespace HutchAgent.Tests;
 public class TestCrateMergeService
 {
   [Fact]
-  public void MergeCrates_Copies_ZipToDestination()
+  public void MergeCrates_Extract_ZipToDestinationDataOutputs()
   {
     // Arrange
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
-    var expectedFile = new FileInfo(Path.Combine(destinationDir.ToString(), zipFile.Name));
-    File.Create(zipFile.Name).Close();
+    var metaFile = new FileInfo("ro-crate-metadata.json");
+    var expectedFile = new FileInfo(Path.Combine(destinationDir.ToString(), "Data", "outputs", metaFile.Name));
+    
     Directory.CreateDirectory(destinationDir.ToString());
+    File.Create(metaFile.Name).Close();
 
+    using (var zipArchive = ZipFile.Open(zipFile.ToString(), ZipArchiveMode.Create))
+    {
+        zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
+    }
+    
     var service = new CrateMergerService();
 
     // Act
@@ -27,6 +35,7 @@ public class TestCrateMergeService
 
     // Clean up
     if (zipFile.Exists) zipFile.Delete();
+    if (metaFile.Exists) metaFile.Delete();
     if (destinationDir.Exists) destinationDir.Parent!.Delete(true);
   }
 
@@ -39,7 +48,7 @@ public class TestCrateMergeService
     var expectedFile = new FileInfo($"save2/{destinationDir.Name}-merged.zip");
 
     Directory.CreateDirectory(destinationDir.ToString());
-    File.Create(zipFile.Name).Close();
+    File.Create(zipFile.ToString()).Close();
 
     var service = new CrateMergerService();
 
