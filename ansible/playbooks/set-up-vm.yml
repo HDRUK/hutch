@@ -9,8 +9,23 @@
           - python3-pip
           - python3-venv
           - build-essential
+        update_cache: true
+
+    - name: Install Java
+      become: true
+      ansible.builtin.apt:
+        name:
+          - default-jre
+
+    - name: Install .NET
+      become: true
+      ansible.builtin.apt:
+        name:
           - dotnet-sdk-6.0
           - aspnetcore-runtime-6.0
-          - default-jre
+
+    - name: Install podman
+      become: true
+      ansible.builtin.apt:
+        name:
           - podman
-        update_cache: true
