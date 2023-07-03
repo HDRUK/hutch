@@ -65,18 +65,58 @@ public class CrateMergerService
 
     if (!File.Exists(fileToAdd))
       throw new FileNotFoundException("Could not locate the file to add to the metadata.");
+    
+    UpdateDatasetProperties(pathToMetadata, fileToAdd);
+    UpdateOutputsCreateActionProperties(pathToMetadata);
+  }
 
-    var metadataJson = File.ReadAllText(pathToMetadata);
-    var metadata = JsonNode.Parse(metadataJson);
-    if (metadata is null) throw new InvalidDataException($"{pathToMetadata} is not a valid JSON file.");
-
-    if (!metadata.AsObject().TryGetPropertyValue("@graph", out var graph))
-      throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
+  private static void UpdateDatasetProperties(string pathToMetadata, string fileToAdd)
+  {
+    var metadata = GetJsonMetadata(pathToMetadata);
+    var graph = GetGraphFromMetadata(metadata);
 
     var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
     var file = new ROCrates.Models.File(source: Path.GetFileName(fileToAdd)).Serialize();
     rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(file));
-
+    
     File.WriteAllText(pathToMetadata, metadata.ToString());
+  }
+
+  private static void UpdateOutputsCreateActionProperties(string pathToMetadata)
+  {
+    var outputsDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get outputs dir
+    var pathToOutputsMetadata = Path.Combine(outputsDirInfo!.ToString(),"Data","outputs","ro-crate-metadata.json");
+    
+    if (!File.Exists(pathToOutputsMetadata))
+      throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
+
+    var metadata = GetJsonMetadata(pathToOutputsMetadata);
+    var graph = GetGraphFromMetadata(metadata);
+    
+    var outputsCreateActionProperties = graph
+      .AsArray()
+      .FirstOrDefault(g =>
+        g["@type"].ToString() == "CreateAction" &&
+        g["name"].ToString().StartsWith("outputs/")
+      );
+    
+    outputsCreateActionProperties["actionStatus"] = "CompletedActionStatus";
+    
+    File.WriteAllText(pathToOutputsMetadata, metadata.ToString());
+  }
+
+  private static JsonNode GetJsonMetadata(string pathToMetadata)
+  {
+    var metadataJson = File.ReadAllText(pathToMetadata);
+    var metadata = JsonNode.Parse(metadataJson);
+    if (metadata is null) throw new InvalidDataException($"{pathToMetadata} is not a valid JSON file.");
+    return metadata;
+  }
+  
+  private static JsonNode GetGraphFromMetadata(JsonNode metadata)
+  {
+    if (!metadata.AsObject().TryGetPropertyValue("@graph", out var graph))
+      throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
+    return graph;
   }
 }
