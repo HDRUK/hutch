@@ -70,7 +70,7 @@ public class CrateMergerService
     UpdateOutputsCreateActionProperties(pathToMetadata);
   }
 
-  private static void UpdateDatasetProperties(string pathToMetadata, string fileToAdd)
+  private void UpdateDatasetProperties(string pathToMetadata, string fileToAdd)
   {
     var metadata = GetJsonMetadata(pathToMetadata);
     var graph = GetGraphFromMetadata(metadata);
@@ -82,7 +82,13 @@ public class CrateMergerService
     File.WriteAllText(pathToMetadata, metadata.ToString());
   }
 
-  private static void UpdateOutputsCreateActionProperties(string pathToMetadata)
+  /// <summary>
+  /// Update the outputs directory metadata file in an RO-Crate.
+  /// Mark workflow execution as completed.
+  /// </summary>
+  /// <param name="pathToMetadata">The path to the root metadata file.</param>
+  /// <exception cref="FileNotFoundException">Metadata file could not be found.</exception>
+  private void UpdateOutputsCreateActionProperties(string pathToMetadata)
   {
     var outputsDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get outputs dir
     var pathToOutputsMetadata = Path.Combine(outputsDirInfo!.ToString(),"Data","outputs","ro-crate-metadata.json");
@@ -100,12 +106,12 @@ public class CrateMergerService
         g["name"].ToString().StartsWith("outputs/")
       );
     
-    outputsCreateActionProperties["actionStatus"] = "CompletedActionStatus";
+    outputsCreateActionProperties["actionStatus"] = "CompletedActionStatus"; // Mark it as completed
     
     File.WriteAllText(pathToOutputsMetadata, metadata.ToString());
   }
 
-  private static JsonNode GetJsonMetadata(string pathToMetadata)
+  private JsonNode GetJsonMetadata(string pathToMetadata)
   {
     var metadataJson = File.ReadAllText(pathToMetadata);
     var metadata = JsonNode.Parse(metadataJson);
@@ -113,10 +119,21 @@ public class CrateMergerService
     return metadata;
   }
   
-  private static JsonNode GetGraphFromMetadata(JsonNode metadata)
+  private JsonNode GetGraphFromMetadata(JsonNode metadata)
   {
     if (!metadata.AsObject().TryGetPropertyValue("@graph", out var graph))
       throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
     return graph;
+  }
+
+  /// <summary>
+  /// Delete container images
+  /// </summary>
+  /// <param name="pathToImagesDir">The path to container images directory.</param>
+  public void DeleteContainerImages(string pathToImagesDir)
+  {
+    var files = Directory.GetFiles(pathToImagesDir, "*.img");
+    foreach (var file in files) 
+      File.Delete(file); // TODO
   }
 }

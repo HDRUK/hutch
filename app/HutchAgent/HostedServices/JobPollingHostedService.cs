@@ -111,16 +111,16 @@ public class JobPollingHostedService : BackgroundService
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
-      var sourceZip = Path.Combine(
+      var jobWorkDir = Path.Combine(
         _workflowTriggerOptions.ExecutorPath,
         "wfexs-backend-test_WorkDir",
-        job.WfexsRunId,
-        "outputs",
-        $"{job.WfexsRunId}.zip");
+        job.WfexsRunId);
+      var sourceZip = Path.Combine(jobWorkDir, "outputs", $"{job.WfexsRunId}.zip");
       var pathToMetadata = Path.Combine(job.UnpackedPath, "ro-crate-metadata.json");
       var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
       var mergeDirParent = mergeDirInfo.Parent;
       var mergedZip = Path.Combine(mergeDirParent!.ToString(), $"{mergeDirInfo.Name}-merged.zip");
+      var pathToContainerImagesDir= Path.Combine(jobWorkDir, "containers");
 
       if (!File.Exists(sourceZip))
       {
@@ -129,6 +129,7 @@ public class JobPollingHostedService : BackgroundService
       }
 
       _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
+      _crateMergerService.DeleteContainerImages(pathToContainerImagesDir);
       _crateMergerService.UpdateMetadata(pathToMetadata, sourceZip);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
