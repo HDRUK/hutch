@@ -1,11 +1,32 @@
 ---
-- name: Set up TRE
+- name: Set up VM
+  ansible.builtin.import_playbook: playbooks/set-up-vm.yml
+
+- name: Set up SSL
+  ansible.builtin.import_playbook: playbooks/set-up-ssl.yml
+
+- name: Install Docker and Docker Compose
+  ansible.builtin.import_playbook: playbooks/install-docker.yml
+
+- name: Install WfExS
+  ansible.builtin.import_playbook: playbooks/wfexs.yml
+
+- name: Install HutchAgent
   hosts: tre_server
   tasks:
     - name: Clone HUTCH
       ansible.builtin.git:
         repo: https://github.com/HDRUK/hutch
         dest: $HOME/hutch
+        version: main
 
-- ansible.builtin.import_playbook: playbooks/set-up-vm.yml
-- ansible.builtin.import_playbook: playbooks/wfexs.yml
+- name: Run Nexus, MinIO, Postgres, etc.
+  hosts: tre_server
+  tasks:
+    - name: Run Docker Compose
+      community.docker.docker_compose:
+        project_src: $HOME/hutch
+        project_name: hutch
+        files:
+          - docker-compose.yml
+      register: output

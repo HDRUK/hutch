@@ -11,4 +11,44 @@
           - build-essential
         update_cache: true
 
-- ansible.builtin.import_playbook: install-docker.yml
+    - name: Install Java
+      become: true
+      ansible.builtin.apt:
+        name:
+          - default-jre
+
+    - name: Install .NET
+      become: true
+      ansible.builtin.apt:
+        name:
+          - dotnet-sdk-6.0
+          - aspnetcore-runtime-6.0
+
+    - name: Install podman
+      become: true
+      ansible.builtin.apt:
+        name:
+          - podman
+
+    - name: Add registries.conf
+      become: true
+      ansible.builtin.copy:
+        src: files/registries.conf
+        dest: /etc/containers/registries.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Add nginx.conf
+      become: true
+      ansible.builtin.copy:
+        src: files/nginx.conf
+        dest: $HOME/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Make workflowhub.eu traffic redirect to localhost
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: 127.0.0.1 workflowhub.eu
