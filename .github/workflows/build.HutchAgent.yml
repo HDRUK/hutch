@@ -5,8 +5,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - app/HutchManager/**
-      - .github/workflows/build.manager-backend-api.yml
+      - app/HutchAgent/**
+      - .github/workflows/build.HutchAgent.yml
 
 env:
   # Configure these
