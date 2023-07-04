@@ -3,7 +3,7 @@ name: Build and Test HutchAgent
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main, feature/agent-CI-build-and-test]
+    branches: [main]
     paths:
       - app/HutchAgent/**
       - app/HutchAgent.Tests/**

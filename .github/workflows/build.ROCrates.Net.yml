@@ -3,7 +3,7 @@ name: Build and Test ROCrates.Net
 on:
   workflow_dispatch:
   pull_request:
-    branches: [main, feature/agent-CI-build-and-test]
+    branches: [main]
     paths:
       - lib/ROCrates.Net/**
       - lib/ROCrates.Net.Tests/**
