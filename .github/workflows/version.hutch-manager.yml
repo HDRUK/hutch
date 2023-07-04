@@ -6,9 +6,9 @@ on:
       version_tag:
         description: Version tag
         required: true
-  push:
-    branches:
-      - release/manager-**
+  # push:
+  #   branches:
+  #     - release/manager-**
 
 env:
   CI_build-config: release

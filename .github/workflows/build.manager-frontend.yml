@@ -2,11 +2,11 @@ name: Build Manager Frontend
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    paths:
-      - app/manager-frontend/**
-      - .github/workflows/build.manager-frontend.yml
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - app/manager-frontend/**
+  #     - .github/workflows/build.manager-frontend.yml
 
 env:
   # Configure these
