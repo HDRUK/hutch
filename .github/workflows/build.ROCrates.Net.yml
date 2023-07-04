@@ -20,7 +20,7 @@ env:
   DOTNET_NOLOGO: true
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
