@@ -1,15 +1,18 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 ---
 
-# Hutch Manager
+# Configuration
+
+:::danger Deprecated
+The Hutch Manager is now deprecated and will be removed soon.
+:::
 
 The app can be configured in any standard way an ASP.NET Core application can. Typically from the Azure Portal (Environment variables) or an `appsettings.json`.
 
 ## Available values and defaults
 
 ```yaml
-
 Root:
   Username: "" # Super Admin username. Prefix '@' will be added to the username. If not supplied, 'admin' will be used, which becomes '@admin'.
   Password: "" # Super Admin password

@@ -1,5 +1,12 @@
 {
     "python.analysis.extraPaths": [
         "./lib"
-    ]
+    ],
+    "grammarly.files.include": [
+        "**/readme.md",
+        "**/README.md",
+        "**/*.txt",
+        "**/*.md"
+    ],
+    "grammarly.config.documentDialect": "british"
 }

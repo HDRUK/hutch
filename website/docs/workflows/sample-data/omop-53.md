@@ -14,7 +14,7 @@ Follow the instructions below to install for your database flavour:
 
 ## Sample Data
 
-A sample dataset that can be used to test the Hutch stack in conjunction with a valid Activity Source (e.g. [BC|OS](/docs/users/detailed-overview/activity-sources#bcos-rquest)) is provided as a downloadable asset via a GitHub Release.
+A sample dataset that can be used to test the Hutch stack in conjunction with a valid Activity Source (e.g. [BC|OS](/docs/devs/deprecated/detailed-overview/activity-sources#bcos-rquest)) is provided as a downloadable asset via a GitHub Release.
 
 This [Sample Data only] release contains OMOP CDM 5.3 Sample Data.
 

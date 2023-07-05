@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# (Optional) WorkflowHub in a TRE
+# WorkflowHub in a TRE
 
 :::info
 This page assumes you are using Ubuntu Linux as your OS and that you will have `root` or `sudo` privileges.
@@ -73,7 +73,7 @@ This command should be executed as `root`.
 :::
 
 ### Re-routing to the workflow store
-When your workflow looks for, say, `https://workflowhub.eu/workflows/488/ro_crate?version=2`, the changes in `/etc/hosts/` will redirect the traffic to your local machine. We will use Nginx to look up the workflow on our Nexus instance and serve it back to us. In the example `nginx.conf` file below, the first `location` block, matches tries to match the WorkflowHub URL and strip out the relevant workflow ID. It then proxies to the Nexus instance, which serves back the file.
+When your workflow looks for, say, `https://workflowhub.eu/workflows/488/ro_crate?version=2`, the changes in `/etc/hosts` will redirect the traffic to your local machine. We will use Nginx to look up the workflow on our Nexus instance and serve it back to us. In the example `nginx.conf` file below, the first `location` block, matches tries to match the WorkflowHub URL and strip out the relevant workflow ID. It then proxies to the Nexus instance, which serves back the file.
 
 This example `nginx.conf` file can be used with the `docker-compose.yml` file in the Hutch repo. Copy the text below into a file called `nginx.conf` into the home directory of the user running Hutch, e.g. `/home/foo/nginx.conf`. It should be next to `key.pem` and `cert.crt` from the previous section. **You do not need to modify this example code. It is designed to work with the `nginx` service in the `docker-compose.yml` file.**
 

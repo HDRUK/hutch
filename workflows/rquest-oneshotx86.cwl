@@ -5,7 +5,7 @@ label: rquest-oneshot
 
 hints:
     DockerRequirement:
-        dockerPull: pszdldocker/rquest-oneshot:x86
+        dockerPull: hutchstack/rquest-omop-worker:next
 requirements:
     EnvVarRequirement:
         envDef:

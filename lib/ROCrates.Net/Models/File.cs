@@ -52,12 +52,12 @@ public class File : FileOrDir
   /// <param name="basePath">The path the file will be written to.</param>
   public override void Write(string basePath)
   {
-    var outFilePath = Path.Join(basePath, Id);
-    var outFileParent = Path.GetDirectoryName(outFilePath);
-    if (outFileParent == null) return;
-    if (Uri.IsWellFormedUriString(_source, UriKind.Absolute))
+    var sourceUri = new Uri(Id, UriKind.RelativeOrAbsolute);
+    if (sourceUri.IsAbsoluteUri && !sourceUri.IsLoopback)
     {
       if (!_fetchRemote && !_validateUrl) return;
+      var remotePath = sourceUri.AbsolutePath;
+      var outFilePath = Path.Join(basePath, remotePath.Split(Path.AltDirectorySeparatorChar).Last());
       using HttpClient client = new HttpClient();
       var response = client.GetAsync(_source).Result.Content;
       if (_validateUrl)
@@ -69,13 +69,16 @@ public class File : FileOrDir
       }
 
       if (!_fetchRemote) return;
-      Directory.CreateDirectory(outFileParent);
+      Directory.CreateDirectory(basePath);
       using var httpStream = response.ReadAsStream();
       using var file = System.IO.File.OpenWrite(outFilePath);
       httpStream.CopyTo(file);
     }
     else
     {
+      var outFilePath = Path.Join(basePath, Id);
+      var outFileParent = Path.GetDirectoryName(outFilePath);
+      if (outFileParent == null) return;
       Directory.CreateDirectory(outFileParent);
       if (System.IO.File.Exists(outFilePath)) return;
       System.IO.File.Copy(_source, outFilePath);
