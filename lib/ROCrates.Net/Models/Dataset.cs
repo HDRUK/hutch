@@ -105,10 +105,12 @@ public class Dataset : FileOrDir
 
   private protected sealed override string _formatIdentifier(string identifier)
   {
-    var newId = identifier.TrimEnd(Path.DirectorySeparatorChar);
-    newId = newId.TrimEnd(Path.AltDirectorySeparatorChar);
-    newId += "/";
-    return newId;
+    if (!identifier.EndsWith(Path.DirectorySeparatorChar) && !identifier.EndsWith(Path.AltDirectorySeparatorChar))
+    {
+      return identifier + Path.AltDirectorySeparatorChar;
+    }
+
+    return identifier;
   }
 
   /// <summary>

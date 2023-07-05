@@ -93,32 +93,27 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
   {
     // Arrange
     var datasetSource = _testDatasetFixture.TestBasePath.Replace("/", "\\");
+    var expected = _testDatasetFixture.TestBasePath + '/';
 
     // Act
     var dataset = new Dataset(source: datasetSource);
 
     // Assert
-    Assert.Equal(_testDatasetFixture.TestBasePath + '/', dataset.Id);
+    Assert.Equal(expected, dataset.Id);
   }
 
   [Fact]
   public void DatasetIdTag_Ends_WithSlash()
   {
     // Arrange
+    var datasetSource = _testDatasetFixture.TestBasePath;
+    var expected = _testDatasetFixture.TestBasePath + '/';
 
     // Act
+    var dataset = new Dataset(source: datasetSource);
 
     // Assert
-  }
-
-  [Fact]
-  public void DatasetIdTag_Is_WholeSpecifiedPath()
-  {
-    // Arrange
-
-    // Act
-
-    // Assert
+    Assert.Equal(expected, dataset.Id);
   }
 }
 
