@@ -1,0 +1,40 @@
+name: Build and Test HutchAgent
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - app/HutchAgent/**
+      - app/HutchAgent.Tests/**
+      - .github/workflows/build.HutchAgent.yml
+
+env:
+  # Configure these
+  CI_build-config: Debug
+  CI_dotnet-version: 6.0.x
+  Agent_project: ./app/HutchAgent/HutchAgent.csproj
+  Agent_test_project: ./app/HutchAgent.Tests/HutchAgent.Tests.csproj
+
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.CI_dotnet-version }}
+      - name: Build HutchAgent
+        run: >-
+          dotnet build
+          ${{ env.Agent_project }}
+          -c ${{ env.CI_build-config }}
+      - name: Run HutchAgent.Tests
+        run: >-
+          dotnet test
+          ${{ env.Agent_test_project }}
+          -c ${{ env.CI_build-config }}

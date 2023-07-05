@@ -13,16 +13,16 @@ public class Dataset : FileOrDir
     source, destPath, fetchRemote, validateUrl)
   {
     DefaultType = "Dataset";
+    Id = _formatIdentifier(Id);
     Properties = _empty();
     if (properties is not null) _unpackProperties(properties);
-    Id = _formatIdentifier(Id);
   }
 
   public Dataset()
   {
     DefaultType = "Dataset";
-    Properties = _empty();
     Id = _formatIdentifier(Id);
+    Properties = _empty();
   }
 
   /// <summary>
@@ -105,10 +105,12 @@ public class Dataset : FileOrDir
 
   private protected sealed override string _formatIdentifier(string identifier)
   {
-    var newId = identifier.TrimEnd(Path.DirectorySeparatorChar);
-    newId = newId.TrimEnd(Path.AltDirectorySeparatorChar);
-    newId += "/";
-    return newId;
+    if (!identifier.EndsWith(Path.DirectorySeparatorChar) && !identifier.EndsWith(Path.AltDirectorySeparatorChar))
+    {
+      return identifier + Path.AltDirectorySeparatorChar;
+    }
+
+    return identifier;
   }
 
   /// <summary>

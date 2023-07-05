@@ -16,15 +16,14 @@ public class TestFileOrDir
   public void Test_ConstructorThrows_When_DestPathIsAbsolute()
   {
     Assert.Throws<Exception>(() => new FileOrDir(
-      new ROCrate("my-test.zip"),
+      new ROCrate(),
       destPath: "/path/to/dest"));
   }
 
   [Fact]
   public void Test_Identifier_DefaultsTo_DotSlash()
   {
-    var dataEntity = new FileOrDir(
-      new ROCrate("my-test.zip"));
+    var dataEntity = new FileOrDir(new ROCrate());
     Assert.Equal("./", dataEntity.Id);
   }
 
@@ -33,20 +32,20 @@ public class TestFileOrDir
   {
     // Arrange
     const string localName = "./path/to/my-file.txt";
-    const string remoteName = "ftp:///path/to/my-file.txt";
+    const string remoteName = "ftp:/some.host/path/to/my-file.txt";
 
     // Act
     var dataEntityWithLocal = new FileOrDir(
-      new ROCrate("my-test.zip"),
+      new ROCrate(),
       source: localName);
     var dataEntityWithRemote = new FileOrDir(
-      new ROCrate("my-test.zip"),
+      new ROCrate(),
       source: remoteName,
       fetchRemote: true);
 
     // Assert
-    Assert.Equal("my-file.txt", dataEntityWithLocal.Id);
-    Assert.Equal("my-file.txt", dataEntityWithRemote.Id);
+    Assert.Equal(localName, dataEntityWithLocal.Id);
+    Assert.Equal(remoteName, dataEntityWithRemote.Id);
   }
 
   [Fact]
@@ -57,7 +56,7 @@ public class TestFileOrDir
 
     // Act
     var dataEntityWithDir = new FileOrDir(
-      new ROCrate("my-test.zip"),
+      new ROCrate(),
       source: dirName);
 
     // Assert
