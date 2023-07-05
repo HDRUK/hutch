@@ -31,7 +31,7 @@ public class FileOrDir : DataEntity
       }
 
       // Convert Windows paths to POSIX
-      Id = _destPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+      Id = _destPath.Replace('\\', Path.AltDirectorySeparatorChar);
     }
     // Source is remote
     else if (sourceUri.IsAbsoluteUri && !sourceUri.IsLoopback)
