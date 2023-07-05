@@ -32,7 +32,7 @@ public class TestFileOrDir
   {
     // Arrange
     const string localName = "./path/to/my-file.txt";
-    const string remoteName = "ftp:///path/to/my-file.txt";
+    const string remoteName = "ftp:/some.host/path/to/my-file.txt";
 
     // Act
     var dataEntityWithLocal = new FileOrDir(
