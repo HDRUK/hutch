@@ -34,7 +34,7 @@ public class FileOrDir : DataEntity
       Id = _destPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
     // Source is remote
-    else if (sourceUri.IsAbsoluteUri && sourceUri.Scheme != Uri.UriSchemeFile)
+    else if (sourceUri.IsAbsoluteUri && !sourceUri.IsLoopback)
     {
       Id = _source;
     }
