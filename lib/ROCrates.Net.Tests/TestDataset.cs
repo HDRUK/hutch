@@ -1,4 +1,6 @@
 using System.Text.Json.Nodes;
+using ROCrates.Models;
+using File = System.IO.File;
 
 namespace ROCrates.Tests;
 
@@ -90,10 +92,13 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
   public void DatasetIdTag_Is_UnixPath()
   {
     // Arrange
+    var datasetSource = _testDatasetFixture.TestBasePath.Replace("/", "\\");
 
     // Act
+    var dataset = new Dataset(source: datasetSource);
 
     // Assert
+    Assert.Equal(_testDatasetFixture.TestBasePath, dataset.Id);
   }
 
   [Fact]
