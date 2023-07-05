@@ -63,6 +63,7 @@ public class CrateMergerService
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
 
     var rootDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get root dir info
+    
     var folderToAdd = Path.Combine(rootDirInfo.ToString(), "Data", "outputs");
     
     if (!Directory.Exists(folderToAdd))
