@@ -1,4 +1,6 @@
 using System.Text.Json.Nodes;
+using ROCrates.Models;
+using File = System.IO.File;
 
 namespace ROCrates.Tests;
 
@@ -84,6 +86,34 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
 
     // Assert
     Assert.Equal(expectedJson, actualJson);
+  }
+
+  [Fact]
+  public void DatasetIdTag_Is_UnixPath()
+  {
+    // Arrange
+    var datasetSource = _testDatasetFixture.TestBasePath.Replace("/", "\\");
+    var expected = _testDatasetFixture.TestBasePath + '/';
+
+    // Act
+    var dataset = new Dataset(source: datasetSource);
+
+    // Assert
+    Assert.Equal(expected, dataset.Id);
+  }
+
+  [Fact]
+  public void DatasetIdTag_Ends_WithSlash()
+  {
+    // Arrange
+    var datasetSource = _testDatasetFixture.TestBasePath;
+    var expected = _testDatasetFixture.TestBasePath + '/';
+
+    // Act
+    var dataset = new Dataset(source: datasetSource);
+
+    // Assert
+    Assert.Equal(expected, dataset.Id);
   }
 }
 

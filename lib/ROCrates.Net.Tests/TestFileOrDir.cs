@@ -32,7 +32,7 @@ public class TestFileOrDir
   {
     // Arrange
     const string localName = "./path/to/my-file.txt";
-    const string remoteName = "ftp:///path/to/my-file.txt";
+    const string remoteName = "ftp:/some.host/path/to/my-file.txt";
 
     // Act
     var dataEntityWithLocal = new FileOrDir(
@@ -44,8 +44,8 @@ public class TestFileOrDir
       fetchRemote: true);
 
     // Assert
-    Assert.Equal("my-file.txt", dataEntityWithLocal.Id);
-    Assert.Equal("my-file.txt", dataEntityWithRemote.Id);
+    Assert.Equal(localName, dataEntityWithLocal.Id);
+    Assert.Equal(remoteName, dataEntityWithRemote.Id);
   }
 
   [Fact]
