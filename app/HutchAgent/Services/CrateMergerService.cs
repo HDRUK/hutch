@@ -88,8 +88,8 @@ public class CrateMergerService
   /// <param name="pathToImagesDir">The path to container images directory.</param>
   public void DeleteContainerImages(string pathToImagesDir)
   {
-    var files = Directory.GetFiles(pathToImagesDir, "*.img");
-    foreach (var file in files) 
-      File.Delete(file); // TODO
+    var images = Directory.GetFiles(pathToImagesDir, "*.img");
+    foreach (var image in images) 
+      File.Delete(image); // TODO
   }
 }
