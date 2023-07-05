@@ -98,7 +98,7 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
     var dataset = new Dataset(source: datasetSource);
 
     // Assert
-    Assert.Equal(_testDatasetFixture.TestBasePath, dataset.Id);
+    Assert.Equal(_testDatasetFixture.TestBasePath + '/', dataset.Id);
   }
 
   [Fact]

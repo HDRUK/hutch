@@ -44,8 +44,8 @@ public class TestFileOrDir
       fetchRemote: true);
 
     // Assert
-    Assert.Equal("my-file.txt", dataEntityWithLocal.Id);
-    Assert.Equal("my-file.txt", dataEntityWithRemote.Id);
+    Assert.Equal(localName, dataEntityWithLocal.Id);
+    Assert.Equal(remoteName, dataEntityWithRemote.Id);
   }
 
   [Fact]

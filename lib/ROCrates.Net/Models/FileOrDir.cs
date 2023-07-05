@@ -16,10 +16,12 @@ public class FileOrDir : DataEntity
     string? source = null,
     string? destPath = null, bool fetchRemote = false, bool validateUrl = false) : base(crate, identifier, properties)
   {
-    _source = source ?? "./";
+    _source = source ?? identifier ?? "./";
     _destPath = destPath;
     _fetchRemote = fetchRemote;
     _validateUrl = validateUrl;
+
+    var sourceUri = new Uri(_source, UriKind.RelativeOrAbsolute);
 
     if (_destPath != null)
     {
@@ -31,17 +33,15 @@ public class FileOrDir : DataEntity
       // Convert Windows paths to POSIX
       Id = _destPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     }
-    else if (Uri.IsWellFormedUriString(_source, UriKind.RelativeOrAbsolute) && _fetchRemote)
+    // Source is remote
+    else if (sourceUri.IsAbsoluteUri && sourceUri.Scheme != Uri.UriSchemeFile)
     {
-      Id = Path.GetFileName(_source);
-    }
-    else if (Path.GetFileName(_source) != String.Empty)
-    {
-      Id = Path.GetFileName(_source);
+      Id = _source;
     }
     else
     {
-      Id = _source;
+      // Convert Windows paths to POSIX
+      Id = _source.Replace('\\', Path.AltDirectorySeparatorChar);
     }
   }
 
