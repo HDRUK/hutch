@@ -1,0 +1,40 @@
+name: Build and Test ROCrates.Net
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - lib/ROCrates.Net/**
+      - lib/ROCrates.Net.Tests/**
+      - .github/workflows/build.ROCrates.Net.yml
+
+env:
+  # Configure these
+  CI_build-config: Debug
+  CI_dotnet-version: 6.0.x
+  Agent_project: ./lib/ROCrates.Net/ROCrates.Net.csproj
+  Agent_test_project: ./lib/ROCrates.Net.Tests/ROCrates.Net.Tests.csproj
+
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.CI_dotnet-version }}
+      - name: Build ROCrates.Net
+        run: >-
+          dotnet build
+          ${{ env.Agent_project }}
+          -c ${{ env.CI_build-config }}
+      - name: Run ROCrates.Net.Tests
+        run: >-
+          dotnet test
+          ${{ env.Agent_test_project }}
+          -c ${{ env.CI_build-config }}

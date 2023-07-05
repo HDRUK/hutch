@@ -6,11 +6,11 @@ on:
       version_tag:
         description: Version tag
         required: true
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
+  # pull_request:
+  #   types:
+  #     - closed
+  #   branches:
+  #     - main
 
 env:
   CI_build-config: release
