@@ -53,79 +53,35 @@ public class CrateMergerService
   /// Update the target metadata file in an RO-Crate.
   /// </summary>
   /// <param name="pathToMetadata">The path to the metadata file that needs updating.</param>
-  /// <param name="fileToAdd">The path of the file to add to the metadata.</param>
   /// <exception cref="FileNotFoundException">
-  /// Metadata file and/or file to be added to the metadata could not be found.
+  /// Metadata file could not be found.
   /// </exception>
   /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
-  public void UpdateMetadata(string pathToMetadata, string fileToAdd)
+  public void UpdateMetadata(string pathToMetadata)
   {
     if (!File.Exists(pathToMetadata))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
 
-    if (!File.Exists(fileToAdd))
-      throw new FileNotFoundException("Could not locate the file to add to the metadata.");
+    var rootDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get root dir info
+    var folderToAdd = Path.Combine(rootDirInfo.ToString(), "Data", "outputs");
     
-    UpdateDatasetProperties(pathToMetadata, fileToAdd);
-    UpdateOutputsCreateActionProperties(pathToMetadata);
-  }
-
-  private void UpdateDatasetProperties(string pathToMetadata, string fileToAdd)
-  {
-    var metadata = GetJsonMetadata(pathToMetadata);
-    var graph = GetGraphFromMetadata(metadata);
-
-    var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
-    var file = new ROCrates.Models.File(source: Path.GetFileName(fileToAdd)).Serialize();
-    rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(file));
+    if (!Directory.Exists(folderToAdd))
+      throw new FileNotFoundException("Could not locate the folder to add to the metadata.");
     
-    File.WriteAllText(pathToMetadata, metadata.ToString());
-  }
-
-  /// <summary>
-  /// Update the outputs directory metadata file in an RO-Crate.
-  /// Mark workflow execution as completed.
-  /// </summary>
-  /// <param name="pathToMetadata">The path to the root metadata file.</param>
-  /// <exception cref="FileNotFoundException">Metadata file could not be found.</exception>
-  private void UpdateOutputsCreateActionProperties(string pathToMetadata)
-  {
-    var outputsDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get outputs dir
-    var pathToOutputsMetadata = Path.Combine(outputsDirInfo!.ToString(),"Data","outputs","ro-crate-metadata.json");
-    
-    if (!File.Exists(pathToOutputsMetadata))
-      throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
-
-    var metadata = GetJsonMetadata(pathToOutputsMetadata);
-    var graph = GetGraphFromMetadata(metadata);
-    
-    var outputsCreateActionProperties = graph
-      .AsArray()
-      .FirstOrDefault(g =>
-        g["@type"].ToString() == "CreateAction" &&
-        g["name"].ToString().StartsWith("outputs/")
-      );
-    
-    outputsCreateActionProperties["actionStatus"] = "CompletedActionStatus"; // Mark it as completed
-    
-    File.WriteAllText(pathToOutputsMetadata, metadata.ToString());
-  }
-
-  private JsonNode GetJsonMetadata(string pathToMetadata)
-  {
     var metadataJson = File.ReadAllText(pathToMetadata);
     var metadata = JsonNode.Parse(metadataJson);
     if (metadata is null) throw new InvalidDataException($"{pathToMetadata} is not a valid JSON file.");
-    return metadata;
-  }
-  
-  private JsonNode GetGraphFromMetadata(JsonNode metadata)
-  {
+
     if (!metadata.AsObject().TryGetPropertyValue("@graph", out var graph))
       throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
-    return graph;
-  }
 
+    var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
+    var folder = new ROCrates.Models.Dataset(source: Path.GetRelativePath(rootDirInfo.ToString(), folderToAdd)).Serialize();
+    rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(folder));
+
+    File.WriteAllText(pathToMetadata, metadata.ToString());
+  }
+  
   /// <summary>
   /// Delete container images
   /// </summary>

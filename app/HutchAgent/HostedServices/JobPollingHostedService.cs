@@ -130,7 +130,7 @@ public class JobPollingHostedService : BackgroundService
 
       _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
       _crateMergerService.DeleteContainerImages(pathToContainerImagesDir);
-      _crateMergerService.UpdateMetadata(pathToMetadata, sourceZip);
+      _crateMergerService.UpdateMetadata(pathToMetadata);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
       if (await _resultsStoreWriter.ResultExists(mergedZip))
