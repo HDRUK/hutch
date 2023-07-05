@@ -85,6 +85,36 @@ public class TestDataset : IClassFixture<TestDatasetFixture>
     // Assert
     Assert.Equal(expectedJson, actualJson);
   }
+
+  [Fact]
+  public void DatasetIdTag_Is_UnixPath()
+  {
+    // Arrange
+
+    // Act
+
+    // Assert
+  }
+
+  [Fact]
+  public void DatasetIdTag_Ends_WithSlash()
+  {
+    // Arrange
+
+    // Act
+
+    // Assert
+  }
+
+  [Fact]
+  public void DatasetIdTag_Is_WholeSpecifiedPath()
+  {
+    // Arrange
+
+    // Act
+
+    // Assert
+  }
 }
 
 public class TestDatasetFixture : IDisposable
