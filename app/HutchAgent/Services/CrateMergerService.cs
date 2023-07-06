@@ -8,7 +8,7 @@ namespace HutchAgent.Services;
 /// </summary>
 public class CrateMergerService
 {
-  private readonly string _pathToOutputDir = Path.Combine("Data","outputs");
+  private readonly string _pathToOutputDir = Path.Combine("data","outputs");
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
