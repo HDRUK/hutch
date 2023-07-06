@@ -119,7 +119,7 @@ public class JobPollingHostedService : BackgroundService
       var pathToMetadata = Path.Combine(job.UnpackedPath, "ro-crate-metadata.json");
       var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
       var mergeDirParent = mergeDirInfo.Parent;
-      var mergedZip = Path.Combine(mergeDirParent!.ToString(), $"{mergeDirInfo.Name}-merged.zip");
+      var mergedZip = Path.Combine(mergeDirParent!.FullName, $"{mergeDirInfo.Name}-merged.zip");
       var pathToContainerImagesDir= Path.Combine(jobWorkDir, "containers");
 
       if (!File.Exists(sourceZip))

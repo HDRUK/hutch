@@ -65,10 +65,10 @@ public class CrateMergerService
 
     var rootDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get root dir info
     
-    var folderToAdd = Path.Combine(rootDirInfo.ToString(), _pathToOutputDir);
+    var folderToAdd = Path.Combine(rootDirInfo.FullName, _pathToOutputDir);
     
     if (!Directory.Exists(folderToAdd))
-      throw new FileNotFoundException("Could not locate the folder to add to the metadata.");
+      throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
     
     var metadataJson = File.ReadAllText(pathToMetadata);
     var metadata = JsonNode.Parse(metadataJson);
@@ -78,7 +78,7 @@ public class CrateMergerService
       throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
 
     var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
-    var folder = new ROCrates.Models.Dataset(source: Path.GetRelativePath(rootDirInfo.ToString(), folderToAdd)).Serialize();
+    var folder = new ROCrates.Models.Dataset(source: Path.GetRelativePath(rootDirInfo.FullName, folderToAdd)).Serialize();
     rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(folder));
 
     File.WriteAllText(pathToMetadata, metadata.ToString());

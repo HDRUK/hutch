@@ -16,7 +16,7 @@ public class TestCrateMergeService
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
     var metaFile = new FileInfo("ro-crate-metadata.json");
-    var expectedFile = new FileInfo(Path.Combine(destinationDir.ToString(), pathToOutputDir, metaFile.Name));
+    var expectedFile = new FileInfo(Path.Combine(destinationDir.FullName, pathToOutputDir, metaFile.Name));
     
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(metaFile.Name).Close();
