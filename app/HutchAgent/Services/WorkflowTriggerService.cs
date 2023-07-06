@@ -120,6 +120,7 @@ public class WorkflowTriggerService
     {
       throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
     }
+
     // Tell the queue were the crate was extracted
     return _wfexsJobService.Create(wfexsJob).Result;
   }
@@ -139,20 +140,20 @@ public class WorkflowTriggerService
     // Get mainEntity from metadata
     // Contains workflow location
     var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-    var splitWorkflowURL = Regex.Split(mainEntity.Id, @"(?=[?])");
     // Compose download url for workflowHub
-    var downloadAddress = splitWorkflowURL[0] + "/ro_crate" + splitWorkflowURL[1];
+    var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
     using (var client = new WebClient())
     {
       client.DownloadFile(downloadAddress, cratePath + "/workflow.zip");
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
+
     // In progress
-    var json = new {id="newId",time="time"};
+    var json = new { id = "newId", time = "time" };
     var jsonObject = JsonNode.Parse(JsonSerializer.Serialize(json)).AsObject();
     var entity = new Entity(crate, "#extractid", jsonObject);
     crate.Add(entity);
-    crate.RootDataset.AppendTo("mentions",entity);
+    crate.RootDataset.AppendTo("mentions", entity);
   }
 
   /// <summary>
