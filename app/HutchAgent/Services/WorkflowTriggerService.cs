@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -142,9 +141,11 @@ public class WorkflowTriggerService
     var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
     // Compose download url for workflowHub
     var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
-    using (var client = new WebClient())
+    using (var client = new HttpClient())
     {
-      client.DownloadFile(downloadAddress, cratePath + "/workflow.zip");
+      var clientStream = await client.GetStreamAsync(downloadAddress);
+      await using var file = File.OpenWrite(cratePath + "/workflow.zip");
+      await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
 
