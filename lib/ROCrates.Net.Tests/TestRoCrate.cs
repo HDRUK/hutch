@@ -306,12 +306,16 @@ public class TestRoCrate
     roCrate.Convert(testDir.FullName);
 
     // Assert
-    Assert.Contains(topLevelFile.Name, roCrate.Entities.Keys);
     Assert.Contains(
-      Path.GetRelativePath(
-        testDir.FullName,
-        subDir.FullName
-      ) + "/",
+      Path.GetRelativePath(testDir.FullName, topLevelFile.FullName),
+      roCrate.Entities.Keys
+    );
+    Assert.Contains(
+      Path.GetRelativePath(testDir.FullName, subDir.FullName) + "/",
+      roCrate.Entities.Keys
+    );
+    Assert.Contains(
+      Path.GetRelativePath(testDir.FullName, subDirFile.FullName),
       roCrate.Entities.Keys
     );
 
