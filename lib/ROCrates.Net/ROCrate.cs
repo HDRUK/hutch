@@ -441,23 +441,23 @@ public class ROCrate
   /// <param name="source">The path to the directory to be converted to an RO-Crate.</param>
   public void Convert(string source)
   {
-    var dirInfo = new DirectoryInfo(source);
+    var rootDir = new DirectoryInfo(source);
 
     // Add directories and files contained in those directories
-    foreach (var dir in dirInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
+    foreach (var dir in rootDir.EnumerateDirectories("*", SearchOption.AllDirectories))
     {
-      var dataset = AddDataset(source: Path.GetRelativePath(dirInfo.FullName, dir.FullName));
+      var dataset = AddDataset(source: Path.GetRelativePath(rootDir.FullName, dir.FullName));
       foreach (var fileInfo in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
       {
-        var file = AddFile(source: fileInfo.Name);
+        var file = AddFile(source: Path.GetRelativePath(rootDir.FullName, fileInfo.FullName));
         dataset.AppendTo("hasPart", file);
       }
     }
 
     // Add files in the top level of `source`
-    foreach (var f in dirInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+    foreach (var f in rootDir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
     {
-      AddFile(source: f.Name);
+      AddFile(source: Path.GetRelativePath(rootDir.FullName, f.FullName));
     }
 
     Metadata.Write(source);
