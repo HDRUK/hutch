@@ -134,10 +134,12 @@ public class TestCrateMergeService
     // Act
     service.UpdateMetadata(crate.Metadata.Id);
     var output = File.ReadAllText(crate.Metadata.Id);
-    var pattern = "\"@id\": " + "\"" + $"{Path.GetRelativePath(metaFile.DirectoryName, folderToAdd)}/" + "\"";
+    var pattern1 = "\"@id\": " + "\"" + $"{Path.GetRelativePath(metaFile.DirectoryName, folderToAdd)}/" + "\"";
+    var pattern2 = "\"@type\": " + "\"" + "Dataset" + "\"";
 
     // Assert
-    Assert.Contains(pattern, output);
+    Assert.Contains(pattern1, output);
+    Assert.Contains(pattern2, output);
 
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
