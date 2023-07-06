@@ -8,6 +8,7 @@ namespace HutchAgent.Services;
 /// </summary>
 public class CrateMergerService
 {
+  private readonly string _pathToOutputDir = Path.Combine("Data","outputs");
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
@@ -25,7 +26,7 @@ public class CrateMergerService
     if (!destinationInfo.Exists) throw new DirectoryNotFoundException($"{mergeInto} does not exist.");
 
     // Create output directory `Data/outputs/` to extract execution crate
-    var outputDir = Path.Combine(mergeInto, "Data", "outputs");
+    var outputDir = Path.Combine(mergeInto, _pathToOutputDir);
     Directory.CreateDirectory(outputDir);
     
     // Extract the result (RO-Crate) into the unzipped original RO-Crate
@@ -64,7 +65,7 @@ public class CrateMergerService
 
     var rootDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get root dir info
     
-    var folderToAdd = Path.Combine(rootDirInfo.ToString(), "Data", "outputs");
+    var folderToAdd = Path.Combine(rootDirInfo.ToString(), _pathToOutputDir);
     
     if (!Directory.Exists(folderToAdd))
       throw new FileNotFoundException("Could not locate the folder to add to the metadata.");

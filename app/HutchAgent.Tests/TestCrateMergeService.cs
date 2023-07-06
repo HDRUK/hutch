@@ -12,10 +12,11 @@ public class TestCrateMergeService
   public void MergeCrates_Extract_ZipToDestinationDataOutputs()
   {
     // Arrange
+    var pathToOutputDir = Path.Combine("Data", "outputs");
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
     var metaFile = new FileInfo("ro-crate-metadata.json");
-    var expectedFile = new FileInfo(Path.Combine(destinationDir.ToString(), "Data", "outputs", metaFile.Name));
+    var expectedFile = new FileInfo(Path.Combine(destinationDir.ToString(), pathToOutputDir, metaFile.Name));
     
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(metaFile.Name).Close();
@@ -114,14 +115,15 @@ public class TestCrateMergeService
   public void UpdateMetadata_Adds_MergedEntity()
   {
     // Arrange
+    var pathToOutputDir = Path.Combine("Data", "outputs");
     var crate = new ROCrate();
     var rootDataset = new RootDataset(crate: crate);
     var dataset = new Dataset(crate: crate, source: "some-source");
     crate.Add(rootDataset, dataset);
     crate.Metadata.Write("./");
-    var metaFile = new FileInfo("ro-crate-metadata.json");
+    var metaFile = new FileInfo(crate.Metadata.Id);
     
-    var folderToAdd = Path.Combine(metaFile.DirectoryName, "Data", "outputs");
+    var folderToAdd = Path.Combine(metaFile.DirectoryName, pathToOutputDir);
     Directory.CreateDirectory(folderToAdd);
     
     var folderObject = new Dataset(crate: crate, source: folderToAdd);
