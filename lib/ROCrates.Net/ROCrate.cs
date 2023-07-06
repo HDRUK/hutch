@@ -449,7 +449,7 @@ public class ROCrate
       var dataset = AddDataset(source: Path.GetRelativePath(dirInfo.FullName, dir.FullName));
       foreach (var fileInfo in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
       {
-        var file = AddFile(source: fileInfo.Name);
+        var file = AddFile(source: Path.GetRelativePath(dirInfo.FullName, fileInfo.FullName));
         dataset.AppendTo("hasPart", file);
       }
     }
@@ -457,7 +457,7 @@ public class ROCrate
     // Add files in the top level of `source`
     foreach (var f in dirInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
     {
-      AddFile(source: f.Name);
+      AddFile(source: Path.GetRelativePath(dirInfo.FullName, f.FullName));
     }
 
     Metadata.Write(source);
