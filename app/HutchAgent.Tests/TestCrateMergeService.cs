@@ -121,8 +121,13 @@ public class TestCrateMergeService
     var dataset = new Dataset(crate: crate, source: "some-source");
     crate.Add(rootDataset, dataset);
     crate.Metadata.Write("./");
+
+    if (!File.Exists(crate.Metadata.Id)) 
+      throw new FileNotFoundException("Could not locate the metadata file.");
     var metaFile = new FileInfo(crate.Metadata.Id);
     
+    if (!Directory.Exists(metaFile.DirectoryName)) 
+      throw new FileNotFoundException("Could not locate the metadata directory.");
     var folderToAdd = Path.Combine(metaFile.DirectoryName, pathToOutputDir);
     Directory.CreateDirectory(folderToAdd);
     
