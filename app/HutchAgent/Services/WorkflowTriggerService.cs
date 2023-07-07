@@ -144,9 +144,15 @@ public class WorkflowTriggerService
     using (var client = new HttpClient())
     {
       var clientStream = await client.GetStreamAsync(downloadAddress);
-      await using var file = File.OpenWrite(cratePath + "/workflow.zip");
+      await using var file = File.OpenWrite(Path.Combine(cratePath, "workflows.zip"));
       await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
+    }
+
+    using (var archive = new ZipArchive(File.OpenRead(Path.Combine(cratePath, "workflows.zip"))))
+    {
+      Directory.CreateDirectory(Path.Combine(cratePath, "workflows"));
+      archive.ExtractToDirectory(Path.Combine(cratePath, "workflows"));
     }
 
     // In progress
