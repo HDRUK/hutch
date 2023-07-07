@@ -12,10 +12,11 @@ public class TestCrateMergeService
   public void MergeCrates_Extract_ZipToDestinationDataOutputs()
   {
     // Arrange
+    var pathToOutputDir = Path.Combine("data", "outputs");
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
     var metaFile = new FileInfo("ro-crate-metadata.json");
-    var expectedFile = new FileInfo(Path.Combine(destinationDir.ToString(), "Data", "outputs", metaFile.Name));
+    var expectedFile = new FileInfo(Path.Combine(destinationDir.FullName, pathToOutputDir, metaFile.Name));
     
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(metaFile.Name).Close();
@@ -101,11 +102,10 @@ public class TestCrateMergeService
   {
     // Arrange
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
-    var filToAdd = "my-file.txt";
     var service = new CrateMergerService();
 
     // Act
-    var action = () => service.UpdateMetadata(pathToMetadata, filToAdd);
+    var action = () => service.UpdateMetadata(pathToMetadata);
 
     // Assert
     Assert.Throws<FileNotFoundException>(action);
@@ -115,30 +115,39 @@ public class TestCrateMergeService
   public void UpdateMetadata_Adds_MergedEntity()
   {
     // Arrange
+    var pathToOutputDir = Path.Combine("data", "outputs");
     var crate = new ROCrate();
     var rootDataset = new RootDataset(crate: crate);
     var dataset = new Dataset(crate: crate, source: "some-source");
     crate.Add(rootDataset, dataset);
     crate.Metadata.Write("./");
 
-
-    var fileToAdd = new FileInfo("fileToAdd.zip");
-    var fileObject = new ROCrates.Models.File(crate: crate, source: fileToAdd.Name);
-    fileToAdd.Create().Close();
-    crate.Add(fileObject);
+    if (!File.Exists(crate.Metadata.Id)) 
+      throw new FileNotFoundException("Could not locate the metadata file.");
+    var metaFile = new FileInfo(crate.Metadata.Id);
+    
+    if (!Directory.Exists(metaFile.DirectoryName)) 
+      throw new FileNotFoundException("Could not locate the metadata directory.");
+    var folderToAdd = Path.Combine(metaFile.DirectoryName, pathToOutputDir);
+    Directory.CreateDirectory(folderToAdd);
+    
+    var folderObject = new Dataset(crate: crate, source: folderToAdd);
+    crate.Add(folderObject);
 
     var service = new CrateMergerService();
 
     // Act
-    service.UpdateMetadata(crate.Metadata.Id, fileToAdd.Name);
+    service.UpdateMetadata(crate.Metadata.Id);
     var output = File.ReadAllText(crate.Metadata.Id);
-    var pattern = "\"@id\": " + "\"" + $"{fileToAdd.Name}" + "\"";
+    var pattern1 = "\"@id\": " + "\"" + $"{Path.GetRelativePath(metaFile.DirectoryName, folderToAdd)}/" + "\"";
+    var pattern2 = "\"@type\": " + "\"" + "Dataset" + "\"";
 
     // Assert
-    Assert.Contains(pattern, output);
+    Assert.Contains(pattern1, output);
+    Assert.Contains(pattern2, output);
 
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
-    if (fileToAdd.Exists) fileToAdd.Delete();
+    if (Directory.Exists(folderToAdd)) Directory.Delete((folderToAdd));
   }
 }
