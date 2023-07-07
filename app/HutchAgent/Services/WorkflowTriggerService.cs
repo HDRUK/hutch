@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
@@ -153,14 +152,15 @@ public class WorkflowTriggerService
     {
       Directory.CreateDirectory(Path.Combine(cratePath, "workflows"));
       archive.ExtractToDirectory(Path.Combine(cratePath, "workflows"));
+      _logger.LogInformation($"Unpacked workflow to {Path.Combine(cratePath, "workflows")}");
     }
 
-    // In progress
-    var json = new { id = "newId", time = "time" };
-    var jsonObject = JsonNode.Parse(JsonSerializer.Serialize(json)).AsObject();
-    var entity = new Entity(crate, "#extractid", jsonObject);
-    crate.Add(entity);
-    crate.RootDataset.AppendTo("mentions", entity);
+    // Update crate metadata
+    if (File.Exists(Path.Combine(cratePath, crate.Metadata.Id)))
+      File.Delete(Path.Combine(cratePath, crate.Metadata.Id));
+    crate = new ROCrate(); // Reset the crate object
+    crate.Convert(cratePath); // Read the updated contents of the crate and rewrite the metadata and preview files
+    _logger.LogInformation("Updated crate metadata.");
   }
 
   /// <summary>
