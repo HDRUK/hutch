@@ -156,8 +156,28 @@ public class WorkflowTriggerService
     }
 
     // Update crate metadata
-    // TODO: logic to update the metadata
+    var crateInfo = new DirectoryInfo(cratePath);
+    // Add directories and files contained in those directories
+    foreach (var dir in crateInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
+    {
+      var dataset = crate.AddDataset(source: Path.GetRelativePath(crateInfo.FullName, dir.FullName));
+      foreach (var fileInfo in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+      {
+        var file = crate.AddFile(source: Path.GetRelativePath(crateInfo.FullName, fileInfo.FullName));
+        dataset.AppendTo("hasPart", file);
+      }
+    }
+
+    // Add files in the top level of `crateInfo`
+    foreach (var f in crateInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+    {
+      crate.AddFile(source: Path.GetRelativePath(crateInfo.FullName, f.FullName));
+    }
+
     _logger.LogInformation("Updated crate metadata.");
+
+    crate.Metadata.Write(cratePath);
+    crate.Preview.Write(cratePath);
   }
 
   /// <summary>
