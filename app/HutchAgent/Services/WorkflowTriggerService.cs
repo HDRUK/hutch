@@ -156,10 +156,7 @@ public class WorkflowTriggerService
     }
 
     // Update crate metadata
-    if (File.Exists(Path.Combine(cratePath, crate.Metadata.Id)))
-      File.Delete(Path.Combine(cratePath, crate.Metadata.Id));
-    crate = new ROCrate(); // Reset the crate object
-    crate.Convert(cratePath); // Read the updated contents of the crate and rewrite the metadata and preview files
+    // TODO: logic to update the metadata
     _logger.LogInformation("Updated crate metadata.");
   }
 
