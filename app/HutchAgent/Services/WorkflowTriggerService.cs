@@ -176,6 +176,7 @@ public class WorkflowTriggerService
 
     _logger.LogInformation("Updated crate metadata.");
 
+    // rewrite the metadata and preview files
     crate.Metadata.Write(cratePath);
     crate.Preview.Write(cratePath);
   }
