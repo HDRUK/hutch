@@ -184,19 +184,16 @@ public class WorkflowTriggerService
 
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
-    string? _wfexsRunId = null;
-    while (!process.HasExited && _wfexsRunId is null)
+    while (!process.HasExited && string.IsNullOrEmpty(wfexsJob.WfexsRunId))
     {
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
       if (runName is null) continue;
-      _wfexsRunId = runName;
       wfexsJob.WfexsRunId = runName;
-      wfexsJob.RunFinished = true;
     }
 
-    // end the process
+    // close our connection to the process
     process.Close();
 
     // Update the job in the queue.
