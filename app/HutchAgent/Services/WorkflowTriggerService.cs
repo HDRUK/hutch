@@ -111,7 +111,7 @@ public class WorkflowTriggerService
           string? line;
           while ((line = stageFileReader.ReadLine()) != null)
           {
-            if (line.Trim().StartsWith("- crate"))
+            if (line.Trim().StartsWith("- crate://"))
             {
               _logger.LogInformation($"Found line matching crate protocol {line}");
               stageFileWriter.WriteLine(RewritePath(wfexsJob, line));
@@ -203,13 +203,18 @@ public class WorkflowTriggerService
     await _wfexsJobService.Set(wfexsJob);
   }
 
-  private string RewritePath(WfexsJob wfexsJob, string? line)
+  private string RewritePath(WfexsJob wfexsJob, string line)
   {
-    var newInputPath = line.Split("///");
-
-    // keep line whitespaces for yaml formatting purposes
-    var newAbsolutePath = newInputPath[0].Split("crate")[0] + "file://";
-    var newLine = newAbsolutePath + Path.Combine(Path.GetFullPath(wfexsJob.UnpackedPath), newInputPath[1]);
+    var (linePrefix, relativePath) = line.Split("crate://") switch
+    {
+      { Length: 2 } a => (a[0], a[1]),
+      _ => (null, null)
+    };
+    if (relativePath is null) return line;
+    
+    var absolutePath = Path.Combine(Path.GetFullPath(wfexsJob.UnpackedPath), relativePath);
+    var newLine = linePrefix + "file://" + absolutePath;
+    
     _logger.LogInformation($"Writing absolute input path {newLine}");
 
     return newLine;
