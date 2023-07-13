@@ -171,7 +171,13 @@ public class WorkflowTriggerService
     // Add files in the top level of `crateInfo`
     foreach (var f in crateInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
     {
-      crate.AddFile(source: Path.GetRelativePath(crateInfo.FullName, f.FullName));
+      var pathRelativeToCrate = Path.GetRelativePath(crateInfo.FullName, f.FullName);
+      if (pathRelativeToCrate == crate.Metadata.Id)
+      {
+        crate.Add(new Metadata(source: pathRelativeToCrate));
+      }
+
+      crate.AddFile(source: pathRelativeToCrate);
     }
 
     _logger.LogInformation("Updated crate metadata.");

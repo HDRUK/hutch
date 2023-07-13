@@ -95,6 +95,7 @@ public class ROCrate
       {
         if (!Entities.ContainsKey(key)) RootDataset.AppendTo("hasPart", entity);
         _dataEntities.Add(entity as DataEntity);
+        Entities.Remove(entity.Id);
       }
 
       Entities.Add(key, entity);
