@@ -13,7 +13,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="YamlDotNet" Version="13.1.0" />
-    <ProjectReference Include="..\..\lib\ROCrates.Net\ROCrates.Net.csproj" />
+    <PackageReference Include="ROCrates.Net" Version="0.*"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.5" />
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.6.0-preview" />

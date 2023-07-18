@@ -48,7 +48,8 @@ public class WfexsJobService
           Id = x.Id,
           UnpackedPath = x.UnpackedPath,
           WfexsRunId = x.WfexsRunId,
-          RunFinished = x.RunFinished
+          RunFinished = x.RunFinished,
+          Pid = x.Pid
         }
       ).ToListAsync();
     return list;
@@ -79,6 +80,7 @@ public class WfexsJobService
   public async Task<WfexsJob> Set(WfexsJob job)
   {
     var entity = await _db.WfexsJobs.FindAsync(job.Id) ?? throw new KeyNotFoundException();
+    entity.Pid = job.Pid;
     entity.UnpackedPath = job.UnpackedPath;
     entity.WfexsRunId = job.WfexsRunId;
     entity.RunFinished = job.RunFinished;
