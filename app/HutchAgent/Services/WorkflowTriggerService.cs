@@ -6,6 +6,7 @@ using HutchAgent.Config;
 using HutchAgent.Data.Entities;
 using Microsoft.Extensions.Options;
 using ROCrates;
+using ROCrates.Exceptions;
 using ROCrates.Models;
 using File = System.IO.File;
 
@@ -133,13 +134,30 @@ public class WorkflowTriggerService
     ExtractCrate(wfexsJob, stream);
     var cratePath = Path.Combine(wfexsJob.UnpackedPath, "data");
     var fileJson = ValidateCrate(cratePath);
-    // Parse Crate metadata
-    var crate = ParseCrate(fileJson);
+    // Initialise Crate
+    var crate = new ROCrate();
+    try
+    {
+      crate.Initialise(cratePath);
+    }
+    catch (CrateReadException e)
+    {
+      _logger.LogError(exception:e,"RO-Crate cannot be read, or is invalid.");
+      return;
+    }
+    catch (MetadataException e)
+    {
+      _logger.LogError(exception:e, "RO-Crate Metadata cannot be read, or is invalid.");
+      return;
+    }
+    
     // Get mainEntity from metadata
     // Contains workflow location
     var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
+    var workflowId = Regex.Match(mainEntity.Id, @"\d+").Value;   
     // Compose download url for workflowHub
     var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
+    DateTime downloadStartTime = DateTime.Now;
     using (var client = new HttpClient())
     {
       var clientStream = await client.GetStreamAsync(downloadAddress);
@@ -147,44 +165,53 @@ public class WorkflowTriggerService
       await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
+    DateTime downloadEndTime = DateTime.Now;
 
     using (var archive = new ZipArchive(File.OpenRead(Path.Combine(cratePath, "workflows.zip"))))
     {
-      Directory.CreateDirectory(Path.Combine(cratePath, "workflows"));
-      archive.ExtractToDirectory(Path.Combine(cratePath, "workflows"));
-      _logger.LogInformation($"Unpacked workflow to {Path.Combine(cratePath, "workflows")}");
+      Directory.CreateDirectory(Path.Combine(cratePath, "workflow", workflowId));
+      archive.ExtractToDirectory(Path.Combine(cratePath, "workflow", workflowId));
+      _logger.LogInformation($"Unpacked workflow to {Path.Combine(cratePath, "workflow",workflowId)}");
     }
-
-    // Update crate metadata
-    var crateInfo = new DirectoryInfo(cratePath);
-    // Add directories and files contained in those directories
-    foreach (var dir in crateInfo.EnumerateDirectories("*", SearchOption.AllDirectories))
+    var downloadActionId = $"#download-{Guid.NewGuid()}";
+    var downloadAction = new ContextEntity(crate,downloadActionId);
+    crate.Add(downloadAction);
+    downloadAction.SetProperty("@type","DownloadAction");
+    downloadAction.SetProperty("name","Downloaded workflow RO-Crate via proxy");
+    downloadAction.SetProperty("startTime",downloadStartTime);
+    downloadAction.SetProperty("endTime",downloadEndTime);
+    downloadAction.SetProperty("object",new Part()
     {
-      var dataset = crate.AddDataset(source: Path.GetRelativePath(crateInfo.FullName, dir.FullName));
-      foreach (var fileInfo in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
-      {
-        var file = crate.AddFile(source: Path.GetRelativePath(crateInfo.FullName, fileInfo.FullName));
-        dataset.AppendTo("hasPart", file);
-      }
-    }
-
-    // Add files in the top level of `crateInfo`
-    foreach (var f in crateInfo.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+      Id = downloadAddress
+    });
+    downloadAction.SetProperty("result",new Part()
     {
-      var pathRelativeToCrate = Path.GetRelativePath(crateInfo.FullName, f.FullName);
-      if (pathRelativeToCrate == crate.Metadata.Id)
-      {
-        crate.Add(new Metadata(source: pathRelativeToCrate));
-      }
+      Id = Path.Combine("workflow",workflowId)
+    });
+    downloadAction.SetProperty("agent",new Part()
+    {
+      Id = "http://proxy.example.com/"
+    });
+    downloadAction.SetProperty("actionStatus",new Part()
+    {
+      Id = "https://schema.org/DownloadAction"
+    });
 
-      crate.AddFile(source: pathRelativeToCrate);
-    }
-
+    var workflowEntity = new Entity(crate);
+    workflowEntity.SetProperty("@id",Path.Combine("workflow",workflowId));
+    var property = crate.Entities[mainEntity.Id];
+    workflowEntity.SetProperty("sameAs",new Part()
+    {
+      Id = property.Id
+    });
+    workflowEntity.SetProperty("@type", property.Properties["@type"]);
+    workflowEntity.SetProperty("name", property.Properties["name"]);
+    workflowEntity.SetProperty("conformsTo", property.Properties["conformsTo"]);
+    workflowEntity.SetProperty("distribution", property.Properties["distribution"]);
+    crate.Add(workflowEntity);
+    crate.RootDataset.AppendTo("mentions", downloadAction);
+    crate.Save(location:cratePath);
     _logger.LogInformation("Updated crate metadata.");
-
-    // rewrite the metadata and preview files
-    crate.Metadata.Write(cratePath);
-    crate.Preview.Write(cratePath);
   }
 
   /// <summary>
