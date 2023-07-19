@@ -116,7 +116,7 @@ public class JobPollingHostedService : BackgroundService
         "wfexs-backend-test_WorkDir",
         job.WfexsRunId);
       var sourceZip = Path.Combine(jobWorkDir, "outputs", $"{job.WfexsRunId}.zip");
-      var pathToMetadata = Path.Combine(job.UnpackedPath, "ro-crate-metadata.json");
+      var pathToMetadata = Path.Combine(job.UnpackedPath); // directory path to ro-crate-metadata.json
       var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
       var mergeDirParent = mergeDirInfo.Parent;
       var mergedZip = Path.Combine(mergeDirParent!.FullName, $"{mergeDirInfo.Name}-merged.zip");
