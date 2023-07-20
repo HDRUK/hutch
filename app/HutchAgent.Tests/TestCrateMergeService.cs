@@ -1,7 +1,9 @@
 using System.IO.Compression;
+using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using ROCrates;
 using ROCrates.Models;
 using File = System.IO.File;
@@ -126,36 +128,44 @@ public class TestCrateMergeService
     var pathToOutputDir = Path.Combine("data", "outputs");
     var crate = new ROCrate();
     var rootDataset = new RootDataset(crate: crate);
+    Directory.CreateDirectory("some-source");
     var dataset = new Dataset(crate: crate, source: "some-source");
     crate.Add(rootDataset, dataset);
     crate.Metadata.Write("./");
-
+    
     if (!File.Exists(crate.Metadata.Id)) 
       throw new FileNotFoundException("Could not locate the metadata file.");
     var metaFile = new FileInfo(crate.Metadata.Id);
-    
+
     if (!Directory.Exists(metaFile.DirectoryName)) 
       throw new FileNotFoundException("Could not locate the metadata directory.");
-    var folderToAdd = Path.Combine(metaFile.DirectoryName, pathToOutputDir);
-    Directory.CreateDirectory(folderToAdd);
+    var outputDirToAdd = Path.Combine(metaFile.DirectoryName, pathToOutputDir);
+    Directory.CreateDirectory(outputDirToAdd);
     
-    var folderObject = new Dataset(crate: crate, source: folderToAdd);
-    crate.Add(folderObject);
-
     var service = new CrateMergerService(publisher);
 
     // Act
-    service.UpdateMetadata(crate.Metadata.Id);
+    service.UpdateMetadata(metaFile.DirectoryName);
     var output = File.ReadAllText(crate.Metadata.Id);
-    var pattern1 = "\"@id\": " + "\"" + $"{Path.GetRelativePath(metaFile.DirectoryName, folderToAdd)}/" + "\"";
-    var pattern2 = "\"@type\": " + "\"" + "Dataset" + "\"";
-
+    var pattern1 = "\"@id\": " 
+                   + "\""
+                   + $"{Path.GetRelativePath(metaFile.DirectoryName, Path.Combine(metaFile.DirectoryName, pathToOutputDir))}/" 
+                   + "\"";
+    var pattern2 = "\"publisher\": ";
+    var pattern3 = "\"@id\": " 
+                   + "\""
+                   + $"{publisher.Value.Name}" 
+                   + "\"";
+    var pattern4 = "\"datePublished\": ";
+    
     // Assert
     Assert.Contains(pattern1, output);
     Assert.Contains(pattern2, output);
-
+    Assert.Contains(pattern3, output);
+    Assert.Contains(pattern4, output);
+    
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
-    if (Directory.Exists(folderToAdd)) Directory.Delete((folderToAdd));
+    if (Directory.Exists(outputDirToAdd)) Directory.Delete((outputDirToAdd));
   }
 }
