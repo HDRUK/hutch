@@ -28,10 +28,6 @@ public class JobsController : ControllerBase
       return BadRequest();
     await using var sr = job.OpenReadStream();
     {
-      if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
-      {
-        await _workflowTriggerService.FetchCrate(sr);
-      }
       await _workflowTriggerService.TriggerWfexs(sr);
       return Accepted();
     }
