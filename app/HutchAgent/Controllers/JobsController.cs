@@ -23,10 +23,7 @@ public class JobsController : ControllerBase
   [HttpPost]
   public async Task<IActionResult> Unpack(IFormFile? job)
   {
-    if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
-    {
-      throw new NotSupportedException();
-    }
+    
     if (job == null)
       return BadRequest();
     await using var sr = job.OpenReadStream();
