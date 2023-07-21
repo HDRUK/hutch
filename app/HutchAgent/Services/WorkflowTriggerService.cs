@@ -17,7 +17,6 @@ namespace HutchAgent.Services;
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
-  private readonly JobPollingOptions _jobPollingOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
@@ -25,13 +24,15 @@ public class WorkflowTriggerService
   private readonly WfexsJobService _wfexsJobService;
   readonly IFeatureManager _featureManager;
 
-  public WorkflowTriggerService(IOptions<WorkflowTriggerOptions> workflowOptions,
-    ILogger<WorkflowTriggerService> logger, IOptions<JobPollingOptions> jobPollingOptions,
-    IServiceProvider serviceProvider, IFeatureManager featureManager)
+  public WorkflowTriggerService(
+    IOptions<WorkflowTriggerOptions> workflowOptions,
+    ILogger<WorkflowTriggerService> logger,
+    IServiceProvider serviceProvider,
+    IFeatureManager featureManager
+  )
   {
     _logger = logger;
     _featureManager = featureManager;
-    _jobPollingOptions = jobPollingOptions.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
@@ -48,10 +49,13 @@ public class WorkflowTriggerService
     {
       // get metadata from manifest
       var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
+      if (metadataProperties is null) throw new Exception("Unable to get metadata properties.");
       metadataProperties.TryGetPropertyValue("@graph", out var graph);
+      if (graph is null) throw new Exception("Unable to get @graph from metadata.");
       // get RootDataset Properties and add them to an ROCrates object
-      var rootDatasetProperties = graph.AsArray().Where(g => g["@id"].ToString() == "./");
-      var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.First().ToString(), _roCrate);
+      var rootDatasetProperties = graph.AsArray().First(g => g?["@id"]?.ToString() == "./");
+      if (rootDatasetProperties is null) throw new Exception("Unable to get root dataset from metadata.");
+      var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.ToString(), _roCrate);
       _roCrate.Add(datasetRoot ?? throw new InvalidOperationException());
 
       return _roCrate;
@@ -80,6 +84,7 @@ public class WorkflowTriggerService
     var crate = ParseCrate(fileJson);
     // Get mainEntity from metadata
     var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
+    if (mainEntity is null) throw new Exception("mainEntity is not defined in the root dataset.");
     var mainEntityPath = Path.Combine(wfexsJob.UnpackedPath, mainEntity.Id);
     // Check main entity is present and a stage file
     if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
@@ -138,7 +143,6 @@ public class WorkflowTriggerService
     ExtractCrate(wfexsJob, stream);
     _logger.LogInformation($"Crate extracted at {wfexsJob.UnpackedPath}");
     var cratePath = Path.Combine(wfexsJob.UnpackedPath, "data");
-    var fileJson = ValidateCrate(cratePath);
     // Initialise Crate
     var crate = new ROCrate();
     try
@@ -159,6 +163,7 @@ public class WorkflowTriggerService
     // Get mainEntity from metadata
     // Contains workflow location
     var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
+    if (mainEntity is null) throw new Exception("mainEntity is not defined in the root dataset.");
     var workflowId = Regex.Match(mainEntity.Id, @"\d+").Value;
     // Compose download url for workflowHub
     var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
