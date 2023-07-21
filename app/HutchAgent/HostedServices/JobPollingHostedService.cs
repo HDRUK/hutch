@@ -65,6 +65,7 @@ public class JobPollingHostedService : BackgroundService
 
   private async Task UploadResults()
   {
+    if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
@@ -83,6 +84,7 @@ public class JobPollingHostedService : BackgroundService
           job.WfexsRunId)
       );
 
+      if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
       if (await _resultsStoreWriter.ResultExists(pathToUploadInfo.Name))
       {
         _logger.LogInformation($"{pathToUploadInfo.Name} already exists in S3.");
@@ -108,6 +110,7 @@ public class JobPollingHostedService : BackgroundService
 
   private async Task MergeResults()
   {
+    if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
@@ -128,11 +131,13 @@ public class JobPollingHostedService : BackgroundService
         continue;
       }
 
+      if (_crateMergerService is null) throw new NullReferenceException("_crateMergerService instance not available");
       _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
       _crateMergerService.DeleteContainerImages(pathToContainerImagesDir);
       _crateMergerService.UpdateMetadata(pathToMetadata);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
+      if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
       if (await _resultsStoreWriter.ResultExists(mergedZip))
       {
         _logger.LogInformation($"Merged Crate {mergedZip} already exists in results store.");
@@ -149,6 +154,7 @@ public class JobPollingHostedService : BackgroundService
   /// </summary>
   private async Task CheckJobsFinished()
   {
+    if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
     var unfinishedJobs = await _wfexsJobService.List();
     unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
 

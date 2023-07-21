@@ -142,11 +142,6 @@ public class TestCrateMergeService
     var outputDirToAdd = Path.Combine(metaFile.DirectoryName, pathToOutputDir);
     Directory.CreateDirectory(outputDirToAdd);
     
-    var service = new CrateMergerService(publisher);
-
-    // Act
-    service.UpdateMetadata(metaFile.DirectoryName);
-    var output = File.ReadAllText(crate.Metadata.Id);
     var pattern1 = "\"@id\": " 
                    + "\""
                    + $"{Path.GetRelativePath(metaFile.DirectoryName, Path.Combine(metaFile.DirectoryName, pathToOutputDir))}/" 
@@ -157,6 +152,13 @@ public class TestCrateMergeService
                    + $"{publisher.Value.Name}" 
                    + "\"";
     var pattern4 = "\"datePublished\": ";
+    
+    var service = new CrateMergerService(publisher);
+
+    // Act
+    service.UpdateMetadata(metaFile.DirectoryName);
+    var output = File.ReadAllText(crate.Metadata.Id);
+
     
     // Assert
     Assert.Contains(pattern1, output);
