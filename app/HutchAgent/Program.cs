@@ -25,6 +25,7 @@ builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
   .Configure<JobPollingOptions>(builder.Configuration.GetSection("WatchFolder"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
+  .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
   .AddScoped<WorkflowTriggerService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()

@@ -1,5 +1,9 @@
 using System.IO.Compression;
-using System.Text.Json.Nodes;
+using HutchAgent.Config;
+using Microsoft.Extensions.Options;
+using ROCrates;
+using ROCrates.Models;
+using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
@@ -9,6 +13,11 @@ namespace HutchAgent.Services;
 public class CrateMergerService
 {
   private readonly string _pathToOutputDir = Path.Combine("data","outputs");
+  private readonly PublisherOptions _publisherOptions;
+  public CrateMergerService(IOptions<PublisherOptions> publisher)
+  {
+    _publisherOptions = publisher.Value;
+  }
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
@@ -60,28 +69,25 @@ public class CrateMergerService
   /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
   public void UpdateMetadata(string pathToMetadata)
   {
-    if (!File.Exists(pathToMetadata))
+    if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
-
-    var rootDirInfo = new DirectoryInfo(pathToMetadata).Parent; // get root dir info
     
-    var folderToAdd = Path.Combine(rootDirInfo.FullName, _pathToOutputDir);
+    var metaDirInfo = new DirectoryInfo(pathToMetadata);
     
-    if (!Directory.Exists(folderToAdd))
+    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, _pathToOutputDir);
+    if (!Directory.Exists(outputsDirToAdd))
       throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
+    var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
     
-    var metadataJson = File.ReadAllText(pathToMetadata);
-    var metadata = JsonNode.Parse(metadataJson);
-    if (metadata is null) throw new InvalidDataException($"{pathToMetadata} is not a valid JSON file.");
-
-    if (!metadata.AsObject().TryGetPropertyValue("@graph", out var graph))
-      throw new InvalidDataException("Cannot find entities in the RO-Crate metadata.");
-
-    var rootDatasetProperties = graph.AsArray().First(g => g["@id"].ToString() == "./");
-    var folder = new ROCrates.Models.Dataset(source: Path.GetRelativePath(rootDirInfo.FullName, folderToAdd)).Serialize();
-    rootDatasetProperties["hasPart"].AsArray().Add(JsonNode.Parse(folder));
-
-    File.WriteAllText(pathToMetadata, metadata.ToString());
+    var crate = new ROCrate();
+    crate.Initialise(metaDirInfo.FullName);
+    crate.RootDataset.AppendTo("hasPart",outputs);
+    crate.RootDataset.SetProperty("publisher", new Part()
+    {
+      Id = _publisherOptions.Name
+    });
+    crate.RootDataset.SetProperty("datePublished",DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+    crate.Save(location:metaDirInfo.FullName);
   }
   
   /// <summary>
