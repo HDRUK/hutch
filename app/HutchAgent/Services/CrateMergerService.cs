@@ -86,8 +86,6 @@ public class CrateMergerService
     {
       Id = _publisherOptions.Name
     });
-    crate.Save(location:metaDirInfo.FullName);
-    
     crate.RootDataset.SetProperty("datePublished",DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
     crate.Save(location:metaDirInfo.FullName);
   }

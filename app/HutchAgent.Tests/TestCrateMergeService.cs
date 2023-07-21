@@ -166,6 +166,6 @@ public class TestCrateMergeService
     
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
-    if (Directory.Exists(outputDirToAdd)) Directory.Delete((outputDirToAdd));
+    if (Directory.Exists(outputDirToAdd)) Directory.Delete(outputDirToAdd, recursive: true);
   }
 }
