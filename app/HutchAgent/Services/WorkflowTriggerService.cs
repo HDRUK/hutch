@@ -168,6 +168,26 @@ public class WorkflowTriggerService
     // Compose download url for workflowHub
     var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
     DateTime downloadStartTime = DateTime.Now;
+    
+    // Create DownloadAction ContextEntity
+    var downloadActionId = $"#download-{Guid.NewGuid()}";
+    var downloadAction = new ContextEntity(crate, downloadActionId);
+    crate.Add(downloadAction);
+    downloadAction.SetProperty("@type", "DownloadAction");
+    downloadAction.SetProperty("name", "Downloaded workflow RO-Crate via proxy");
+    downloadAction.SetProperty("startTime", downloadStartTime);
+    
+    downloadAction.SetProperty("object", new Part()
+    {
+      Id = downloadAddress
+    });
+    
+    downloadAction.SetProperty("agent", new Part()
+    {
+      Id = "http://proxy.example.com/"
+    });
+    // Set DownloadAction Status to Active
+    UpdateActionStatus(ActionStatus.ActiveActionStatus,downloadAction);
     using (var client = new HttpClient())
     {
       var clientStream = await client.GetStreamAsync(downloadAddress);
@@ -175,9 +195,13 @@ public class WorkflowTriggerService
       await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
+    UpdateActionStatus(ActionStatus.CompletedActionStatus,downloadAction);
 
-    DateTime downloadEndTime = DateTime.Now;
-
+    downloadAction.SetProperty("endTime", DateTime.Now);
+    downloadAction.SetProperty("result", new Part()
+    {
+      Id = Path.Combine("workflow", workflowId)
+    });
     using (var archive = new ZipArchive(File.OpenRead(Path.Combine(cratePath, "workflows.zip"))))
     {
       Directory.CreateDirectory(Path.Combine(cratePath, "workflow", workflowId));
@@ -185,29 +209,7 @@ public class WorkflowTriggerService
       _logger.LogInformation($"Unpacked workflow to {Path.Combine(cratePath, "workflow", workflowId)}");
     }
 
-    var downloadActionId = $"#download-{Guid.NewGuid()}";
-    var downloadAction = new ContextEntity(crate, downloadActionId);
-    crate.Add(downloadAction);
-    downloadAction.SetProperty("@type", "DownloadAction");
-    downloadAction.SetProperty("name", "Downloaded workflow RO-Crate via proxy");
-    downloadAction.SetProperty("startTime", downloadStartTime);
-    downloadAction.SetProperty("endTime", downloadEndTime);
-    downloadAction.SetProperty("object", new Part()
-    {
-      Id = downloadAddress
-    });
-    downloadAction.SetProperty("result", new Part()
-    {
-      Id = Path.Combine("workflow", workflowId)
-    });
-    downloadAction.SetProperty("agent", new Part()
-    {
-      Id = "http://proxy.example.com/"
-    });
-    downloadAction.SetProperty("actionStatus", new Part()
-    {
-      Id = "https://schema.org/DownloadAction"
-    });
+    
 
     var workflowEntity = new Entity(crate);
     workflowEntity.SetProperty("@id", Path.Combine("workflow", workflowId));
@@ -338,6 +340,14 @@ public class WorkflowTriggerService
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 
+  public void UpdateActionStatus(string status, Entity entity)
+  {
+    entity.SetProperty("actionStatus", new Part()
+    {
+      Id = status
+    });
+  }
+  
   public string ValidateCrate(string cratePath)
   {
     // Validate it is an ROCrate
