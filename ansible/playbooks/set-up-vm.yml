@@ -37,16 +37,13 @@
         dest: /etc/containers/registries.conf
         owner: root
         group: root
-        mode: '0644'
+        mode: "0644"
 
     - name: Add nginx.conf
-      become: true
       ansible.builtin.copy:
         src: files/nginx.conf
         dest: $HOME/nginx.conf
-        owner: root
-        group: root
-        mode: '0644'
+        mode: "0644"
 
     - name: Make workflowhub.eu traffic redirect to localhost
       ansible.builtin.lineinfile:
