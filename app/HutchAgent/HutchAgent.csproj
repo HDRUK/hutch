@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.5" />
     <PackageReference Include="Microsoft.FeatureManagement" Version="2.6.0-preview" />
     <PackageReference Include="Minio" Version="4.0.7" />
+    <PackageReference Include="YamlDotNet" Version="13.1.1"/>
   </ItemGroup>
 
 </Project>
