@@ -3,6 +3,7 @@ using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
 using Minio.Exceptions;
+using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.HostedServices;
 
@@ -15,6 +16,7 @@ public class JobPollingHostedService : BackgroundService
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
+  private string _cacheDir;
 
   public JobPollingHostedService(IOptions<JobPollingOptions> options,
     IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<JobPollingHostedService> logger,
@@ -24,6 +26,14 @@ public class JobPollingHostedService : BackgroundService
     _logger = logger;
     _serviceProvider = serviceProvider;
     _workflowTriggerOptions = workflowTriggerOptions.Value;
+
+    // Find the WfExS cache directory path
+    var configYaml = File.ReadAllText(_workflowTriggerOptions.LocalConfigPath);
+    var configYamlStream = new StringReader(configYaml);
+    var yamlStream = new YamlStream();
+    yamlStream.Load(configYamlStream);
+    var rootNode = yamlStream.Documents[0].RootNode;
+    _cacheDir = rootNode["cacheDir"].ToString();
   }
 
   /// <summary>
@@ -123,7 +133,7 @@ public class JobPollingHostedService : BackgroundService
       var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
       var mergeDirParent = mergeDirInfo.Parent;
       var mergedZip = Path.Combine(mergeDirParent!.FullName, $"{mergeDirInfo.Name}-merged.zip");
-      var pathToContainerImagesDir= Path.Combine(jobWorkDir, "containers");
+      var pathToContainerImagesDir = Path.Combine(jobWorkDir, "containers");
 
       if (!File.Exists(sourceZip))
       {
