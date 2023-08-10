@@ -181,16 +181,13 @@ public class JobPollingHostedService : BackgroundService
 
       // 2. get the exit code
       var exitCode = int.Parse(rootNode["exitVal"].ToString());
-      // record on wfexsJob??
+      job.ExitCode = exitCode;
       // record start and finish times?
 
-      // 3. get path to results
-      // // add record to job.
-
-      // 4. set job to finished
+      // 3. set job to finished
       job.RunFinished = true;
 
-      // 5. update job in DB
+      // 4. update job in DB
       await _wfexsJobService.Set(job);
     }
   }
