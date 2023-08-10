@@ -22,15 +22,8 @@ namespace HutchAgent.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ExitCode")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("Pid")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("ResultsPath")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<bool>("RunFinished")
                         .HasColumnType("INTEGER");
@@ -45,7 +38,7 @@ namespace HutchAgent.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WfexsJobs");
+                    b.ToTable("WfexsJobs", (string)null);
                 });
 #pragma warning restore 612, 618
         }
