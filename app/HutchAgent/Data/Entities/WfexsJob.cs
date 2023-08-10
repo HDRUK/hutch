@@ -11,6 +11,5 @@ public class WfexsJob
   public string WfexsRunId { get; set; } = string.Empty;
   public bool RunFinished { get; set; }
   public int Pid { get; set; }
-  public string ResultsPath { get; set; } = string.Empty;
   public int ExitCode { get; set; }
 }
