@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
@@ -17,6 +16,7 @@ public class JobPollingHostedService : BackgroundService
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
   private string _cacheDir;
+  private string _statePath = Path.Combine("meta", "execution-state.yaml");
 
   public JobPollingHostedService(IOptions<JobPollingOptions> options,
     IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<JobPollingHostedService> logger,
@@ -170,15 +170,28 @@ public class JobPollingHostedService : BackgroundService
 
     foreach (var job in unfinishedJobs)
     {
-      try
-      {
-        Process.GetProcessById(job.Pid);
-      }
-      catch (ArgumentException)
-      {
-        job.RunFinished = true;
-        await _wfexsJobService.Set(job);
-      }
+      // 1. find execution-state.yml for job
+      var pathToState = Path.Combine(_cacheDir, _statePath);
+      if (!File.Exists(pathToState)) continue;
+      var stateYaml = await File.ReadAllTextAsync(pathToState);
+      var configYamlStream = new StringReader(stateYaml);
+      var yamlStream = new YamlStream();
+      yamlStream.Load(configYamlStream);
+      var rootNode = yamlStream.Documents[0].RootNode;
+
+      // 2. get the exit code
+      var exitCode = int.Parse(rootNode["exitVal"].ToString());
+      // record on wfexsJob??
+      // record start and finish times?
+
+      // 3. get path to results
+      // // add record to job.
+
+      // 4. set job to finished
+      job.RunFinished = true;
+
+      // 5. update job in DB
+      await _wfexsJobService.Set(job);
     }
   }
 }
