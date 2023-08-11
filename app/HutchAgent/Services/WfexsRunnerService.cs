@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using HutchAgent.Data.Entities;
+using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.Services;
 
@@ -9,15 +10,17 @@ public class WfexsRunnerService
   private string _stageFilePath;
   private string _configFilePath;
   private string _executorDirectory;
+  private string _cacheDirectory;
   private WfexsJobService _jobService;
 
   public WfexsRunnerService(WfexsJobService jobService, string stageFilePath, string configFilePath,
-    string executorDirectory)
+    string executorDirectory, string cacheDirectory)
   {
     _stageFilePath = stageFilePath;
     _configFilePath = configFilePath;
     _jobService = jobService;
     _executorDirectory = executorDirectory;
+    _cacheDirectory = cacheDirectory;
   }
 
   /// <summary>
@@ -65,6 +68,43 @@ public class WfexsRunnerService
 
     // Add the job in the queue.
     await _jobService.Create(job);
+  }
+
+  /// <summary>
+  /// Check if WfExS jobs are finished and update the database.
+  /// </summary>
+  public async Task CheckJobsFinished()
+  {
+    if (_jobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
+    var unfinishedJobs = await _jobService.List();
+    unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
+
+    foreach (var job in unfinishedJobs)
+    {
+      // 1. find execution-state.yml for job
+      var pathToState = Path.Combine(
+        _cacheDirectory,
+        job.WfexsRunId,
+        "meta",
+        "execution-state.yaml");
+      if (!File.Exists(pathToState)) continue;
+      var stateYaml = await File.ReadAllTextAsync(pathToState);
+      var configYamlStream = new StringReader(stateYaml);
+      var yamlStream = new YamlStream();
+      yamlStream.Load(configYamlStream);
+      var rootNode = yamlStream.Documents[0].RootNode;
+
+      // 2. get the exit code
+      var exitCode = int.Parse(rootNode["exitVal"].ToString());
+      job.ExitCode = exitCode;
+      // record start and finish times?
+
+      // 3. set job to finished
+      job.RunFinished = true;
+
+      // 4. update job in DB
+      await _jobService.Set(job);
+    }
   }
 
   /// <summary>
