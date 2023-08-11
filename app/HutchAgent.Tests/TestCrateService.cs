@@ -1,11 +1,9 @@
 using System.IO.Compression;
-using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json.Linq;
 using ROCrates;
 using ROCrates.Models;
 using File = System.IO.File;
@@ -177,14 +175,5 @@ public class TestCrateMergeService
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
     if (Directory.Exists(outputDirToAdd)) Directory.Delete(outputDirToAdd, recursive: true);
-  }
-
-  [Fact]
-  public void CreateDisclosureCheck_CreatesEntity()
-  {
-    // Arrange
-    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var logger = new Mock<ILogger<CrateService>>();
-    
   }
 }
