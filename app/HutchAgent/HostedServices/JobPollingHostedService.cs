@@ -142,7 +142,8 @@ public class JobPollingHostedService : BackgroundService
 
       if (_crateMergerService is null) throw new NullReferenceException("_crateMergerService instance not available");
       _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
-      _crateMergerService.DeleteContainerImages(pathToContainerImagesDir);
+      // Delete containers directory
+      Directory.Delete(pathToContainerImagesDir, recursive: true);
       _crateMergerService.UpdateMetadata(pathToMetadata);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 

@@ -12,12 +12,14 @@ namespace HutchAgent.Services;
 /// </summary>
 public class CrateMergerService
 {
-  private readonly string _pathToOutputDir = Path.Combine("data","outputs");
+  private readonly string _pathToOutputDir = Path.Combine("data", "outputs");
   private readonly PublisherOptions _publisherOptions;
+
   public CrateMergerService(IOptions<PublisherOptions> publisher)
   {
     _publisherOptions = publisher.Value;
   }
+
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
@@ -37,7 +39,7 @@ public class CrateMergerService
     // Create output directory `Data/outputs/` to extract execution crate
     var outputDir = Path.Combine(mergeInto, _pathToOutputDir);
     Directory.CreateDirectory(outputDir);
-    
+
     // Extract the result (RO-Crate) into the unzipped original RO-Crate
     ZipFile.ExtractToDirectory(sourceZip, outputDir);
   }
@@ -71,31 +73,22 @@ public class CrateMergerService
   {
     if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
-    
+
     var metaDirInfo = new DirectoryInfo(pathToMetadata);
-    
+
     var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, _pathToOutputDir);
     if (!Directory.Exists(outputsDirToAdd))
       throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
     var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
-    
+
     var crate = new ROCrate();
     crate.Initialise(metaDirInfo.FullName);
-    crate.RootDataset.AppendTo("hasPart",outputs);
+    crate.RootDataset.AppendTo("hasPart", outputs);
     crate.RootDataset.SetProperty("publisher", new Part()
     {
       Id = _publisherOptions.Name
     });
-    crate.RootDataset.SetProperty("datePublished",DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
-    crate.Save(location:metaDirInfo.FullName);
-  }
-  
-  /// <summary>
-  /// Delete container images
-  /// </summary>
-  /// <param name="pathToImagesDir">The path to container images directory.</param>
-  public void DeleteContainerImages(string pathToImagesDir)
-  {
-    Directory.Delete(pathToImagesDir, recursive: true); // TODO
+    crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+    crate.Save(location: metaDirInfo.FullName);
   }
 }
