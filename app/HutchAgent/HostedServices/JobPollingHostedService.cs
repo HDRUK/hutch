@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
 using Minio.Exceptions;
+using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.HostedServices;
 
@@ -15,6 +15,8 @@ public class JobPollingHostedService : BackgroundService
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
+  private readonly string _workDir;
+  private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
   public JobPollingHostedService(IOptions<JobPollingOptions> options,
     IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<JobPollingHostedService> logger,
@@ -24,6 +26,14 @@ public class JobPollingHostedService : BackgroundService
     _logger = logger;
     _serviceProvider = serviceProvider;
     _workflowTriggerOptions = workflowTriggerOptions.Value;
+
+    // Find the WfExS cache directory path
+    var configYaml = File.ReadAllText(_workflowTriggerOptions.LocalConfigPath);
+    var configYamlStream = new StringReader(configYaml);
+    var yamlStream = new YamlStream();
+    yamlStream.Load(configYamlStream);
+    var rootNode = yamlStream.Documents[0].RootNode;
+    _workDir = rootNode["workDir"].ToString();
   }
 
   /// <summary>
@@ -123,7 +133,7 @@ public class JobPollingHostedService : BackgroundService
       var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
       var mergeDirParent = mergeDirInfo.Parent;
       var mergedZip = Path.Combine(mergeDirParent!.FullName, $"{mergeDirInfo.Name}-merged.zip");
-      var pathToContainerImagesDir= Path.Combine(jobWorkDir, "containers");
+      var pathToContainerImagesDir = Path.Combine(jobWorkDir, "containers");
 
       if (!File.Exists(sourceZip))
       {
@@ -160,15 +170,25 @@ public class JobPollingHostedService : BackgroundService
 
     foreach (var job in unfinishedJobs)
     {
-      try
-      {
-        Process.GetProcessById(job.Pid);
-      }
-      catch (ArgumentException)
-      {
-        job.RunFinished = true;
-        await _wfexsJobService.Set(job);
-      }
+      // 1. find execution-state.yml for job
+      var pathToState = Path.Combine(_workDir, _statePath);
+      if (!File.Exists(pathToState)) continue;
+      var stateYaml = await File.ReadAllTextAsync(pathToState);
+      var configYamlStream = new StringReader(stateYaml);
+      var yamlStream = new YamlStream();
+      yamlStream.Load(configYamlStream);
+      var rootNode = yamlStream.Documents[0].RootNode;
+
+      // 2. get the exit code
+      var exitCode = int.Parse(rootNode["exitVal"].ToString());
+      job.ExitCode = exitCode;
+      // record start and finish times?
+
+      // 3. set job to finished
+      job.RunFinished = true;
+
+      // 4. update job in DB
+      await _wfexsJobService.Set(job);
     }
   }
 }

@@ -247,19 +247,15 @@ public class WorkflowTriggerService
 
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
-    var commands = new List<string>()
-    {
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}"
-    };
-
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
-      RedirectStandardInput = true,
+      RedirectStandardInput = false,
       RedirectStandardError = true,
       UseShellExecute = false,
       CreateNoWindow = true,
-      FileName = _bashCmd,
+      FileName = "./WfExS-backend.py",
+      Arguments = $"-L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}",
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
 
@@ -270,20 +266,6 @@ public class WorkflowTriggerService
 
     // Get process PID
     wfexsJob.Pid = process.Id;
-
-    await using var streamWriter = process.StandardInput;
-    if (streamWriter.BaseStream.CanWrite)
-    {
-      // activate python virtual environment
-      await streamWriter.WriteLineAsync(_activateVenv);
-      foreach (var command in commands)
-      {
-        await streamWriter.WriteLineAsync(command);
-      }
-
-      await streamWriter.FlushAsync();
-      streamWriter.Close();
-    }
 
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
