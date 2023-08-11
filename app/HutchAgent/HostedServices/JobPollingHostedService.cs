@@ -15,8 +15,8 @@ public class JobPollingHostedService : BackgroundService
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
-  private string _workDir;
-  private string _statePath = Path.Combine("meta", "execution-state.yaml");
+  private readonly string _workDir;
+  private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
   public JobPollingHostedService(IOptions<JobPollingOptions> options,
     IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<JobPollingHostedService> logger,
