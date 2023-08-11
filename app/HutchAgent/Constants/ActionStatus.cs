@@ -1,6 +1,6 @@
 namespace HutchAgent.Constants;
 
-public class ActionStatus
+public static class ActionStatus
 {
   public const string PotentialActionStatus = "http://schema.org/PotentialActionStatus";
   
