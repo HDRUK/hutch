@@ -2,7 +2,9 @@ using System.IO.Compression;
 using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Moq;
 using Newtonsoft.Json.Linq;
 using ROCrates;
 using ROCrates.Models;
@@ -17,6 +19,7 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var pathToOutputDir = Path.Combine("data", "outputs");
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
@@ -31,7 +34,7 @@ public class TestCrateMergeService
         zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
     }
     
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher,logger.Object);
 
     // Act
     service.MergeCrates(zipFile.Name, destinationDir.ToString());
@@ -50,6 +53,7 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = new DirectoryInfo("save2/here/");
     var zipFile = new FileInfo(Path.Combine(destinationDir.ToString(), "test-zip.zip"));
     var expectedFile = new FileInfo($"save2/{destinationDir.Name}-merged.zip");
@@ -57,7 +61,7 @@ public class TestCrateMergeService
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(zipFile.ToString()).Close();
 
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher,logger.Object);
 
     // Act
     service.ZipCrate(destinationDir.ToString());
@@ -75,10 +79,11 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var zipFileName = "my-file.zip";
     var destinationDir = "non/existent/dir/";
     Directory.CreateDirectory("non/existent/");
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher,logger.Object);
 
     // Act
     var action = () => service.MergeCrates(zipFileName, destinationDir);
@@ -95,8 +100,9 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = "non/existent/dir/";
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher,logger.Object);
 
     // Act
     var action = () => service.ZipCrate(destinationDir);
@@ -110,8 +116,9 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher,logger.Object);
 
     // Act
     var action = () => service.UpdateMetadata(pathToMetadata);
@@ -125,6 +132,7 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var pathToOutputDir = Path.Combine("data", "outputs");
     var crate = new ROCrate();
     var rootDataset = new RootDataset(crate: crate);
@@ -153,7 +161,7 @@ public class TestCrateMergeService
                    + "\"";
     var pattern4 = "\"datePublished\": ";
     
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher,logger.Object);
 
     // Act
     service.UpdateMetadata(metaFile.DirectoryName);
@@ -169,5 +177,14 @@ public class TestCrateMergeService
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
     if (Directory.Exists(outputDirToAdd)) Directory.Delete(outputDirToAdd, recursive: true);
+  }
+
+  [Fact]
+  public void CreateDisclosureCheck_CreatesEntity()
+  {
+    // Arrange
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
+    
   }
 }
