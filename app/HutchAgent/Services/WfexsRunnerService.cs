@@ -63,7 +63,7 @@ public class WfexsRunnerService
     // close our connection to the process
     process.Close();
 
-    // Update the job in the queue.
+    // Add the job in the queue.
     await _jobService.Create(job);
   }
 
