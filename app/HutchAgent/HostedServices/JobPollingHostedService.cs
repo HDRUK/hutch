@@ -172,7 +172,12 @@ public class JobPollingHostedService : BackgroundService
     {
       // 1. find execution-state.yml for job
       var pathToState = Path.Combine(_workDir, _statePath);
-      if (!File.Exists(pathToState)) continue;
+      if (!File.Exists(pathToState))
+      {
+        _logger.LogWarning("Could not find execution status file at '{pathToState}'", pathToState);
+        continue;
+      }
+
       var stateYaml = await File.ReadAllTextAsync(pathToState);
       var configYamlStream = new StringReader(stateYaml);
       var yamlStream = new YamlStream();
