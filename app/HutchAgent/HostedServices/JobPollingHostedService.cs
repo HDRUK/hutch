@@ -15,7 +15,7 @@ public class JobPollingHostedService : BackgroundService
   private WfexsJobService? _wfexsJobService;
   private CrateMergerService? _crateMergerService;
   private readonly IServiceProvider _serviceProvider;
-  private string _cacheDir;
+  private string _workDir;
   private string _statePath = Path.Combine("meta", "execution-state.yaml");
 
   public JobPollingHostedService(IOptions<JobPollingOptions> options,
@@ -33,7 +33,7 @@ public class JobPollingHostedService : BackgroundService
     var yamlStream = new YamlStream();
     yamlStream.Load(configYamlStream);
     var rootNode = yamlStream.Documents[0].RootNode;
-    _cacheDir = rootNode["cacheDir"].ToString();
+    _workDir = rootNode["workDir"].ToString();
   }
 
   /// <summary>
@@ -171,7 +171,7 @@ public class JobPollingHostedService : BackgroundService
     foreach (var job in unfinishedJobs)
     {
       // 1. find execution-state.yml for job
-      var pathToState = Path.Combine(_cacheDir, _statePath);
+      var pathToState = Path.Combine(_workDir, _statePath);
       if (!File.Exists(pathToState)) continue;
       var stateYaml = await File.ReadAllTextAsync(pathToState);
       var configYamlStream = new StringReader(stateYaml);
