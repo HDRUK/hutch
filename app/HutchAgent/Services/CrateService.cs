@@ -224,15 +224,17 @@ public class CrateService
     disclosureCheck.SetProperty("@type", "AssessAction");
     disclosureCheck.SetProperty("additionalType", new Part()
     {
-      Id = "https://w3id.org/shp#DisclosureCheck"
+      Id = ActionType.DisclosureCheck
     });
-    disclosureCheck.SetProperty("name", "Disclosure check of workflow results: pending (estimate: 1 week)");
+    // Need to calculate estimate from startTime
     disclosureCheck.SetProperty("startTime", DateTime.Now);
+    disclosureCheck.SetProperty("name", "Disclosure check of workflow results: pending (estimate: 1 week)");
     disclosureCheck.SetProperty("object", new Part()
     {
-      Id = "./"
+      Id = roCrate.RootDataset.Id
     });
     roCrate.RootDataset.GetProperty<JsonArray>("mentions");
+    // Get sign off action agent
     var signOffAction = GetAssessAction(roCrate, ActionType.SignOff);
     var agent = signOffAction.GetProperty<Part>("agent") ?? throw new InvalidOperationException();
     disclosureCheck.SetProperty("agent", new Part()
