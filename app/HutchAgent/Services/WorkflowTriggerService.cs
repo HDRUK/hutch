@@ -22,17 +22,18 @@ public class WorkflowTriggerService
   private const string _bashCmd = "bash";
   private readonly ROCrate _roCrate = new();
   private readonly WfexsJobService _wfexsJobService;
-  readonly IFeatureManager _featureManager;
+  private readonly IFeatureManager _featureManager;
+  private readonly CrateService _crateService;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     IServiceProvider serviceProvider,
-    IFeatureManager featureManager
-  )
+    IFeatureManager featureManager, CrateService crateService)
   {
     _logger = logger;
     _featureManager = featureManager;
+    _crateService = crateService;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
@@ -133,13 +134,8 @@ public class WorkflowTriggerService
     return _wfexsJobService.Create(wfexsJob).Result;
   }
 
-  public async Task<WfexsJob> FetchCrate(Stream stream)
+  private async Task<(WfexsJob, ROCrate)> FetchCrate(Stream stream, WfexsJob wfexsJob)
   {
-    var wfexsJob = new WfexsJob
-    {
-      UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
-      RunFinished = false
-    };
     ExtractCrate(wfexsJob, stream);
     _logger.LogInformation($"Crate extracted at {wfexsJob.UnpackedPath}");
     var cratePath = Path.Combine(wfexsJob.UnpackedPath, "data");
@@ -168,7 +164,7 @@ public class WorkflowTriggerService
     // Compose download url for workflowHub
     var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
     DateTime downloadStartTime = DateTime.Now;
-    
+
     // Create DownloadAction ContextEntity
     var downloadActionId = $"#download-{Guid.NewGuid()}";
     var downloadAction = new ContextEntity(crate, downloadActionId);
@@ -176,18 +172,18 @@ public class WorkflowTriggerService
     downloadAction.SetProperty("@type", "DownloadAction");
     downloadAction.SetProperty("name", "Downloaded workflow RO-Crate via proxy");
     downloadAction.SetProperty("startTime", downloadStartTime);
-    
+
     downloadAction.SetProperty("object", new Part()
     {
       Id = downloadAddress
     });
-    
+
     downloadAction.SetProperty("agent", new Part()
     {
       Id = "http://proxy.example.com/"
     });
-    // Set DownloadAction Status to Active
-    UpdateActionStatus(ActionStatus.ActiveActionStatus,downloadAction);
+    // Set DownloadAction status to Active
+    _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, downloadAction);
     using (var client = new HttpClient())
     {
       var clientStream = await client.GetStreamAsync(downloadAddress);
@@ -195,7 +191,8 @@ public class WorkflowTriggerService
       await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
-    UpdateActionStatus(ActionStatus.CompletedActionStatus,downloadAction);
+    //Set DownloadAction status to Completed
+    _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, downloadAction);
 
     downloadAction.SetProperty("endTime", DateTime.Now);
     downloadAction.SetProperty("result", new Part()
@@ -208,8 +205,6 @@ public class WorkflowTriggerService
       archive.ExtractToDirectory(Path.Combine(cratePath, "workflow", workflowId));
       _logger.LogInformation($"Unpacked workflow to {Path.Combine(cratePath, "workflow", workflowId)}");
     }
-
-    
 
     var workflowEntity = new Entity(crate);
     workflowEntity.SetProperty("@id", Path.Combine("workflow", workflowId));
@@ -224,9 +219,10 @@ public class WorkflowTriggerService
     workflowEntity.SetProperty("distribution", property.Properties["distribution"]);
     crate.Add(workflowEntity);
     crate.RootDataset.AppendTo("mentions", downloadAction);
-    crate.Save(location: cratePath);
+    crate.Save(cratePath);
     _logger.LogInformation("Updated crate metadata.");
-    return wfexsJob;
+
+    return (_wfexsJobService.Create(wfexsJob).Result, crate);
   }
 
   /// <summary>
@@ -237,16 +233,25 @@ public class WorkflowTriggerService
   public async Task TriggerWfexs(Stream stream)
   {
     WfexsJob wfexsJob;
+    ROCrate crate = new ROCrate();
     // Unpack the crate and get the queued message to track the WfExS job.
     if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
     {
-      wfexsJob = await FetchCrate(stream);
+      wfexsJob = new WfexsJob
+      {
+        UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
+        RunFinished = false
+      };
+      (wfexsJob, crate) = await FetchCrate(stream, wfexsJob);
     }
     else
     {
       wfexsJob = UnpackCrate(stream);
     }
-
+    //Get execute action and set status to active
+    var executeAction = _crateService.GetExecuteEntity(crate);
+    _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
+    
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
@@ -340,14 +345,6 @@ public class WorkflowTriggerService
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 
-  public void UpdateActionStatus(string status, Entity entity)
-  {
-    entity.SetProperty("actionStatus", new Part()
-    {
-      Id = status
-    });
-  }
-  
   public string ValidateCrate(string cratePath)
   {
     // Validate it is an ROCrate
