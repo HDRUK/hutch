@@ -79,6 +79,12 @@ public class JobPollingHostedService : BackgroundService
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
+      if (job.ExitCode != 0)
+      {
+        _logger.LogWarning("Job {} did not finish successfully; skipping upload.", job.Id);
+        continue;
+      }
+
       var pathToUpload = Path.Combine(
         _workDir,
         job.WfexsRunId,
