@@ -1,3 +1,4 @@
+using System.Globalization;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
@@ -182,7 +183,7 @@ public class JobPollingHostedService : BackgroundService
 
     foreach (var job in unfinishedJobs)
     {
-      // 1. find execution-state.yml for job
+      // find execution-state.yml for job
       var pathToState = Path.Combine(_workDir, _statePath);
       if (!File.Exists(pathToState))
       {
@@ -196,15 +197,26 @@ public class JobPollingHostedService : BackgroundService
       yamlStream.Load(configYamlStream);
       var rootNode = yamlStream.Documents[0].RootNode;
 
-      // 2. get the exit code
+      // get the exit code
       var exitCode = int.Parse(rootNode["exitVal"].ToString());
       job.ExitCode = exitCode;
-      // record start and finish times?
 
-      // 3. set job to finished
+      // get start and end times
+      DateTime.TryParse(rootNode["started"].ToString(),
+        CultureInfo.InvariantCulture,
+        DateTimeStyles.AdjustToUniversal,
+        out var startTime);
+      job.StartTime = startTime;
+      DateTime.TryParse(rootNode["ended"].ToString(),
+        CultureInfo.InvariantCulture,
+        DateTimeStyles.AdjustToUniversal,
+        out var endTime);
+      job.EndTime = endTime;
+
+      // set job to finished
       job.RunFinished = true;
 
-      // 4. update job in DB
+      // update job in DB
       await _wfexsJobService.Set(job);
     }
   }
