@@ -24,15 +24,15 @@ public class WfexsJobService
     {
       UnpackedPath = job.UnpackedPath,
       RunFinished = job.RunFinished,
-      WfexsRunId = job.WfexsRunId
+      WfexsRunId = job.WfexsRunId,
+      ExitCode = job.ExitCode,
+      StartTime = job.StartTime,
+      EndTime = job.EndTime,
+      Pid = job.Pid
     };
     await _db.AddAsync(jobToAdd);
     await _db.SaveChangesAsync();
-    return new WfexsJob()
-    {
-      Id = jobToAdd.Id, RunFinished = jobToAdd.RunFinished, UnpackedPath = jobToAdd.UnpackedPath,
-      WfexsRunId = jobToAdd.WfexsRunId
-    };
+    return jobToAdd;
   }
 
   /// <summary>
@@ -49,7 +49,10 @@ public class WfexsJobService
           UnpackedPath = x.UnpackedPath,
           WfexsRunId = x.WfexsRunId,
           RunFinished = x.RunFinished,
-          Pid = x.Pid
+          Pid = x.Pid,
+          ExitCode = x.ExitCode,
+          StartTime = x.StartTime,
+          EndTime = x.EndTime
         }
       ).ToListAsync();
     return list;
@@ -84,6 +87,9 @@ public class WfexsJobService
     entity.UnpackedPath = job.UnpackedPath;
     entity.WfexsRunId = job.WfexsRunId;
     entity.RunFinished = job.RunFinished;
+    entity.ExitCode = job.ExitCode;
+    entity.StartTime = job.StartTime;
+    entity.EndTime = job.EndTime;
     await _db.SaveChangesAsync();
     return entity;
   }
