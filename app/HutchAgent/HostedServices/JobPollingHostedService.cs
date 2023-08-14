@@ -93,6 +93,12 @@ public class JobPollingHostedService : BackgroundService
 
       // Rename the execution crate to match the run ID so it is unique.
       var pathToUploadInfo = new FileInfo(pathToUpload);
+      if (!pathToUploadInfo.Exists)
+      {
+        _logger.LogError("{} does not exist. Cannot upload {} to store.", pathToUpload, pathToUpload);
+        continue;
+      }
+
       pathToUploadInfo.MoveTo(
         pathToUploadInfo.FullName.Replace(
           "execution.crate",
