@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using HutchAgent.Config;
+using HutchAgent.Constants;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
 using Minio.Exceptions;
+using File = System.IO.File;
 
 namespace HutchAgent.HostedServices;
 
@@ -13,7 +15,7 @@ public class JobPollingHostedService : BackgroundService
   private readonly ILogger<JobPollingHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
   private WfexsJobService? _wfexsJobService;
-  private CrateMergerService? _crateMergerService;
+  private CrateService? _crateService;
   private readonly IServiceProvider _serviceProvider;
 
   public JobPollingHostedService(IOptions<JobPollingOptions> options,
@@ -41,7 +43,7 @@ public class JobPollingHostedService : BackgroundService
         _resultsStoreWriter = scope.ServiceProvider.GetService<IResultsStoreWriter>() ??
                               throw new InvalidOperationException();
         _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
-        _crateMergerService = scope.ServiceProvider.GetService<CrateMergerService>() ??
+        _crateService = scope.ServiceProvider.GetService<CrateService>() ??
                               throw new InvalidOperationException();
         await CheckJobsFinished();
         await UploadResults();
@@ -123,7 +125,7 @@ public class JobPollingHostedService : BackgroundService
       var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
       var mergeDirParent = mergeDirInfo.Parent;
       var mergedZip = Path.Combine(mergeDirParent!.FullName, $"{mergeDirInfo.Name}-merged.zip");
-      var pathToContainerImagesDir= Path.Combine(jobWorkDir, "containers");
+      var pathToContainerImagesDir = Path.Combine(jobWorkDir, "containers");
 
       if (!File.Exists(sourceZip))
       {
@@ -131,12 +133,14 @@ public class JobPollingHostedService : BackgroundService
         continue;
       }
 
-      if (_crateMergerService is null) throw new NullReferenceException("_crateMergerService instance not available");
-      _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
-      _crateMergerService.DeleteContainerImages(pathToContainerImagesDir);
-      _crateMergerService.UpdateMetadata(pathToMetadata);
-      _crateMergerService.ZipCrate(job.UnpackedPath);
-
+      if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
+      _crateService.MergeCrates(sourceZip, job.UnpackedPath);
+      _crateService.DeleteContainerImages(pathToContainerImagesDir);
+      _crateService.UpdateMetadata(pathToMetadata);
+      _crateService.ZipCrate(job.UnpackedPath);
+      var jobCrate = _crateService.InitialiseCrate(Path.Combine(pathToMetadata, "data"));
+      _crateService.CreateDisclosureCheck(jobCrate);
+      jobCrate.Save(Path.Combine(pathToMetadata, "data"));
       if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
       if (await _resultsStoreWriter.ResultExists(mergedZip))
       {
@@ -157,7 +161,6 @@ public class JobPollingHostedService : BackgroundService
     if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
     var unfinishedJobs = await _wfexsJobService.List();
     unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
-
     foreach (var job in unfinishedJobs)
     {
       try
@@ -168,6 +171,13 @@ public class JobPollingHostedService : BackgroundService
       {
         job.RunFinished = true;
         await _wfexsJobService.Set(job);
+        if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
+        var jobCrate = _crateService.InitialiseCrate(Path.Combine(job.UnpackedPath, "data"));
+        var executeAction = _crateService.GetExecuteEntity(jobCrate);
+        _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, executeAction);
+        executeAction.SetProperty("endTime",DateTime.Now);
+
+        jobCrate.Save(Path.Combine(job.UnpackedPath, "data"));
       }
     }
   }
