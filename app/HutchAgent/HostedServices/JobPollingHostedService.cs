@@ -157,7 +157,7 @@ public class JobPollingHostedService : BackgroundService
       _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
       // Delete containers directory
       Directory.Delete(pathToContainerImagesDir, recursive: true);
-      _crateMergerService.UpdateMetadata(pathToMetadata);
+      _crateMergerService.UpdateMetadata(pathToMetadata, job);
       _crateMergerService.ZipCrate(job.UnpackedPath);
 
       if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");

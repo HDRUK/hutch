@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
+using HutchAgent.Data.Entities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -65,11 +67,12 @@ public class CrateMergerService
   /// Update the target metadata file in an RO-Crate.
   /// </summary>
   /// <param name="pathToMetadata">The path to the metadata file that needs updating.</param>
+  /// <param name="job"></param>
   /// <exception cref="FileNotFoundException">
   /// Metadata file could not be found.
   /// </exception>
   /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
-  public void UpdateMetadata(string pathToMetadata)
+  public void UpdateMetadata(string pathToMetadata, WfexsJob job)
   {
     if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
@@ -96,6 +99,8 @@ public class CrateMergerService
 
     // Add dataset and files contained within and update the CreateAction
     var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
+    createAction.SetProperty("started", job.StartTime.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("ended", job.EndTime.ToString(CultureInfo.InvariantCulture));
     crate.Add(outputs);
     foreach (var outputFile in outputFiles)
     {

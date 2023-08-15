@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
+using HutchAgent.Data.Entities;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
 using ROCrates;
@@ -109,10 +111,13 @@ public class TestCrateMergeService
     // Arrange
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
+    var startTime = DateTime.Now;
+    var endTime = startTime + TimeSpan.FromMinutes(2);
+    var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
     var service = new CrateMergerService(publisher);
 
     // Act
-    var action = () => service.UpdateMetadata(pathToMetadata);
+    var action = () => service.UpdateMetadata(pathToMetadata, job);
 
     // Assert
     Assert.Throws<FileNotFoundException>(action);
@@ -153,9 +158,12 @@ public class TestCrateMergeService
     var pattern4 = "\"datePublished\": ";
 
     var service = new CrateMergerService(publisher);
+    var startTime = DateTime.Now;
+    var endTime = startTime + TimeSpan.FromMinutes(2);
+    var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
 
     // Act
-    service.UpdateMetadata(metaFile.DirectoryName);
+    service.UpdateMetadata(metaFile.DirectoryName, job);
     var output = File.ReadAllText(crate.Metadata.Id);
 
 
@@ -164,6 +172,8 @@ public class TestCrateMergeService
     Assert.Contains(pattern2, output);
     Assert.Contains(pattern3, output);
     Assert.Contains(pattern4, output);
+    Assert.Contains(startTime.ToString(CultureInfo.InvariantCulture), output);
+    Assert.Contains(endTime.ToString(CultureInfo.InvariantCulture), output);
 
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
