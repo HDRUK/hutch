@@ -1,9 +1,7 @@
 using System.IO.Compression;
-using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using ROCrates;
 using ROCrates.Models;
 using File = System.IO.File;
@@ -16,21 +14,21 @@ public class TestCrateMergeService
   public void MergeCrates_Extract_ZipToDestinationDataOutputs()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var pathToOutputDir = Path.Combine("data", "outputs");
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
     var metaFile = new FileInfo("ro-crate-metadata.json");
     var expectedFile = new FileInfo(Path.Combine(destinationDir.FullName, pathToOutputDir, metaFile.Name));
-    
+
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(metaFile.Name).Close();
 
     using (var zipArchive = ZipFile.Open(zipFile.ToString(), ZipArchiveMode.Create))
     {
-        zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
+      zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
     }
-    
+
     var service = new CrateMergerService(publisher);
 
     // Act
@@ -49,7 +47,7 @@ public class TestCrateMergeService
   public void ZipCrate_Zips_DestinationToParent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var destinationDir = new DirectoryInfo("save2/here/");
     var zipFile = new FileInfo(Path.Combine(destinationDir.ToString(), "test-zip.zip"));
     var expectedFile = new FileInfo($"save2/{destinationDir.Name}-merged.zip");
@@ -74,7 +72,7 @@ public class TestCrateMergeService
   public void MergeCrates_Throws_WhenDestinationNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var zipFileName = "my-file.zip";
     var destinationDir = "non/existent/dir/";
     Directory.CreateDirectory("non/existent/");
@@ -94,7 +92,7 @@ public class TestCrateMergeService
   public void ZipCrate_Throws_WhenDestinationNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var destinationDir = "non/existent/dir/";
     var service = new CrateMergerService(publisher);
 
@@ -109,7 +107,7 @@ public class TestCrateMergeService
   public void UpdateMetadata_Throws_WhenSourceNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
     var service = new CrateMergerService(publisher);
 
@@ -124,48 +122,49 @@ public class TestCrateMergeService
   public void UpdateMetadata_Adds_MergedEntity()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var pathToOutputDir = Path.Combine("data", "outputs");
     var crate = new ROCrate();
-    var rootDataset = new RootDataset(crate: crate);
     Directory.CreateDirectory("some-source");
     var dataset = new Dataset(crate: crate, source: "some-source");
-    crate.Add(rootDataset, dataset);
+    var createAction = new Entity();
+    createAction.SetProperty("@type", "CreateAction");
+    crate.Add(dataset, createAction);
     crate.Metadata.Write("./");
-    
-    if (!File.Exists(crate.Metadata.Id)) 
+
+    if (!File.Exists(crate.Metadata.Id))
       throw new FileNotFoundException("Could not locate the metadata file.");
     var metaFile = new FileInfo(crate.Metadata.Id);
 
-    if (!Directory.Exists(metaFile.DirectoryName)) 
+    if (!Directory.Exists(metaFile.DirectoryName))
       throw new FileNotFoundException("Could not locate the metadata directory.");
     var outputDirToAdd = Path.Combine(metaFile.DirectoryName, pathToOutputDir);
     Directory.CreateDirectory(outputDirToAdd);
-    
-    var pattern1 = "\"@id\": " 
+
+    var pattern1 = "\"@id\": "
                    + "\""
-                   + $"{Path.GetRelativePath(metaFile.DirectoryName, Path.Combine(metaFile.DirectoryName, pathToOutputDir))}/" 
+                   + $"{Path.GetRelativePath(metaFile.DirectoryName, Path.Combine(metaFile.DirectoryName, pathToOutputDir))}/"
                    + "\"";
     var pattern2 = "\"publisher\": ";
-    var pattern3 = "\"@id\": " 
+    var pattern3 = "\"@id\": "
                    + "\""
-                   + $"{publisher.Value.Name}" 
+                   + $"{publisher.Value.Name}"
                    + "\"";
     var pattern4 = "\"datePublished\": ";
-    
+
     var service = new CrateMergerService(publisher);
 
     // Act
     service.UpdateMetadata(metaFile.DirectoryName);
     var output = File.ReadAllText(crate.Metadata.Id);
 
-    
+
     // Assert
     Assert.Contains(pattern1, output);
     Assert.Contains(pattern2, output);
     Assert.Contains(pattern3, output);
     Assert.Contains(pattern4, output);
-    
+
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
     if (Directory.Exists(outputDirToAdd)) Directory.Delete(outputDirToAdd, recursive: true);
