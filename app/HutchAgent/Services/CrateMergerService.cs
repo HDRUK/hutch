@@ -79,7 +79,15 @@ public class CrateMergerService
     var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, _pathToOutputDir);
     if (!Directory.Exists(outputsDirToAdd))
       throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
+
+    // Create entity to represent the outputs folder
     var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
+    // Create entities representing the files in the outputs folder
+    var outputFiles = new List<ROCrates.Models.File>();
+    foreach (var file in Directory.EnumerateFiles(outputsDirToAdd, "*", SearchOption.AllDirectories))
+    {
+      outputFiles.Add(new ROCrates.Models.File(source: Path.GetRelativePath(metaDirInfo.FullName, file)));
+    }
 
     var crate = new ROCrate();
     crate.Initialise(metaDirInfo.FullName);
@@ -89,6 +97,14 @@ public class CrateMergerService
       Id = _publisherOptions.Name
     });
     crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+
+    // Add dataset and files contained within
+    crate.Add(outputs);
+    foreach (var outputFile in outputFiles)
+    {
+      crate.Add(outputFile);
+    }
+
     crate.Save(location: metaDirInfo.FullName);
   }
 }
