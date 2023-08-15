@@ -83,26 +83,24 @@ public class CrateMergerService
     // Create entity to represent the outputs folder
     var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
     // Create entities representing the files in the outputs folder
-    var outputFiles = new List<ROCrates.Models.File>();
-    foreach (var file in Directory.EnumerateFiles(outputsDirToAdd, "*", SearchOption.AllDirectories))
-    {
-      outputFiles.Add(new ROCrates.Models.File(source: Path.GetRelativePath(metaDirInfo.FullName, file)));
-    }
+    var outputFiles = Directory.EnumerateFiles(outputsDirToAdd, "*", SearchOption.AllDirectories).Select(file =>
+      new ROCrates.Models.File(source: Path.GetRelativePath(metaDirInfo.FullName, file))).ToList();
 
     var crate = new ROCrate();
     crate.Initialise(metaDirInfo.FullName);
-    crate.RootDataset.AppendTo("hasPart", outputs);
     crate.RootDataset.SetProperty("publisher", new Part()
     {
       Id = _publisherOptions.Name
     });
     crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
 
-    // Add dataset and files contained within
+    // Add dataset and files contained within and update the CreateAction
+    var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
     crate.Add(outputs);
     foreach (var outputFile in outputFiles)
     {
       crate.Add(outputFile);
+      createAction.AppendTo("result", outputFile);
     }
 
     crate.Save(location: metaDirInfo.FullName);
