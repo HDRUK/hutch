@@ -147,10 +147,10 @@ public class CrateService
     var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ?? throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ?? throw new NullReferenceException();
     // Check entity type and instrument
-    var executeEntityId = mentions.Where(mention =>
-      mention != null && mention["@id"]?["@type"]?.ToString() == "CreateAction" &&
-      mention["@id"]?["instrument"]?["@id"]?.ToString() == mainEntity.Id).Select(mention => mention?["@id"]?.ToString());
-    var executeAction = roCrate.Entities[executeEntityId.First() ?? throw new InvalidOperationException()];
+    var executeEntityId = mentions.Where(mention => mention?["@id"] != null &&
+      roCrate.Entities[mention["@id"]!.ToString() ?? throw new NullReferenceException()].Properties["@type"]!.ToString() == "CreateAction" &&
+      roCrate.Entities[mention["@id"]!.ToString()].Properties["instrument"]?["@id"]?.ToString() == mainEntity.Id);
+    var executeAction = roCrate.Entities[executeEntityId.First()?["@id"]!.ToString() ?? throw new InvalidOperationException()];
     return executeAction;
   }
   
