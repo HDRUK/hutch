@@ -176,8 +176,9 @@ public class JobPollingHostedService : BackgroundService
         var executeAction = _crateService.GetExecuteEntity(jobCrate);
         _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, executeAction);
         executeAction.SetProperty("endTime",DateTime.Now);
-
+        _logger.LogInformation($"Saving updated RO-Crate metadata to {Path.Combine(job.UnpackedPath, "data")} .");
         jobCrate.Save(Path.Combine(job.UnpackedPath, "data"));
+
       }
     }
   }
