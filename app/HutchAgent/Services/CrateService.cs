@@ -148,9 +148,14 @@ public class CrateService
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ?? throw new NullReferenceException();
     // Check entity type and instrument
     var executeEntityId = mentions.Where(mention => mention?["@id"] != null &&
-      roCrate.Entities[mention["@id"]!.ToString() ?? throw new NullReferenceException()].Properties["@type"]!.ToString() == "CreateAction" &&
-      roCrate.Entities[mention["@id"]!.ToString()].Properties["instrument"]?["@id"]?.ToString() == mainEntity.Id);
-    var executeAction = roCrate.Entities[executeEntityId.First()?["@id"]!.ToString() ?? throw new InvalidOperationException()];
+                                                    roCrate.Entities[
+                                                        mention["@id"]!.ToString() ??
+                                                        throw new NullReferenceException()]
+                                                      .Properties["@type"]!.ToString() == "CreateAction" &&
+                                                    roCrate.Entities[mention["@id"]!.ToString()]
+                                                      .Properties["instrument"]?["@id"]?.ToString() == mainEntity.Id)
+      .ToArray();
+    var executeAction = roCrate.Entities[executeEntityId.First()?["@id"]!.ToString() ?? throw new InvalidOperationException($"No entity found with id of {executeEntityId.First()?["@id"]}")];
     return executeAction;
   }
   
