@@ -250,6 +250,7 @@ public class WorkflowTriggerService
     }
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(crate);
+    executeAction.SetProperty("startTime",DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
     
     // Commands to install WfExS and execute a workflow
