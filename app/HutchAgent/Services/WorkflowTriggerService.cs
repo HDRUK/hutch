@@ -220,7 +220,7 @@ public class WorkflowTriggerService
     crate.Add(workflowEntity);
     crate.RootDataset.AppendTo("mentions", downloadAction);
     crate.Save(cratePath);
-    _logger.LogInformation("Updated crate metadata.");
+    _logger.LogInformation($"Saved updated RO-Crate to {cratePath}.");
 
     return (_wfexsJobService.Create(wfexsJob).Result, crate);
   }
