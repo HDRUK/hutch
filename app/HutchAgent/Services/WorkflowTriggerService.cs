@@ -252,12 +252,13 @@ public class WorkflowTriggerService
     var executeAction = _crateService.GetExecuteEntity(crate);
     executeAction.SetProperty("startTime",DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
-    
+
+    string stageFileRelativePath = Path.GetRelativePath(_workflowOptions.ExecutorPath, wfexsJob.UnpackedPath);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var commands = new List<string>()
     {
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}"
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(stageFileRelativePath,"data")}"
     };
 
     var processStartInfo = new ProcessStartInfo

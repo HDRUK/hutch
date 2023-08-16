@@ -156,6 +156,7 @@ public class CrateService
                                                       .Properties["instrument"]?["@id"]?.ToString() == mainEntity.Id)
       .ToArray();
     var executeAction = roCrate.Entities[executeEntityId.First()?["@id"]!.ToString() ?? throw new InvalidOperationException($"No entity found with id of {executeEntityId.First()?["@id"]}")];
+    _logger.LogInformation("Retrieved execution details from RO-Crate");
     return executeAction;
   }
   
