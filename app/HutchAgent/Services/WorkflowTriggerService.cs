@@ -269,7 +269,7 @@ public class WorkflowTriggerService
       UseShellExecute = false,
       CreateNoWindow = true,
       FileName = "./WfExS-backend.py",
-      Arguments = $"-L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}",
+      Arguments = $"-L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(stageFileRelativePath,"data")}",
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
 
