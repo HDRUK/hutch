@@ -17,6 +17,10 @@ Inside a Trusted Research Environment (TRE) there will be no internet access. Th
 
 Instructions to install `podman` can be found [here](https://podman.io/docs/installation)
 
+:::info
+To use podman without being `root` or putting `sudo` before each `podman` command, your user must be in the `sudo` group.
+:::
+
 ### Example `podman` configuration file
 The following example shows how to point `podman` to an insecure (non-HTTPS) registry on your local machine. It assumes the registry is running on port `8082`.
 
