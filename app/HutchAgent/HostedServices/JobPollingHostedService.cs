@@ -184,7 +184,7 @@ public class JobPollingHostedService : BackgroundService
     foreach (var job in unfinishedJobs)
     {
       // find execution-state.yml for job
-      var pathToState = Path.Combine(_workDir, _statePath);
+      var pathToState = Path.Combine(_workDir, job.WfexsRunId, _statePath);
       if (!File.Exists(pathToState))
       {
         _logger.LogWarning("Could not find execution status file at '{pathToState}'", pathToState);
