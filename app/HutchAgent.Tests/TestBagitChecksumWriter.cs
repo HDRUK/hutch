@@ -1,7 +1,33 @@
+using HutchAgent.Services;
+using Moq;
+
 namespace HutchAgent.Tests;
 
-public class TestBagitChecksumWriter
+public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>
 {
+  private ManifestFixture _manifestFixture;
+  private Mock<IServiceProvider> _serviceProvider = new();
+
+  public TestBagitChecksumWriter(ManifestFixture manifestFixture)
+  {
+    _manifestFixture = manifestFixture;
+    _serviceProvider
+      .Setup(m => m.GetService(typeof(Sha512ChecksumService)))
+      .Returns(new Sha512ChecksumService());
+  }
+
+  [Fact]
+  public async Task WriteManifestSha512_Creates_ManifestFile()
+  {
+    // Arrange
+    var service = new BagitChecksumWriter(_serviceProvider.Object);
+
+    // Act
+    await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
+
+    // Assert
+    Assert.True(File.Exists(_manifestFixture.ManifestPath));
+  }
 }
 
 public class ManifestFixture : IDisposable
@@ -12,6 +38,7 @@ public class ManifestFixture : IDisposable
   private static string[] contents = { "hello world", "foo bar" };
 
   public string ManifestPath => Path.Combine(_dir.FullName, _manifestFile);
+  public DirectoryInfo Dir => _dir;
 
   public ManifestFixture()
   {
