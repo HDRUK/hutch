@@ -160,12 +160,11 @@ public class CrateService
     _logger.LogInformation("Retrieved execution details from RO-Crate");
     return executeAction;
   }
-  
-  public Entity GetAssessAction(ROCrate roCrate, string actionType)
+
+  private Entity GetAssessAction(ROCrate roCrate, string actionType)
   {
     //Get execution details
     var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ?? throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
-    var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ?? throw new NullReferenceException();
     Entity assessAction = new Entity();
     // Get AssessAction by 'additionalType'
     switch (actionType)
@@ -251,6 +250,19 @@ public class CrateService
     disclosureCheck.SetProperty("actionStatus", ActionStatus.ActiveActionStatus);
     // Append to RootDataset mentions
     roCrate.RootDataset.AppendTo("mentions", disclosureCheck);
+  }
+
+  public string GetStageFileName(ROCrate roCrate)
+  {
+    var parts = roCrate.RootDataset.GetProperty<JsonArray>("hasPart") ?? throw new NullReferenceException("No property hasPart found in RO-Crate");
+    var stageFile = parts.Where(part => part!["@id"]!.ToString().EndsWith(".stage")).ToList() ?? throw
+      new InvalidOperationException();
+    if (stageFile.Count > 1)
+    {
+      throw new Exception("More than one stage file referenced in RO-Crate");
+    }
+    if (stageFile.First() is null) throw new NullReferenceException("No stage file reference in RO-Crate");
+    return stageFile.First()!.ToString();
   }
 
   /// <summary>

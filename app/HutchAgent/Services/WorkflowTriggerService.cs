@@ -191,6 +191,7 @@ public class WorkflowTriggerService
       await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
+
     //Set DownloadAction status to Completed
     _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, downloadAction);
 
@@ -234,12 +235,13 @@ public class WorkflowTriggerService
   {
     WfexsJob wfexsJob;
     ROCrate crate = new ROCrate();
+    var uuid = Guid.NewGuid().ToString();
     // Unpack the crate and get the queued message to track the WfExS job.
     if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
     {
       wfexsJob = new WfexsJob
       {
-        UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
+        UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, uuid),
         RunFinished = false
       };
       (wfexsJob, crate) = await FetchCrate(stream, wfexsJob);
@@ -248,19 +250,18 @@ public class WorkflowTriggerService
     {
       wfexsJob = UnpackCrate(stream);
     }
+
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(crate);
-    executeAction.SetProperty("startTime",DateTime.Now);
+    executeAction.SetProperty("startTime", DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
-
-    string stageFileRelativePath = Path.GetRelativePath(_workflowOptions.ExecutorPath, wfexsJob.UnpackedPath);
+    //Get stage file name from RO-Crate
+    //Will not be needed once we can generate the stage file
+    var stageFileName = _crateService.GetStageFileName(crate);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
-    var commands = new List<string>()
-    {
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(stageFileRelativePath,"data")}"
-    };
-    
+    var command =
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(_workflowOptions.StageFilePath, uuid, "data", stageFileName)}";
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -276,30 +277,31 @@ public class WorkflowTriggerService
     if (process == null)
       throw new Exception("Could not start process");
     _logger.LogInformation($"Process started for job: {wfexsJob.Id}");
-    
+
     // Get process PID
     wfexsJob.Pid = process.Id;
-    
-    await using var streamWriter = process.StandardInput;
-    if (streamWriter.BaseStream.CanWrite)
-    {
-      // activate python virtual environment
-      await streamWriter.WriteLineAsync(_activateVenv);
-      foreach (var command in commands)
-      {
-        await streamWriter.WriteLineAsync(command);
-      }
-      _logger.LogInformation($"StreamWriter:{streamWriter}");
-      await streamWriter.FlushAsync();
-      streamWriter.Close();
-    }
-    
+
+    await process.StandardInput.WriteLineAsync(_activateVenv);
+    _logger.LogInformation($"Wrote {_activateVenv} to process standard Input");
+    await process.StandardInput.WriteLineAsync(command);
+    _logger.LogInformation($"Wrote {command} to process standard Input");
+    await process.StandardInput.FlushAsync();
+    _logger.LogInformation("Flushed Process");
+    process.StandardInput.Close();
+    _logger.LogInformation("Closed Process Standard Input");
+
+    var error = process.StandardError.ReadToEnd();
+    _logger.LogInformation($"Standard Error {error}");
+
+
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
     while (!process.HasExited && string.IsNullOrEmpty(wfexsJob.WfexsRunId))
     {
       var stdOutLine = await reader.ReadLineAsync();
+      _logger.LogInformation($"Standard output before {stdOutLine}");
       if (stdOutLine is null) continue;
+      _logger.LogInformation($"Standard output after {stdOutLine}");
       var runName = _findRunName(stdOutLine);
       if (runName is null) continue;
       wfexsJob.WfexsRunId = runName;
