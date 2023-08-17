@@ -28,6 +28,21 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>
     // Assert
     Assert.True(File.Exists(_manifestFixture.ManifestPath));
   }
+
+  [Fact]
+  public async Task WriteManifestSha512_Writes_CorrectChecksums()
+  {
+    // Arrange
+    var service = new BagitChecksumWriter(_serviceProvider.Object);
+
+    // Act
+    await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
+    var lines = await File.ReadAllLinesAsync(_manifestFixture.ManifestPath);
+    var hashes = from x in lines select x.Split("  ").First();
+
+    // Assert
+    Assert.Equal(_manifestFixture.ExpectedHashes, hashes.ToArray());
+  }
 }
 
 public class ManifestFixture : IDisposable
@@ -39,6 +54,12 @@ public class ManifestFixture : IDisposable
 
   public string ManifestPath => Path.Combine(_dir.FullName, _manifestFile);
   public DirectoryInfo Dir => _dir;
+
+  public string[] ExpectedHashes => new[]
+  {
+    "309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f",
+    "65019286222ace418f742556366f9b9da5aaf6797527d2f0cba5bfe6b2f8ed24746542a0f2be1da8d63c2477f688b608eb53628993afa624f378b03f10090ce7"
+  };
 
   public ManifestFixture()
   {
