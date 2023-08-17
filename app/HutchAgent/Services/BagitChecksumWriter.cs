@@ -1,5 +1,8 @@
 namespace HutchAgent.Services;
 
+/// <summary>
+/// Service for creating the checksum files for a Bagit archive.
+/// </summary>
 public class BagitChecksumWriter
 {
   private const string _manifestName = "manifest-sha512.txt";
@@ -17,6 +20,11 @@ public class BagitChecksumWriter
       serviceProvider.GetService<Sha512ChecksumService>() ?? throw new InvalidOperationException();
   }
 
+  /// <summary>
+  /// Compute the SHA512 for each file in the Bagit archive's <c>data</c> subdirectory and write a
+  /// <c>manifest-sha512.txt</c> to the archive.
+  /// </summary>
+  /// <param name="bagitDir">The path to the Bagit archive.</param>
   public async Task WriteManifestSha512(string bagitDir)
   {
     await using var manifestFile =
@@ -33,6 +41,11 @@ public class BagitChecksumWriter
     }
   }
 
+  /// <summary>
+  /// Compute the SHA512 for the <c>bagit.txt</c>, <c>bag-info.txt</c> and <c>manifest-sha512.txt</c> and
+  /// write a <c>tagmanifest-sha512.txt</c> to the archive.
+  /// </summary>
+  /// <param name="bagitDir">The path to the Bagit archive.</param>
   public async Task WriteTagManifestSha512(string bagitDir)
   {
     await using var manifestFile =
