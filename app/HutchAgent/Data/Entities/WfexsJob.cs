@@ -12,4 +12,6 @@ public class WfexsJob
   public bool RunFinished { get; set; }
   public int Pid { get; set; }
   public int ExitCode { get; set; }
+  public DateTimeOffset StartTime { get; set; }
+  public DateTimeOffset EndTime { get; set; }
 }

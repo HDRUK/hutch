@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
+using HutchAgent.Data.Entities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -12,12 +14,14 @@ namespace HutchAgent.Services;
 /// </summary>
 public class CrateMergerService
 {
-  private readonly string _pathToOutputDir = Path.Combine("data","outputs");
+  private readonly string _pathToOutputDir = Path.Combine("data", "outputs");
   private readonly PublisherOptions _publisherOptions;
+
   public CrateMergerService(IOptions<PublisherOptions> publisher)
   {
     _publisherOptions = publisher.Value;
   }
+
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
@@ -37,7 +41,7 @@ public class CrateMergerService
     // Create output directory `Data/outputs/` to extract execution crate
     var outputDir = Path.Combine(mergeInto, _pathToOutputDir);
     Directory.CreateDirectory(outputDir);
-    
+
     // Extract the result (RO-Crate) into the unzipped original RO-Crate
     ZipFile.ExtractToDirectory(sourceZip, outputDir);
   }
@@ -63,39 +67,49 @@ public class CrateMergerService
   /// Update the target metadata file in an RO-Crate.
   /// </summary>
   /// <param name="pathToMetadata">The path to the metadata file that needs updating.</param>
+  /// <param name="job"></param>
   /// <exception cref="FileNotFoundException">
   /// Metadata file could not be found.
   /// </exception>
   /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
-  public void UpdateMetadata(string pathToMetadata)
+  public void UpdateMetadata(string pathToMetadata, WfexsJob job)
   {
     if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
-    
+
     var metaDirInfo = new DirectoryInfo(pathToMetadata);
-    
+
     var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, _pathToOutputDir);
     if (!Directory.Exists(outputsDirToAdd))
       throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
+
+    // Create entity to represent the outputs folder
     var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
-    
+    // Create entities representing the files in the outputs folder
+    var outputFiles = Directory.EnumerateFiles(outputsDirToAdd, "*", SearchOption.AllDirectories).Select(file =>
+      new ROCrates.Models.File(source: Path.GetRelativePath(metaDirInfo.FullName, file))).ToList();
+
     var crate = new ROCrate();
     crate.Initialise(metaDirInfo.FullName);
-    crate.RootDataset.AppendTo("hasPart",outputs);
     crate.RootDataset.SetProperty("publisher", new Part()
     {
       Id = _publisherOptions.Name
     });
-    crate.RootDataset.SetProperty("datePublished",DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
-    crate.Save(location:metaDirInfo.FullName);
-  }
-  
-  /// <summary>
-  /// Delete container images
-  /// </summary>
-  /// <param name="pathToImagesDir">The path to container images directory.</param>
-  public void DeleteContainerImages(string pathToImagesDir)
-  {
-    Directory.Delete(pathToImagesDir, recursive: true); // TODO
+    crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+
+    // Add dataset and files contained within and update the CreateAction
+    var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
+    createAction.SetProperty("started", job.StartTime.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("ended", job.EndTime.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("actionStatus",
+      job.ExitCode == 0 ? "https://schema.org/CompletedActionStatus" : "https://schema.org/FailedActionStatus");
+    crate.Add(outputs);
+    foreach (var outputFile in outputFiles)
+    {
+      crate.Add(outputFile);
+      createAction.AppendTo("result", outputFile);
+    }
+
+    crate.Save(location: metaDirInfo.FullName);
   }
 }
