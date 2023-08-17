@@ -275,7 +275,8 @@ public class WorkflowTriggerService
     var process = Process.Start(processStartInfo);
     if (process == null)
       throw new Exception("Could not start process");
-
+    _logger.LogInformation($"Process started for job: {wfexsJob.Id}");
+    
     // Get process PID
     wfexsJob.Pid = process.Id;
     
@@ -288,11 +289,11 @@ public class WorkflowTriggerService
       {
         await streamWriter.WriteLineAsync(command);
       }
-
+      _logger.LogInformation($"StreamWriter:{streamWriter}");
       await streamWriter.FlushAsync();
       streamWriter.Close();
     }
-
+    
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
     while (!process.HasExited && string.IsNullOrEmpty(wfexsJob.WfexsRunId))

@@ -134,6 +134,7 @@ public class CrateService
     {
       Id = status
     });
+    _logger.LogInformation($"Set {entity.Id} actionStatus to {status}");
   }
 
   /// <summary>
