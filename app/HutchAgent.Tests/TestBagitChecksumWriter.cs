@@ -72,7 +72,7 @@ public class ManifestFixture : IDisposable
         FileMode.Create,
         FileAccess.Write);
       using var writer = new StreamWriter(stream);
-      writer.WriteLine(contents[i]);
+      writer.Write(contents[i]);
     }
   }
 
