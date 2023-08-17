@@ -41,7 +41,6 @@ public class BagitChecksumWriter
     foreach (var tagFile in _tagFiles)
     {
       var filePath = Path.Combine(bagitDir, tagFile);
-      if (!File.Exists(filePath)) throw new FileNotFoundException(null, filePath);
       await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
       var checksum = _sha512ChecksumService.ComputeSha512(stream);
       // Note there should be 2 spaces between the checksum and the file path
