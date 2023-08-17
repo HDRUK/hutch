@@ -262,7 +262,7 @@ public class CrateService
       throw new Exception("More than one stage file referenced in RO-Crate");
     }
     if (stageFile.First() is null) throw new NullReferenceException("No stage file reference in RO-Crate");
-    return stageFile.First()!.ToString();
+    return stageFile.First()!["@id"]!.ToString();
   }
 
   /// <summary>
