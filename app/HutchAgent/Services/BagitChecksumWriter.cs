@@ -1,0 +1,28 @@
+namespace HutchAgent.Services;
+
+public class BagitChecksumWriter
+{
+  private const string _manifestName = "manifest-sha512.txt";
+  private const string _dataDir = "data";
+  private readonly Sha512ChecksumService _sha512ChecksumService;
+
+  public BagitChecksumWriter(IServiceProvider serviceProvider)
+  {
+    _sha512ChecksumService =
+      serviceProvider.GetService<Sha512ChecksumService>() ?? throw new InvalidOperationException();
+  }
+
+  public async Task WriteManifestSha512(string bagitDir)
+  {
+    await using var manifestFile =
+      new FileStream(Path.Combine(bagitDir, _manifestName), FileMode.Create, FileAccess.Write);
+    await using var writer = new StreamWriter(manifestFile);
+    foreach (var entry in Directory.EnumerateFiles(Path.Combine(bagitDir, _dataDir), "*", SearchOption.AllDirectories))
+    {
+      await using var stream = new FileStream(entry, FileMode.Open, FileAccess.Read);
+      var checksum = _sha512ChecksumService.ComputeSha512(stream);
+      // Note there should be 2 spaces between the checksum and the file path
+      await writer.WriteLineAsync($"{checksum}  {entry}");
+    }
+  }
+}
