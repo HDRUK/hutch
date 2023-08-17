@@ -43,6 +43,21 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>
     // Assert
     Assert.Equal(_manifestFixture.ExpectedHashes, hashes.ToArray());
   }
+
+  [Fact]
+  public async Task WriteManifestSha512_Writes_CorrectFilePaths()
+  {
+    // Arrange
+    var service = new BagitChecksumWriter(_serviceProvider.Object);
+
+    // Act
+    await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
+    var lines = await File.ReadAllLinesAsync(_manifestFixture.ManifestPath);
+    var paths = from x in lines select x.Split("  ").Last();
+
+    // Assert
+    Assert.Equal(_manifestFixture.ExpectedPaths, paths.ToArray());
+  }
 }
 
 public class ManifestFixture : IDisposable
@@ -61,18 +76,19 @@ public class ManifestFixture : IDisposable
     "65019286222ace418f742556366f9b9da5aaf6797527d2f0cba5bfe6b2f8ed24746542a0f2be1da8d63c2477f688b608eb53628993afa624f378b03f10090ce7"
   };
 
+  public List<string> ExpectedPaths = new();
+
   public ManifestFixture()
   {
     _dir.Create();
     _dir.CreateSubdirectory(_dataDir);
     for (var i = 0; i < contents.Length; i++)
     {
-      using var stream = new FileStream(
-        Path.Combine(_dir.FullName, _dataDir, $"{i}.txt"),
-        FileMode.Create,
-        FileAccess.Write);
+      var filePath = Path.Combine(_dir.FullName, _dataDir, $"{i}.txt");
+      using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
       using var writer = new StreamWriter(stream);
       writer.Write(contents[i]);
+      ExpectedPaths.Add(Path.GetRelativePath(_dir.FullName, filePath));
     }
   }
 

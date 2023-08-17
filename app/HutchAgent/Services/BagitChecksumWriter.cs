@@ -22,7 +22,9 @@ public class BagitChecksumWriter
       await using var stream = new FileStream(entry, FileMode.Open, FileAccess.Read);
       var checksum = _sha512ChecksumService.ComputeSha512(stream);
       // Note there should be 2 spaces between the checksum and the file path
-      await writer.WriteLineAsync($"{checksum}  {entry}");
+      // The path should be relative to bagitDir
+      var path = Path.GetRelativePath(bagitDir, entry);
+      await writer.WriteLineAsync($"{checksum}  {path}");
     }
   }
 }
