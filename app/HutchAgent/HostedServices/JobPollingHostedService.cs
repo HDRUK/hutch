@@ -178,14 +178,15 @@ public class JobPollingHostedService : BackgroundService
     foreach (var job in unfinishedJobs)
     {
       // 1. find execution-state.yml for job
-      var pathToState = Path.Combine(_workDir, _statePath);
+      var pathToState = Path.Combine(_workDir, job.WfexsRunId, _statePath);
+      _logger.LogInformation($"Path to state {pathToState}");
       if (!File.Exists(pathToState)) continue;
       var stateYaml = await File.ReadAllTextAsync(pathToState);
       var configYamlStream = new StringReader(stateYaml);
       var yamlStream = new YamlStream();
       yamlStream.Load(configYamlStream);
-      var rootNode = yamlStream.Documents[0].RootNode;
-
+      var rootNode = yamlStream.Documents[0].RootNode[0];
+      _logger.LogInformation($"Root info {rootNode}");
       // 2. get the exit code
       var exitCode = int.Parse(rootNode["exitVal"].ToString());
       job.ExitCode = exitCode;
