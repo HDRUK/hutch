@@ -36,6 +36,10 @@ public class JobPollingHostedService : BackgroundService
     yamlStream.Load(configYamlStream);
     var rootNode = yamlStream.Documents[0].RootNode;
     _workDir = rootNode["workDir"].ToString();
+    // get absolute path to workdir from local config path
+    var configYamlDirectory = Path.GetDirectoryName(Path.GetFullPath(_workflowTriggerOptions.LocalConfigPath)) ?? throw new InvalidOperationException();
+    _workDir = Path.GetFullPath(Path.Combine(configYamlDirectory, _workDir), configYamlDirectory);
+    _logger.LogInformation($"Found working directory {_workDir}");
   }
 
   /// <summary>
