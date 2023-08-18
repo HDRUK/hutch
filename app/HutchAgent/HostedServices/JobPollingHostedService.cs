@@ -36,6 +36,7 @@ public class JobPollingHostedService : BackgroundService
     yamlStream.Load(configYamlStream);
     var rootNode = yamlStream.Documents[0].RootNode;
     _workDir = rootNode["workDir"].ToString();
+
     // get absolute path to workdir from local config path
     var configYamlDirectory = Path.GetDirectoryName(Path.GetFullPath(_workflowTriggerOptions.LocalConfigPath)) ?? throw new InvalidOperationException();
     _workDir = Path.GetFullPath(Path.Combine(configYamlDirectory, _workDir), configYamlDirectory);
@@ -179,14 +180,12 @@ public class JobPollingHostedService : BackgroundService
     {
       // 1. find execution-state.yml for job
       var pathToState = Path.Combine(_workDir, job.WfexsRunId, _statePath);
-      _logger.LogInformation($"Path to state {pathToState}");
       if (!File.Exists(pathToState)) continue;
       var stateYaml = await File.ReadAllTextAsync(pathToState);
       var configYamlStream = new StringReader(stateYaml);
       var yamlStream = new YamlStream();
       yamlStream.Load(configYamlStream);
       var rootNode = yamlStream.Documents[0].RootNode[0];
-      _logger.LogInformation($"Root info {rootNode}");
       // 2. get the exit code
       var exitCode = int.Parse(rootNode["exitVal"].ToString());
       job.ExitCode = exitCode;
@@ -194,7 +193,7 @@ public class JobPollingHostedService : BackgroundService
 
       // 3. set job to finished
       job.RunFinished = true;
-
+      _logger.LogInformation($"Run {job.WfexsRunId} finished.");
       // 4. update job in DB
       await _wfexsJobService.Set(job);
 
