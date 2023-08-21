@@ -136,7 +136,7 @@ public class TestCrateMergeService
     // Arrange
     var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
-    var pathToOutputDir = Path.Combine("data", "outputs");
+    var pathToOutputDir = "outputs";
     var crate = new ROCrate();
     Directory.CreateDirectory("some-source");
     var dataset = new Dataset(crate: crate, source: "some-source");
@@ -169,7 +169,6 @@ public class TestCrateMergeService
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
-
     // Act
     service.UpdateMetadata(metaFile.DirectoryName, job);
     var output = File.ReadAllText(crate.Metadata.Id);
