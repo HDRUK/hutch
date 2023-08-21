@@ -107,7 +107,7 @@ public class CrateService
 
     var metaDirInfo = new DirectoryInfo(pathToMetadata);
 
-    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, _pathToOutputDir);
+    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, "outputs");
     if (!Directory.Exists(outputsDirToAdd))
       throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
     var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
@@ -172,41 +172,41 @@ public class CrateService
       case ActionType.CheckValueType:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && mention["@id"]?["@type"]?.ToString() == "AssessAction" &&
-          mention["@id"]?["additionalType"]?["@id"]?.ToString() == ActionType.CheckValueType).Select(mention => mention?["@id"]?.ToString());
-        assessAction = roCrate.Entities[entityId.First() ?? throw new InvalidOperationException()];
+          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.CheckValueType);
+        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.DisclosureCheck:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && mention["@id"]?["@type"]?.ToString() == "AssessAction" &&
-          mention["@id"]?["additionalType"]?["@id"]?.ToString() == ActionType.DisclosureCheck).Select(mention => mention?["@id"]?.ToString());
-        assessAction = roCrate.Entities[entityId.First() ?? throw new InvalidOperationException()];
+          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.DisclosureCheck);
+        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.SignOff:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && mention["@id"]?["@type"]?.ToString() == "AssessAction" &&
-          mention["@id"]?["additionalType"]?["@id"]?.ToString() == ActionType.SignOff).Select(mention => mention?["@id"]?.ToString());
-        assessAction = roCrate.Entities[entityId.First() ?? throw new InvalidOperationException()];
+          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.SignOff);
+        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.ValidationCheck:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && mention["@id"]?["@type"]?.ToString() == "AssessAction" &&
-          mention["@id"]?["additionalType"]?["@id"]?.ToString() == ActionType.ValidationCheck).Select(mention => mention?["@id"]?.ToString());
-        assessAction = roCrate.Entities[entityId.First() ?? throw new InvalidOperationException()];
+          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.ValidationCheck);
+        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.GenerateCheckValue:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && mention["@id"]?["@type"]?.ToString() == "AssessAction" &&
-          mention["@id"]?["additionalType"]?["@id"]?.ToString() == ActionType.GenerateCheckValue).Select(mention => mention?["@id"]?.ToString());
-        assessAction = roCrate.Entities[entityId.First() ?? throw new InvalidOperationException()];
+          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.GenerateCheckValue);
+        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
     }
