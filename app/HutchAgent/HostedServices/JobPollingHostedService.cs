@@ -171,9 +171,6 @@ public class JobPollingHostedService : BackgroundService
       _crateService.CreateDisclosureCheck(jobCrate);
       jobCrate.Save(Path.Combine(pathToMetadata, "data"));
 
-      _crateService.MergeCrates(sourceZip, job.UnpackedPath);
-      
-
       if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
       if (await _resultsStoreWriter.ResultExists(mergedZip))
       {
