@@ -286,10 +286,6 @@ public class WorkflowTriggerService
     await process.StandardInput.FlushAsync();
     process.StandardInput.Close();
 
-    var error = await process.StandardError.ReadToEndAsync();
-    _logger.LogInformation($"Standard Error {error}");
-
-
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
     while (!process.HasExited && string.IsNullOrEmpty(wfexsJob.WfexsRunId))
