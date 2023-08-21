@@ -3,6 +3,7 @@ using System;
 using HutchAgent.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HutchAgent.Migrations
 {
     [DbContext(typeof(HutchAgentContext))]
-    partial class HutchAgentContextModelSnapshot : ModelSnapshot
+    [Migration("20230814125754_AddStartTimeEndTime")]
+    partial class AddStartTimeEndTime
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.5");
@@ -23,7 +26,7 @@ namespace HutchAgent.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("EndTime")
+                    b.Property<DateTime>("EndTime")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ExitCode")
@@ -35,7 +38,7 @@ namespace HutchAgent.Migrations
                     b.Property<bool>("RunFinished")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("StartTime")
+                    b.Property<DateTime>("StartTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UnpackedPath")

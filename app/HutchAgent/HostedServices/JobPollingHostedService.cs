@@ -1,3 +1,4 @@
+using System.Globalization;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Services;
@@ -86,6 +87,12 @@ public class JobPollingHostedService : BackgroundService
     var finishedJobs = await _wfexsJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
+      if (job.ExitCode != 0)
+      {
+        _logger.LogWarning("Job {} did not finish successfully; skipping upload.", job.Id);
+        continue;
+      }
+
       var pathToUpload = Path.Combine(
         _workDir,
         job.WfexsRunId,
@@ -94,6 +101,12 @@ public class JobPollingHostedService : BackgroundService
 
       // Rename the execution crate to match the run ID so it is unique.
       var pathToUploadInfo = new FileInfo(pathToUpload);
+      if (!pathToUploadInfo.Exists)
+      {
+        _logger.LogError("{} does not exist. Cannot upload {} to store.", pathToUpload, pathToUpload);
+        continue;
+      }
+
       pathToUploadInfo.MoveTo(
         pathToUploadInfo.FullName.Replace(
           "execution.crate",
@@ -103,23 +116,24 @@ public class JobPollingHostedService : BackgroundService
       if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
       if (await _resultsStoreWriter.ResultExists(pathToUploadInfo.Name))
       {
-        _logger.LogInformation($"{pathToUploadInfo.Name} already exists in S3.");
+        _logger.LogInformation("{Name} already exists in S3.", pathToUploadInfo.Name);
         continue;
       }
 
       try
       {
-        _logger.LogInformation($"Attempting to upload {pathToUploadInfo.Name} to S3.");
+        _logger.LogInformation("Attempting to upload {Name} to S3.", pathToUploadInfo.Name);
         await _resultsStoreWriter.WriteToStore(pathToUploadInfo.FullName);
-        _logger.LogInformation($"Successfully uploaded {pathToUploadInfo.Name} to S3.");
+        _logger.LogInformation("Successfully uploaded {Name} to S3.", pathToUploadInfo.Name);
       }
       catch (BucketNotFoundException)
       {
-        _logger.LogCritical($"Unable to upload {pathToUploadInfo.Name} to S3. The configured bucket does not exist.");
+        _logger.LogCritical("Unable to upload {Name} to S3. The configured bucket does not exist.",
+          pathToUploadInfo.Name);
       }
       catch (MinioException)
       {
-        _logger.LogError($"Unable to upload {pathToUploadInfo.Name} to S3. An error occurred with the S3 server.");
+        _logger.LogError("Unable to upload {Name} to S3. An error occurred with the S3 server.", pathToUploadInfo.Name);
       }
     }
   }
@@ -142,22 +156,28 @@ public class JobPollingHostedService : BackgroundService
 
       if (!File.Exists(sourceZip))
       {
-        _logger.LogError($"Could not locate {sourceZip}.");
+        _logger.LogError("Could not locate {sourceZip}.", sourceZip);
         continue;
       }
 
       if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
       _crateService.MergeCrates(sourceZip, job.UnpackedPath);
-      _crateService.DeleteContainerImages(pathToContainerImagesDir);
-      _crateService.UpdateMetadata(Path.Combine(pathToMetadata, "data"));
+
+      // Delete containers directory
+      Directory.Delete(pathToContainerImagesDir, recursive: true);
+      _crateService.UpdateMetadata(Path.Combine(pathToMetadata, "data"), job);
       _crateService.ZipCrate(job.UnpackedPath);
       var jobCrate = _crateService.InitialiseCrate(Path.Combine(pathToMetadata, "data"));
       _crateService.CreateDisclosureCheck(jobCrate);
       jobCrate.Save(Path.Combine(pathToMetadata, "data"));
+
+      _crateService.MergeCrates(sourceZip, job.UnpackedPath);
+      
+
       if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
       if (await _resultsStoreWriter.ResultExists(mergedZip))
       {
-        _logger.LogInformation($"Merged Crate {mergedZip} already exists in results store.");
+        _logger.LogInformation("Merged Crate {mergedZip} already exists in results store.", mergedZip);
         continue;
       }
 
@@ -176,9 +196,14 @@ public class JobPollingHostedService : BackgroundService
     unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
     foreach (var job in unfinishedJobs)
     {
-      // 1. find execution-state.yml for job
+      // find execution-state.yml for job
       var pathToState = Path.Combine(_workDir, job.WfexsRunId, _statePath);
-      if (!File.Exists(pathToState)) continue;
+      if (!File.Exists(pathToState))
+      {
+        _logger.LogWarning("Could not find execution status file at '{pathToState}'", pathToState);
+        continue;
+      }
+
       var stateYaml = await File.ReadAllTextAsync(pathToState);
       var configYamlStream = new StringReader(stateYaml);
       var yamlStream = new YamlStream();
@@ -187,9 +212,20 @@ public class JobPollingHostedService : BackgroundService
       // 2. get the exit code
       var exitCode = int.Parse(rootNode["exitVal"].ToString());
       job.ExitCode = exitCode;
-      // record start and finish times?
 
-      // 3. set job to finished
+      // get start and end times
+      DateTime.TryParse(rootNode["started"].ToString(),
+        CultureInfo.InvariantCulture,
+        DateTimeStyles.AdjustToUniversal,
+        out var startTime);
+      job.StartTime = startTime;
+      DateTime.TryParse(rootNode["ended"].ToString(),
+        CultureInfo.InvariantCulture,
+        DateTimeStyles.AdjustToUniversal,
+        out var endTime);
+      job.EndTime = endTime;
+
+      // set job to finished
       job.RunFinished = true;
       _logger.LogInformation($"Run {job.WfexsRunId} finished.");
       // 4. update job in DB

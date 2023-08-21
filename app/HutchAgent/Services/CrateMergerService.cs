@@ -1,7 +1,9 @@
+using System.Globalization;
 using System.IO.Compression;
 using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Constants;
+using HutchAgent.Data.Entities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Exceptions;
@@ -96,30 +98,49 @@ public class CrateService
   /// Update the target metadata file in an RO-Crate.
   /// </summary>
   /// <param name="pathToMetadata">The path to the metadata file that needs updating.</param>
+  /// <param name="job"></param>
   /// <exception cref="FileNotFoundException">
   /// Metadata file could not be found.
   /// </exception>
   /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
-  public void UpdateMetadata(string pathToMetadata)
+  public void UpdateMetadata(string pathToMetadata, WfexsJob job)
   {
     if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
 
     var metaDirInfo = new DirectoryInfo(pathToMetadata);
 
-    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, "outputs");
+    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, _pathToOutputDir);
     if (!Directory.Exists(outputsDirToAdd))
       throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
+
+    // Create entity to represent the outputs folder
     var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
+    // Create entities representing the files in the outputs folder
+    var outputFiles = Directory.EnumerateFiles(outputsDirToAdd, "*", SearchOption.AllDirectories).Select(file =>
+      new ROCrates.Models.File(source: Path.GetRelativePath(metaDirInfo.FullName, file))).ToList();
 
     var crate = new ROCrate();
     crate.Initialise(metaDirInfo.FullName);
-    crate.RootDataset.AppendTo("hasPart", outputs);
     crate.RootDataset.SetProperty("publisher", new Part()
     {
       Id = _publisherOptions.Name
     });
     crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+
+    // Add dataset and files contained within and update the CreateAction
+    var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
+    createAction.SetProperty("started", job.StartTime.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("ended", job.EndTime.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("actionStatus",
+      job.ExitCode == 0 ? "https://schema.org/CompletedActionStatus" : "https://schema.org/FailedActionStatus");
+    crate.Add(outputs);
+    foreach (var outputFile in outputFiles)
+    {
+      crate.Add(outputFile);
+      createAction.AppendTo("result", outputFile);
+    }
+
     crate.Save(location: metaDirInfo.FullName);
   }
 
@@ -145,7 +166,8 @@ public class CrateService
   public Entity GetExecuteEntity(ROCrate roCrate)
   {
     //Get execution details
-    var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ?? throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
+    var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ??
+                   throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ?? throw new NullReferenceException();
     // Check entity type and instrument
     var executeEntityId = mentions.Where(mention => mention?["@id"] != null &&
@@ -156,7 +178,10 @@ public class CrateService
                                                     roCrate.Entities[mention["@id"]!.ToString()]
                                                       .Properties["instrument"]?["@id"]?.ToString() == mainEntity.Id)
       .ToArray();
-    var executeAction = roCrate.Entities[executeEntityId.First()?["@id"]!.ToString() ?? throw new InvalidOperationException($"No entity found with id of {executeEntityId.First()?["@id"]}")];
+    var executeAction =
+      roCrate.Entities[
+        executeEntityId.First()?["@id"]!.ToString() ??
+        throw new InvalidOperationException($"No entity found with id of {executeEntityId.First()?["@id"]}")];
     _logger.LogInformation("Retrieved execution details from RO-Crate");
     return executeAction;
   }
@@ -164,7 +189,8 @@ public class CrateService
   private Entity GetAssessAction(ROCrate roCrate, string actionType)
   {
     //Get execution details
-    var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ?? throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
+    var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ??
+                   throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
     Entity assessAction = new Entity();
     // Get AssessAction by 'additionalType'
     switch (actionType)
@@ -172,45 +198,55 @@ public class CrateService
       case ActionType.CheckValueType:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.CheckValueType);
+          mention != null &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.CheckValueType);
         assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.DisclosureCheck:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.DisclosureCheck);
+          mention != null &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.DisclosureCheck);
         assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.SignOff:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.SignOff);
+          mention != null &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.SignOff);
         assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.ValidationCheck:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.ValidationCheck);
+          mention != null &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.ValidationCheck);
         assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.GenerateCheckValue:
       {
         var entityId = mentions.Where(mention =>
-          mention != null && roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() == ActionType.GenerateCheckValue);
+          mention != null &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
+          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.GenerateCheckValue);
         assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
     }
-    
+
     return assessAction;
   }
 
@@ -225,7 +261,7 @@ public class CrateService
     // Add new ContextEntity to RO-Crate
     var disclosureCheck = new ContextEntity(roCrate, disclosureCheckId);
     roCrate.Add(disclosureCheck);
-    
+
     // Set Properties
     disclosureCheck.SetProperty("@type", "AssessAction");
     disclosureCheck.SetProperty("additionalType", new Part()
@@ -254,13 +290,15 @@ public class CrateService
 
   public string GetStageFileName(ROCrate roCrate)
   {
-    var parts = roCrate.RootDataset.GetProperty<JsonArray>("hasPart") ?? throw new NullReferenceException("No property hasPart found in RO-Crate");
+    var parts = roCrate.RootDataset.GetProperty<JsonArray>("hasPart") ??
+                throw new NullReferenceException("No property hasPart found in RO-Crate");
     var stageFile = parts.Where(part => part!["@id"]!.ToString().EndsWith(".stage")).ToList() ?? throw
       new InvalidOperationException();
     if (stageFile.Count > 1)
     {
       throw new Exception("More than one stage file referenced in RO-Crate");
     }
+
     if (stageFile.First() is null) throw new NullReferenceException("No stage file reference in RO-Crate");
     return stageFile.First()!["@id"]!.ToString();
   }
