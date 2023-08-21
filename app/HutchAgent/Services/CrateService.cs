@@ -191,63 +191,52 @@ public class CrateService
     //Get execution details
     var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ??
                    throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
-    Entity assessAction = new Entity();
+    var assessActions = mentions.Where(mention =>
+      mention != null &&
+      roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction");
     // Get AssessAction by 'additionalType'
     switch (actionType)
     {
       case ActionType.CheckValueType:
       {
-        var entityId = mentions.Where(mention =>
-          mention != null &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-          ActionType.CheckValueType);
-        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
+         assessActions = assessActions.Where(mention => roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+                                             ActionType.CheckValueType);
         break;
       }
       case ActionType.DisclosureCheck:
       {
-        var entityId = mentions.Where(mention =>
-          mention != null &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          assessActions = assessActions.Where(mention =>
+           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.DisclosureCheck);
-        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.SignOff:
       {
-        var entityId = mentions.Where(mention =>
-          mention != null &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+        assessActions = assessActions.Where(mention =>
+           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.SignOff);
-        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.ValidationCheck:
       {
-        var entityId = mentions.Where(mention =>
-          mention != null &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+       assessActions = assessActions.Where(mention =>
+           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.ValidationCheck);
-        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
       case ActionType.GenerateCheckValue:
       {
-        var entityId = mentions.Where(mention =>
-          mention != null &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() == "AssessAction" &&
-          roCrate.Entities[mention["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+        assessActions = assessActions.Where(mention =>
+           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.GenerateCheckValue);
-        assessAction = roCrate.Entities[entityId.First()?["@id"]?.ToString() ?? throw new InvalidOperationException()];
         break;
       }
     }
 
+    var action = assessActions.Select(action => action?["@id"]).ToString() ?? throw new NullReferenceException("No assessAction found with the given id");
+    var assessAction = roCrate.Entities[action];
     return assessAction;
+
   }
 
   /// <summary>
