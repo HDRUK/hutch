@@ -110,7 +110,7 @@ public class CrateService
 
     var metaDirInfo = new DirectoryInfo(pathToMetadata);
 
-    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, _pathToOutputDir);
+    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, "outputs");
     if (!Directory.Exists(outputsDirToAdd))
       throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
 
