@@ -18,7 +18,7 @@ public class TestCrateMergeService
   public void MergeCrates_Extract_ZipToDestinationDataOutputs()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
     var pathToOutputDir = Path.Combine("data", "outputs");
     var destinationDir = new DirectoryInfo("save/here/");
@@ -33,8 +33,8 @@ public class TestCrateMergeService
     {
       zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
     }
-    
-    var service = new CrateService(publisher,logger.Object);
+
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     service.MergeCrates(zipFile.Name, destinationDir.ToString());
@@ -52,7 +52,7 @@ public class TestCrateMergeService
   public void ZipCrate_Zips_DestinationToParent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = new DirectoryInfo("save2/here/");
     var zipFile = new FileInfo(Path.Combine(destinationDir.ToString(), "test-zip.zip"));
@@ -61,7 +61,7 @@ public class TestCrateMergeService
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(zipFile.ToString()).Close();
 
-    var service = new CrateService(publisher,logger.Object);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     service.ZipCrate(destinationDir.ToString());
@@ -78,12 +78,12 @@ public class TestCrateMergeService
   public void MergeCrates_Throws_WhenDestinationNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
     var zipFileName = "my-file.zip";
     var destinationDir = "non/existent/dir/";
     Directory.CreateDirectory("non/existent/");
-    var service = new CrateService(publisher,logger.Object);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     var action = () => service.MergeCrates(zipFileName, destinationDir);
@@ -99,10 +99,10 @@ public class TestCrateMergeService
   public void ZipCrate_Throws_WhenDestinationNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = "non/existent/dir/";
-    var service = new CrateService(publisher,logger.Object);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     var action = () => service.ZipCrate(destinationDir);
@@ -121,7 +121,7 @@ public class TestCrateMergeService
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
-    var service = new CrateService(publisher,logger.Object);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     var action = () => service.UpdateMetadata(pathToMetadata, job);
@@ -134,7 +134,7 @@ public class TestCrateMergeService
   public void UpdateMetadata_Adds_MergedEntity()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions(){ Name = "TRE name" });
+    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
     var pathToOutputDir = "outputs";
     var crate = new ROCrate();
@@ -165,7 +165,7 @@ public class TestCrateMergeService
                    + "\"";
     var pattern4 = "\"datePublished\": ";
 
-    var service = new CrateService(publisher,logger.Object);
+    var service = new CrateService(publisher, logger.Object);
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
