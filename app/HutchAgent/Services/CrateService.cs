@@ -199,44 +199,45 @@ public class CrateService
     {
       case ActionType.CheckValueType:
       {
-         assessActions = assessActions.Where(mention => roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-                                             ActionType.CheckValueType);
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.CheckValueType);
         break;
       }
       case ActionType.DisclosureCheck:
       {
-          assessActions = assessActions.Where(mention =>
-           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.DisclosureCheck);
         break;
       }
       case ActionType.SignOff:
       {
         assessActions = assessActions.Where(mention =>
-           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.SignOff);
         break;
       }
       case ActionType.ValidationCheck:
       {
-       assessActions = assessActions.Where(mention =>
-           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.ValidationCheck);
         break;
       }
       case ActionType.GenerateCheckValue:
       {
         assessActions = assessActions.Where(mention =>
-           roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
           ActionType.GenerateCheckValue);
         break;
       }
     }
 
-    var action = assessActions.Select(action => action?["@id"]).ToString() ?? throw new NullReferenceException("No assessAction found with the given id");
+    var action = assessActions.Select(action => action?["@id"]).ToString() ??
+                 throw new NullReferenceException("No assessAction found with the given id");
     var assessAction = roCrate.Entities[action];
     return assessAction;
-
   }
 
   /// <summary>
