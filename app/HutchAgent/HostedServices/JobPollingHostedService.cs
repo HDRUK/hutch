@@ -87,8 +87,7 @@ public class JobPollingHostedService : BackgroundService
     foreach (var job in finishedJobs)
     {
       var pathToUpload = Path.Combine(
-        _workflowTriggerOptions.ExecutorPath,
-        "wfexs-backend-test_WorkDir",
+        _workDir,
         job.WfexsRunId,
         "outputs",
         "execution.crate.zip");
@@ -132,8 +131,7 @@ public class JobPollingHostedService : BackgroundService
     foreach (var job in finishedJobs)
     {
       var jobWorkDir = Path.Combine(
-        _workflowTriggerOptions.ExecutorPath,
-        "wfexs-backend-test_WorkDir",
+        _workDir,
         job.WfexsRunId);
       var sourceZip = Path.Combine(jobWorkDir, "outputs", $"{job.WfexsRunId}.zip");
       var pathToMetadata = Path.Combine(job.UnpackedPath); // directory path to ro-crate-metadata.json
@@ -151,7 +149,7 @@ public class JobPollingHostedService : BackgroundService
       if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
       _crateService.MergeCrates(sourceZip, job.UnpackedPath);
       _crateService.DeleteContainerImages(pathToContainerImagesDir);
-      _crateService.UpdateMetadata(pathToMetadata);
+      _crateService.UpdateMetadata(Path.Combine(pathToMetadata, "data"));
       _crateService.ZipCrate(job.UnpackedPath);
       var jobCrate = _crateService.InitialiseCrate(Path.Combine(pathToMetadata, "data"));
       _crateService.CreateDisclosureCheck(jobCrate);
