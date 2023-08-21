@@ -29,7 +29,8 @@ public class WorkflowTriggerService
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     IServiceProvider serviceProvider,
-    IFeatureManager featureManager, CrateService crateService)
+    IFeatureManager featureManager, 
+    CrateService crateService)
   {
     _logger = logger;
     _featureManager = featureManager;
