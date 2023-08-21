@@ -282,15 +282,11 @@ public class WorkflowTriggerService
     wfexsJob.Pid = process.Id;
 
     await process.StandardInput.WriteLineAsync(_activateVenv);
-    _logger.LogInformation($"Wrote {_activateVenv} to process standard Input");
     await process.StandardInput.WriteLineAsync(command);
-    _logger.LogInformation($"Wrote {command} to process standard Input");
     await process.StandardInput.FlushAsync();
-    _logger.LogInformation("Flushed Process");
     process.StandardInput.Close();
-    _logger.LogInformation("Closed Process Standard Input");
 
-    var error = process.StandardError.ReadToEnd();
+    var error = await process.StandardError.ReadToEndAsync();
     _logger.LogInformation($"Standard Error {error}");
 
 
@@ -299,9 +295,7 @@ public class WorkflowTriggerService
     while (!process.HasExited && string.IsNullOrEmpty(wfexsJob.WfexsRunId))
     {
       var stdOutLine = await reader.ReadLineAsync();
-      _logger.LogInformation($"Standard output before {stdOutLine}");
       if (stdOutLine is null) continue;
-      _logger.LogInformation($"Standard output after {stdOutLine}");
       var runName = _findRunName(stdOutLine);
       if (runName is null) continue;
       wfexsJob.WfexsRunId = runName;
