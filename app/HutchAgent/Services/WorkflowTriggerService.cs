@@ -270,7 +270,7 @@ public class WorkflowTriggerService
 
     // Get process PID
     wfexsJob.Pid = process.Id;
-    
+
     await using var streamWriter = process.StandardInput;
     if (streamWriter.BaseStream.CanWrite)
     {
