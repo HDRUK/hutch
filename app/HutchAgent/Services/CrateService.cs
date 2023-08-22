@@ -69,7 +69,7 @@ public class CrateService
   }
 
   /// <summary>
-  /// Initialise Crate
+  /// Create an RO-Crate object based on a RO-Crate saved on disk
   /// </summary>
   /// <param name="cratePath">Path to RO-Crate</param>
   /// <returns>RO-Crate object</returns>
@@ -168,7 +168,8 @@ public class CrateService
     //Get execution details
     var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ??
                    throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
-    var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ?? throw new NullReferenceException();
+    var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ??
+                     throw new NullReferenceException("No mainEntity found in RootDataset properties");
     // Check entity type and instrument
     var executeEntityId = mentions.Where(mention => mention?["@id"] != null &&
                                                     roCrate.Entities[
