@@ -235,9 +235,9 @@ public class CrateService
       }
     }
 
-    var action = assessActions.Select(action => action?["@id"]).ToString() ??
+    var action = assessActions.Select(action => action?["@id"]) ??
                  throw new NullReferenceException("No assessAction found with the given id");
-    var assessAction = roCrate.Entities[action];
+    var assessAction = roCrate.Entities[action.First()!.ToString()!];
     return assessAction;
   }
 
