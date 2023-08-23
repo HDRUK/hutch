@@ -22,17 +22,19 @@ public class WorkflowTriggerService
   private const string _bashCmd = "bash";
   private readonly ROCrate _roCrate = new();
   private readonly WfexsJobService _wfexsJobService;
-  readonly IFeatureManager _featureManager;
+  private readonly IFeatureManager _featureManager;
+  private readonly CrateService _crateService;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     IServiceProvider serviceProvider,
-    IFeatureManager featureManager
-  )
+    IFeatureManager featureManager, 
+    CrateService crateService)
   {
     _logger = logger;
     _featureManager = featureManager;
+    _crateService = crateService;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _wfexsJobService = serviceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
@@ -133,13 +135,8 @@ public class WorkflowTriggerService
     return _wfexsJobService.Create(wfexsJob).Result;
   }
 
-  public async Task<WfexsJob> FetchCrate(Stream stream)
+  private async Task<(WfexsJob, ROCrate)> FetchCrate(Stream stream, WfexsJob wfexsJob)
   {
-    var wfexsJob = new WfexsJob
-    {
-      UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
-      RunFinished = false
-    };
     ExtractCrate(wfexsJob, stream);
     _logger.LogInformation($"Crate extracted at {wfexsJob.UnpackedPath}");
     var cratePath = Path.Combine(wfexsJob.UnpackedPath, "data");
@@ -168,6 +165,26 @@ public class WorkflowTriggerService
     // Compose download url for workflowHub
     var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
     DateTime downloadStartTime = DateTime.Now;
+
+    // Create DownloadAction ContextEntity
+    var downloadActionId = $"#download-{Guid.NewGuid()}";
+    var downloadAction = new ContextEntity(crate, downloadActionId);
+    crate.Add(downloadAction);
+    downloadAction.SetProperty("@type", "DownloadAction");
+    downloadAction.SetProperty("name", "Downloaded workflow RO-Crate via proxy");
+    downloadAction.SetProperty("startTime", downloadStartTime);
+
+    downloadAction.SetProperty("object", new Part()
+    {
+      Id = downloadAddress
+    });
+
+    downloadAction.SetProperty("agent", new Part()
+    {
+      Id = "http://proxy.example.com/"
+    });
+    // Set DownloadAction status to Active
+    _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, downloadAction);
     using (var client = new HttpClient())
     {
       var clientStream = await client.GetStreamAsync(downloadAddress);
@@ -176,38 +193,20 @@ public class WorkflowTriggerService
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
 
-    DateTime downloadEndTime = DateTime.Now;
+    //Set DownloadAction status to Completed
+    _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, downloadAction);
 
+    downloadAction.SetProperty("endTime", DateTime.Now);
+    downloadAction.SetProperty("result", new Part()
+    {
+      Id = Path.Combine("workflow", workflowId)
+    });
     using (var archive = new ZipArchive(File.OpenRead(Path.Combine(cratePath, "workflows.zip"))))
     {
       Directory.CreateDirectory(Path.Combine(cratePath, "workflow", workflowId));
       archive.ExtractToDirectory(Path.Combine(cratePath, "workflow", workflowId));
       _logger.LogInformation($"Unpacked workflow to {Path.Combine(cratePath, "workflow", workflowId)}");
     }
-
-    var downloadActionId = $"#download-{Guid.NewGuid()}";
-    var downloadAction = new ContextEntity(crate, downloadActionId);
-    crate.Add(downloadAction);
-    downloadAction.SetProperty("@type", "DownloadAction");
-    downloadAction.SetProperty("name", "Downloaded workflow RO-Crate via proxy");
-    downloadAction.SetProperty("startTime", downloadStartTime);
-    downloadAction.SetProperty("endTime", downloadEndTime);
-    downloadAction.SetProperty("object", new Part()
-    {
-      Id = downloadAddress
-    });
-    downloadAction.SetProperty("result", new Part()
-    {
-      Id = Path.Combine("workflow", workflowId)
-    });
-    downloadAction.SetProperty("agent", new Part()
-    {
-      Id = "http://proxy.example.com/"
-    });
-    downloadAction.SetProperty("actionStatus", new Part()
-    {
-      Id = "https://schema.org/DownloadAction"
-    });
 
     var workflowEntity = new Entity(crate);
     workflowEntity.SetProperty("@id", Path.Combine("workflow", workflowId));
@@ -222,9 +221,10 @@ public class WorkflowTriggerService
     workflowEntity.SetProperty("distribution", property.Properties["distribution"]);
     crate.Add(workflowEntity);
     crate.RootDataset.AppendTo("mentions", downloadAction);
-    crate.Save(location: cratePath);
-    _logger.LogInformation("Updated crate metadata.");
-    return wfexsJob;
+    crate.Save(cratePath);
+    _logger.LogInformation($"Saved updated RO-Crate to {cratePath}.");
+
+    return (_wfexsJobService.Create(wfexsJob).Result, crate);
   }
 
   /// <summary>
@@ -235,23 +235,34 @@ public class WorkflowTriggerService
   public async Task TriggerWfexs(Stream stream)
   {
     WfexsJob wfexsJob;
+    ROCrate crate = new ROCrate();
+    var uuid = Guid.NewGuid().ToString();
     // Unpack the crate and get the queued message to track the WfExS job.
     if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
     {
-      wfexsJob = await FetchCrate(stream);
+      wfexsJob = new WfexsJob
+      {
+        UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, uuid),
+        RunFinished = false
+      };
+      (wfexsJob, crate) = await FetchCrate(stream, wfexsJob);
     }
     else
     {
       wfexsJob = UnpackCrate(stream);
     }
 
+    //Get execute action and set status to active
+    var executeAction = _crateService.GetExecuteEntity(crate);
+    executeAction.SetProperty("startTime", DateTime.Now);
+    _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
+    //Get stage file name from RO-Crate
+    //Will not be needed once we can generate the stage file
+    var stageFileName = _crateService.GetStageFileName(crate);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
-    var commands = new List<string>()
-    {
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {_workflowOptions.StageFilePath}"
-    };
-
+    var command =
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(_workflowOptions.StageFilePath, uuid, "data", stageFileName)}";
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -262,28 +273,19 @@ public class WorkflowTriggerService
       FileName = _bashCmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
-
     // start process
     var process = Process.Start(processStartInfo);
     if (process == null)
       throw new Exception("Could not start process");
+    _logger.LogInformation($"Process started for job: {wfexsJob.Id}");
 
     // Get process PID
     wfexsJob.Pid = process.Id;
 
-    await using var streamWriter = process.StandardInput;
-    if (streamWriter.BaseStream.CanWrite)
-    {
-      // activate python virtual environment
-      await streamWriter.WriteLineAsync(_activateVenv);
-      foreach (var command in commands)
-      {
-        await streamWriter.WriteLineAsync(command);
-      }
-
-      await streamWriter.FlushAsync();
-      streamWriter.Close();
-    }
+    await process.StandardInput.WriteLineAsync(_activateVenv);
+    await process.StandardInput.WriteLineAsync(command);
+    await process.StandardInput.FlushAsync();
+    process.StandardInput.Close();
 
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;

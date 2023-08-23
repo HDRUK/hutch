@@ -1,8 +1,10 @@
 using System.Globalization;
 using HutchAgent.Config;
+using HutchAgent.Constants;
 using HutchAgent.Services;
 using Microsoft.Extensions.Options;
 using Minio.Exceptions;
+using File = System.IO.File;
 using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.HostedServices;
@@ -14,7 +16,7 @@ public class JobPollingHostedService : BackgroundService
   private readonly ILogger<JobPollingHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
   private WfexsJobService? _wfexsJobService;
-  private CrateMergerService? _crateMergerService;
+  private CrateService? _crateService;
   private readonly IServiceProvider _serviceProvider;
   private readonly string _workDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
@@ -35,6 +37,11 @@ public class JobPollingHostedService : BackgroundService
     yamlStream.Load(configYamlStream);
     var rootNode = yamlStream.Documents[0].RootNode;
     _workDir = rootNode["workDir"].ToString();
+
+    // get absolute path to workdir from local config path
+    var configYamlDirectory = Path.GetDirectoryName(Path.GetFullPath(_workflowTriggerOptions.LocalConfigPath)) ?? throw new InvalidOperationException();
+    _workDir = Path.GetFullPath(Path.Combine(configYamlDirectory, _workDir), configYamlDirectory);
+    _logger.LogInformation($"Found working directory {_workDir}");
   }
 
   /// <summary>
@@ -52,7 +59,7 @@ public class JobPollingHostedService : BackgroundService
         _resultsStoreWriter = scope.ServiceProvider.GetService<IResultsStoreWriter>() ??
                               throw new InvalidOperationException();
         _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
-        _crateMergerService = scope.ServiceProvider.GetService<CrateMergerService>() ??
+        _crateService = scope.ServiceProvider.GetService<CrateService>() ??
                               throw new InvalidOperationException();
         await CheckJobsFinished();
         await UploadResults();
@@ -153,12 +160,16 @@ public class JobPollingHostedService : BackgroundService
         continue;
       }
 
-      if (_crateMergerService is null) throw new NullReferenceException("_crateMergerService instance not available");
-      _crateMergerService.MergeCrates(sourceZip, job.UnpackedPath);
+      if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
+      _crateService.MergeCrates(sourceZip, job.UnpackedPath);
+
       // Delete containers directory
       Directory.Delete(pathToContainerImagesDir, recursive: true);
-      _crateMergerService.UpdateMetadata(pathToMetadata, job);
-      _crateMergerService.ZipCrate(job.UnpackedPath);
+      _crateService.UpdateMetadata(Path.Combine(pathToMetadata, "data"), job);
+      _crateService.ZipCrate(job.UnpackedPath);
+      var jobCrate = _crateService.InitialiseCrate(Path.Combine(pathToMetadata, "data"));
+      _crateService.CreateDisclosureCheck(jobCrate);
+      jobCrate.Save(Path.Combine(pathToMetadata, "data"));
 
       if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
       if (await _resultsStoreWriter.ResultExists(mergedZip))
@@ -180,7 +191,6 @@ public class JobPollingHostedService : BackgroundService
     if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
     var unfinishedJobs = await _wfexsJobService.List();
     unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
-
     foreach (var job in unfinishedJobs)
     {
       // find execution-state.yml for job
@@ -195,9 +205,8 @@ public class JobPollingHostedService : BackgroundService
       var configYamlStream = new StringReader(stateYaml);
       var yamlStream = new YamlStream();
       yamlStream.Load(configYamlStream);
-      var rootNode = yamlStream.Documents[0].RootNode;
-
-      // get the exit code
+      var rootNode = yamlStream.Documents[0].RootNode[0];
+      // 2. get the exit code
       var exitCode = int.Parse(rootNode["exitVal"].ToString());
       job.ExitCode = exitCode;
 
@@ -215,9 +224,18 @@ public class JobPollingHostedService : BackgroundService
 
       // set job to finished
       job.RunFinished = true;
-
-      // update job in DB
+      _logger.LogInformation($"Run {job.WfexsRunId} finished.");
+      // 4. update job in DB
       await _wfexsJobService.Set(job);
+
+      // 5. set execute action status
+      if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
+      var jobCrate = _crateService.InitialiseCrate(Path.Combine(job.UnpackedPath, "data"));
+      var executeAction = _crateService.GetExecuteEntity(jobCrate);
+      _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, executeAction);
+      executeAction.SetProperty("endTime",DateTime.Now);
+      _logger.LogInformation($"Saving updated RO-Crate metadata to {Path.Combine(job.UnpackedPath, "data")} .");
+      jobCrate.Save(Path.Combine(job.UnpackedPath, "data"));
     }
   }
 }

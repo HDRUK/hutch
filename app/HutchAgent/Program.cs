@@ -29,7 +29,7 @@ builder.Services
   .AddScoped<WorkflowTriggerService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
-  .AddTransient<CrateMergerService>()
+  .AddTransient<CrateService>()
   .AddHostedService<JobPollingHostedService>()
   .AddSingleton<Sha512ChecksumService>()
   .AddSingleton<BagitChecksumWriter>()

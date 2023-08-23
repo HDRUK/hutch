@@ -3,7 +3,9 @@ using System.IO.Compression;
 using HutchAgent.Config;
 using HutchAgent.Data.Entities;
 using HutchAgent.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Moq;
 using ROCrates;
 using ROCrates.Models;
 using File = System.IO.File;
@@ -17,6 +19,7 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var pathToOutputDir = Path.Combine("data", "outputs");
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
@@ -31,7 +34,7 @@ public class TestCrateMergeService
       zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
     }
 
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     service.MergeCrates(zipFile.Name, destinationDir.ToString());
@@ -50,6 +53,7 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = new DirectoryInfo("save2/here/");
     var zipFile = new FileInfo(Path.Combine(destinationDir.ToString(), "test-zip.zip"));
     var expectedFile = new FileInfo($"save2/{destinationDir.Name}-merged.zip");
@@ -57,7 +61,7 @@ public class TestCrateMergeService
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(zipFile.ToString()).Close();
 
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     service.ZipCrate(destinationDir.ToString());
@@ -75,10 +79,11 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var zipFileName = "my-file.zip";
     var destinationDir = "non/existent/dir/";
     Directory.CreateDirectory("non/existent/");
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     var action = () => service.MergeCrates(zipFileName, destinationDir);
@@ -95,8 +100,9 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = "non/existent/dir/";
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     var action = () => service.ZipCrate(destinationDir);
@@ -110,11 +116,12 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
+    var logger = new Mock<ILogger<CrateService>>();
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher, logger.Object);
 
     // Act
     var action = () => service.UpdateMetadata(pathToMetadata, job);
@@ -128,7 +135,8 @@ public class TestCrateMergeService
   {
     // Arrange
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var pathToOutputDir = Path.Combine("data", "outputs");
+    var logger = new Mock<ILogger<CrateService>>();
+    var pathToOutputDir = "outputs";
     var crate = new ROCrate();
     Directory.CreateDirectory("some-source");
     var dataset = new Dataset(crate: crate, source: "some-source");
@@ -157,11 +165,10 @@ public class TestCrateMergeService
                    + "\"";
     var pattern4 = "\"datePublished\": ";
 
-    var service = new CrateMergerService(publisher);
+    var service = new CrateService(publisher, logger.Object);
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
-
     // Act
     service.UpdateMetadata(metaFile.DirectoryName, job);
     var output = File.ReadAllText(crate.Metadata.Id);
