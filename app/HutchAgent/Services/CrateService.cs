@@ -170,15 +170,19 @@ public class CrateService
                    throw new NullReferenceException("No mentions found in RO-Crate RootDataset Properties");
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ??
                      throw new NullReferenceException("No mainEntity found in RootDataset properties");
-    // Check entity type and instrument
-    var executeEntityId = mentions.Where(mention => mention?["@id"] != null &&
-                                                    roCrate.Entities[
-                                                        mention["@id"]!.ToString() ??
-                                                        throw new NullReferenceException()]
-                                                      .Properties["@type"]!.ToString() == "CreateAction" &&
-                                                    roCrate.Entities[mention["@id"]!.ToString()]
-                                                      .Properties["instrument"]?["@id"]?.ToString() == mainEntity.Id)
-      .ToArray();
+    // Check entity type is CreateAction
+    var createActionEntities = mentions.Where(mention => mention?["@id"] != null &&
+                                                         roCrate.Entities[
+                                                             mention["@id"]!.ToString() ??
+                                                             throw new NullReferenceException()]
+                                                           .Properties["@type"]!.ToString() == "CreateAction");
+    // Check entity instrument is the mainEntity ID
+    var executeEntityId = createActionEntities.Where(mention => mention?["@id"] != null &&
+                                                                roCrate.Entities[mention["@id"]!.ToString()]
+                                                                  .Properties["instrument"]?["@id"]?.ToString() ==
+                                                                mainEntity.Id).ToArray();
+    if (executeEntityId is null) throw new NullReferenceException("No query action found in RootDataset mentions");
+    if (executeEntityId.Length > 1) throw new Exception("More than one execute action found in RO-Crate");
     var executeAction =
       roCrate.Entities[
         executeEntityId.First()?["@id"]!.ToString() ??
