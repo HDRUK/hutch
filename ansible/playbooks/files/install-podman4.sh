@@ -1,3 +1,5 @@
+#! /usr/bin/env bash
+
 mkdir -p /etc/apt/keyrings
 curl -fsSL "https://download.opensuse.org/repositories/devel:kubic:libcontainers:unstable/xUbuntu_$(lsb_release -rs)/Release.key" \
   | gpg --dearmor \
