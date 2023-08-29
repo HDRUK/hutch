@@ -27,7 +27,7 @@
     - name: Add nginx.conf
       ansible.builtin.copy:
         src: files/nginx.conf
-        dest: $HOME/nginx.conf
+        dest: "{{ ansible_env.HOME }}/nginx.conf"
         mode: "0644"
 
     - name: Make workflowhub.eu traffic redirect to localhost
