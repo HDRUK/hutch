@@ -8,6 +8,9 @@
 - name: Install Docker and Docker Compose
   ansible.builtin.import_playbook: playbooks/install-docker.yml
 
+- name: Install Podman
+  ansible.builtin.import_playbook: playbooks/install-podman.yml
+
 - name: Install WfExS
   ansible.builtin.import_playbook: playbooks/wfexs.yml
 
@@ -17,7 +20,7 @@
     - name: Clone HUTCH
       ansible.builtin.git:
         repo: https://github.com/HDRUK/hutch
-        dest: $HOME/hutch
+        dest: "{{ ansible_env.HOME }}/hutch"
         version: main
 
 - name: Run Nexus, MinIO, Postgres, etc.
@@ -25,7 +28,7 @@
   tasks:
     - name: Run Docker Compose
       community.docker.docker_compose:
-        project_src: $HOME/hutch
+        project_src: "{{ ansible_env.HOME }}/hutch"
         project_name: hutch
         files:
           - docker-compose.yml

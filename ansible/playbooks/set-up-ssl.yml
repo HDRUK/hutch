@@ -3,34 +3,31 @@
   hosts: tre_server
   tasks:
     - name: Generate an private key
-      become: true
       community.crypto.openssl_privatekey:
-        path: $HOME/key.pem
+        path: "{{ ansible_env.HOME }}/key.pem"
 
     - name: Generate certificate signing request
-      become: true
       community.crypto.openssl_csr:
-        path: $HOME/crt.csr
-        privatekey_path: $HOME/key.pem
+        path: "{{ ansible_env.HOME }}/crt.csr"
+        privatekey_path: "{{ ansible_env.HOME }}/key.pem"
         common_name: workflowhub.eu
 
     - name: Generate self-signed certificate
-      become: true
       community.crypto.x509_certificate:
-        path: $HOME/cert.crt
-        privatekey_path: $HOME/key.pem
-        csr_path: $HOME/crt.csr
+        path: "{{ ansible_env.HOME }}/cert.crt"
+        privatekey_path: "{{ ansible_env.HOME }}/key.pem"
+        csr_path: "{{ ansible_env.HOME }}/crt.csr"
         provider: selfsigned
 
     - name: Copy cert.crt to trust store
       become: true
       ansible.builtin.copy:
-        src: $HOME/cert.crt
+        src: "{{ ansible_env.HOME }}/cert.crt"
         dest: /usr/share/ca-certificates/cert.crt
         remote_src: true
         owner: root
         group: root
-        mode: '0644'
+        mode: "0644"
 
     - name: Add cert.crt to /etc/ca-certificates.conf
       become: true
@@ -39,5 +36,6 @@
         line: cert.crt
 
     - name: Update CA certificates
+      become: true
       ansible.builtin.command:
         cmd: update-ca-certificates

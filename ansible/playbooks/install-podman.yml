@@ -1,0 +1,23 @@
+---
+- name: Install and set up Podman
+  hosts: tre_server
+  tasks:
+    - name: Upload podman script
+      ansible.builtin.copy:
+        src: files/install-podman4.sh
+        dest: "{{ ansible_env.HOME }}/install-podman4.sh"
+        mode: "0777"
+
+    - name: Install Podman
+      become: true
+      ansible.builtin.command:
+        cmd: ./install-podman4.sh
+
+    - name: Add registries.conf
+      become: true
+      ansible.builtin.copy:
+        src: files/registries.conf
+        dest: /etc/containers/registries.conf
+        owner: root
+        group: root
+        mode: "0644"

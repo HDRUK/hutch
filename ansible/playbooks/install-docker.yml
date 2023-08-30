@@ -1,6 +1,9 @@
 ---
 - name: Install Docker
   hosts: tre_server
+  handlers:
+    - name: Reset connnection
+      ansible.builtin.meta: reset_connection
   tasks:
     - name: Install Docker pre-requisites
       become: true
@@ -28,6 +31,17 @@
       ansible.builtin.apt:
         name: docker-ce
         update_cache: true
+
+    - name: Add user to docker group
+      become: true
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        append: true
+        groups:
+          - docker
+      register: user_added_to_docker
+      notify:
+        - Reset connnection
 
     - name: Install docker-compose
       become: true
