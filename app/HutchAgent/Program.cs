@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 #region Configure Service
 
 builder.Services
-  .AddControllersWithViews();
+  .AddControllers();
 
 // Add DB context
 builder.Services.AddDbContext<HutchAgentContext>(o =>
@@ -22,10 +22,13 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
 
 // All other services
 builder.Services
+  .Configure<PathOptions>(builder.Configuration.GetSection("Paths"))
+
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
   .Configure<JobPollingOptions>(builder.Configuration.GetSection("WatchFolder"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
+
   .AddScoped<WorkflowTriggerService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
