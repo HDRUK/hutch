@@ -55,6 +55,36 @@ public class CrateService
     return targetPath;
   }
 
+  /// <summary>
+  /// Create an RO-Crate object based on a RO-Crate saved on disk
+  /// </summary>
+  /// <param name="cratePath">Path to RO-Crate</param>
+  /// <returns>RO-Crate object</returns>
+  public ROCrate InitialiseCrate(string cratePath)
+  {
+    var crate = new ROCrate();
+    try
+    {
+      crate.Initialise(cratePath);
+    }
+    catch (CrateReadException e)
+    {
+      _logger.LogError(exception: e, "RO-Crate cannot be read, or is invalid.");
+      throw;
+    }
+    catch (MetadataException e)
+    {
+      _logger.LogError(exception: e, "RO-Crate Metadata cannot be read, or is invalid.");
+      throw;
+    }
+
+    return crate;
+  }
+
+
+
+
+
 
 
   /// <summary>
@@ -98,31 +128,7 @@ public class CrateService
     ZipFile.CreateFromDirectory(cratePath, Path.Combine(parent!.ToString(), zipFile));
   }
 
-  /// <summary>
-  /// Create an RO-Crate object based on a RO-Crate saved on disk
-  /// </summary>
-  /// <param name="cratePath">Path to RO-Crate</param>
-  /// <returns>RO-Crate object</returns>
-  public ROCrate InitialiseCrate(string cratePath)
-  {
-    var crate = new ROCrate();
-    try
-    {
-      crate.Initialise(cratePath);
-    }
-    catch (CrateReadException e)
-    {
-      _logger.LogError(exception: e, "RO-Crate cannot be read, or is invalid.");
-      throw;
-    }
-    catch (MetadataException e)
-    {
-      _logger.LogError(exception: e, "RO-Crate Metadata cannot be read, or is invalid.");
-      throw;
-    }
-
-    return crate;
-  }
+  
 
   /// <summary>
   /// Update the target metadata file in an RO-Crate.

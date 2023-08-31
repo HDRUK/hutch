@@ -2,6 +2,7 @@ using HutchAgent.Models;
 using HutchAgent.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ROCrates.Exceptions;
 
 namespace HutchAgent.Controllers;
 
@@ -28,20 +29,34 @@ public class JobsController : ControllerBase
     if (ModelState.IsValid) return BadRequest();
 
     // Unpack the crate
+    string? bagitPath = null;
     await using var stream = model.Crate.OpenReadStream();
     {
       if (stream is null)
         throw new InvalidOperationException(
           $"Couldn't open a stream for the crate in Job {model.JobId}");
 
-      var bagitPath = _crates.UnpackJobCrate(model.JobId, stream);
+      bagitPath = _crates.UnpackJobCrate(model.JobId, stream);
     }
 
-    // Validate it
+    // Validate the Crate
+    try
+    {
+      // TODO: BagIt checksum validation?
+
+      // Validate that it's a crate at all, by trying to Initialise it
+      _crates.InitialiseCrate(bagitPath.BagItPayloadPath());
+
+      // TODO: 5 safes crate profile validation?
+    }
+    catch (Exception e) when (e is CrateReadException || e is MetadataException)
+    {
+      return BadRequest("Crate Payload is not an RO-Crate.");
+    }
 
     // If Valid, Queue the job for an execution attempt
 
-      //await _workflowTriggerService.TriggerWfexs(sr);
+    //await _workflowTriggerService.TriggerWfexs(sr);
     return Accepted();
   }
 }
