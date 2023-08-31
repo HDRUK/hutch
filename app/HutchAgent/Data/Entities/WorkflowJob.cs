@@ -25,6 +25,6 @@ public class WorkflowJob
   /// </summary>
   public int? ExitCode { get; set; }
 
-  public DateTimeOffset StartTime { get; set; }
-  public DateTimeOffset EndTime { get; set; }
+  public DateTimeOffset? ExecutionStartTime { get; set; }
+  public DateTimeOffset? EndTime { get; set; }
 }

@@ -3,26 +3,22 @@ using Moq;
 
 namespace HutchAgent.Tests;
 
-public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFixture<TagManifestFixture>
+public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<TagManifestFixture>
 {
   private ManifestFixture _manifestFixture;
   private TagManifestFixture _tagManifestFixture;
-  private Mock<IServiceProvider> _serviceProvider = new();
 
-  public TestBagitChecksumWriter(ManifestFixture manifestFixture, TagManifestFixture tagManifestFixture)
+  public TestBagItService(ManifestFixture manifestFixture, TagManifestFixture tagManifestFixture)
   {
     _manifestFixture = manifestFixture;
     _tagManifestFixture = tagManifestFixture;
-    _serviceProvider
-      .Setup(m => m.GetService(typeof(Sha512ChecksumService)))
-      .Returns(new Sha512ChecksumService());
   }
 
   [Fact]
   public async Task WriteManifestSha512_Creates_ManifestFile()
   {
     // Arrange
-    var service = new BagitChecksumWriter(_serviceProvider.Object);
+    var service = new BagItService();
 
     // Act
     await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
@@ -35,7 +31,7 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
   public async Task WriteManifestSha512_Writes_CorrectChecksums()
   {
     // Arrange
-    var service = new BagitChecksumWriter(_serviceProvider.Object);
+    var service = new BagItService();
 
     // Act
     await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
@@ -53,7 +49,7 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
   public async Task WriteManifestSha512_Writes_CorrectFilePaths()
   {
     // Arrange
-    var service = new BagitChecksumWriter(_serviceProvider.Object);
+    var service = new BagItService();
 
     // Act
     await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
@@ -71,8 +67,8 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
   public async Task WriteTagManifestSha512_Creates_TagManifestFile()
   {
     // Arrange
-    var service = new BagitChecksumWriter(_serviceProvider.Object);
-
+    var service = new BagItService();
+    
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
 
@@ -84,8 +80,8 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
   public async Task WriteTagManifestSha512_Writes_CorrectChecksums()
   {
     // Arrange
-    var service = new BagitChecksumWriter(_serviceProvider.Object);
-
+    var service = new BagItService();
+    
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
     var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
@@ -102,8 +98,8 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
   public async Task WriteTagManifestSha512_Writes_CorrectFilePaths()
   {
     // Arrange
-    var service = new BagitChecksumWriter(_serviceProvider.Object);
-
+    var service = new BagItService();
+    
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
     var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
