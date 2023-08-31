@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -12,21 +14,24 @@ namespace HutchAgent.Controllers;
 public class JobsController : ControllerBase
 {
   private readonly CrateService _crates;
-  readonly WorkflowTriggerService _workflowTriggerService;
+  private readonly WorkflowJobService _jobs;
+  private readonly IQueueWriter _queueWriter;
 
   public JobsController(
     CrateService crates,
-    WorkflowTriggerService workflowTriggerService)
+    IQueueWriter queueWriter,
+    WorkflowJobService jobs)
   {
     _crates = crates;
-    _workflowTriggerService = workflowTriggerService;
+    _queueWriter = queueWriter;
+    _jobs = jobs;
   }
 
   [HttpPost]
   public async Task<IActionResult> Submit(SubmitJobModel model)
   {
     if (ModelState.IsValid) return BadRequest();
-    
+
     await using var stream = model.Crate.OpenReadStream();
 
     // Unpack the crate
@@ -54,9 +59,14 @@ public class JobsController : ControllerBase
       return BadRequest("Crate Payload is not an RO-Crate.");
     }
 
-    // If Valid, Queue the job for an execution attempt
+    // If Valid (so far), Queue the job for an execution attempt
+    await _jobs.Create(model.JobId, bagitPath);
+    _queueWriter.SendMessage("WorkflowJobActions", new JobQueueMessage()
+    {
+      JobId = model.JobId,
+      ActionType = JobActionTypes.Execute
+    });
 
-    //await _workflowTriggerService.TriggerWfexs(sr);
     return Accepted();
   }
 }
