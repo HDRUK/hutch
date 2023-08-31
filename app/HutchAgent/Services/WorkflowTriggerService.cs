@@ -350,6 +350,7 @@ public class WorkflowTriggerService
     return fileJson;
   }
 
+  [Obsolete]
   public void ExtractCrate(WfexsJob wfexsJob, Stream stream)
   {
     using var archive = new ZipArchive(stream);
