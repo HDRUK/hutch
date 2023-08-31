@@ -15,7 +15,7 @@ public class JobPollingHostedService : BackgroundService
   private readonly WorkflowTriggerOptions _workflowTriggerOptions;
   private readonly ILogger<JobPollingHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
-  private WfexsJobService? _wfexsJobService;
+  private WorkflowJobService? _WorkflowJobService;
   private CrateService? _crateService;
   private readonly IServiceProvider _serviceProvider;
   private readonly string _workDir;
@@ -58,7 +58,7 @@ public class JobPollingHostedService : BackgroundService
       {
         _resultsStoreWriter = scope.ServiceProvider.GetService<IResultsStoreWriter>() ??
                               throw new InvalidOperationException();
-        _wfexsJobService = scope.ServiceProvider.GetService<WfexsJobService>() ?? throw new InvalidOperationException();
+        _WorkflowJobService = scope.ServiceProvider.GetService<WorkflowJobService>() ?? throw new InvalidOperationException();
         _crateService = scope.ServiceProvider.GetService<CrateService>() ??
                               throw new InvalidOperationException();
         await CheckJobsFinished();
@@ -83,8 +83,8 @@ public class JobPollingHostedService : BackgroundService
 
   private async Task UploadResults()
   {
-    if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
-    var finishedJobs = await _wfexsJobService.ListFinishedJobs();
+    if (_WorkflowJobService is null) throw new NullReferenceException("_WorkflowJobService instance not available");
+    var finishedJobs = await _WorkflowJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
       if (job.ExitCode != 0)
@@ -140,8 +140,8 @@ public class JobPollingHostedService : BackgroundService
 
   private async Task MergeResults()
   {
-    if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
-    var finishedJobs = await _wfexsJobService.ListFinishedJobs();
+    if (_WorkflowJobService is null) throw new NullReferenceException("_WorkflowJobService instance not available");
+    var finishedJobs = await _WorkflowJobService.ListFinishedJobs();
     foreach (var job in finishedJobs)
     {
       var jobWorkDir = Path.Combine(
@@ -179,7 +179,7 @@ public class JobPollingHostedService : BackgroundService
       }
 
       await _resultsStoreWriter.WriteToStore(mergedZip);
-      await _wfexsJobService.Delete(job.Id);
+      await _WorkflowJobService.Delete(job.Id);
     }
   }
 
@@ -188,8 +188,8 @@ public class JobPollingHostedService : BackgroundService
   /// </summary>
   private async Task CheckJobsFinished()
   {
-    if (_wfexsJobService is null) throw new NullReferenceException("_wfexsJobService instance not available");
-    var unfinishedJobs = await _wfexsJobService.List();
+    if (_WorkflowJobService is null) throw new NullReferenceException("_WorkflowJobService instance not available");
+    var unfinishedJobs = await _WorkflowJobService.List();
     unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
     foreach (var job in unfinishedJobs)
     {
@@ -226,7 +226,7 @@ public class JobPollingHostedService : BackgroundService
       job.RunFinished = true;
       _logger.LogInformation($"Run {job.WfexsRunId} finished.");
       // 4. update job in DB
-      await _wfexsJobService.Set(job);
+      await _WorkflowJobService.Set(job);
 
       // 5. set execute action status
       if (_crateService is null) throw new NullReferenceException("_crateService instance not available");

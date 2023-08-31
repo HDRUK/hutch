@@ -13,5 +13,5 @@ public class HutchAgentContext : DbContext
   {
   }
 
-  public virtual DbSet<WfexsJob> WfexsJobs => Set<WfexsJob>();
+  public virtual DbSet<WorkflowJob> WorkflowJobs => Set<WorkflowJob>();
 }
