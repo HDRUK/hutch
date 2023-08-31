@@ -34,8 +34,7 @@ builder.Services
   .AddTransient<WfexsJobService>()
   .AddTransient<CrateService>()
   .AddHostedService<JobPollingHostedService>()
-  .AddSingleton<Sha512ChecksumService>()
-  .AddSingleton<BagitChecksumWriter>()
+  .AddSingleton<BagItService>()
   .AddFeatureManagement();
 
 #endregion
