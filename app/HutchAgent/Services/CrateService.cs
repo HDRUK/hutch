@@ -139,7 +139,7 @@ public class CrateService
   /// Metadata file could not be found.
   /// </exception>
   /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
-  public void UpdateMetadata(string pathToMetadata, WfexsJob job)
+  public void UpdateMetadata(string pathToMetadata, WorkflowJob job)
   {
     if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
