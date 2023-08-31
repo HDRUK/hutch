@@ -56,8 +56,11 @@ public class JobsController : ControllerBase
     }
     catch (Exception e) when (e is CrateReadException || e is MetadataException)
     {
+      try { Directory.Delete(bagitPath, recursive: true); }
+      catch (DirectoryNotFoundException) { /* Success! */ }
+
       return BadRequest("Crate Payload is not an RO-Crate.");
-    }
+    } 
 
     // If Valid (so far), Queue the job for an execution attempt
     await _jobs.Create(model.JobId, bagitPath);
