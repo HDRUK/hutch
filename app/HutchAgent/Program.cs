@@ -35,7 +35,7 @@ builder.Services
 
   .AddScoped<WorkflowTriggerService>()
   .AddResultsStore(builder.Configuration)
-  .AddTransient<WfexsJobService>()
+  .AddTransient<WorkflowJobService>()
   .AddHostedService<JobPollingHostedService>()
 
   .AddTransient<CrateService>()
