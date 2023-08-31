@@ -340,6 +340,7 @@ public class WorkflowTriggerService
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 
+  [Obsolete]
   public string ValidateCrate(string cratePath)
   {
     // Validate it is an ROCrate
