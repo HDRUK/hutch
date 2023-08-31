@@ -1,9 +1,11 @@
 using System.Runtime.CompilerServices;
+using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using ROCrates.Exceptions;
 
 namespace HutchAgent.Controllers;
@@ -15,9 +17,11 @@ public class JobsController : ControllerBase
 {
   private readonly CrateService _crates;
   private readonly WorkflowJobService _jobs;
+  private readonly JobActionsQueueOptions _queueOptions;
   private readonly IQueueWriter _queueWriter;
 
   public JobsController(
+    IOptions<JobActionsQueueOptions> queueOptions,
     CrateService crates,
     IQueueWriter queueWriter,
     WorkflowJobService jobs)
@@ -25,6 +29,7 @@ public class JobsController : ControllerBase
     _crates = crates;
     _queueWriter = queueWriter;
     _jobs = jobs;
+    _queueOptions = queueOptions.Value;
   }
 
   [HttpPost]
@@ -60,11 +65,11 @@ public class JobsController : ControllerBase
       catch (DirectoryNotFoundException) { /* Success! */ }
 
       return BadRequest("Crate Payload is not an RO-Crate.");
-    } 
+    }
 
     // If Valid (so far), Queue the job for an execution attempt
     await _jobs.Create(model.JobId, bagitPath);
-    _queueWriter.SendMessage("WorkflowJobActions", new JobQueueMessage()
+    _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
     {
       JobId = model.JobId,
       ActionType = JobActionTypes.Execute

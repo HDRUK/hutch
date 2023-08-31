@@ -26,21 +26,23 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
 // All other services
 builder.Services
   .Configure<PathOptions>(builder.Configuration.GetSection("Paths"))
+
   .Configure<RabbitQueueOptions>(builder.Configuration.GetSection("Queue"))
+  .Configure<JobActionsQueueOptions>(builder.Configuration.GetSection("Queue"))
 
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
-  .Configure<JobPollingOptions>(builder.Configuration.GetSection("WatchFolder"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
 
   .AddScoped<WorkflowTriggerService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WorkflowJobService>()
-  .AddHostedService<JobPollingHostedService>()
+  .AddHostedService<QueuePollingHostedService>()
 
   .AddTransient<CrateService>()
   .AddSingleton<BagItService>()
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
+  .AddTransient<IQueueReader, RabbitQueueReader>()
 
   .AddFeatureManagement();
 #endregion
