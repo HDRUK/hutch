@@ -1,4 +1,5 @@
 using HutchAgent.Config;
+using HutchAgent.Constants;
 using HutchAgent.Data;
 using HutchAgent.Extensions;
 using HutchAgent.HostedServices;
@@ -11,7 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 #region Configure Service
 
 builder.Services
-  .AddControllers();
+  .AddControllers()
+  .AddJsonOptions(DefaultJsonOptions.Configure);
+
 
 // Add DB context
 builder.Services.AddDbContext<HutchAgentContext>(o =>
@@ -23,6 +26,7 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
 // All other services
 builder.Services
   .Configure<PathOptions>(builder.Configuration.GetSection("Paths"))
+  .Configure<RabbitQueueOptions>(builder.Configuration.GetSection("Queue"))
 
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
   .Configure<JobPollingOptions>(builder.Configuration.GetSection("WatchFolder"))
@@ -32,11 +36,13 @@ builder.Services
   .AddScoped<WorkflowTriggerService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WfexsJobService>()
-  .AddTransient<CrateService>()
   .AddHostedService<JobPollingHostedService>()
-  .AddSingleton<BagItService>()
-  .AddFeatureManagement();
 
+  .AddTransient<CrateService>()
+  .AddSingleton<BagItService>()
+  .AddTransient<IQueueWriter, RabbitQueueWriter>()
+
+  .AddFeatureManagement();
 #endregion
 
 var app = builder.Build();
