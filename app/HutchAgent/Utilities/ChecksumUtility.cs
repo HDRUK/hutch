@@ -4,18 +4,18 @@ using System.Text;
 namespace HutchAgent.Services;
 
 /// <summary>
-/// Service for computing SHA512 checksums of <see cref="Stream"/> objects.
+/// Utility Class for working with checksums
 /// </summary>
-public class Sha512ChecksumService
+public static class ChecksumUtility
 {
-  private readonly SHA512 _sha512 = SHA512.Create();
+  private static readonly SHA512 _sha512 = SHA512.Create();
 
   /// <summary>
   /// Compute and return a SHA512 checksum of a <see cref="Stream"/>.
   /// </summary>
   /// <param name="stream">The input <see cref="Stream"/>.</param>
   /// <returns>The checksum for the input <see cref="Stream"/></returns>
-  public string ComputeSha512(Stream stream)
+  public static string ComputeSha512(Stream stream)
   {
     // Set the stream back to the start
     stream.Position = 0;
