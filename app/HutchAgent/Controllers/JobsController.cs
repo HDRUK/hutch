@@ -25,12 +25,12 @@ public class JobsController : ControllerBase
   [HttpPost]
   public async Task<IActionResult> Submit(SubmitJobModel model)
   {
-
     if (ModelState.IsValid) return BadRequest();
+    
+    await using var stream = model.Crate.OpenReadStream();
 
     // Unpack the crate
-    string? bagitPath = null;
-    await using var stream = model.Crate.OpenReadStream();
+    string? bagitPath;
     {
       if (stream is null)
         throw new InvalidOperationException(
@@ -42,12 +42,12 @@ public class JobsController : ControllerBase
     // Validate the Crate
     try
     {
-      // TODO: BagIt checksum validation?
+      // TODO: BagIt checksum validation? or do this during execution?
 
       // Validate that it's a crate at all, by trying to Initialise it
       _crates.InitialiseCrate(bagitPath.BagItPayloadPath());
 
-      // TODO: 5 safes crate profile validation?
+      // TODO: 5 safes crate profile validation? or do this during execution?
     }
     catch (Exception e) when (e is CrateReadException || e is MetadataException)
     {
