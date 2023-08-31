@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace HutchAgent.Services;
+namespace HutchAgent.Utilities;
 
 /// <summary>
 /// Utility Class for working with checksums
