@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
-using HutchAgent.Data.Entities;
 using HutchAgent.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,8 +11,17 @@ using File = System.IO.File;
 
 namespace HutchAgent.Tests;
 
-public class TestCrateMergeService
+public class TestCrateService
 {
+  private readonly IOptions<PathOptions> _paths;
+  
+  public TestCrateService()
+  {
+    _paths = Options.Create<PathOptions>(new(){
+      // TODO
+    });
+  }
+
   [Fact]
   public void MergeCrates_Extract_ZipToDestinationDataOutputs()
   {
@@ -34,7 +42,7 @@ public class TestCrateMergeService
       zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
     }
 
-    var service = new CrateService(publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object);
 
     // Act
     service.MergeCrates(zipFile.Name, destinationDir.ToString());
@@ -61,7 +69,7 @@ public class TestCrateMergeService
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(zipFile.ToString()).Close();
 
-    var service = new CrateService(publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object);
 
     // Act
     service.ZipCrate(destinationDir.ToString());
@@ -83,7 +91,7 @@ public class TestCrateMergeService
     var zipFileName = "my-file.zip";
     var destinationDir = "non/existent/dir/";
     Directory.CreateDirectory("non/existent/");
-    var service = new CrateService(publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object);
 
     // Act
     var action = () => service.MergeCrates(zipFileName, destinationDir);
@@ -102,7 +110,7 @@ public class TestCrateMergeService
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = "non/existent/dir/";
-    var service = new CrateService(publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object);
 
     // Act
     var action = () => service.ZipCrate(destinationDir);
@@ -120,8 +128,8 @@ public class TestCrateMergeService
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
-    var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
-    var service = new CrateService(publisher, logger.Object);
+    var job = new HutchAgent.Data.Entities.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
+    var service = new CrateService(_paths, publisher, logger.Object);
 
     // Act
     var action = () => service.UpdateMetadata(pathToMetadata, job);
@@ -165,10 +173,10 @@ public class TestCrateMergeService
                    + "\"";
     var pattern4 = "\"datePublished\": ";
 
-    var service = new CrateService(publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object);
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
-    var job = new WfexsJob { StartTime = startTime, EndTime = endTime };
+    var job = new Data.Entities.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
     // Act
     service.UpdateMetadata(metaFile.DirectoryName, job);
     var output = File.ReadAllText(crate.Metadata.Id);

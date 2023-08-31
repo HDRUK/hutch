@@ -25,7 +25,6 @@ public class WorkflowJobService
     {
       Id = jobId,
       WorkingDirectory = workDir,
-      StartTime = DateTimeOffset.UtcNow,
     };
 
     await _db.AddAsync(entity);
@@ -47,7 +46,7 @@ public class WorkflowJobService
         WorkingDirectory = entity.WorkingDirectory,
         ExecutorRunId = entity.ExecutorRunId,
         ExitCode = entity.ExitCode,
-        StartTime = entity.StartTime,
+        ExecutionStartTime = entity.ExecutionStartTime,
         EndTime = entity.EndTime
       }
       ).ToListAsync();
@@ -83,7 +82,7 @@ public class WorkflowJobService
       WorkingDirectory = entity.WorkingDirectory,
       ExecutorRunId = entity.ExecutorRunId,
       ExitCode = entity.ExitCode,
-      StartTime = entity.StartTime,
+      ExecutionStartTime = entity.ExecutionStartTime,
       EndTime = entity.EndTime,
     };
   }
