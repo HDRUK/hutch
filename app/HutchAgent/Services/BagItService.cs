@@ -1,3 +1,5 @@
+using HutchAgent.Utilities;
+
 namespace HutchAgent.Services;
 
 public static class BagItUtilities {
