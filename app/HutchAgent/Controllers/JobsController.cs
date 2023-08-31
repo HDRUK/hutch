@@ -1,8 +1,7 @@
-using HutchAgent.Constants;
+using HutchAgent.Models;
 using HutchAgent.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.FeatureManagement;
 
 namespace HutchAgent.Controllers;
 
@@ -11,25 +10,38 @@ namespace HutchAgent.Controllers;
 [Route("api/[controller]")]
 public class JobsController : ControllerBase
 {
+  private readonly CrateService _crates;
   readonly WorkflowTriggerService _workflowTriggerService;
-  readonly IFeatureManager _featureManager;
 
-  public JobsController(WorkflowTriggerService workflowTriggerService, IFeatureManager featureManager)
+  public JobsController(
+    CrateService crates,
+    WorkflowTriggerService workflowTriggerService)
   {
+    _crates = crates;
     _workflowTriggerService = workflowTriggerService;
-    _featureManager = featureManager;
   }
 
   [HttpPost]
-  public async Task<IActionResult> Unpack(IFormFile? job)
+  public async Task<IActionResult> Submit(SubmitJobModel model)
   {
-    
-    if (job == null)
-      return BadRequest();
-    await using var sr = job.OpenReadStream();
+
+    if (ModelState.IsValid) return BadRequest();
+
+    // Unpack the crate
+    await using var stream = model.Crate.OpenReadStream();
     {
-      await _workflowTriggerService.TriggerWfexs(sr);
-      return Accepted();
+      if (stream is null)
+        throw new InvalidOperationException(
+          $"Couldn't open a stream for the crate in Job {model.JobId}");
+
+      var bagitPath = _crates.UnpackJobCrate(model.JobId, stream);
     }
+
+    // Validate it
+
+    // If Valid, Queue the job for an execution attempt
+
+      //await _workflowTriggerService.TriggerWfexs(sr);
+    return Accepted();
   }
 }
