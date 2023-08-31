@@ -9,9 +9,10 @@ using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.HostedServices;
 
+[Obsolete]
 public class JobPollingHostedService : BackgroundService
 {
-  private readonly JobPollingOptions _options;
+  private readonly JobActionsQueueOptions _options;
   private readonly WorkflowTriggerOptions _workflowTriggerOptions;
   private readonly ILogger<JobPollingHostedService> _logger;
   private IResultsStoreWriter? _resultsStoreWriter;
@@ -21,7 +22,7 @@ public class JobPollingHostedService : BackgroundService
   private readonly string _workDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
-  public JobPollingHostedService(IOptions<JobPollingOptions> options,
+  public JobPollingHostedService(IOptions<JobActionsQueueOptions> options,
     IOptions<WorkflowTriggerOptions> workflowTriggerOptions, ILogger<JobPollingHostedService> logger,
     IServiceProvider serviceProvider)
   {
@@ -84,7 +85,7 @@ public class JobPollingHostedService : BackgroundService
   private async Task UploadResults()
   {
     if (_WorkflowJobService is null) throw new NullReferenceException("_WorkflowJobService instance not available");
-    var finishedJobs = await _WorkflowJobService.ListFinishedJobs();
+    var finishedJobs = await _WorkflowJobService.List();
     foreach (var job in finishedJobs)
     {
       if (job.ExitCode != 0)
@@ -95,7 +96,7 @@ public class JobPollingHostedService : BackgroundService
 
       var pathToUpload = Path.Combine(
         _workDir,
-        job.WfexsRunId,
+        job.ExecutorRunId,
         "outputs",
         "execution.crate.zip");
 
@@ -110,7 +111,7 @@ public class JobPollingHostedService : BackgroundService
       pathToUploadInfo.MoveTo(
         pathToUploadInfo.FullName.Replace(
           "execution.crate",
-          job.WfexsRunId)
+          job.ExecutorRunId)
       );
 
       if (_resultsStoreWriter is null) throw new NullReferenceException("_resultsStoreWriter instance not available");
@@ -141,15 +142,15 @@ public class JobPollingHostedService : BackgroundService
   private async Task MergeResults()
   {
     if (_WorkflowJobService is null) throw new NullReferenceException("_WorkflowJobService instance not available");
-    var finishedJobs = await _WorkflowJobService.ListFinishedJobs();
+    var finishedJobs = await _WorkflowJobService.List();
     foreach (var job in finishedJobs)
     {
       var jobWorkDir = Path.Combine(
         _workDir,
-        job.WfexsRunId);
-      var sourceZip = Path.Combine(jobWorkDir, "outputs", $"{job.WfexsRunId}.zip");
-      var pathToMetadata = Path.Combine(job.UnpackedPath); // directory path to ro-crate-metadata.json
-      var mergeDirInfo = new DirectoryInfo(job.UnpackedPath);
+        job.ExecutorRunId);
+      var sourceZip = Path.Combine(jobWorkDir, "outputs", $"{job.ExecutorRunId}.zip");
+      var pathToMetadata = Path.Combine(job.WorkingDirectory); // directory path to ro-crate-metadata.json
+      var mergeDirInfo = new DirectoryInfo(job.WorkingDirectory);
       var mergeDirParent = mergeDirInfo.Parent;
       var mergedZip = Path.Combine(mergeDirParent!.FullName, $"{mergeDirInfo.Name}-merged.zip");
       var pathToContainerImagesDir = Path.Combine(jobWorkDir, "containers");
@@ -161,12 +162,12 @@ public class JobPollingHostedService : BackgroundService
       }
 
       if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
-      _crateService.MergeCrates(sourceZip, job.UnpackedPath);
+      _crateService.MergeCrates(sourceZip, job.WorkingDirectory);
 
       // Delete containers directory
       Directory.Delete(pathToContainerImagesDir, recursive: true);
-      _crateService.UpdateMetadata(Path.Combine(pathToMetadata, "data"), job);
-      _crateService.ZipCrate(job.UnpackedPath);
+      _crateService.UpdateMetadata(Path.Combine(pathToMetadata, "data"), new()); // job);
+      _crateService.ZipCrate(job.WorkingDirectory);
       var jobCrate = _crateService.InitialiseCrate(Path.Combine(pathToMetadata, "data"));
       _crateService.CreateDisclosureCheck(jobCrate);
       jobCrate.Save(Path.Combine(pathToMetadata, "data"));
@@ -190,11 +191,11 @@ public class JobPollingHostedService : BackgroundService
   {
     if (_WorkflowJobService is null) throw new NullReferenceException("_WorkflowJobService instance not available");
     var unfinishedJobs = await _WorkflowJobService.List();
-    unfinishedJobs = unfinishedJobs.FindAll(x => !x.RunFinished);
+    unfinishedJobs = unfinishedJobs.FindAll(x => x.EndTime is not null);
     foreach (var job in unfinishedJobs)
     {
       // find execution-state.yml for job
-      var pathToState = Path.Combine(_workDir, job.WfexsRunId, _statePath);
+      var pathToState = Path.Combine(_workDir, job.ExecutorRunId, _statePath);
       if (!File.Exists(pathToState))
       {
         _logger.LogWarning("Could not find execution status file at '{pathToState}'", pathToState);
@@ -215,7 +216,7 @@ public class JobPollingHostedService : BackgroundService
         CultureInfo.InvariantCulture,
         DateTimeStyles.AdjustToUniversal,
         out var startTime);
-      job.StartTime = startTime;
+      job.ExecutionStartTime = startTime;
       DateTime.TryParse(rootNode["ended"].ToString(),
         CultureInfo.InvariantCulture,
         DateTimeStyles.AdjustToUniversal,
@@ -223,19 +224,18 @@ public class JobPollingHostedService : BackgroundService
       job.EndTime = endTime;
 
       // set job to finished
-      job.RunFinished = true;
-      _logger.LogInformation($"Run {job.WfexsRunId} finished.");
+      _logger.LogInformation($"Run {job.ExecutorRunId} finished.");
       // 4. update job in DB
       await _WorkflowJobService.Set(job);
 
       // 5. set execute action status
       if (_crateService is null) throw new NullReferenceException("_crateService instance not available");
-      var jobCrate = _crateService.InitialiseCrate(Path.Combine(job.UnpackedPath, "data"));
+      var jobCrate = _crateService.InitialiseCrate(Path.Combine(job.WorkingDirectory, "data"));
       var executeAction = _crateService.GetExecuteEntity(jobCrate);
       _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, executeAction);
       executeAction.SetProperty("endTime",DateTime.Now);
-      _logger.LogInformation($"Saving updated RO-Crate metadata to {Path.Combine(job.UnpackedPath, "data")} .");
-      jobCrate.Save(Path.Combine(job.UnpackedPath, "data"));
+      _logger.LogInformation($"Saving updated RO-Crate metadata to {Path.Combine(job.WorkingDirectory, "data")} .");
+      jobCrate.Save(Path.Combine(job.WorkingDirectory, "data"));
     }
   }
 }

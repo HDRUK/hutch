@@ -14,6 +14,7 @@ using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
+[Obsolete]
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
@@ -29,7 +30,7 @@ public class WorkflowTriggerService
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     IServiceProvider serviceProvider,
-    IFeatureManager featureManager, 
+    IFeatureManager featureManager,
     CrateService crateService)
   {
     _logger = logger;
@@ -73,29 +74,25 @@ public class WorkflowTriggerService
   /// </summary>
   /// <param name="stream"></param>
   /// <exception cref="FileNotFoundException"></exception>
-  private WorkflowJob UnpackCrate(Stream stream)
+  private async Task<WorkflowJob> UnpackCrate(Stream stream)
   {
-    var WorkflowJob = new WorkflowJob
-    {
-      UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, Guid.NewGuid().ToString()),
-      RunFinished = false
-    };
+    var WorkflowJob = new WorkflowJob();
     ExtractCrate(WorkflowJob, stream);
-    var fileJson = ValidateCrate(WorkflowJob.UnpackedPath);
+    var fileJson = ValidateCrate(WorkflowJob.WorkingDirectory);
     // Parse Crate metadata
     var crate = ParseCrate(fileJson);
     // Get mainEntity from metadata
     var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
     if (mainEntity is null) throw new Exception("mainEntity is not defined in the root dataset.");
-    var mainEntityPath = Path.Combine(WorkflowJob.UnpackedPath, mainEntity.Id);
+    var mainEntityPath = Path.Combine(WorkflowJob.WorkingDirectory, mainEntity.Id);
     // Check main entity is present and a stage file
     if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
                                         mainEntityPath.EndsWith(".yml")))
     {
       _logger.LogInformation($"main Entity is a Wfexs stage file and can be found at {mainEntityPath}");
-      _workflowOptions.StageFilePath = mainEntityPath;
+      //_workflowOptions.StageFilePath = mainEntityPath;
       // Create a copy of the wfexs stage file
-      var copyFilePath = Path.Combine(WorkflowJob.UnpackedPath, "copy_" + mainEntity.Id);
+      var copyFilePath = Path.Combine(WorkflowJob.WorkingDirectory, "copy_" + mainEntity.Id);
       try
       {
         File.Copy(mainEntityPath, copyFilePath, true);
@@ -132,14 +129,16 @@ public class WorkflowTriggerService
     }
 
     // Tell the queue were the crate was extracted
-    return _WorkflowJobService.Create(WorkflowJob).Result;
+    await _WorkflowJobService.Create(WorkflowJob.Id.ToString(), WorkflowJob.WorkingDirectory);
+
+    return WorkflowJob;
   }
 
   private async Task<(WorkflowJob, ROCrate)> FetchCrate(Stream stream, WorkflowJob WorkflowJob)
   {
     ExtractCrate(WorkflowJob, stream);
-    _logger.LogInformation($"Crate extracted at {WorkflowJob.UnpackedPath}");
-    var cratePath = Path.Combine(WorkflowJob.UnpackedPath, "data");
+    _logger.LogInformation($"Crate extracted at {WorkflowJob.WorkingDirectory}");
+    var cratePath = Path.Combine(WorkflowJob.WorkingDirectory, "data");
     // Initialise Crate
     var crate = new ROCrate();
     try
@@ -224,7 +223,9 @@ public class WorkflowTriggerService
     crate.Save(cratePath);
     _logger.LogInformation($"Saved updated RO-Crate to {cratePath}.");
 
-    return (_WorkflowJobService.Create(WorkflowJob).Result, crate);
+    await _WorkflowJobService.Create(WorkflowJob.Id, WorkflowJob.WorkingDirectory);
+
+    return (WorkflowJob, crate);
   }
 
   /// <summary>
@@ -240,16 +241,12 @@ public class WorkflowTriggerService
     // Unpack the crate and get the queued message to track the WfExS job.
     if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
     {
-      WorkflowJob = new WorkflowJob
-      {
-        UnpackedPath = Path.Combine(_workflowOptions.CrateExtractPath, uuid),
-        RunFinished = false
-      };
+      WorkflowJob = new WorkflowJob();
       (WorkflowJob, crate) = await FetchCrate(stream, WorkflowJob);
     }
     else
     {
-      WorkflowJob = UnpackCrate(stream);
+      WorkflowJob = await UnpackCrate(stream);
     }
 
     //Get execute action and set status to active
@@ -262,7 +259,7 @@ public class WorkflowTriggerService
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(_workflowOptions.StageFilePath, uuid, "data", stageFileName)}";
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine("_workflowOptions.StageFilePath", uuid, "data", stageFileName)}";
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -279,9 +276,6 @@ public class WorkflowTriggerService
       throw new Exception("Could not start process");
     _logger.LogInformation($"Process started for job: {WorkflowJob.Id}");
 
-    // Get process PID
-    WorkflowJob.Pid = process.Id;
-
     await process.StandardInput.WriteLineAsync(_activateVenv);
     await process.StandardInput.WriteLineAsync(command);
     await process.StandardInput.FlushAsync();
@@ -289,20 +283,20 @@ public class WorkflowTriggerService
 
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
-    while (!process.HasExited && string.IsNullOrEmpty(WorkflowJob.WfexsRunId))
+    while (!process.HasExited && string.IsNullOrEmpty(WorkflowJob.ExecutorRunId))
     {
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
       if (runName is null) continue;
-      WorkflowJob.WfexsRunId = runName;
+      WorkflowJob.ExecutorRunId = runName;
     }
 
     // close our connection to the process
     process.Close();
 
     // Update the job in the queue.
-    await _WorkflowJobService.Set(WorkflowJob);
+    await _WorkflowJobService.Set(new()); //  WorkflowJob);
   }
 
   private string RewritePath(WorkflowJob WorkflowJob, string line)
@@ -314,7 +308,7 @@ public class WorkflowTriggerService
     };
     if (relativePath is null) return line;
 
-    var absolutePath = Path.Combine(Path.GetFullPath(WorkflowJob.UnpackedPath), relativePath);
+    var absolutePath = Path.Combine(Path.GetFullPath(WorkflowJob.WorkingDirectory), relativePath);
     var newLine = linePrefix + "file://" + absolutePath;
 
     _logger.LogInformation($"Writing absolute input path {newLine}");
@@ -357,9 +351,9 @@ public class WorkflowTriggerService
     using var archive = new ZipArchive(stream);
     {
       // Extract to Directory
-      Directory.CreateDirectory(WorkflowJob.UnpackedPath);
-      archive.ExtractToDirectory(WorkflowJob.UnpackedPath, true);
+      Directory.CreateDirectory(WorkflowJob.WorkingDirectory);
+      archive.ExtractToDirectory(WorkflowJob.WorkingDirectory, true);
     }
-    _logger.LogInformation($"Crate extracted at {WorkflowJob.UnpackedPath}");
+    _logger.LogInformation($"Crate extracted at {WorkflowJob.WorkingDirectory}");
   }
 }
