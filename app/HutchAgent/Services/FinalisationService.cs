@@ -1,3 +1,5 @@
+using System.IO.Compression;
+
 namespace HutchAgent.Services;
 
 public class FinalisationService
@@ -51,11 +53,44 @@ public class FinalisationService
   }
 
   /// <summary>
-  /// 
+  /// Zip a workflow job's BagIt and add it to the configured results store.
   /// </summary>
   /// <param name="jobId"></param>
+  /// <exception cref="DirectoryNotFoundException">Could not locate the parent directory of the job's BagIt.</exception>
   public async Task UploadToStore(string jobId)
   {
-    throw new NotImplementedException();
+    var job = await _jobService.Get(jobId);
+    var bagitDir = new DirectoryInfo(job.WorkingDirectory);
+    var bagitParent = bagitDir.Parent ??
+                      throw new DirectoryNotFoundException($"Cannot find parent directory of {bagitDir.FullName}");
+    var pathToZip = Path.Combine(
+      bagitParent.FullName,
+      Path.TrimEndingDirectorySeparator(bagitDir.FullName) + ".zip"
+    );
+
+    // Zip the BagIt before upload
+    ZipFile.CreateFromDirectory(bagitDir.FullName, pathToZip);
+    var zipFile = new FileInfo(pathToZip);
+
+    // Make sure results store exists
+    if (!await _storeWriter.StoreExists())
+    {
+      _logger.LogCritical("Could not write {} to the results store. Store not found.", zipFile.Name);
+      return;
+    }
+
+    // Check if the result already exists
+    if (await _storeWriter.ResultExists(zipFile.Name))
+    {
+      _logger.LogInformation(
+        "{} already exists in results store, overwriting.", zipFile.Name);
+    }
+
+    // Upload the zipped BagIt
+    _logger.LogInformation("Adding {} to results store.", zipFile.Name);
+    await _storeWriter.WriteToStore(pathToZip);
+
+    // Delete the zipped BagIt to save disk space
+    zipFile.Delete();
   }
 }
