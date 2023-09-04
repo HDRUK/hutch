@@ -31,12 +31,14 @@ public class FinalisationService
   }
 
   /// <summary>
-  /// 
+  /// Make the checksums for the BagIt containing the job's data.
   /// </summary>
-  /// <param name="jobId"></param>
+  /// <param name="jobId">The ID of the job needing checksums.</param>
   public async Task MakeChecksums(string jobId)
   {
-    throw new NotImplementedException();
+    var job = await _jobService.Get(jobId);
+    await _bagItService.WriteManifestSha512(job.WorkingDirectory);
+    await _bagItService.WriteTagManifestSha512(job.WorkingDirectory);
   }
 
   /// <summary>
