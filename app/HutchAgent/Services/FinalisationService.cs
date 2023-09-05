@@ -1,4 +1,7 @@
 using System.IO.Compression;
+using HutchAgent.Config;
+using Microsoft.Extensions.Options;
+using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.Services;
 
@@ -9,18 +12,40 @@ public class FinalisationService
   private readonly ILogger<FinalisationService> _logger;
   private readonly IResultsStoreWriter _storeWriter;
   private readonly WorkflowJobService _jobService;
+  private readonly PathOptions _pathOptions;
+  private readonly WorkflowTriggerOptions _triggerOptions;
+  private readonly string _wfexsWorkDir;
 
   public FinalisationService(
     BagItService bagItService,
     CrateService crateService,
     ILogger<FinalisationService> logger,
-    IResultsStoreWriter storeWriter, WorkflowJobService jobService)
+    IResultsStoreWriter storeWriter,
+    WorkflowJobService jobService,
+    IOptions<PathOptions> pathOptions,
+    IOptions<WorkflowTriggerOptions> triggerOptions)
   {
     _bagItService = bagItService;
     _crateService = crateService;
     _logger = logger;
     _storeWriter = storeWriter;
     _jobService = jobService;
+    _pathOptions = pathOptions.Value;
+    _triggerOptions = triggerOptions.Value;
+
+    // Find the WfExS cache directory path
+    var configYaml = File.ReadAllText(_triggerOptions.LocalConfigPath);
+    var configYamlStream = new StringReader(configYaml);
+    var yamlStream = new YamlStream();
+    yamlStream.Load(configYamlStream);
+    var rootNode = yamlStream.Documents[0].RootNode;
+    _wfexsWorkDir = rootNode["workDir"].ToString();
+
+    // get absolute path to workdir from local config path
+    var configYamlDirectory = Path.GetDirectoryName(Path.GetFullPath(_triggerOptions.LocalConfigPath)) ??
+                              throw new InvalidOperationException();
+    _wfexsWorkDir = Path.GetFullPath(Path.Combine(configYamlDirectory, _wfexsWorkDir), configYamlDirectory);
+    _logger.LogInformation($"Found working directory {_wfexsWorkDir}");
   }
 
   /// <summary>
