@@ -14,10 +14,11 @@ namespace HutchAgent.Tests;
 public class TestCrateService
 {
   private readonly IOptions<PathOptions> _paths;
-  
+
   public TestCrateService()
   {
-    _paths = Options.Create<PathOptions>(new(){
+    _paths = Options.Create<PathOptions>(new()
+    {
       // TODO
     });
   }
@@ -128,7 +129,7 @@ public class TestCrateService
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
-    var job = new HutchAgent.Data.Entities.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
+    var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
     var service = new CrateService(_paths, publisher, logger.Object);
 
     // Act
@@ -176,7 +177,7 @@ public class TestCrateService
     var service = new CrateService(_paths, publisher, logger.Object);
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
-    var job = new Data.Entities.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
+    var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
     // Act
     service.UpdateMetadata(metaFile.DirectoryName, job);
     var output = File.ReadAllText(crate.Metadata.Id);
