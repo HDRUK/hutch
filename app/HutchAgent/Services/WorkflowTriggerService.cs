@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;
 
-
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
@@ -19,14 +18,14 @@ public class WorkflowTriggerService
   private readonly WorkflowFetchingService _workflowFetchingService;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _queueOptions;
-  
+
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
-    CrateService crateService, 
-    WorkflowFetchingService workflowFetchingService, 
-    IQueueWriter queueWriter, 
-    JobActionsQueueOptions queueOptions, 
+    CrateService crateService,
+    WorkflowFetchingService workflowFetchingService,
+    IQueueWriter queueWriter,
+    JobActionsQueueOptions queueOptions,
     WorkflowJobService workflowJobService)
   {
     _logger = logger;
@@ -37,24 +36,23 @@ public class WorkflowTriggerService
     _workflowJobService = workflowJobService;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
-    
   }
 
   /// <summary>
-  /// Install and run WfExS given 
+  /// Install and run WfExS given a job Id
   /// </summary>
-  /// <param name="messageJobId"></param>
+  /// <param name="messageJobId">Job Id to execute</param>
   /// <exception cref="Exception"></exception>
   public async Task TriggerWfexs(string messageJobId)
   {
     var job = await _workflowJobService.Get(messageJobId);
     var crate = await _workflowFetchingService.FetchWorkflow(job);
-    
+
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(crate);
     executeAction.SetProperty("startTime", DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
-    
+
     // Temporarily - Generate stage file path assuming it comes in input RO-Crate
     var stageFilePath = job.WorkingDirectory.BagItPayloadPath();
     //Get stage file name from RO-Crate
@@ -63,7 +61,7 @@ public class WorkflowTriggerService
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(stageFilePath,stageFileName)}";
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(stageFilePath, stageFileName)}";
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -142,5 +140,4 @@ public class WorkflowTriggerService
     var uuid = match.Groups[1].Value;
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
-
 }
