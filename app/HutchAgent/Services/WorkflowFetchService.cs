@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using HutchAgent.Constants;
 using HutchAgent.Data.Entities;
 using ROCrates;
+using ROCrates.Exceptions;
 using ROCrates.Models;
 using File = System.IO.File;
 
@@ -28,7 +29,7 @@ public class WorkflowFetchService
   /// <returns></returns>
   /// <exception cref="Exception"></exception>
   /// <exception cref="InvalidOperationException"></exception>
-  public async Task<ROCrate> FetchWorkflow(WorkflowJob workflowJob)
+  public async Task<ROCrate> FetchWorkflowCrate(WorkflowJob workflowJob)
   {
     var roCrate = _crates.InitialiseCrate(workflowJob.WorkingDirectory.BagItPayloadPath());
     // Get mainEntity from metadata, contains workflow location
@@ -55,6 +56,34 @@ public class WorkflowFetchService
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
 
+    var workflowCrateExtractPath =
+      Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId); 
+    using (var archive =
+           new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(),
+             "workflows.zip"))))
+    {
+      Directory.CreateDirectory(workflowCrateExtractPath);
+      archive.ExtractToDirectory(workflowCrateExtractPath);
+      _logger.LogInformation(
+        $"Unpacked workflow to {Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId)}");
+    }
+    
+    // Validate the Crate
+    try
+    {
+      // Validate that it's a crate at all, by trying to Initialise it
+      _crates.InitialiseCrate(workflowCrateExtractPath);
+    }
+    catch (Exception e) when (e is CrateReadException || e is MetadataException)
+    {
+      _logger.LogError(message:"RO-Crate downloaded is not a valid RO-Crate");
+      // Set ActionStatus to Failed and save updated
+      downloadAction.SetProperty("endTime", DateTime.Now);
+      _crates.UpdateCrateActionStatus(ActionStatus.FailedActionStatus, downloadAction);
+      roCrate.Save(workflowJob.WorkingDirectory.BagItPayloadPath());
+      throw;
+    }
+
     //Set DownloadAction status to Completed
     _crates.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, downloadAction);
 
@@ -63,15 +92,6 @@ public class WorkflowFetchService
     {
       Id = Path.Combine("workflow", workflowId)
     });
-    using (var archive =
-           new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(),
-             "workflows.zip"))))
-    {
-      Directory.CreateDirectory(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId));
-      archive.ExtractToDirectory(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId));
-      _logger.LogInformation(
-        $"Unpacked workflow to {Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId)}");
-    }
 
     var workflowEntity = new Entity(roCrate);
     workflowEntity.SetProperty("@id", Path.Combine("workflow", workflowId));
