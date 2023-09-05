@@ -12,36 +12,45 @@ public class WorkflowFetchingService
 {
   private readonly CrateService _crates;
   private readonly ILogger<WorkflowFetchingService> _logger;
-  private readonly WorkflowJobService _workflowJobService;
 
-  public WorkflowFetchingService(CrateService crates, ILogger<WorkflowFetchingService> logger, WorkflowJobService workflowJobService)
+  public WorkflowFetchingService(
+    CrateService crates,
+    ILogger<WorkflowFetchingService> logger)
   {
     _crates = crates;
     _logger = logger;
-    _workflowJobService = workflowJobService;
   }
-  private async Task<ROCrate> FetchWorkflow(string pathToBagit, WorkflowJob workflowJob)
+
+  /// <summary>
+  /// Fetch workflow specified in RO-Crate mainEntity
+  /// </summary>
+  /// <param name="workflowJob"></param>
+  /// <returns></returns>
+  /// <exception cref="Exception"></exception>
+  /// <exception cref="InvalidOperationException"></exception>
+  public async Task<ROCrate> FetchWorkflow(WorkflowJob workflowJob)
   {
-    var roCrate = _crates.InitialiseCrate(pathToBagit.BagItPayloadPath());
+    var roCrate = _crates.InitialiseCrate(workflowJob.WorkingDirectory.BagItPayloadPath());
     // Get mainEntity from metadata, contains workflow location
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity");
     if (mainEntity is null) throw new Exception("mainEntity is not defined in the root dataset.");
-    
+
     var workflowId = Regex.Match(mainEntity.Id, @"\d+").Value;
     // Compose download url for workflowHub
     var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
 
     var downloadAction = CreateDownloadAction(roCrate, downloadAddress);
-    
+
     // Set DownloadAction status to Active
     _crates.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, downloadAction);
-    
+
     using (var client = new HttpClient())
     {
       var clientStream = await client.GetStreamAsync(downloadAddress) ??
                          throw new InvalidOperationException("Invalid download URI");
-      
-      await using var file = File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflows.zip"));
+
+      await using var file =
+        File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflows.zip"));
       await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
@@ -54,11 +63,14 @@ public class WorkflowFetchingService
     {
       Id = Path.Combine("workflow", workflowId)
     });
-    using (var archive = new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflows.zip"))))
+    using (var archive =
+           new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(),
+             "workflows.zip"))))
     {
       Directory.CreateDirectory(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId));
       archive.ExtractToDirectory(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId));
-      _logger.LogInformation($"Unpacked workflow to {Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId)}");
+      _logger.LogInformation(
+        $"Unpacked workflow to {Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId)}");
     }
 
     var workflowEntity = new Entity(roCrate);
@@ -80,7 +92,7 @@ public class WorkflowFetchingService
     return roCrate;
   }
 
-  public Entity CreateDownloadAction(ROCrate roCrate, string downloadAddress)
+  private static Entity CreateDownloadAction(ROCrate roCrate, string downloadAddress)
   {
     // Create DownloadAction ContextEntity
     var downloadActionId = $"#download-{Guid.NewGuid()}";
