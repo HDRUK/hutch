@@ -15,7 +15,7 @@ public class WorkflowTriggerService
   private const string _bashCmd = "bash";
   private readonly WorkflowJobService _workflowJobService;
   private readonly CrateService _crateService;
-  private readonly WorkflowFetchingService _workflowFetchingService;
+  private readonly WorkflowFetchService _workflowFetchingService;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _queueOptions;
 
@@ -23,7 +23,7 @@ public class WorkflowTriggerService
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     CrateService crateService,
-    WorkflowFetchingService workflowFetchingService,
+    WorkflowFetchService workflowFetchingService,
     IQueueWriter queueWriter,
     JobActionsQueueOptions queueOptions,
     WorkflowJobService workflowJobService)
