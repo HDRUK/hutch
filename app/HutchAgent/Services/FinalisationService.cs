@@ -15,7 +15,6 @@ public class FinalisationService
   private readonly IResultsStoreWriter _storeWriter;
   private readonly WorkflowJobService _jobService;
   private readonly PathOptions _pathOptions;
-  private readonly WorkflowTriggerOptions _triggerOptions;
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
@@ -34,10 +33,9 @@ public class FinalisationService
     _storeWriter = storeWriter;
     _jobService = jobService;
     _pathOptions = pathOptions.Value;
-    _triggerOptions = triggerOptions.Value;
 
     // Find the WfExS cache directory path
-    var configYaml = File.ReadAllText(_triggerOptions.LocalConfigPath);
+    var configYaml = File.ReadAllText(triggerOptions.Value.LocalConfigPath);
     var configYamlStream = new StringReader(configYaml);
     var yamlStream = new YamlStream();
     yamlStream.Load(configYamlStream);
@@ -45,12 +43,24 @@ public class FinalisationService
     _wfexsWorkDir = rootNode["workDir"].ToString();
 
     // get absolute path to workdir from local config path
-    var configYamlDirectory = Path.GetDirectoryName(Path.GetFullPath(_triggerOptions.LocalConfigPath)) ??
+    var configYamlDirectory = Path.GetDirectoryName(Path.GetFullPath(triggerOptions.Value.LocalConfigPath)) ??
                               throw new InvalidOperationException();
     _wfexsWorkDir = Path.GetFullPath(Path.Combine(configYamlDirectory, _wfexsWorkDir), configYamlDirectory);
     _logger.LogInformation($"Found working directory {_wfexsWorkDir}");
   }
 
+  /// <summary>
+  /// <para>Perform post-execution processes on a workflow run.</para>
+  /// These steps are:
+  /// <list type="bullet">
+  /// <item>Update the state with the start and end times, and the exit code</item>
+  /// <item>Merge the results RO-Crate into the input RO-Crate</item>
+  /// <item>Update the metadata of the input RO-Crate with the outputs of the workflow run.</item>
+  /// <item>Re-write the checksums of the BagIt containing the inputs and outputs.</item>
+  /// <item>Upload a zipped BagIt to the results store.</item>
+  /// </list>
+  /// </summary>
+  /// <param name="jobId"></param>
   public async Task Finalise(string jobId)
   {
     await UpdateJob(jobId);
@@ -64,7 +74,7 @@ public class FinalisationService
   /// Merge a result crate from a workflow run back into its input crate.
   /// </summary>
   /// <param name="jobId">The ID of the workflow run that needs merging.</param>
-  public async Task MergeCrate(string jobId)
+  private async Task MergeCrate(string jobId)
   {
     var job = await _jobService.Get(jobId);
 
@@ -86,7 +96,7 @@ public class FinalisationService
   /// Make the checksums for the BagIt containing the job's data.
   /// </summary>
   /// <param name="jobId">The ID of the job needing checksums.</param>
-  public async Task MakeChecksums(string jobId)
+  private async Task MakeChecksums(string jobId)
   {
     var job = await _jobService.Get(jobId);
     await _bagItService.WriteManifestSha512(job.WorkingDirectory);
@@ -97,7 +107,7 @@ public class FinalisationService
   /// Update the metadata of the RO-Crate for the given job ID.
   /// </summary>
   /// <param name="jobId">The ID of the job that needs updating.</param>
-  public async Task UpdateMetadata(string jobId)
+  private async Task UpdateMetadata(string jobId)
   {
     var job = await _jobService.Get(jobId);
 
@@ -126,7 +136,7 @@ public class FinalisationService
   /// </summary>
   /// <param name="jobId"></param>
   /// <exception cref="DirectoryNotFoundException">Could not locate the parent directory of the job's BagIt.</exception>
-  public async Task UploadToStore(string jobId)
+  private async Task UploadToStore(string jobId)
   {
     var job = await _jobService.Get(jobId);
     var bagitDir = new DirectoryInfo(job.WorkingDirectory);
@@ -163,6 +173,11 @@ public class FinalisationService
     zipFile.Delete();
   }
 
+  /// <summary>
+  /// Update a <see cref="Data.Entities.WorkflowJob"/> in the database to include run start and end times,
+  /// and exit code.
+  /// </summary>
+  /// <param name="jobId">The ID of the job entity to update.</param>
   private async Task UpdateJob(string jobId)
   {
     var job = await _jobService.Get(jobId);
