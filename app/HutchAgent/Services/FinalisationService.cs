@@ -140,10 +140,9 @@ public class FinalisationService
   {
     var job = await _jobService.Get(jobId);
     var bagitDir = new DirectoryInfo(job.WorkingDirectory);
-    var bagitParent = bagitDir.Parent ??
-                      throw new DirectoryNotFoundException($"Cannot find parent directory of {bagitDir.FullName}");
+    var bagitParent = Path.Combine(_pathOptions.WorkingDirectoryBase, _pathOptions.Jobs);
     var pathToZip = Path.Combine(
-      bagitParent.FullName,
+      bagitParent,
       Path.TrimEndingDirectorySeparator(bagitDir.FullName) + ".zip"
     );
 
