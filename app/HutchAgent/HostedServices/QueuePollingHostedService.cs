@@ -36,6 +36,7 @@ public class QueuePollingHostedService : BackgroundService
       using (var scope = _serviceProvider.CreateScope())
       {
         var queue = _serviceProvider.GetRequiredService<IQueueReader>();
+        var workflowTriggerService = scope.ServiceProvider.GetService<WorkflowTriggerService>() ?? throw new InvalidOperationException();
 
         // If a thread is available, per Max Parallelism, then
         // Pop a queue message, and Execute its action on the free thread
@@ -50,10 +51,11 @@ public class QueuePollingHostedService : BackgroundService
 
           // Optionally, prepare the job's crate and state record before executing?
 
-          switch(message.ActionType)
+          switch (message.ActionType)
           {
             case JobActionTypes.Execute:
-              _runningActions.Add(Task.Run(async () => _logger.LogInformation("Executing..."), stoppingToken));
+              _runningActions.Add(Task.Run(async () => await workflowTriggerService.TriggerWfexs(message.JobId),
+                stoppingToken));
               break;
             case JobActionTypes.Finalize:
               _runningActions.Add(Task.Run(async () => _logger.LogInformation("Finalizing..."), stoppingToken));
