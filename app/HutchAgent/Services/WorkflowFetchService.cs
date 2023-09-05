@@ -57,7 +57,7 @@ public class WorkflowFetchService
     }
 
     var workflowCrateExtractPath =
-      Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId); 
+      Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId);
     using (var archive =
            new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(),
              "workflows.zip"))))
@@ -67,7 +67,7 @@ public class WorkflowFetchService
       _logger.LogInformation(
         $"Unpacked workflow to {Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId)}");
     }
-    
+
     // Validate the Crate
     try
     {
@@ -76,7 +76,7 @@ public class WorkflowFetchService
     }
     catch (Exception e) when (e is CrateReadException || e is MetadataException)
     {
-      _logger.LogError(message:"RO-Crate downloaded is not a valid RO-Crate");
+      _logger.LogError(message: "RO-Crate downloaded is not a valid RO-Crate");
       // Set ActionStatus to Failed and save updated
       downloadAction.SetProperty("endTime", DateTime.Now);
       _crates.UpdateCrateActionStatus(ActionStatus.FailedActionStatus, downloadAction);
