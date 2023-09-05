@@ -46,7 +46,7 @@ public class WorkflowTriggerService
   public async Task TriggerWfexs(string messageJobId)
   {
     var job = await _workflowJobService.Get(messageJobId);
-    var crate = await _workflowFetchingService.FetchWorkflow(job);
+    var crate = await _workflowFetchingService.FetchWorkflowCrate(job);
 
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(crate);

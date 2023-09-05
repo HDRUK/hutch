@@ -35,7 +35,7 @@ builder.Services
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
 
   .AddScoped<WorkflowTriggerService>()
-  .AddTransient<WorkflowFetchingService>()
+  .AddTransient<WorkflowFetchService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WorkflowJobService>()
   .AddHostedService<QueuePollingHostedService>()
