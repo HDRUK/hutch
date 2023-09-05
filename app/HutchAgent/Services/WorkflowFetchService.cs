@@ -8,14 +8,14 @@ using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
-public class WorkflowFetchingService
+public class WorkflowFetchService
 {
   private readonly CrateService _crates;
-  private readonly ILogger<WorkflowFetchingService> _logger;
+  private readonly ILogger<WorkflowFetchService> _logger;
 
-  public WorkflowFetchingService(
+  public WorkflowFetchService(
     CrateService crates,
-    ILogger<WorkflowFetchingService> logger)
+    ILogger<WorkflowFetchService> logger)
   {
     _crates = crates;
     _logger = logger;
