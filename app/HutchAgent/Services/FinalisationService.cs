@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
+using HutchAgent.Constants;
 using Microsoft.Extensions.Options;
 using YamlDotNet.RepresentationModel;
 
@@ -15,6 +17,7 @@ public class FinalisationService
   private readonly PathOptions _pathOptions;
   private readonly WorkflowTriggerOptions _triggerOptions;
   private readonly string _wfexsWorkDir;
+  private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
   public FinalisationService(
     BagItService bagItService,
@@ -82,12 +85,64 @@ public class FinalisationService
   }
 
   /// <summary>
-  /// 
+  /// Update the metadata of the RO-Crate for the given job ID.
   /// </summary>
-  /// <param name="jobId"></param>
+  /// <param name="jobId">The ID of the job that needs updating.</param>
   public async Task UpdateMetadata(string jobId)
   {
-    throw new NotImplementedException();
+    var job = await _jobService.Get(jobId);
+
+    var metadataPath = job.WorkingDirectory.BagItPayloadPath();
+
+    // find execution-state.yml for job
+    var pathToState = Path.Combine(_wfexsWorkDir, job.ExecutorRunId, _statePath);
+    if (!File.Exists(pathToState))
+    {
+      _logger.LogWarning("Could not find execution status file at '{}'", pathToState);
+      // Todo: re-queue the because the job hasn't finished yet??
+      return;
+    }
+
+    var stateYaml = await File.ReadAllTextAsync(pathToState);
+    var configYamlStream = new StringReader(stateYaml);
+    var yamlStream = new YamlStream();
+    yamlStream.Load(configYamlStream);
+    var rootNode = yamlStream.Documents[0].RootNode[0];
+    // get the exit code
+    var exitCode = int.Parse(rootNode["exitVal"].ToString());
+    job.ExitCode = exitCode;
+
+    // get start and end times
+    DateTime.TryParse(rootNode["started"].ToString(),
+      CultureInfo.InvariantCulture,
+      DateTimeStyles.AdjustToUniversal,
+      out var startTime);
+    job.ExecutionStartTime = startTime;
+    DateTime.TryParse(rootNode["ended"].ToString(),
+      CultureInfo.InvariantCulture,
+      DateTimeStyles.AdjustToUniversal,
+      out var endTime);
+    job.EndTime = endTime;
+
+    // update job in DB
+    // await _jobService.Set(job);
+
+    /*
+     Update the job metadata to include the results of the workflow run and update the CreateAction
+     based on the on the exit code from the workflow runner.
+    */
+    try
+    {
+      _crateService.UpdateMetadata(metadataPath, job);
+      var crate = _crateService.InitialiseCrate(metadataPath);
+      var executeAction = _crateService.GetExecuteEntity(crate);
+      _crateService.UpdateCrateActionStatus(
+        exitCode == 0 ? ActionStatus.CompletedActionStatus : ActionStatus.FailedActionStatus, executeAction);
+    }
+    catch (Exception e) when (e is FileNotFoundException or InvalidDataException)
+    {
+      _logger.LogError("Unable to update the metadata for job: {}", job.Id);
+    }
   }
 
   /// <summary>
