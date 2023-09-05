@@ -12,7 +12,7 @@ on:
 
 env:
   CI_build-config: release
-  CI_dotnet-version: 6.0.x
+  CI_dotnet-version: 7.0.x
   CI_node-version: "16"
   CI_publish-dir: publish
 
@@ -57,7 +57,7 @@ jobs:
         with:
           dotnet-version: ${{ env.CI_dotnet-version }}
       - name: Bump Version
-        run: >- 
+        run: >-
           pnpm dlx dotnet-bump
           ${{ needs.get-version.outputs.VERSION_TAG }}
           --no-commit 
