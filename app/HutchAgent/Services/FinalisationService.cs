@@ -51,10 +51,23 @@ public class FinalisationService
   /// <summary>
   /// Merge a result crate from a workflow run back into its input crate.
   /// </summary>
-  /// <param name="jobId"></param>
+  /// <param name="jobId">The ID of the workflow run that needs merging.</param>
   public async Task MergeCrate(string jobId)
   {
-    throw new NotImplementedException();
+    var job = await _jobService.Get(jobId);
+
+    // Path the to the job outputs
+    var executionCratePath = Path.Combine(
+      _wfexsWorkDir,
+      job.ExecutorRunId,
+      "outputs",
+      "execution.crate.zip");
+
+    var mergeIntoPath = Path.Combine(
+      job.WorkingDirectory.BagItPayloadPath(),
+      "outputs");
+
+    _crateService.MergeCrates(executionCratePath, mergeIntoPath);
   }
 
   /// <summary>
