@@ -39,7 +39,7 @@ builder.Services
   .AddSingleton<BagItService>()
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
   .AddTransient<IQueueReader, RabbitQueueReader>()
-  .AddSingleton<FinalisationService>()
+  .AddScoped<FinalisationService>()
   .AddFeatureManagement();
 
 #endregion
