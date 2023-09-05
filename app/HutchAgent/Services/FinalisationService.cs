@@ -51,6 +51,15 @@ public class FinalisationService
     _logger.LogInformation($"Found working directory {_wfexsWorkDir}");
   }
 
+  public async Task Finalise(string jobId)
+  {
+    await UpdateJob(jobId);
+    await MergeCrate(jobId);
+    await UpdateMetadata(jobId);
+    await MakeChecksums(jobId);
+    await UploadToStore(jobId);
+  }
+
   /// <summary>
   /// Merge a result crate from a workflow run back into its input crate.
   /// </summary>
