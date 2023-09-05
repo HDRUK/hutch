@@ -1,265 +1,69 @@
 using System.Diagnostics;
-using System.IO.Compression;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
 using HutchAgent.Constants;
-using HutchAgent.Data.Entities;
+using HutchAgent.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.FeatureManagement;
-using ROCrates;
-using ROCrates.Exceptions;
-using ROCrates.Models;
-using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
-[Obsolete]
+
 public class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
-  private readonly ROCrate _roCrate = new();
-  private readonly WorkflowJobService _WorkflowJobService;
-  private readonly IFeatureManager _featureManager;
+  private readonly WorkflowJobService _workflowJobService;
   private readonly CrateService _crateService;
-
+  private readonly WorkflowFetchingService _workflowFetchingService;
+  private readonly IQueueWriter _queueWriter;
+  private readonly JobActionsQueueOptions _queueOptions;
+  
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
-    IServiceProvider serviceProvider,
-    IFeatureManager featureManager,
-    CrateService crateService)
+    CrateService crateService, 
+    WorkflowFetchingService workflowFetchingService, 
+    IQueueWriter queueWriter, 
+    JobActionsQueueOptions queueOptions, 
+    WorkflowJobService workflowJobService)
   {
     _logger = logger;
-    _featureManager = featureManager;
     _crateService = crateService;
+    _workflowFetchingService = workflowFetchingService;
+    _queueWriter = queueWriter;
+    _queueOptions = queueOptions;
+    _workflowJobService = workflowJobService;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
-    _WorkflowJobService = serviceProvider.GetService<WorkflowJobService>() ?? throw new InvalidOperationException();
-  }
-
-  /// <summary>
-  /// Parse ROCrate metadata using the ROCrates library
-  /// </summary>
-  /// <param name="jsonFile"> JSON Metadata file</param>
-  /// <returns> ROCrate object </returns>
-  private ROCrate ParseCrate(string jsonFile)
-  {
-    try
-    {
-      // get metadata from manifest
-      var metadataProperties = JsonNode.Parse(jsonFile)?.AsObject();
-      if (metadataProperties is null) throw new Exception("Unable to get metadata properties.");
-      metadataProperties.TryGetPropertyValue("@graph", out var graph);
-      if (graph is null) throw new Exception("Unable to get @graph from metadata.");
-      // get RootDataset Properties and add them to an ROCrates object
-      var rootDatasetProperties = graph.AsArray().First(g => g?["@id"]?.ToString() == "./");
-      if (rootDatasetProperties is null) throw new Exception("Unable to get root dataset from metadata.");
-      var datasetRoot = RootDataset.Deserialize(rootDatasetProperties.ToString(), _roCrate);
-      _roCrate.Add(datasetRoot ?? throw new InvalidOperationException());
-
-      return _roCrate;
-    }
-    catch
-    {
-      throw new Exception("Metadata JSON could not be parsed");
-    }
-  }
-
-  /// <summary>
-  /// Unpack an ROCrate
-  /// </summary>
-  /// <param name="stream"></param>
-  /// <exception cref="FileNotFoundException"></exception>
-  private async Task<WorkflowJob> UnpackCrate(Stream stream)
-  {
-    var WorkflowJob = new WorkflowJob();
-    ExtractCrate(WorkflowJob, stream);
-    var fileJson = ValidateCrate(WorkflowJob.WorkingDirectory);
-    // Parse Crate metadata
-    var crate = ParseCrate(fileJson);
-    // Get mainEntity from metadata
-    var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-    if (mainEntity is null) throw new Exception("mainEntity is not defined in the root dataset.");
-    var mainEntityPath = Path.Combine(WorkflowJob.WorkingDirectory, mainEntity.Id);
-    // Check main entity is present and a stage file
-    if (File.Exists(mainEntityPath) && (mainEntityPath.EndsWith(".stage") || mainEntityPath.EndsWith(".yaml") ||
-                                        mainEntityPath.EndsWith(".yml")))
-    {
-      _logger.LogInformation($"main Entity is a Wfexs stage file and can be found at {mainEntityPath}");
-      //_workflowOptions.StageFilePath = mainEntityPath;
-      // Create a copy of the wfexs stage file
-      var copyFilePath = Path.Combine(WorkflowJob.WorkingDirectory, "copy_" + mainEntity.Id);
-      try
-      {
-        File.Copy(mainEntityPath, copyFilePath, true);
-      }
-      // Catch exception if the file was already copied.
-      catch (IOException copyError)
-      {
-        _logger.LogError(copyError.Message);
-      }
-
-      // Rewrite stage file parameter inputs to an absolute path
-      // based on "crate" protocol
-      using (var stageFileWriter = new StreamWriter(mainEntityPath))
-      using (var stageFileReader = new StreamReader(copyFilePath))
-      {
-        string? line;
-        while ((line = stageFileReader.ReadLine()) != null)
-        {
-          if (line.Trim().StartsWith("- crate://"))
-          {
-            _logger.LogInformation($"Found line matching crate protocol {line}");
-            stageFileWriter.WriteLine(RewritePath(WorkflowJob, line));
-          }
-          else
-          {
-            stageFileWriter.WriteLine(line);
-          }
-        }
-      }
-    }
-    else
-    {
-      throw new FileNotFoundException($"No file named {mainEntity.Id} found in the working directory");
-    }
-
-    // Tell the queue were the crate was extracted
-    await _WorkflowJobService.Create(WorkflowJob.Id.ToString(), WorkflowJob.WorkingDirectory);
-
-    return WorkflowJob;
-  }
-
-  private async Task<(WorkflowJob, ROCrate)> FetchCrate(Stream stream, WorkflowJob WorkflowJob)
-  {
-    ExtractCrate(WorkflowJob, stream);
-    _logger.LogInformation($"Crate extracted at {WorkflowJob.WorkingDirectory}");
-    var cratePath = Path.Combine(WorkflowJob.WorkingDirectory, "data");
-    // Initialise Crate
-    var crate = new ROCrate();
-    try
-    {
-      crate.Initialise(cratePath);
-    }
-    catch (CrateReadException e)
-    {
-      _logger.LogError(exception: e, "RO-Crate cannot be read, or is invalid.");
-      throw;
-    }
-    catch (MetadataException e)
-    {
-      _logger.LogError(exception: e, "RO-Crate Metadata cannot be read, or is invalid.");
-      throw;
-    }
-
-    // Get mainEntity from metadata
-    // Contains workflow location
-    var mainEntity = crate.RootDataset.GetProperty<Part>("mainEntity");
-    if (mainEntity is null) throw new Exception("mainEntity is not defined in the root dataset.");
-    var workflowId = Regex.Match(mainEntity.Id, @"\d+").Value;
-    // Compose download url for workflowHub
-    var downloadAddress = Regex.Replace(mainEntity.Id, @"([0-9]+)(\?version=[0-9]+)?$", @"$1/ro_crate$2");
-    DateTime downloadStartTime = DateTime.Now;
-
-    // Create DownloadAction ContextEntity
-    var downloadActionId = $"#download-{Guid.NewGuid()}";
-    var downloadAction = new ContextEntity(crate, downloadActionId);
-    crate.Add(downloadAction);
-    downloadAction.SetProperty("@type", "DownloadAction");
-    downloadAction.SetProperty("name", "Downloaded workflow RO-Crate via proxy");
-    downloadAction.SetProperty("startTime", downloadStartTime);
-
-    downloadAction.SetProperty("object", new Part()
-    {
-      Id = downloadAddress
-    });
-
-    downloadAction.SetProperty("agent", new Part()
-    {
-      Id = "http://proxy.example.com/"
-    });
-    // Set DownloadAction status to Active
-    _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, downloadAction);
-    using (var client = new HttpClient())
-    {
-      var clientStream = await client.GetStreamAsync(downloadAddress);
-      await using var file = File.OpenWrite(Path.Combine(cratePath, "workflows.zip"));
-      await clientStream.CopyToAsync(file);
-      _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
-    }
-
-    //Set DownloadAction status to Completed
-    _crateService.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, downloadAction);
-
-    downloadAction.SetProperty("endTime", DateTime.Now);
-    downloadAction.SetProperty("result", new Part()
-    {
-      Id = Path.Combine("workflow", workflowId)
-    });
-    using (var archive = new ZipArchive(File.OpenRead(Path.Combine(cratePath, "workflows.zip"))))
-    {
-      Directory.CreateDirectory(Path.Combine(cratePath, "workflow", workflowId));
-      archive.ExtractToDirectory(Path.Combine(cratePath, "workflow", workflowId));
-      _logger.LogInformation($"Unpacked workflow to {Path.Combine(cratePath, "workflow", workflowId)}");
-    }
-
-    var workflowEntity = new Entity(crate);
-    workflowEntity.SetProperty("@id", Path.Combine("workflow", workflowId));
-    var property = crate.Entities[mainEntity.Id];
-    workflowEntity.SetProperty("sameAs", new Part()
-    {
-      Id = property.Id
-    });
-    workflowEntity.SetProperty("@type", property.Properties["@type"]);
-    workflowEntity.SetProperty("name", property.Properties["name"]);
-    workflowEntity.SetProperty("conformsTo", property.Properties["conformsTo"]);
-    workflowEntity.SetProperty("distribution", property.Properties["distribution"]);
-    crate.Add(workflowEntity);
-    crate.RootDataset.AppendTo("mentions", downloadAction);
-    crate.Save(cratePath);
-    _logger.LogInformation($"Saved updated RO-Crate to {cratePath}.");
-
-    await _WorkflowJobService.Create(WorkflowJob.Id, WorkflowJob.WorkingDirectory);
-
-    return (WorkflowJob, crate);
+    
   }
 
   /// <summary>
   /// Install and run WfExS given 
   /// </summary>
-  /// <param name="stream"></param>
+  /// <param name="messageJobId"></param>
   /// <exception cref="Exception"></exception>
-  public async Task TriggerWfexs(Stream stream)
+  public async Task TriggerWfexs(string messageJobId)
   {
-    WorkflowJob WorkflowJob;
-    ROCrate crate = new ROCrate();
-    var uuid = Guid.NewGuid().ToString();
-    // Unpack the crate and get the queued message to track the WfExS job.
-    if (await _featureManager.IsEnabledAsync(FeatureFlags.UseFiveSafesCrate))
-    {
-      WorkflowJob = new WorkflowJob();
-      (WorkflowJob, crate) = await FetchCrate(stream, WorkflowJob);
-    }
-    else
-    {
-      WorkflowJob = await UnpackCrate(stream);
-    }
-
+    var job = await _workflowJobService.Get(messageJobId);
+    var crate = await _workflowFetchingService.FetchWorkflow(job);
+    
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(crate);
     executeAction.SetProperty("startTime", DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
+    
+    // Temporarily - Generate stage file path assuming it comes in input RO-Crate
+    var stageFilePath = job.WorkingDirectory.BagItPayloadPath();
     //Get stage file name from RO-Crate
     //Will not be needed once we can generate the stage file
     var stageFileName = _crateService.GetStageFileName(crate);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine("_workflowOptions.StageFilePath", uuid, "data", stageFileName)}";
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(stageFilePath,stageFileName)}";
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -274,7 +78,7 @@ public class WorkflowTriggerService
     var process = Process.Start(processStartInfo);
     if (process == null)
       throw new Exception("Could not start process");
-    _logger.LogInformation($"Process started for job: {WorkflowJob.Id}");
+    _logger.LogInformation($"Process started for job: {job.Id}");
 
     await process.StandardInput.WriteLineAsync(_activateVenv);
     await process.StandardInput.WriteLineAsync(command);
@@ -283,22 +87,27 @@ public class WorkflowTriggerService
 
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
-    while (!process.HasExited && string.IsNullOrEmpty(WorkflowJob.ExecutorRunId))
+    while (!process.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
     {
       var stdOutLine = await reader.ReadLineAsync();
       if (stdOutLine is null) continue;
       var runName = _findRunName(stdOutLine);
       if (runName is null) continue;
-      WorkflowJob.ExecutorRunId = runName;
+      job.ExecutorRunId = runName;
     }
 
     // close our connection to the process
     process.Close();
 
     // Update the job in the queue.
-    await _WorkflowJobService.Set(new()); //  WorkflowJob);
+    _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
+    {
+      JobId = job.Id,
+      ActionType = JobActionTypes.Finalize
+    });
   }
 
+  [Obsolete]
   private string RewritePath(WorkflowJob WorkflowJob, string line)
   {
     var (linePrefix, relativePath) = line.Split("crate://") switch
@@ -334,26 +143,4 @@ public class WorkflowTriggerService
     return Guid.TryParse(uuid, out var validUuid) ? validUuid.ToString() : null;
   }
 
-  [Obsolete]
-  public string ValidateCrate(string cratePath)
-  {
-    // Validate it is an ROCrate
-    var file = Directory.GetFiles(cratePath, searchPattern: "ro-crate-metadata.json");
-    if (file.Length == 0)
-      throw new FileNotFoundException($"No metadata JSON found in directory {cratePath}");
-    var fileJson = File.ReadAllText(file[0]);
-    return fileJson;
-  }
-
-  [Obsolete]
-  public void ExtractCrate(WorkflowJob WorkflowJob, Stream stream)
-  {
-    using var archive = new ZipArchive(stream);
-    {
-      // Extract to Directory
-      Directory.CreateDirectory(WorkflowJob.WorkingDirectory);
-      archive.ExtractToDirectory(WorkflowJob.WorkingDirectory, true);
-    }
-    _logger.LogInformation($"Crate extracted at {WorkflowJob.WorkingDirectory}");
-  }
 }
