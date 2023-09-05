@@ -94,39 +94,6 @@ public class FinalisationService
 
     var metadataPath = job.WorkingDirectory.BagItPayloadPath();
 
-    // find execution-state.yml for job
-    var pathToState = Path.Combine(_wfexsWorkDir, job.ExecutorRunId, _statePath);
-    if (!File.Exists(pathToState))
-    {
-      _logger.LogWarning("Could not find execution status file at '{}'", pathToState);
-      // Todo: re-queue the because the job hasn't finished yet??
-      return;
-    }
-
-    var stateYaml = await File.ReadAllTextAsync(pathToState);
-    var configYamlStream = new StringReader(stateYaml);
-    var yamlStream = new YamlStream();
-    yamlStream.Load(configYamlStream);
-    var rootNode = yamlStream.Documents[0].RootNode[0];
-    // get the exit code
-    var exitCode = int.Parse(rootNode["exitVal"].ToString());
-    job.ExitCode = exitCode;
-
-    // get start and end times
-    DateTime.TryParse(rootNode["started"].ToString(),
-      CultureInfo.InvariantCulture,
-      DateTimeStyles.AdjustToUniversal,
-      out var startTime);
-    job.ExecutionStartTime = startTime;
-    DateTime.TryParse(rootNode["ended"].ToString(),
-      CultureInfo.InvariantCulture,
-      DateTimeStyles.AdjustToUniversal,
-      out var endTime);
-    job.EndTime = endTime;
-
-    // update job in DB
-    // await _jobService.Set(job);
-
     /*
      Update the job metadata to include the results of the workflow run and update the CreateAction
      based on the on the exit code from the workflow runner.
@@ -137,7 +104,7 @@ public class FinalisationService
       var crate = _crateService.InitialiseCrate(metadataPath);
       var executeAction = _crateService.GetExecuteEntity(crate);
       _crateService.UpdateCrateActionStatus(
-        exitCode == 0 ? ActionStatus.CompletedActionStatus : ActionStatus.FailedActionStatus, executeAction);
+        job.ExitCode == 0 ? ActionStatus.CompletedActionStatus : ActionStatus.FailedActionStatus, executeAction);
     }
     catch (Exception e) when (e is FileNotFoundException or InvalidDataException)
     {
@@ -185,5 +152,43 @@ public class FinalisationService
 
     // Delete the zipped BagIt to save disk space
     zipFile.Delete();
+  }
+
+  private async Task UpdateJob(string jobId)
+  {
+    var job = await _jobService.Get(jobId);
+
+    // find execution-state.yml for job
+    var pathToState = Path.Combine(_wfexsWorkDir, job.ExecutorRunId, _statePath);
+    if (!File.Exists(pathToState))
+    {
+      _logger.LogWarning("Could not find execution status file at '{}'", pathToState);
+      // Todo: re-queue the because the job hasn't finished yet??
+      return;
+    }
+
+    var stateYaml = await File.ReadAllTextAsync(pathToState);
+    var configYamlStream = new StringReader(stateYaml);
+    var yamlStream = new YamlStream();
+    yamlStream.Load(configYamlStream);
+    var rootNode = yamlStream.Documents[0].RootNode[0];
+    // get the exit code
+    var exitCode = int.Parse(rootNode["exitVal"].ToString());
+    job.ExitCode = exitCode;
+
+    // get start and end times
+    DateTime.TryParse(rootNode["started"].ToString(),
+      CultureInfo.InvariantCulture,
+      DateTimeStyles.AdjustToUniversal,
+      out var startTime);
+    job.ExecutionStartTime = startTime;
+    DateTime.TryParse(rootNode["ended"].ToString(),
+      CultureInfo.InvariantCulture,
+      DateTimeStyles.AdjustToUniversal,
+      out var endTime);
+    job.EndTime = endTime;
+
+    // update job in DB
+    await _jobService.Set(job);
   }
 }
