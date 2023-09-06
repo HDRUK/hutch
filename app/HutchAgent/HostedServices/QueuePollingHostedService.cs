@@ -36,7 +36,7 @@ public class QueuePollingHostedService : BackgroundService
       using (var scope = _serviceProvider.CreateScope())
       {
         var queue = _serviceProvider.GetRequiredService<IQueueReader>();
-        var executeActionHandler = scope.ServiceProvider.GetService<ExecuteActionHandler>() ?? throw new InvalidOperationException();
+        var executeActionHandler = scope.ServiceProvider.GetRequiredService<ExecuteActionHandler>();
 
         // If a thread is available, per Max Parallelism, then
         // Pop a queue message, and Execute its action on the free thread
