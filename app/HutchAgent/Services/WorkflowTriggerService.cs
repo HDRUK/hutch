@@ -33,7 +33,7 @@ public class WorkflowTriggerService
   /// <param name="job"></param>
   /// <param name="roCrate"></param>
   /// <exception cref="Exception"></exception>
-  public async Task TriggerWfexs(Data.Entities.WorkflowJob job,ROCrate roCrate)
+  public async Task TriggerWfexs(WorkflowJob job,ROCrate roCrate)
   {
 
     //Get execute action and set status to active
