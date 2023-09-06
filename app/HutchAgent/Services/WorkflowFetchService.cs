@@ -48,15 +48,24 @@ public class WorkflowFetchService
 
     using (var client = new HttpClient())
     {
-      var clientStream = await client.GetStreamAsync(downloadAddress) ??
-                         throw new InvalidOperationException("Invalid download URI");
-
-      await using var file =
-        File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(),_workflowZip));
-      await clientStream.CopyToAsync(file);
-      _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
+      try
+      {
+        var clientStream = await client.GetStreamAsync(downloadAddress);
+        await using var file =
+          File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), _workflowZip));
+        await clientStream.CopyToAsync(file);
+      }
+      catch (Exception e)
+      {
+        _logger.LogError(exception: e, "Could not download workflow for given address.");
+        // Set ActionStatus to failed and save updated
+        downloadAction.SetProperty("endTime", DateTime.Now);
+        _crates.UpdateCrateActionStatus(ActionStatus.FailedActionStatus, downloadAction);
+        roCrate.Save(workflowJob.WorkingDirectory.BagItPayloadPath());
+        throw;
+      }
     }
-
+    _logger.LogInformation("Successfully downloaded workflow.");
     var workflowCrateExtractPath =
       Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId);
     using (var archive =
