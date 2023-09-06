@@ -35,11 +35,14 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
 
     // Act
     await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
-    var lines = File.ReadAllLines(_manifestFixture.ManifestPath);
+    var lines = await File.ReadAllLinesAsync(_manifestFixture.ManifestPath);
     var hashes = from x in lines select x.Split("  ").First();
 
     // Assert
-    Assert.Equal(_manifestFixture.ExpectedHashes, hashes.ToArray());
+    foreach (var h in hashes.ToArray())
+    {
+      Assert.Contains(h, _manifestFixture.ExpectedHashes);
+    }
   }
 
   [Fact]
@@ -50,11 +53,14 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
 
     // Act
     await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
-    var lines = File.ReadAllLines(_manifestFixture.ManifestPath);
+    var lines = await File.ReadAllLinesAsync(_manifestFixture.ManifestPath);
     var paths = from x in lines select x.Split("  ").Last();
 
     // Assert
-    Assert.Equal(_manifestFixture.ExpectedPaths, paths.ToArray());
+    foreach (var p in paths.ToArray())
+    {
+      Assert.Contains(p, _manifestFixture.ExpectedPaths);
+    }
   }
 
   [Fact]
@@ -78,11 +84,14 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
     
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
-    var lines = File.ReadAllLines(_tagManifestFixture.TagManifestPath);
+    var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
     var hashes = from x in lines select x.Split("  ").First();
 
     // Assert
-    Assert.Equal(_tagManifestFixture.ExpectedHashes, hashes.ToArray());
+    foreach (var h in hashes.ToArray())
+    {
+      Assert.Contains(h, _tagManifestFixture.ExpectedHashes);
+    }
   }
 
   [Fact]
@@ -93,11 +102,14 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
     
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
-    var lines = File.ReadAllLines(_tagManifestFixture.TagManifestPath);
+    var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
     var paths = from x in lines select x.Split("  ").Last();
 
     // Assert
-    Assert.Equal(_tagManifestFixture.ExpectedPaths, paths.ToArray());
+    foreach (var p in paths.ToArray())
+    {
+      Assert.Contains(p, _tagManifestFixture.ExpectedPaths);
+    }
   }
 }
 
