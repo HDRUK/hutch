@@ -34,11 +34,12 @@ builder.Services
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
 
-  .AddScoped<WorkflowTriggerService>()
+  .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WorkflowJobService>()
   .AddHostedService<QueuePollingHostedService>()
+  .AddScoped<ExecuteActionHandler>()
 
   .AddTransient<CrateService>()
   .AddSingleton<BagItService>()

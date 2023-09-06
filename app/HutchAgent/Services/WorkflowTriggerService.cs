@@ -4,6 +4,7 @@ using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using Microsoft.Extensions.Options;
+using ROCrates;
 
 namespace HutchAgent.Services;
 
@@ -13,43 +14,30 @@ public class WorkflowTriggerService
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
-  private readonly WorkflowJobService _workflowJobService;
   private readonly CrateService _crateService;
-  private readonly WorkflowFetchService _workflowFetchingService;
-  private readonly IQueueWriter _queueWriter;
-  private readonly JobActionsQueueOptions _queueOptions;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
-    CrateService crateService,
-    WorkflowFetchService workflowFetchingService,
-    IQueueWriter queueWriter,
-    JobActionsQueueOptions queueOptions,
-    WorkflowJobService workflowJobService)
+    CrateService crateService)
   {
     _logger = logger;
     _crateService = crateService;
-    _workflowFetchingService = workflowFetchingService;
-    _queueWriter = queueWriter;
-    _queueOptions = queueOptions;
-    _workflowJobService = workflowJobService;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
   }
 
   /// <summary>
-  /// Install and run WfExS given a job Id
+  /// Execute Wfexs given a job Id and input crate
   /// </summary>
-  /// <param name="messageJobId">Job Id to execute</param>
+  /// <param name="job"></param>
+  /// <param name="roCrate"></param>
   /// <exception cref="Exception"></exception>
-  public async Task TriggerWfexs(string messageJobId)
+  public async Task TriggerWfexs(Data.Entities.WorkflowJob job,ROCrate roCrate)
   {
-    var job = await _workflowJobService.Get(messageJobId);
-    var crate = await _workflowFetchingService.FetchWorkflowCrate(job);
 
     //Get execute action and set status to active
-    var executeAction = _crateService.GetExecuteEntity(crate);
+    var executeAction = _crateService.GetExecuteEntity(roCrate);
     executeAction.SetProperty("startTime", DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
 
@@ -57,7 +45,7 @@ public class WorkflowTriggerService
     var stageFilePath = job.WorkingDirectory.BagItPayloadPath();
     //Get stage file name from RO-Crate
     //Will not be needed once we can generate the stage file
-    var stageFileName = _crateService.GetStageFileName(crate);
+    var stageFileName = _crateService.GetStageFileName(roCrate);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
@@ -96,17 +84,10 @@ public class WorkflowTriggerService
 
     // close our connection to the process
     process.Close();
-
-    // Update the job in the queue.
-    _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
-    {
-      JobId = job.Id,
-      ActionType = JobActionTypes.Finalize
-    });
   }
 
   [Obsolete]
-  private string RewritePath(WorkflowJob WorkflowJob, string line)
+  private string RewritePath(WorkflowJob workflowJob, string line)
   {
     var (linePrefix, relativePath) = line.Split("crate://") switch
     {
@@ -115,7 +96,7 @@ public class WorkflowTriggerService
     };
     if (relativePath is null) return line;
 
-    var absolutePath = Path.Combine(Path.GetFullPath(WorkflowJob.WorkingDirectory), relativePath);
+    var absolutePath = Path.Combine(Path.GetFullPath(workflowJob.WorkingDirectory), relativePath);
     var newLine = linePrefix + "file://" + absolutePath;
 
     _logger.LogInformation($"Writing absolute input path {newLine}");
