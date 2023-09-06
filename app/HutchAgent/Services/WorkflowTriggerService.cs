@@ -28,7 +28,7 @@ public class WorkflowTriggerService
   }
 
   /// <summary>
-  /// Execute Wfexs given a job Id and input crate
+  /// Execute workflow given a job Id and input crate
   /// </summary>
   /// <param name="job"></param>
   /// <param name="roCrate"></param>
