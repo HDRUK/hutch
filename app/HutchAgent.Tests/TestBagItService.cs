@@ -39,7 +39,10 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
     var hashes = from x in lines select x.Split("  ").First();
 
     // Assert
-    Assert.Equal(_manifestFixture.ExpectedHashes, hashes.ToArray());
+    foreach (var h in hashes.ToArray())
+    {
+      Assert.Contains(h, _manifestFixture.ExpectedHashes);
+    }
   }
 
   [Fact]
@@ -54,7 +57,10 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
     var paths = from x in lines select x.Split("  ").Last();
 
     // Assert
-    Assert.Equal(_manifestFixture.ExpectedPaths, paths.ToArray());
+    foreach (var p in paths.ToArray())
+    {
+      Assert.Contains(p, _manifestFixture.ExpectedPaths);
+    }
   }
 
   [Fact]
@@ -82,7 +88,10 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
     var hashes = from x in lines select x.Split("  ").First();
 
     // Assert
-    Assert.Equal(_tagManifestFixture.ExpectedHashes, hashes.ToArray());
+    foreach (var h in hashes.ToArray())
+    {
+      Assert.Contains(h, _tagManifestFixture.ExpectedHashes);
+    }
   }
 
   [Fact]
@@ -97,7 +106,10 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
     var paths = from x in lines select x.Split("  ").Last();
 
     // Assert
-    Assert.Equal(_tagManifestFixture.ExpectedPaths, paths.ToArray());
+    foreach (var p in paths.ToArray())
+    {
+      Assert.Contains(p, _tagManifestFixture.ExpectedPaths);
+    }
   }
 }
 

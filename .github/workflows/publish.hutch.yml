@@ -12,7 +12,7 @@ on:
 
 env:
   CI_build-config: ${{ github.event.inputs.buildConfig || 'release' }}
-  CI_dotnet-version: 6.0.x
+  CI_dotnet-version: 7.0.x
   CI_node-version: "16"
   CI_publish-dir: publish
 
@@ -25,11 +25,11 @@ jobs:
     outputs:
       timestamp: ${{ steps.makestamp.outputs.time }}
     steps:
-    - name: Make Timestamp
-      id: makestamp
-      uses: nanzm/get-time-action@v1.1
-      with:
-        format: "YYYYMMDDHHmmss"
+      - name: Make Timestamp
+        id: makestamp
+        uses: nanzm/get-time-action@v1.1
+        with:
+          format: "YYYYMMDDHHmmss"
 
   publish-manager-docker:
     runs-on: ubuntu-latest
@@ -60,7 +60,6 @@ jobs:
           tags: |
             ${{ env.TS_TAG }}
             ${{ env.NEXT_TAG }}
-
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v3.1.1
