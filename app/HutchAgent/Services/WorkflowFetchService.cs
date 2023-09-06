@@ -65,6 +65,7 @@ public class WorkflowFetchService
         throw;
       }
     }
+
     _logger.LogInformation("Successfully downloaded workflow.");
     var workflowCrateExtractPath =
       Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId);
