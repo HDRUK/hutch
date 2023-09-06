@@ -13,6 +13,7 @@ public class WorkflowFetchService
 {
   private readonly CrateService _crates;
   private readonly ILogger<WorkflowFetchService> _logger;
+  private const string _workflowZip = "workflows.zip";
 
   public WorkflowFetchService(
     CrateService crates,
@@ -51,7 +52,7 @@ public class WorkflowFetchService
                          throw new InvalidOperationException("Invalid download URI");
 
       await using var file =
-        File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflows.zip"));
+        File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(),_workflowZip));
       await clientStream.CopyToAsync(file);
       _logger.LogInformation("Successfully downloaded workflow from Workflow Hub.");
     }
@@ -60,7 +61,7 @@ public class WorkflowFetchService
       Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(), "workflow", workflowId);
     using (var archive =
            new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.BagItPayloadPath(),
-             "workflows.zip"))))
+             _workflowZip))))
     {
       Directory.CreateDirectory(workflowCrateExtractPath);
       archive.ExtractToDirectory(workflowCrateExtractPath);
@@ -112,7 +113,7 @@ public class WorkflowFetchService
     return roCrate;
   }
 
-  private static Entity CreateDownloadAction(ROCrate roCrate, string downloadAddress)
+  private static ContextEntity CreateDownloadAction(ROCrate roCrate, string downloadAddress)
   {
     // Create DownloadAction ContextEntity
     var downloadActionId = $"#download-{Guid.NewGuid()}";
