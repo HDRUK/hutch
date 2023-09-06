@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
 using HutchAgent.Constants;
+using HutchAgent.Models;
 using Microsoft.Extensions.Options;
 using YamlDotNet.RepresentationModel;
 
@@ -15,6 +16,8 @@ public class FinalisationService
   private readonly IResultsStoreWriter _storeWriter;
   private readonly WorkflowJobService _jobService;
   private readonly PathOptions _pathOptions;
+  private readonly IQueueWriter _queueWriter;
+  private readonly JobActionsQueueOptions _jobActionsQueue;
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
@@ -25,13 +28,16 @@ public class FinalisationService
     IResultsStoreWriter storeWriter,
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,
-    IOptions<WorkflowTriggerOptions> triggerOptions)
+    IOptions<WorkflowTriggerOptions> triggerOptions,
+    IQueueWriter queueWriter, JobActionsQueueOptions jobActionsQueue)
   {
     _bagItService = bagItService;
     _crateService = crateService;
     _logger = logger;
     _storeWriter = storeWriter;
     _jobService = jobService;
+    _queueWriter = queueWriter;
+    _jobActionsQueue = jobActionsQueue;
     _pathOptions = pathOptions.Value;
 
     // Find the WfExS cache directory path
@@ -186,7 +192,8 @@ public class FinalisationService
     if (!File.Exists(pathToState))
     {
       _logger.LogWarning("Could not find execution status file at '{}'", pathToState);
-      // Todo: re-queue the because the job hasn't finished yet??
+      var message = new JobQueueMessage { ActionType = JobActionTypes.Execute, JobId = job.Id };
+      _queueWriter.SendMessage(_jobActionsQueue.QueueName, message);
       return;
     }
 
