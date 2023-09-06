@@ -39,7 +39,7 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
 
     // Act
     await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
-    var lines = await File.ReadAllLinesAsync(_manifestFixture.ManifestPath);
+    var lines = File.ReadAllLines(_manifestFixture.ManifestPath);
     var hashes = from x in lines select x.Split("  ").First();
 
     // Assert
@@ -54,7 +54,7 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
 
     // Act
     await service.WriteManifestSha512(_manifestFixture.Dir.FullName);
-    var lines = await File.ReadAllLinesAsync(_manifestFixture.ManifestPath);
+    var lines = File.ReadAllLines(_manifestFixture.ManifestPath);
     var paths = from x in lines select x.Split("  ").Last();
 
     // Assert
@@ -82,7 +82,7 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
 
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
-    var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
+    var lines = File.ReadAllLines(_tagManifestFixture.TagManifestPath);
     var hashes = from x in lines select x.Split("  ").First();
 
     // Assert
@@ -97,7 +97,7 @@ public class TestBagitChecksumWriter : IClassFixture<ManifestFixture>, IClassFix
 
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
-    var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
+    var lines = File.ReadAllLines(_tagManifestFixture.TagManifestPath);
     var paths = from x in lines select x.Split("  ").Last();
 
     // Assert
