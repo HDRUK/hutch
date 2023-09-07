@@ -41,14 +41,14 @@ public class WorkflowJobService
     return await _db.WorkflowJobs
       .AsNoTracking()
       .Select(entity => new Models.WorkflowJob
-      {
-        Id = entity.Id,
-        WorkingDirectory = entity.WorkingDirectory,
-        ExecutorRunId = entity.ExecutorRunId,
-        ExitCode = entity.ExitCode,
-        ExecutionStartTime = entity.ExecutionStartTime,
-        EndTime = entity.EndTime
-      }
+        {
+          Id = entity.Id,
+          WorkingDirectory = entity.WorkingDirectory,
+          ExecutorRunId = entity.ExecutorRunId,
+          ExitCode = entity.ExitCode,
+          ExecutionStartTime = entity.ExecutionStartTime,
+          EndTime = entity.EndTime
+        }
       ).ToListAsync();
   }
 
@@ -57,10 +57,20 @@ public class WorkflowJobService
   /// </summary>
   /// <param name="jobId">The ID of the <see cref="WorkflowJob"/> to be retrieved from the database.</param>
   /// <returns><see cref="Models.WorkflowJob"/> with the requested ID.</returns>
-  public async Task<WorkflowJob> Get(string jobId)
+  public async Task<Models.WorkflowJob> Get(string jobId)
   {
-    return await _db.WorkflowJobs.FindAsync(jobId)
-      ?? throw new KeyNotFoundException();
+    var entity = await _db.WorkflowJobs.FindAsync(jobId)
+                 ?? throw new KeyNotFoundException();
+    var job = new Models.WorkflowJob
+    {
+      Id = entity.Id,
+      ExecutionStartTime = entity.ExecutionStartTime,
+      EndTime = entity.EndTime,
+      ExecutorRunId = entity.ExecutorRunId,
+      ExitCode = entity.ExitCode,
+      WorkingDirectory = entity.WorkingDirectory
+    };
+    return job;
   }
 
   /// <summary>
