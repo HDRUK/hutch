@@ -14,6 +14,7 @@ namespace HutchAgent.Tests;
 public class TestCrateService
 {
   private readonly IOptions<PathOptions> _paths;
+  private readonly IOptions<LicenseOptions> _license;
 
   public TestCrateService()
   {
@@ -21,6 +22,7 @@ public class TestCrateService
     {
       // TODO
     });
+    _license = Options.Create<LicenseOptions>(new());
   }
 
   [Fact]
@@ -43,7 +45,7 @@ public class TestCrateService
       zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
     }
 
-    var service = new CrateService(_paths, publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object, _license);
 
     // Act
     service.MergeCrates(zipFile.Name, destinationDir.ToString());
@@ -70,7 +72,7 @@ public class TestCrateService
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(zipFile.ToString()).Close();
 
-    var service = new CrateService(_paths, publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object, _license);
 
     // Act
     service.ZipCrate(destinationDir.ToString());
@@ -92,7 +94,7 @@ public class TestCrateService
     var zipFileName = "my-file.zip";
     var destinationDir = "non/existent/dir/";
     Directory.CreateDirectory("non/existent/");
-    var service = new CrateService(_paths, publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object, _license);
 
     // Act
     var action = () => service.MergeCrates(zipFileName, destinationDir);
@@ -111,7 +113,7 @@ public class TestCrateService
     var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
     var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = "non/existent/dir/";
-    var service = new CrateService(_paths, publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object, _license);
 
     // Act
     var action = () => service.ZipCrate(destinationDir);
@@ -130,7 +132,7 @@ public class TestCrateService
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
-    var service = new CrateService(_paths, publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object, _license);
 
     // Act
     var action = () => service.UpdateMetadata(pathToMetadata, job);
@@ -174,7 +176,7 @@ public class TestCrateService
                    + "\"";
     var pattern4 = "\"datePublished\": ";
 
-    var service = new CrateService(_paths, publisher, logger.Object);
+    var service = new CrateService(_paths, publisher, logger.Object, _license);
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
@@ -190,6 +192,9 @@ public class TestCrateService
     Assert.Contains(pattern4, output);
     Assert.Contains(startTime.ToString(CultureInfo.InvariantCulture), output);
     Assert.Contains(endTime.ToString(CultureInfo.InvariantCulture), output);
+    Assert.Contains(_license.Value.Identifier, output);
+    Assert.Contains(_license.Value.Uri, output);
+    Assert.Contains(_license.Value.Name, output);
 
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);

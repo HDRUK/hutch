@@ -19,14 +19,17 @@ public class CrateService
   private readonly string _pathToOutputDir = Path.Combine("data", "outputs");
   private readonly PublisherOptions _publisherOptions;
   private readonly PathOptions _paths;
+  private readonly LicenseOptions _license;
   private readonly ILogger<CrateService> _logger;
 
   public CrateService(
     IOptions<PathOptions> paths,
     IOptions<PublisherOptions> publisher,
-    ILogger<CrateService> logger)
+    ILogger<CrateService> logger,
+    IOptions<LicenseOptions> license)
   {
     _logger = logger;
+    _license = license.Value;
     _publisherOptions = publisher.Value;
     _paths = paths.Value;
   }
@@ -156,6 +159,12 @@ public class CrateService
       Id = _publisherOptions.Name
     });
     crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+
+    var license = new CreativeWork(identifier: _license.Uri); // sets @id to the license URI
+    license.SetProperty("name", _license.Name);
+    license.SetProperty("identifier", _license.Identifier);
+    crate.Add(license);
+    crate.RootDataset.SetProperty("license", new Part { Id = license.Id });
 
     // Add dataset and files contained within and update the CreateAction
     var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
