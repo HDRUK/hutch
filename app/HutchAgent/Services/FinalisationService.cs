@@ -70,12 +70,25 @@ public class FinalisationService
   /// <param name="jobId"></param>
   public async Task Finalise(string jobId)
   {
-    await UpdateJob(jobId);
-    await MergeCrate(jobId);
-    await UpdateMetadata(jobId);
-    await DisclosureCheck(jobId);
-    await MakeChecksums(jobId);
-    await UploadToStore(jobId);
+    try
+    {
+      var job = await _jobService.Get(jobId);
+
+      await UpdateJob(jobId);
+      await MergeCrate(jobId);
+      await UpdateMetadata(jobId);
+      await DisclosureCheck(jobId);
+      await MakeChecksums(jobId);
+      await UploadToStore(jobId);
+    }
+    catch (KeyNotFoundException)
+    {
+      _logger.LogError("Could not find job with ID {}", jobId);
+    }
+    catch (Exception)
+    {
+      _logger.LogError("An unexpected error occurred while finalising job {}", jobId);
+    }
   }
 
   /// <summary>
