@@ -37,6 +37,7 @@ public class QueuePollingHostedService : BackgroundService
       {
         var queue = _serviceProvider.GetRequiredService<IQueueReader>();
         var executeActionHandler = scope.ServiceProvider.GetRequiredService<ExecuteActionHandler>();
+        var finalisationService = scope.ServiceProvider.GetRequiredService<FinalisationService>();
 
         // If a thread is available, per Max Parallelism, then
         // Pop a queue message, and Execute its action on the free thread
@@ -58,7 +59,8 @@ public class QueuePollingHostedService : BackgroundService
                 stoppingToken));
               break;
             case JobActionTypes.Finalize:
-              _runningActions.Add(Task.Run(async () => _logger.LogInformation("Finalizing..."), stoppingToken));
+              _runningActions.Add(
+                Task.Run(async () => await finalisationService.Finalise(message.JobId), stoppingToken));
               break;
           }
         }
