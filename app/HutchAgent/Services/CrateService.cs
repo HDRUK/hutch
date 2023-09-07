@@ -161,8 +161,6 @@ public class CrateService
     var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
     createAction.SetProperty("started", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
     createAction.SetProperty("ended", job.EndTime?.ToString(CultureInfo.InvariantCulture));
-    createAction.SetProperty("actionStatus",
-      job.ExitCode == 0 ? "https://schema.org/CompletedActionStatus" : "https://schema.org/FailedActionStatus");
     crate.Add(outputs);
     foreach (var outputFile in outputFiles)
     {
