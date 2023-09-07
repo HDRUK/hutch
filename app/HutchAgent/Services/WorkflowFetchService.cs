@@ -1,7 +1,6 @@
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 using HutchAgent.Constants;
-using HutchAgent.Data.Entities;
 using ROCrates;
 using ROCrates.Exceptions;
 using ROCrates.Models;
@@ -30,7 +29,7 @@ public class WorkflowFetchService
   /// <returns></returns>
   /// <exception cref="Exception"></exception>
   /// <exception cref="InvalidOperationException"></exception>
-  public async Task<ROCrate> FetchWorkflowCrate(WorkflowJob workflowJob)
+  public async Task<ROCrate> FetchWorkflowCrate(Models.WorkflowJob workflowJob)
   {
     var roCrate = _crates.InitialiseCrate(workflowJob.WorkingDirectory.BagItPayloadPath());
     // Get mainEntity from metadata, contains workflow location
