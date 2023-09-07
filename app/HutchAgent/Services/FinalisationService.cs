@@ -62,6 +62,7 @@ public class FinalisationService
   /// <item>Update the state with the start and end times, and the exit code</item>
   /// <item>Merge the results RO-Crate into the input RO-Crate</item>
   /// <item>Update the metadata of the input RO-Crate with the outputs of the workflow run.</item>
+  /// <item>Perform disclosure checks on the BagIt.</item>
   /// <item>Re-write the checksums of the BagIt containing the inputs and outputs.</item>
   /// <item>Upload a zipped BagIt to the results store.</item>
   /// </list>
@@ -72,6 +73,7 @@ public class FinalisationService
     await UpdateJob(jobId);
     await MergeCrate(jobId);
     await UpdateMetadata(jobId);
+    await DisclosureCheck(jobId);
     await MakeChecksums(jobId);
     await UploadToStore(jobId);
   }
@@ -220,5 +222,18 @@ public class FinalisationService
 
     // update job in DB
     await _jobService.Set(job);
+  }
+
+  /// <summary>
+  /// Perform disclosure checks for a given job.
+  /// </summary>
+  /// <param name="jobId">The job needing disclosure checks.</param>
+  private async Task DisclosureCheck(string jobId)
+  {
+    var job = await _jobService.Get(jobId);
+
+    var crate = _crateService.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());
+    _crateService.CreateDisclosureCheck(crate);
+    crate.Save(job.WorkingDirectory.BagItPayloadPath());
   }
 }
