@@ -36,6 +36,7 @@ public class QueuePollingHostedService : BackgroundService
       using (var scope = _serviceProvider.CreateScope())
       {
         var queue = _serviceProvider.GetRequiredService<IQueueReader>();
+        var executeActionHandler = scope.ServiceProvider.GetRequiredService<ExecuteActionHandler>();
         var finalisationService = scope.ServiceProvider.GetRequiredService<FinalisationService>();
 
         // If a thread is available, per Max Parallelism, then
@@ -54,7 +55,8 @@ public class QueuePollingHostedService : BackgroundService
           switch (message.ActionType)
           {
             case JobActionTypes.Execute:
-              _runningActions.Add(Task.Run(async () => _logger.LogInformation("Executing..."), stoppingToken));
+              _runningActions.Add(Task.Run(async () => await executeActionHandler.Execute(message.JobId),
+                stoppingToken));
               break;
             case JobActionTypes.Finalize:
               _runningActions.Add(
