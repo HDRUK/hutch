@@ -65,6 +65,7 @@ public class FinalisationService
   /// <item>Perform disclosure checks on the BagIt.</item>
   /// <item>Re-write the checksums of the BagIt containing the inputs and outputs.</item>
   /// <item>Upload a zipped BagIt to the results store.</item>
+  /// <item>Remove the given job from the DB and its associated data from disk.</item>
   /// </list>
   /// </summary>
   /// <param name="jobId"></param>
@@ -74,12 +75,17 @@ public class FinalisationService
     {
       var job = await _jobService.Get(jobId);
 
+      // Finalisation
       await UpdateJob(job);
       MergeCrate(job);
       UpdateMetadata(job);
       DisclosureCheck(job);
       await MakeChecksums(job);
+
+      // Post-finalisation clean-up
       await UploadToStore(job);
+      DeleteJobData(job);
+      await RemoveJobRecord(job);
     }
     catch (KeyNotFoundException)
     {
@@ -238,5 +244,23 @@ public class FinalisationService
     var crate = _crateService.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());
     _crateService.CreateDisclosureCheck(crate);
     crate.Save(job.WorkingDirectory.BagItPayloadPath());
+  }
+
+  /// <summary>
+  /// Removes a job from the database.
+  /// </summary>
+  /// <param name="job">The job to remove.</param>
+  private async Task RemoveJobRecord(WorkflowJob job)
+  {
+    await _jobService.Delete(job.Id);
+  }
+
+  /// <summary>
+  /// Delete the data relating to the given job from disk.
+  /// </summary>
+  /// <param name="job">The job whose data need deleting.</param>
+  private void DeleteJobData(WorkflowJob job)
+  {
+    if (Directory.Exists(job.WorkingDirectory)) Directory.Delete(job.WorkingDirectory, recursive: true);
   }
 }
