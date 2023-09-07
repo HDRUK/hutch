@@ -3,7 +3,6 @@ using System.IO.Compression;
 using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Constants;
-using HutchAgent.Data.Entities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Exceptions;
@@ -82,11 +81,6 @@ public class CrateService
   }
 
 
-
-
-
-
-
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
@@ -128,7 +122,6 @@ public class CrateService
     ZipFile.CreateFromDirectory(cratePath, Path.Combine(parent!.ToString(), zipFile));
   }
 
-  
 
   /// <summary>
   /// Update the target metadata file in an RO-Crate.
@@ -139,7 +132,7 @@ public class CrateService
   /// Metadata file could not be found.
   /// </exception>
   /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
-  public void UpdateMetadata(string pathToMetadata, WorkflowJob job)
+  public void UpdateMetadata(string pathToMetadata, Models.WorkflowJob job)
   {
     if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
       throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
@@ -239,40 +232,40 @@ public class CrateService
     switch (actionType)
     {
       case ActionType.CheckValueType:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.CheckValueType);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.CheckValueType);
+        break;
+      }
       case ActionType.DisclosureCheck:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.DisclosureCheck);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.DisclosureCheck);
+        break;
+      }
       case ActionType.SignOff:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.SignOff);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.SignOff);
+        break;
+      }
       case ActionType.ValidationCheck:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.ValidationCheck);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.ValidationCheck);
+        break;
+      }
       case ActionType.GenerateCheckValue:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.GenerateCheckValue);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.GenerateCheckValue);
+        break;
+      }
     }
 
     var action = assessActions.Select(action => action?["@id"]) ??
