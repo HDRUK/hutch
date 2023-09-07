@@ -74,12 +74,12 @@ public class FinalisationService
     {
       var job = await _jobService.Get(jobId);
 
-      await UpdateJob(jobId);
-      await MergeCrate(jobId);
-      await UpdateMetadata(jobId);
-      await DisclosureCheck(jobId);
-      await MakeChecksums(jobId);
-      await UploadToStore(jobId);
+      await UpdateJob(job);
+      MergeCrate(job);
+      UpdateMetadata(job);
+      DisclosureCheck(job);
+      await MakeChecksums(job);
+      await UploadToStore(job);
     }
     catch (KeyNotFoundException)
     {
@@ -94,11 +94,9 @@ public class FinalisationService
   /// <summary>
   /// Merge a result crate from a workflow run back into its input crate.
   /// </summary>
-  /// <param name="jobId">The ID of the workflow run that needs merging.</param>
-  private async Task MergeCrate(string jobId)
+  /// <param name="job">The workflow run that needs merging.</param>
+  private void MergeCrate(WorkflowJob job)
   {
-    var job = await _jobService.Get(jobId);
-
     // Path the to the job outputs
     var executionCratePath = Path.Combine(
       _wfexsWorkDir,
@@ -116,10 +114,9 @@ public class FinalisationService
   /// <summary>
   /// Make the checksums for the BagIt containing the job's data.
   /// </summary>
-  /// <param name="jobId">The ID of the job needing checksums.</param>
-  private async Task MakeChecksums(string jobId)
+  /// <param name="job">The job needing checksums.</param>
+  private async Task MakeChecksums(WorkflowJob job)
   {
-    var job = await _jobService.Get(jobId);
     await _bagItService.WriteManifestSha512(job.WorkingDirectory);
     await _bagItService.WriteTagManifestSha512(job.WorkingDirectory);
   }
@@ -127,11 +124,9 @@ public class FinalisationService
   /// <summary>
   /// Update the metadata of the RO-Crate for the given job ID.
   /// </summary>
-  /// <param name="jobId">The ID of the job that needs updating.</param>
-  private async Task UpdateMetadata(string jobId)
+  /// <param name="job">The job whose metadata needs updating.</param>
+  private void UpdateMetadata(WorkflowJob job)
   {
-    var job = await _jobService.Get(jobId);
-
     var metadataPath = job.WorkingDirectory.BagItPayloadPath();
 
     /*
@@ -155,11 +150,10 @@ public class FinalisationService
   /// <summary>
   /// Zip a workflow job's BagIt and add it to the configured results store.
   /// </summary>
-  /// <param name="jobId"></param>
+  /// <param name="job"></param>
   /// <exception cref="DirectoryNotFoundException">Could not locate the parent directory of the job's BagIt.</exception>
-  private async Task UploadToStore(string jobId)
+  private async Task UploadToStore(WorkflowJob job)
   {
-    var job = await _jobService.Get(jobId);
     var bagitDir = new DirectoryInfo(job.WorkingDirectory);
     var bagitParent = Path.Combine(_pathOptions.WorkingDirectoryBase, _pathOptions.Jobs);
     var pathToZip = Path.Combine(
@@ -197,11 +191,9 @@ public class FinalisationService
   /// Update a <see cref="Data.Entities.WorkflowJob"/> in the database to include run start and end times,
   /// and exit code.
   /// </summary>
-  /// <param name="jobId">The ID of the job entity to update.</param>
-  private async Task UpdateJob(string jobId)
+  /// <param name="job">The job entity to update.</param>
+  private async Task UpdateJob(WorkflowJob job)
   {
-    var job = await _jobService.Get(jobId);
-
     // find execution-state.yml for job
     var pathToState = Path.Combine(_wfexsWorkDir, job.ExecutorRunId, _statePath);
     if (!File.Exists(pathToState))
@@ -240,11 +232,9 @@ public class FinalisationService
   /// <summary>
   /// Perform disclosure checks for a given job.
   /// </summary>
-  /// <param name="jobId">The job needing disclosure checks.</param>
-  private async Task DisclosureCheck(string jobId)
+  /// <param name="job">The job needing disclosure checks.</param>
+  private void DisclosureCheck(WorkflowJob job)
   {
-    var job = await _jobService.Get(jobId);
-
     var crate = _crateService.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());
     _crateService.CreateDisclosureCheck(crate);
     crate.Save(job.WorkingDirectory.BagItPayloadPath());
