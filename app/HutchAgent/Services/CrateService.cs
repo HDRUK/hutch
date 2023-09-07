@@ -82,11 +82,6 @@ public class CrateService
   }
 
 
-
-
-
-
-
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
@@ -128,7 +123,6 @@ public class CrateService
     ZipFile.CreateFromDirectory(cratePath, Path.Combine(parent!.ToString(), zipFile));
   }
 
-  
 
   /// <summary>
   /// Update the target metadata file in an RO-Crate.
@@ -168,8 +162,6 @@ public class CrateService
     var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
     createAction.SetProperty("started", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
     createAction.SetProperty("ended", job.EndTime?.ToString(CultureInfo.InvariantCulture));
-    createAction.SetProperty("actionStatus",
-      job.ExitCode == 0 ? "https://schema.org/CompletedActionStatus" : "https://schema.org/FailedActionStatus");
     crate.Add(outputs);
     foreach (var outputFile in outputFiles)
     {
@@ -239,40 +231,40 @@ public class CrateService
     switch (actionType)
     {
       case ActionType.CheckValueType:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.CheckValueType);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.CheckValueType);
+        break;
+      }
       case ActionType.DisclosureCheck:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.DisclosureCheck);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.DisclosureCheck);
+        break;
+      }
       case ActionType.SignOff:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.SignOff);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.SignOff);
+        break;
+      }
       case ActionType.ValidationCheck:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.ValidationCheck);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.ValidationCheck);
+        break;
+      }
       case ActionType.GenerateCheckValue:
-        {
-          assessActions = assessActions.Where(mention =>
-            roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
-            ActionType.GenerateCheckValue);
-          break;
-        }
+      {
+        assessActions = assessActions.Where(mention =>
+          roCrate.Entities[mention!["@id"]!.ToString()].Properties["additionalType"]?["@id"]?.ToString() ==
+          ActionType.GenerateCheckValue);
+        break;
+      }
     }
 
     var action = assessActions.Select(action => action?["@id"]) ??
