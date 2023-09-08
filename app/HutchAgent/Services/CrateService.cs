@@ -164,8 +164,6 @@ public class CrateService
     var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
     createAction.SetProperty("started", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
     createAction.SetProperty("ended", job.EndTime?.ToString(CultureInfo.InvariantCulture));
-    createAction.SetProperty("actionStatus",
-      job.ExitCode == 0 ? "https://schema.org/CompletedActionStatus" : "https://schema.org/FailedActionStatus");
     crate.Add(outputs);
     foreach (var outputFile in outputFiles)
     {
@@ -337,6 +335,42 @@ public class CrateService
   public void DeleteContainerImages(string pathToImagesDir)
   {
     Directory.Delete(pathToImagesDir, recursive: true);
+  }
+
+  public void CheckAssessActions(ROCrate roCrate)
+  {
+    //Check CheckValueType AssessAction exists and is Completed
+    var checkValue = GetAssessAction(roCrate, ActionType.CheckValueType);
+    if (checkValue is null)
+      throw new Exception("Could not find CheckValue AssessAction in RO-Crate");
+
+    var checkValueStatus = checkValue.GetProperty<JsonNode>("actionStatus");
+    if (checkValueStatus?.ToString() is not (ActionStatus.CompletedActionStatus))
+    {
+      throw new Exception("CheckValue action status is null or not completed");
+    }
+
+    //Check ValidationCheck AssessAction exists and is Completed
+    var validationCheck = GetAssessAction(roCrate, ActionType.ValidationCheck);
+    if (validationCheck is null)
+      throw new Exception("Could not find Validation check AssessAction in RO-Crate");
+
+    var validationCheckStatus = validationCheck.GetProperty<JsonNode>("actionStatus");
+    if (validationCheckStatus?.ToString() is not ActionStatus.CompletedActionStatus)
+    {
+      throw new Exception("Validation action status is null or not completed");
+    }
+
+    //Check SignOff AssessAction exists and is Completed
+    var signOff = GetAssessAction(roCrate, ActionType.SignOff);
+    if (signOff is null)
+      throw new Exception("Could not find Sign Off AssessAction in RO-Crate");
+
+    var signOffStatus = signOff.GetProperty<JsonNode>("actionStatus");
+    if (signOffStatus?.ToString() is not ActionStatus.CompletedActionStatus)
+    {
+      throw new Exception("Sign Off action status is null or not completed");
+    }
   }
 
   /// <summary>
