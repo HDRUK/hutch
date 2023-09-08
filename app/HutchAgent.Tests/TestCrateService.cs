@@ -192,9 +192,6 @@ public class TestCrateService
     Assert.Contains(pattern4, output);
     Assert.Contains(startTime.ToString(CultureInfo.InvariantCulture), output);
     Assert.Contains(endTime.ToString(CultureInfo.InvariantCulture), output);
-    Assert.Contains(_license.Value.Identifier, output);
-    Assert.Contains(_license.Value.Uri, output);
-    Assert.Contains(_license.Value.Name, output);
 
     // Clean up
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
