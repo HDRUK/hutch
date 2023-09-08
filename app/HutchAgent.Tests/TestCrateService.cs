@@ -15,6 +15,8 @@ public class TestCrateService
 {
   private readonly IOptions<PathOptions> _paths;
   private readonly IOptions<LicenseOptions> _license;
+  private readonly IOptions<PublisherOptions> _publisher;
+  private readonly Mock<ILogger<CrateService>> _logger;
 
   public TestCrateService()
   {
@@ -23,14 +25,14 @@ public class TestCrateService
       // TODO
     });
     _license = Options.Create<LicenseOptions>(new());
+    _publisher = Options.Create(new PublisherOptions { Name = "TRE name" });
+    _logger = new Mock<ILogger<CrateService>>();
   }
 
   [Fact]
   public void MergeCrates_Extract_ZipToDestinationDataOutputs()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var logger = new Mock<ILogger<CrateService>>();
     var pathToOutputDir = Path.Combine("data", "outputs");
     var destinationDir = new DirectoryInfo("save/here/");
     var zipFile = new FileInfo("test-zip.zip");
@@ -45,7 +47,7 @@ public class TestCrateService
       zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
     }
 
-    var service = new CrateService(_paths, publisher, logger.Object, _license);
+    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     service.MergeCrates(zipFile.Name, destinationDir.ToString());
@@ -63,8 +65,6 @@ public class TestCrateService
   public void ZipCrate_Zips_DestinationToParent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = new DirectoryInfo("save2/here/");
     var zipFile = new FileInfo(Path.Combine(destinationDir.ToString(), "test-zip.zip"));
     var expectedFile = new FileInfo($"save2/{destinationDir.Name}-merged.zip");
@@ -72,7 +72,7 @@ public class TestCrateService
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(zipFile.ToString()).Close();
 
-    var service = new CrateService(_paths, publisher, logger.Object, _license);
+    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     service.ZipCrate(destinationDir.ToString());
@@ -89,12 +89,10 @@ public class TestCrateService
   public void MergeCrates_Throws_WhenDestinationNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var logger = new Mock<ILogger<CrateService>>();
     var zipFileName = "my-file.zip";
     var destinationDir = "non/existent/dir/";
     Directory.CreateDirectory("non/existent/");
-    var service = new CrateService(_paths, publisher, logger.Object, _license);
+    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     var action = () => service.MergeCrates(zipFileName, destinationDir);
@@ -110,10 +108,8 @@ public class TestCrateService
   public void ZipCrate_Throws_WhenDestinationNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var logger = new Mock<ILogger<CrateService>>();
     var destinationDir = "non/existent/dir/";
-    var service = new CrateService(_paths, publisher, logger.Object, _license);
+    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     var action = () => service.ZipCrate(destinationDir);
@@ -126,13 +122,11 @@ public class TestCrateService
   public void UpdateMetadata_Throws_WhenSourceNonExistent()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var logger = new Mock<ILogger<CrateService>>();
     var pathToMetadata = "non/existent/ro-crate-metadata.json";
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
-    var service = new CrateService(_paths, publisher, logger.Object, _license);
+    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     var action = () => service.UpdateMetadata(pathToMetadata, job);
@@ -145,8 +139,6 @@ public class TestCrateService
   public void UpdateMetadata_Adds_MergedEntity()
   {
     // Arrange
-    var publisher = Options.Create(new PublisherOptions() { Name = "TRE name" });
-    var logger = new Mock<ILogger<CrateService>>();
     var pathToOutputDir = "outputs";
     var crate = new ROCrate();
     Directory.CreateDirectory("some-source");
@@ -169,14 +161,14 @@ public class TestCrateService
                    + "\""
                    + $"{Path.GetRelativePath(metaFile.DirectoryName, Path.Combine(metaFile.DirectoryName, pathToOutputDir))}/"
                    + "\"";
-    var pattern2 = "\"publisher\": ";
+    var pattern2 = "\"_publisher\": ";
     var pattern3 = "\"@id\": "
                    + "\""
-                   + $"{publisher.Value.Name}"
+                   + $"{_publisher.Value.Name}"
                    + "\"";
     var pattern4 = "\"datePublished\": ";
 
-    var service = new CrateService(_paths, publisher, logger.Object, _license);
+    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
