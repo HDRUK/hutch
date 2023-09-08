@@ -146,7 +146,9 @@ public class FinalisationService
     try
     {
       _crateService.UpdateMetadata(cratePath, job);
-      if (!string.IsNullOrEmpty(_licenseOptions.Uri)) _crateService.AddLicense(cratePath);
+      if (!string.IsNullOrEmpty(_licenseOptions.Uri) && _licenseOptions.Properties is not null &&
+          _licenseOptions.Properties.Count > 0)
+        _crateService.AddLicense(cratePath);
       var crate = _crateService.InitialiseCrate(cratePath);
       var executeAction = _crateService.GetExecuteEntity(crate);
       _crateService.UpdateCrateActionStatus(
