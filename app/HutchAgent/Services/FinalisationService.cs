@@ -18,6 +18,7 @@ public class FinalisationService
   private readonly PathOptions _pathOptions;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _jobActionsQueue;
+  private readonly LicenseOptions _licenseOptions;
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
@@ -29,7 +30,9 @@ public class FinalisationService
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,
     IOptions<WorkflowTriggerOptions> triggerOptions,
-    IQueueWriter queueWriter, JobActionsQueueOptions jobActionsQueue)
+    IQueueWriter queueWriter,
+    JobActionsQueueOptions jobActionsQueue,
+    IOptions<LicenseOptions> licenseOptions)
   {
     _bagItService = bagItService;
     _crateService = crateService;
@@ -38,6 +41,7 @@ public class FinalisationService
     _jobService = jobService;
     _queueWriter = queueWriter;
     _jobActionsQueue = jobActionsQueue;
+    _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
 
     // Find the WfExS cache directory path
@@ -142,7 +146,7 @@ public class FinalisationService
     try
     {
       _crateService.UpdateMetadata(cratePath, job);
-      _crateService.AddLicense(cratePath);
+      if (!string.IsNullOrEmpty(_licenseOptions.Uri)) _crateService.AddLicense(cratePath);
       var crate = _crateService.InitialiseCrate(cratePath);
       var executeAction = _crateService.GetExecuteEntity(crate);
       _crateService.UpdateCrateActionStatus(
