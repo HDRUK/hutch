@@ -344,4 +344,24 @@ public class CrateService
   {
     Directory.Delete(pathToImagesDir, recursive: true);
   }
+
+  /// <summary>
+  /// Update an RO-Crate's metadata file to include a license configured by Hutch.
+  /// </summary>
+  /// <param name="pathToCrate">The the path to the RO-Crate</param>
+  /// <exception cref="FileNotFoundException">Thrown when the metadata file does not exist.</exception>
+  public void AddLicense(string pathToCrate)
+  {
+    if (!File.Exists(Path.Combine(pathToCrate, "ro-crate-metadata.json")))
+      throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
+
+    var license = new CreativeWork(
+      identifier: _license.Uri,
+      properties: _license.Properties);
+
+    var crate = InitialiseCrate(pathToCrate);
+    crate.Add(license);
+    crate.RootDataset.SetProperty("license", new Part { Id = license.Id });
+    crate.Save(location: pathToCrate);
+  }
 }
