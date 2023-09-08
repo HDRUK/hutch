@@ -7,7 +7,7 @@ public class LicenseOptions
   /// <summary>
   /// The @id of the license entity to add to the outputs.
   /// </summary>
-  public string Uri { get; set; } = "https://spdx.org/licenses/CC-BY-4.0";
+  public string Uri { get; set; } = string.Empty;
 
   /// <summary>
   /// This attribute contains any other properties for the license entity.
