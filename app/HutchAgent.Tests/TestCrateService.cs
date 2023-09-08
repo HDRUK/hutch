@@ -19,6 +19,7 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
   private readonly IOptions<LicenseOptions> _license;
   private readonly IOptions<PublisherOptions> _publisher;
   private readonly Mock<ILogger<CrateService>> _logger;
+  private readonly string _metadataFileName = "ro-crate-metadata.json";
 
   public TestCrateService(CrateServiceFixture crateServiceFixture)
   {
@@ -199,6 +200,30 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
     if (File.Exists(crate.Metadata.Id)) File.Delete(crate.Metadata.Id);
     if (Directory.Exists(outputDirToAdd)) Directory.Delete(outputDirToAdd, recursive: true);
   }
+
+  [Fact]
+  public void AddLicense_AddsLicenseToMetadata()
+  {
+    // Arrange
+    var crate = new ROCrate();
+    crate.Save(_crateServiceFixture.InputCrateDirName.BagItPayloadPath());
+    var metadataInfo = new FileInfo(
+      Path.Combine(_crateServiceFixture.InputCrateDirName.BagItPayloadPath(), _metadataFileName));
+    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
+    _license.Value.Properties!.TryGetPropertyValue("identifier", out var expectedIdentifier);
+    _license.Value.Properties!.TryGetPropertyValue("name", out var expectedName);
+
+    // Act
+    service.AddLicense(_crateServiceFixture.InputCrateDirName.BagItPayloadPath());
+    var output = File.ReadAllText(metadataInfo.FullName);
+
+    // Assert
+    Assert.Contains(_license.Value.Uri, output);
+    Assert.NotNull(expectedIdentifier);
+    Assert.Contains(expectedIdentifier!.ToString(), output);
+    Assert.NotNull(expectedName);
+    Assert.Contains(expectedName!.ToString(), output);
+  }
 }
 
 public class CrateServiceFixture : IDisposable
@@ -208,7 +233,7 @@ public class CrateServiceFixture : IDisposable
 
   public CrateServiceFixture()
   {
-    Directory.CreateDirectory(InputCrateDirName);
+    Directory.CreateDirectory(InputCrateDirName.BagItPayloadPath());
     Directory.CreateDirectory(ResultsCrateDirName);
   }
 

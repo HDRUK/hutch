@@ -387,6 +387,9 @@ public class CrateService
       identifier: _license.Uri,
       properties: _license.Properties);
 
+    // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
+    license.SetProperty("@type", "CreativeWork");
+
     var crate = InitialiseCrate(pathToCrate);
     crate.Add(license);
     crate.RootDataset.SetProperty("license", new Part { Id = license.Id });
