@@ -160,12 +160,6 @@ public class CrateService
     });
     crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
 
-    var license = new CreativeWork(identifier: _license.Uri); // sets @id to the license URI
-    license.SetProperty("name", _license.Name);
-    license.SetProperty("identifier", _license.Identifier);
-    crate.Add(license);
-    crate.RootDataset.SetProperty("license", new Part { Id = license.Id });
-
     // Add dataset and files contained within and update the CreateAction
     var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
     createAction.SetProperty("started", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
