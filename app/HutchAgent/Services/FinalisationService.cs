@@ -133,16 +133,17 @@ public class FinalisationService
   /// <param name="job">The job whose metadata needs updating.</param>
   private void UpdateMetadata(WorkflowJob job)
   {
-    var metadataPath = job.WorkingDirectory.BagItPayloadPath();
+    var cratePath = job.WorkingDirectory.BagItPayloadPath();
 
     /*
-     Update the job metadata to include the results of the workflow run and update the CreateAction
-     based on the on the exit code from the workflow runner.
+     Update the job metadata to include the results of the workflow run, the license if configured,
+     and update the CreateAction based on the on the exit code from the workflow runner.
     */
     try
     {
-      _crateService.UpdateMetadata(metadataPath, job);
-      var crate = _crateService.InitialiseCrate(metadataPath);
+      _crateService.UpdateMetadata(cratePath, job);
+      _crateService.AddLicense(cratePath);
+      var crate = _crateService.InitialiseCrate(cratePath);
       var executeAction = _crateService.GetExecuteEntity(crate);
       _crateService.UpdateCrateActionStatus(
         job.ExitCode == 0 ? ActionStatus.CompletedActionStatus : ActionStatus.FailedActionStatus, executeAction);
