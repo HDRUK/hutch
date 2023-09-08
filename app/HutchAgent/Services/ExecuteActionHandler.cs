@@ -11,19 +11,22 @@ public class ExecuteActionHandler
   private readonly WorkflowJobService _workflowJobService;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _queueOptions;
+  private readonly CrateService _crates;
 
   public ExecuteActionHandler(
     WorkflowFetchService workflowFetchService,
     WorkflowTriggerService workflowTriggerService,
     WorkflowJobService workflowJobService,
     IQueueWriter queueWriter,
-    JobActionsQueueOptions queueOptions)
+    JobActionsQueueOptions queueOptions,
+    CrateService crates)
   {
     _workflowFetchService = workflowFetchService;
     _workflowTriggerService = workflowTriggerService;
     _workflowJobService = workflowJobService;
     _queueWriter = queueWriter;
     _queueOptions = queueOptions;
+    _crates = crates;
   }
 
   public async Task Execute(string messageJobId)
@@ -31,8 +34,14 @@ public class ExecuteActionHandler
     // Get job.
     var job = await _workflowJobService.Get(messageJobId);
 
+    // Initialise RO-Crate 
+    var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());
+
+    // Check AssessActions exist and are complete
+    _crates.CheckAssessActions(roCrate);
+
     // Fetch workflow.
-    var roCrate = await _workflowFetchService.FetchWorkflowCrate(job);
+    roCrate = await _workflowFetchService.FetchWorkflowCrate(job, roCrate);
 
     // Execute workflow.
     await _workflowTriggerService.TriggerWfexs(job, roCrate);

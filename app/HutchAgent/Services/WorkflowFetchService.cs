@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 using HutchAgent.Constants;
+using HutchAgent.Models;
 using ROCrates;
 using ROCrates.Exceptions;
 using ROCrates.Models;
@@ -22,16 +23,15 @@ public class WorkflowFetchService
     _logger = logger;
   }
 
-  /// <summary>
-  /// Fetch workflow specified in RO-Crate mainEntity
-  /// </summary>
-  /// <param name="workflowJob"></param>
-  /// <returns></returns>
-  /// <exception cref="Exception"></exception>
-  /// <exception cref="InvalidOperationException"></exception>
-  public async Task<ROCrate> FetchWorkflowCrate(Models.WorkflowJob workflowJob)
+   /// <summary>
+   /// Fetch workflow specified in RO-Crate mainEntity
+   /// </summary>
+   /// <param name="workflowJob"></param>
+   /// <param name="roCrate"></param>
+   /// <returns></returns>
+   /// <exception cref="Exception"></exception>
+  public async Task<ROCrate> FetchWorkflowCrate(WorkflowJob workflowJob,ROCrate roCrate)
   {
-    var roCrate = _crates.InitialiseCrate(workflowJob.WorkingDirectory.BagItPayloadPath());
     // Get mainEntity from metadata, contains workflow location
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity");
     if (mainEntity is null) throw new Exception("mainEntity is not defined in the root dataset.");
