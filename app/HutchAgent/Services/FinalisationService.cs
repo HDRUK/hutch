@@ -18,6 +18,7 @@ public class FinalisationService
   private readonly PathOptions _pathOptions;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _jobActionsQueue;
+  private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
@@ -29,7 +30,9 @@ public class FinalisationService
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,
     IOptions<WorkflowTriggerOptions> triggerOptions,
-    IQueueWriter queueWriter, JobActionsQueueOptions jobActionsQueue)
+    IQueueWriter queueWriter,
+    IOptions<JobActionsQueueOptions> jobActionsQueue,
+    IOptions<WorkflowTriggerOptions> workflowOptions)
   {
     _bagItService = bagItService;
     _crateService = crateService;
@@ -37,7 +40,8 @@ public class FinalisationService
     _storeWriter = storeWriter;
     _jobService = jobService;
     _queueWriter = queueWriter;
-    _jobActionsQueue = jobActionsQueue;
+    _jobActionsQueue = jobActionsQueue.Value;
+    _workflowOptions = workflowOptions.Value;
     _pathOptions = pathOptions.Value;
 
     // Find the WfExS cache directory path
@@ -109,6 +113,14 @@ public class FinalisationService
       job.ExecutorRunId,
       "outputs",
       "execution.crate.zip");
+
+    // Path to workflow containers
+    var containersPath = Path.Combine(
+      _wfexsWorkDir,
+      job.ExecutorRunId,
+      "containers");
+
+    if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
 
     var mergeIntoPath = Path.Combine(
       job.WorkingDirectory.BagItPayloadPath(),
