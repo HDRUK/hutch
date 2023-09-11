@@ -8,8 +8,6 @@ namespace HutchAgent.Utilities;
 /// </summary>
 public static class ChecksumUtility
 {
-  private static readonly SHA512 _sha512 = SHA512.Create();
-
   /// <summary>
   /// Compute and return a SHA512 checksum of a <see cref="Stream"/>.
   /// </summary>
@@ -17,9 +15,10 @@ public static class ChecksumUtility
   /// <returns>The checksum for the input <see cref="Stream"/></returns>
   public static string ComputeSha512(Stream stream)
   {
+    var sha512 = SHA512.Create();
     // Set the stream back to the start
     stream.Position = 0;
-    var hash = _sha512.ComputeHash(stream);
+    var hash = sha512.ComputeHash(stream);
 
     // Convert byte array to a string
     var builder = new StringBuilder();
