@@ -24,6 +24,11 @@
           - dotnet-sdk-7.0
           - aspnetcore-runtime-7.0
 
+    - name: Install Entity Framework
+      become: true
+      ansible.builtin.command:
+        cmd: dotnet tool install --global dotnet-ef --version 7.*
+
     - name: Add nginx.conf
       ansible.builtin.copy:
         src: files/nginx.conf
