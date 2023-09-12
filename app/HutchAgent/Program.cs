@@ -31,14 +31,13 @@ builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
-
+  .Configure<LicenseOptions>(builder.Configuration.GetSection("License"))
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
   .AddResultsStore(builder.Configuration)
   .AddTransient<WorkflowJobService>()
   .AddHostedService<QueuePollingHostedService>()
   .AddScoped<ExecuteActionHandler>()
-
   .AddTransient<CrateService>()
   .AddSingleton<BagItService>()
   .AddTransient<IQueueWriter, RabbitQueueWriter>()

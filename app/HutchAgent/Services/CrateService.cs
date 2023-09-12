@@ -19,14 +19,17 @@ public class CrateService
   private readonly string _pathToOutputDir = Path.Combine("data", "outputs");
   private readonly PublisherOptions _publisherOptions;
   private readonly PathOptions _paths;
+  private readonly LicenseOptions _license;
   private readonly ILogger<CrateService> _logger;
 
   public CrateService(
     IOptions<PathOptions> paths,
     IOptions<PublisherOptions> publisher,
-    ILogger<CrateService> logger)
+    ILogger<CrateService> logger,
+    IOptions<LicenseOptions> license)
   {
     _logger = logger;
+    _license = license.Value;
     _publisherOptions = publisher.Value;
     _paths = paths.Value;
   }
@@ -368,5 +371,28 @@ public class CrateService
     {
       throw new Exception("Sign Off action status is null or not completed");
     }
+  }
+
+  /// <summary>
+  /// Update an RO-Crate's metadata file to include a license configured by Hutch.
+  /// </summary>
+  /// <param name="pathToCrate">The the path to the RO-Crate</param>
+  /// <exception cref="FileNotFoundException">Thrown when the metadata file does not exist.</exception>
+  public void AddLicense(string pathToCrate)
+  {
+    if (!File.Exists(Path.Combine(pathToCrate, "ro-crate-metadata.json")))
+      throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
+
+    var license = new CreativeWork(
+      identifier: _license.Uri,
+      properties: _license.Properties);
+
+    // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
+    license.SetProperty("@type", "CreativeWork");
+
+    var crate = InitialiseCrate(pathToCrate);
+    crate.Add(license);
+    crate.RootDataset.SetProperty("license", new Part { Id = license.Id });
+    crate.Save(location: pathToCrate);
   }
 }

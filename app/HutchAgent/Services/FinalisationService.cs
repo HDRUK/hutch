@@ -19,6 +19,7 @@ public class FinalisationService
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _jobActionsQueue;
   private readonly WorkflowTriggerOptions _workflowOptions;
+  private readonly LicenseOptions _licenseOptions;
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
@@ -33,6 +34,7 @@ public class FinalisationService
     IQueueWriter queueWriter,
     IOptions<JobActionsQueueOptions> jobActionsQueue,
     IOptions<WorkflowTriggerOptions> workflowOptions)
+    IOptions<LicenseOptions> licenseOptions)
   {
     _bagItService = bagItService;
     _crateService = crateService;
@@ -42,6 +44,7 @@ public class FinalisationService
     _queueWriter = queueWriter;
     _jobActionsQueue = jobActionsQueue.Value;
     _workflowOptions = workflowOptions.Value;
+    _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
 
     // Find the WfExS cache directory path
@@ -145,16 +148,19 @@ public class FinalisationService
   /// <param name="job">The job whose metadata needs updating.</param>
   private void UpdateMetadata(WorkflowJob job)
   {
-    var metadataPath = job.WorkingDirectory.BagItPayloadPath();
+    var cratePath = job.WorkingDirectory.BagItPayloadPath();
 
     /*
-     Update the job metadata to include the results of the workflow run and update the CreateAction
-     based on the on the exit code from the workflow runner.
+     Update the job metadata to include the results of the workflow run, the license if configured,
+     and update the CreateAction based on the on the exit code from the workflow runner.
     */
     try
     {
-      _crateService.UpdateMetadata(metadataPath, job);
-      var crate = _crateService.InitialiseCrate(metadataPath);
+      _crateService.UpdateMetadata(cratePath, job);
+      if (!string.IsNullOrEmpty(_licenseOptions.Uri) && _licenseOptions.Properties is not null &&
+          _licenseOptions.Properties.Count > 0)
+        _crateService.AddLicense(cratePath);
+      var crate = _crateService.InitialiseCrate(cratePath);
       var executeAction = _crateService.GetExecuteEntity(crate);
       _crateService.UpdateCrateActionStatus(
         job.ExitCode == 0 ? ActionStatus.CompletedActionStatus : ActionStatus.FailedActionStatus, executeAction);
