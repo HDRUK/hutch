@@ -33,7 +33,7 @@ public class FinalisationService
     IOptions<WorkflowTriggerOptions> triggerOptions,
     IQueueWriter queueWriter,
     IOptions<JobActionsQueueOptions> jobActionsQueue,
-    IOptions<WorkflowTriggerOptions> workflowOptions)
+    IOptions<WorkflowTriggerOptions> workflowOptions,
     IOptions<LicenseOptions> licenseOptions)
   {
     _bagItService = bagItService;
