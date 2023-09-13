@@ -8,11 +8,11 @@ using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.Services;
 
-public class FinalisationService
+public class FinaliseActionHandler
 {
   private readonly BagItService _bagItService;
   private readonly CrateService _crateService;
-  private readonly ILogger<FinalisationService> _logger;
+  private readonly ILogger<FinaliseActionHandler> _logger;
   private readonly IResultsStoreWriter _storeWriter;
   private readonly WorkflowJobService _jobService;
   private readonly PathOptions _pathOptions;
@@ -23,10 +23,10 @@ public class FinalisationService
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
-  public FinalisationService(
+  public FinaliseActionHandler(
     BagItService bagItService,
     CrateService crateService,
-    ILogger<FinalisationService> logger,
+    ILogger<FinaliseActionHandler> logger,
     IResultsStoreWriter storeWriter,
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,

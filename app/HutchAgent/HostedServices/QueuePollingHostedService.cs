@@ -37,7 +37,7 @@ public class QueuePollingHostedService : BackgroundService
       {
         var queue = _serviceProvider.GetRequiredService<IQueueReader>();
         var executeActionHandler = scope.ServiceProvider.GetRequiredService<ExecuteActionHandler>();
-        var finalisationService = scope.ServiceProvider.GetRequiredService<FinalisationService>();
+        var finalisationService = scope.ServiceProvider.GetRequiredService<FinaliseActionHandler>();
 
         // If a thread is available, per Max Parallelism, then
         // Pop a queue message, and Execute its action on the free thread

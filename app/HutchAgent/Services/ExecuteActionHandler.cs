@@ -1,6 +1,7 @@
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
+using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;
 
@@ -18,14 +19,14 @@ public class ExecuteActionHandler
     WorkflowTriggerService workflowTriggerService,
     WorkflowJobService workflowJobService,
     IQueueWriter queueWriter,
-    JobActionsQueueOptions queueOptions,
+    IOptions<JobActionsQueueOptions> queueOptions,
     CrateService crates)
   {
     _workflowFetchService = workflowFetchService;
     _workflowTriggerService = workflowTriggerService;
     _workflowJobService = workflowJobService;
     _queueWriter = queueWriter;
-    _queueOptions = queueOptions;
+    _queueOptions = queueOptions.Value;
     _crates = crates;
   }
 
