@@ -8,30 +8,32 @@ using YamlDotNet.RepresentationModel;
 
 namespace HutchAgent.Services;
 
-public class FinalisationService
+public class FinaliseActionHandler
 {
   private readonly BagItService _bagItService;
   private readonly CrateService _crateService;
-  private readonly ILogger<FinalisationService> _logger;
+  private readonly ILogger<FinaliseActionHandler> _logger;
   private readonly IResultsStoreWriter _storeWriter;
   private readonly WorkflowJobService _jobService;
   private readonly PathOptions _pathOptions;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _jobActionsQueue;
+  private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly LicenseOptions _licenseOptions;
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
-  public FinalisationService(
+  public FinaliseActionHandler(
     BagItService bagItService,
     CrateService crateService,
-    ILogger<FinalisationService> logger,
+    ILogger<FinaliseActionHandler> logger,
     IResultsStoreWriter storeWriter,
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,
     IOptions<WorkflowTriggerOptions> triggerOptions,
     IQueueWriter queueWriter,
-    JobActionsQueueOptions jobActionsQueue,
+    IOptions<JobActionsQueueOptions> jobActionsQueue,
+    IOptions<WorkflowTriggerOptions> workflowOptions,
     IOptions<LicenseOptions> licenseOptions)
   {
     _bagItService = bagItService;
@@ -40,7 +42,8 @@ public class FinalisationService
     _storeWriter = storeWriter;
     _jobService = jobService;
     _queueWriter = queueWriter;
-    _jobActionsQueue = jobActionsQueue;
+    _jobActionsQueue = jobActionsQueue.Value;
+    _workflowOptions = workflowOptions.Value;
     _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
 
@@ -113,6 +116,14 @@ public class FinalisationService
       job.ExecutorRunId,
       "outputs",
       "execution.crate.zip");
+
+    // Path to workflow containers
+    var containersPath = Path.Combine(
+      _wfexsWorkDir,
+      job.ExecutorRunId,
+      "containers");
+
+    if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
 
     var mergeIntoPath = Path.Combine(
       job.WorkingDirectory.BagItPayloadPath(),
