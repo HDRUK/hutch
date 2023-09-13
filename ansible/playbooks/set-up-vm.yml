@@ -21,8 +21,8 @@
       become: true
       ansible.builtin.apt:
         name:
-          - dotnet-sdk-6.0
-          - aspnetcore-runtime-6.0
+          - dotnet-sdk-7.0
+          - aspnetcore-runtime-7.0
 
     - name: Add nginx.conf
       ansible.builtin.copy:
