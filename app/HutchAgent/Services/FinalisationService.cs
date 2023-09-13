@@ -18,6 +18,7 @@ public class FinalisationService
   private readonly PathOptions _pathOptions;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _jobActionsQueue;
+  private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly LicenseOptions _licenseOptions;
   private readonly string _wfexsWorkDir;
   private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
@@ -31,7 +32,8 @@ public class FinalisationService
     IOptions<PathOptions> pathOptions,
     IOptions<WorkflowTriggerOptions> triggerOptions,
     IQueueWriter queueWriter,
-    JobActionsQueueOptions jobActionsQueue,
+    IOptions<JobActionsQueueOptions> jobActionsQueue,
+    IOptions<WorkflowTriggerOptions> workflowOptions,
     IOptions<LicenseOptions> licenseOptions)
   {
     _bagItService = bagItService;
@@ -40,7 +42,8 @@ public class FinalisationService
     _storeWriter = storeWriter;
     _jobService = jobService;
     _queueWriter = queueWriter;
-    _jobActionsQueue = jobActionsQueue;
+    _jobActionsQueue = jobActionsQueue.Value;
+    _workflowOptions = workflowOptions.Value;
     _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
 
@@ -113,6 +116,14 @@ public class FinalisationService
       job.ExecutorRunId,
       "outputs",
       "execution.crate.zip");
+
+    // Path to workflow containers
+    var containersPath = Path.Combine(
+      _wfexsWorkDir,
+      job.ExecutorRunId,
+      "containers");
+
+    if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
 
     var mergeIntoPath = Path.Combine(
       job.WorkingDirectory.BagItPayloadPath(),

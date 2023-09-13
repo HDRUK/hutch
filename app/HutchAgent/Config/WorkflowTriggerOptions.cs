@@ -16,4 +16,9 @@ public class WorkflowTriggerOptions
   /// Path to the Wfexs local config file 
   /// </summary>
   public string LocalConfigPath { get; set; } = string.Empty;
+
+  /// <summary>
+  /// Should container images downloaded for workflows be included in the outputs?
+  /// </summary>
+  public bool IncludeContainersInOutput { get; set; } = false;
 }
