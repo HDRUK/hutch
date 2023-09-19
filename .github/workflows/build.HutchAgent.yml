@@ -11,7 +11,7 @@ on:
 
 env:
   # Configure these
-  CI_build-config: Debug
+  CI_build-config: Release
   CI_dotnet-version: 7.0.x
   Agent_project: ./app/HutchAgent/HutchAgent.csproj
   Agent_test_project: ./app/HutchAgent.Tests/HutchAgent.Tests.csproj

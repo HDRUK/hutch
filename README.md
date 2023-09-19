@@ -3,21 +3,25 @@
 
 # 📤🐇 Hutch
 
-**Hutch** is an application stack for **Federated Activities**, such as Analytics, Data Discovery or Machine Learning.
+**Hutch** is part of an application stack for **Federated Activities**, such as Analytics, Data Discovery or Machine Learning.
+
+It is an implementation of the **Executing Agent** module of the TRE-FX stack.
 
 - 🔒 Make your data discoverable **safely** and **securely**, without directly sharing it.
 - ✅ Hutch is being developed for use in Trusted Research Environments (TRE) or Secure Data Environments (SDE).
   - It will enable researchers to run various workflows, such as those on [WorkflowHub](https://workflowhub.eu/) or custom workflows produced by researchers themselves.
 
-The stack consists of:
-- A submission layer that will be able to receive requests from third-party federated analytics providers as well as directly.
-- An Agent that receives queries in the form of RO-Crates and uploads the outputs to a store.
-- [WfExS](https://github.com/inab/WfExS-backend) (*Not produced by the Hutch team*).
-- A results store, where the results can be held for approval for release by the TRE/SDE.
+The **TRE-FX Federated stack** consists of:
+1. A public **Submission Layer** implementation in which projects and users are configured, managed and authorised. This layer receives job requests as TRE-FX 5 Safes RO-Crates.
+2. A **TRE Agent** implementation, which interacts with the Submission Layer to receive jobs and validate them in the context of a specific TRE or other secure environment.
+3. An **Executing Agent** implementation that accepts jobs from the TRE Agent, executes them and records outputs and provenance, submitting the results to be approved for egress.
+  - [WfExS](https://github.com/inab/WfExS-backend) (*Not produced by the Hutch team*).
+4. An **Intermediary Store**, where incoming jobs and outgoing results can be held as they are passed between systems for any purpose e.g.
+  - queuing approved jobs to be executed.
+  - queueing annotated outputs for disclosure checking and egress approval.
+  - queueing an approved results package for egress.
 
-### Tech Stack
-
-![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+**Hutch** is an implementation of `3.` - The **Executing Agent**.
 
 # ➡️ Getting Started
 
@@ -27,20 +31,14 @@ User and Developer Guidance can be found in the [documentation](https://hdruk.gi
 
 | Path | Description | Notes |
 |-|-|-|
-| `app/HutchManager` | (**Deprecated**) .NET6 Backend API | |
 | `app/HutchAgent` | .NET6 Agent | <ul><li>Unpack incoming workflow RO-Crates</li><li>Trigger workflow execution</li><li>Deposit results in the results store</li></ul> |
-| `app/manger-frontend` | (**Deprecated**) React (Vite) Client SPA for the Manager | |
-| `app/rquest-omop-worker`| Source code for RQuest federated discovery app | Used in example workflows in `workflows` |
 | `.github` | GitHub Actions | workflows for building and deploying the applications |
 | `assets` | Asset source files | Logos etc. |
 | `website` | Docusaurus 2 site | The source for https://hdruk.github.io/hutch |
-| `workflows` | Example CWL workflow files | |
 
 # ⚙️ App Configuration
 
-Configuration guidance for the apps in the stack can be found in the documentation:
-
-- [Agent](https://hdruk.github.io/hutch/docs/users/getting-started/configuration/agent)
+Configuration guidance for the Hutch Agent can be found in the [documentation](https://hdruk.github.io/hutch/docs/users/getting-started/configuration/agent).
 
 # ⚖️ License and Contribution
 
@@ -50,7 +48,7 @@ Configuration guidance for the apps in the stack can be found in the documentati
 
 👷🏾‍♂️ Contributions are currently managed via the development team in the University of Nottingham Digital Research Service.
 
-# Associated Organisations
+# Associated Organisations and Programmes
 [![HDR UK](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/hdruk_logo.svg)][HDR UK Home] &nbsp;
 [![University of Nottingham](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/uon_white_text_web.png)][UoN Home] &nbsp;
 [![UKRI](https://raw.githubusercontent.com/HDRUK/hutch/main/website/static/img/UKRI_logo.jpeg)][UKRI Home] &nbsp;

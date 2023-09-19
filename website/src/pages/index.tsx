@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "@theme/Layout";
 import { Heading, Text, SimpleGrid, VStack, HStack } from "@chakra-ui/react";
 import { FaBook, FaDownload } from "react-icons/fa";
@@ -20,14 +20,48 @@ const HeroButton = (p) => (
   </LinkButton>
 );
 
-const HeroBanner = () => {
+const randColor = () =>
+  ["orange", "purple", "teal", "cyan", "pink", "blue"][
+    Math.floor(Math.random() * 6)
+  ];
+
+const RandomFederationBanner = () => {
   const responsiveChildWidths = { sm: "100%", md: "70%" };
 
-  const randColor = () =>
-    ["orange", "purple", "teal", "cyan", "pink", "blue"][
-      Math.floor(Math.random() * 6)
-    ];
+  const activities = ["Discovery", "Analysis", "Learning", "Activities"];
+  const [activity, setActivity] = useState(0);
+  const [color, setColor] = useState(randColor);
 
+  // Basically use a timer to cycle activities 'til the end
+  useEffect(() => {
+    console.log("effect");
+
+    let timeout: NodeJS.Timeout;
+    if (activity < activities.length - 1)
+      timeout = setTimeout(() => {
+        setActivity(activity + 1);
+        setColor(randColor);
+      }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [activity]);
+
+  return (
+    <VStack spacing={2} w={responsiveChildWidths} minHeight={"150px"}>
+      <Heading size="lg">Enabling</Heading>
+      <Heading
+        size={activity === activities.length - 1 ? "3xl" : "2xl"}
+        textAlign="center"
+        color={`${color}.200`}
+      >
+        <Text as="span">Federated {activities[activity]}</Text>
+      </Heading>
+      <Heading size="lg">in Secure Environments</Heading>
+    </VStack>
+  );
+};
+
+const HeroBanner = () => {
   return (
     <VStack
       bgGradient="radial(circle 1000px at top left, cyan.600, blue.900)"
@@ -45,26 +79,16 @@ const HeroBanner = () => {
         />
       </Heading>
 
-      <Heading
-        size="2xl"
-        p={5}
-        width={responsiveChildWidths}
-        textAlign="center"
-        color={`${randColor()}.200`}
-      >
-        <Text as="span">Federated Analysis / Discovery / Learning</Text>
-      </Heading>
-
-      <Heading size="md">Enable federated activities in Trusted Research Environments</Heading>
+      <RandomFederationBanner />
 
       <HStack spacing={16}>
-        <HeroButton
+        {/* <HeroButton
           colorScheme="green"
           leftIcon={<FaDownload />}
           href="https://github.com/hdruk/hutch/releases"
         >
           Download now
-        </HeroButton>
+        </HeroButton> */}
 
         <HeroButton
           colorScheme="blue"

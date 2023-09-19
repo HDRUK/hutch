@@ -1,1 +1,0 @@
-# RQuest OMOP worker

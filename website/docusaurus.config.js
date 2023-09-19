@@ -66,21 +66,9 @@ const config = {
         items: [
           {
             type: "doc",
-            docId: "users/index",
-            position: "left",
-            label: "User Guide",
-          },
-          {
-            type: "doc",
-            docId: "workflows/index",
-            position: "left",
-            label: "Workflows",
-          },
-          {
-            type: "doc",
-            docId: "devs/index",
+            docId: "getting-started/index",
             position: "right",
-            label: "For Developers",
+            label: "User Guide",
           },
           {
             href: "https://github.com/hdruk/hutch",
@@ -94,24 +82,24 @@ const config = {
         style: "dark",
         links: [
           {
-            title: "Docs",
+            title: "Documentation",
             items: [
               {
-                label: "User Guide",
-                to: "/docs/users",
+                label: "Hutch User Guide",
+                to: "/docs/getting-started",
               },
               {
-                label: "For Developers",
-                to: "/docs/devs",
+                label: "Hutch GitHub",
+                href: "https://github.com/hdruk/hutch",
               },
               {
-                label: "Workflows",
-                to: "/docs/workflows",
+                label: "TRE-FX Project Website",
+                href: "https://trefx.uk",
               },
             ],
           },
           {
-            title: "Links",
+            title: "University of Nottingham",
             items: [
               {
                 label: "University of Nottingham",
@@ -122,26 +110,25 @@ const config = {
                 href: "https://linktr.ee/uondrs",
               },
               {
-                label: "Health Data Research UK",
-                href: "https://hdruk.ac.uk",
-              },
-            ],
-          },
-          {
-            title: "Community",
-            items: [
-              {
                 label: "DRS Twitter",
                 href: "https://twitter.com/uondrs",
               },
             ],
           },
           {
-            title: "More",
+            title: "Associated Organisations",
             items: [
               {
-                label: "GitHub",
-                href: "https://github.com/hdruk/hutch",
+                label: "Health Data Research UK",
+                href: "https://hdruk.ac.uk",
+              },
+              {
+                label: "DARE UK",
+                href: "https://dareuk.org.uk/",
+              },
+              {
+                label: "UK Research and Innovation",
+                href: "https://www.ukri.org/",
               },
             ],
           },

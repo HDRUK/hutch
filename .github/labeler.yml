@@ -1,10 +1,6 @@
 # label affected logical areas of the repo
 "Area: CI":
   - .github/**/*
-"Area: Manager Frontend":
-  - app/manager-frontend/**/*
-"Area: Manager Backend API":
-  - app/HutchManager/**/*
 "Area: Agent":
   - app/HutchAgent/**/*
 "Area: Docs":

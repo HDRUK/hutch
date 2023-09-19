@@ -1,3 +1,0 @@
-## About Hutch
-
-`// TODO`

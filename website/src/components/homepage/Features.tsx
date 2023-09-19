@@ -76,9 +76,22 @@ const Secure = () => {
 };
 
 const Interoperable = () => {
+  const { blue, pink } = useColorModeValue(
+    { blue: "blue.400", pink: "pink.500" },
+    { blue: "blue.300", pink: "pink.200" }
+  );
+
   return (
-    <Feature graphic={<Text fontSize={72}>🛠️</Text>}>
-      Hutch's submission API makes it work with any federated data tool.
+    <Feature graphic={<Text fontSize={72}>✅</Text>}>
+      Hutch is a TRE-FX compliant{" "}
+      <Text as="span" color={blue} fontWeight="bold">
+        Execution Agent
+      </Text>
+      , using the{" "}
+      <Text as="span" color={pink} fontWeight="bold">
+        5 Safes RO-Crate Profile
+      </Text>
+      .
     </Feature>
   );
 };

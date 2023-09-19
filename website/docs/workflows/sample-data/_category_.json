@@ -1,8 +1,0 @@
-{
-  "label": "Sample OMOP Data",
-  "position": 2,
-  "link": {
-    "type": "generated-index",
-    "description": "Where and how to get sample data for demonstration use of Hutch"
-  }
-}

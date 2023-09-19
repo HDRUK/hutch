@@ -1,0 +1,8 @@
+{
+  "label": "External Systems",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Supporting documentation for external systems in the context of Hutch"
+  }
+}
