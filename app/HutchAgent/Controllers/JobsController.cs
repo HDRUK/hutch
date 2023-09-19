@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
@@ -36,7 +35,9 @@ public class JobsController : ControllerBase
   public async Task<IActionResult> Submit(SubmitJobModel model)
   {
     if (ModelState.IsValid) return BadRequest();
+    if (model.OutputStore.Url is null) return BadRequest();
 
+    if (model.Crate is null) return BadRequest(); // TODO: Support fetching crate from remote URL
     await using var stream = model.Crate.OpenReadStream();
 
     // Unpack the crate
@@ -61,14 +62,30 @@ public class JobsController : ControllerBase
     }
     catch (Exception e) when (e is CrateReadException || e is MetadataException)
     {
-      try { Directory.Delete(bagitPath, recursive: true); }
-      catch (DirectoryNotFoundException) { /* Success! */ }
+      try
+      {
+        Directory.Delete(bagitPath, recursive: true);
+      }
+      catch (DirectoryNotFoundException)
+      {
+        /* Success! */
+      }
 
       return BadRequest("Crate Payload is not an RO-Crate.");
     }
 
     // If Valid (so far), Queue the job for an execution attempt
-    await _jobs.Create(model.JobId, bagitPath);
+    await _jobs.Create(new()
+      {
+        Id = model.JobId,
+        ProjectName = model.ProjectName,
+        ProjectId = model.ProjectId,
+        DataAccess = model.DataAccess,
+        WorkingDirectory = bagitPath,
+        OutputUrl = model.OutputStore.Url.ToString(),
+        OutputAccess = model.OutputStore.AccessToken,
+      });
+    
     _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
     {
       JobId = model.JobId,

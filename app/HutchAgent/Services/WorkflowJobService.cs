@@ -16,20 +16,19 @@ public class WorkflowJobService
   /// <summary>
   /// Create an entry in the database for the given <see cref="WorkflowJob"/>.
   /// </summary>
-  /// <param name="jobId">The ID of the job to be added to the database.</param>
-  /// <param name="workDir">The working directory of the job to be added to the database.</param>
+  /// <param name="job">A model containing the submitted details of the job to be added to the database.</param>
   /// <returns>The ID of the created <see cref="WorkflowJob"/>.</returns>
-  public async Task<string> Create(string jobId, string workDir)
+  public async Task<string> Create(Models.WorkflowJob job)
   {
-    var entity = new WorkflowJob()
+    var entity = new WorkflowJob
     {
-      Id = jobId,
-      WorkingDirectory = workDir,
+      Id = job.Id
     };
+    _db.Entry(entity).CurrentValues.SetValues(job);
 
     await _db.AddAsync(entity);
     await _db.SaveChangesAsync();
-    return jobId;
+    return job.Id;
   }
 
   /// <summary>

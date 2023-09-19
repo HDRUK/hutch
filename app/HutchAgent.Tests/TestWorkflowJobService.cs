@@ -17,8 +17,8 @@ public class TestWorkflowJobService : IDisposable
   {
     _db = new HutchAgentContext(
       new DbContextOptionsBuilder<HutchAgentContext>()
-      .UseInMemoryDatabase("TestWorkflowJobService")
-      .Options);
+        .UseInMemoryDatabase("TestWorkflowJobService")
+        .Options);
   }
 
   [Fact]
@@ -29,7 +29,7 @@ public class TestWorkflowJobService : IDisposable
     var service = new WorkflowJobService(_db);
 
     // Act
-    var createdId = await service.Create(_id1, jobWorkDir);
+    var createdId = await service.Create(new() { Id = _id1, WorkingDirectory = jobWorkDir });
 
     // Assert
 
