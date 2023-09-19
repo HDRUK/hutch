@@ -93,7 +93,7 @@ const HeroBanner = () => {
         <HeroButton
           colorScheme="blue"
           leftIcon={<FaBook />}
-          to="docs/users/getting-started/installation"
+          to="docs/getting-started"
         >
           Installation Guide
         </HeroButton>
