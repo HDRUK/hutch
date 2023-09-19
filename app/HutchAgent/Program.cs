@@ -23,6 +23,10 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
   o.UseSqlite(connectionString);
 });
 
+builder.Services.AddFeatureManagement();
+
+builder.Services.AddSwaggerGen();
+
 // All other services
 builder.Services
   .Configure<PathOptions>(builder.Configuration.GetSection("Paths"))
@@ -42,14 +46,20 @@ builder.Services
   .AddSingleton<BagItService>()
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
   .AddTransient<IQueueReader, RabbitQueueReader>()
-  .AddScoped<FinaliseActionHandler>()
-  .AddFeatureManagement();
+  .AddScoped<FinaliseActionHandler>();
+  
 
 #endregion
 
 var app = builder.Build();
 
 app.UseRouting();
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+  options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+  options.RoutePrefix = string.Empty;
+});
 app.MapControllers();
 
 #region Automatic Migrations
