@@ -38,7 +38,7 @@ public class CrateService
   /// Unzips a zipped RO-Crate to a job-specific directory inside Hutch's configured working directory.
   /// </summary>
   /// <param name="jobId">The ID of the job this crate is for.</param>
-  /// <param name="crateStream">A stream of the crate's bytes.</param>
+  /// <param name="crate">A stream of the crate's bytes.</param>
   /// <returns></returns>
   public string UnpackJobCrate(string jobId, Stream crate)
   {
@@ -52,7 +52,7 @@ public class CrateService
     Directory.CreateDirectory(targetPath);
     archive.ExtractToDirectory(targetPath, overwriteFiles: true);
 
-    _logger.LogInformation($"Crate extracted at {targetPath}", targetPath);
+    _logger.LogInformation("Crate extracted at {TargetPath}", targetPath);
 
     return targetPath;
   }
@@ -71,12 +71,12 @@ public class CrateService
     }
     catch (CrateReadException e)
     {
-      _logger.LogError(exception: e, "RO-Crate cannot be read, or is invalid.");
+      _logger.LogError(exception: e, "RO-Crate cannot be read, or is invalid");
       throw;
     }
     catch (MetadataException e)
     {
-      _logger.LogError(exception: e, "RO-Crate Metadata cannot be read, or is invalid.");
+      _logger.LogError(exception: e, "RO-Crate Metadata cannot be read, or is invalid");
       throw;
     }
 
@@ -185,7 +185,7 @@ public class CrateService
     {
       Id = status
     });
-    _logger.LogInformation($"Set {entity.Id} actionStatus to {status}");
+    _logger.LogInformation("Set {EntityId} actionStatus to {Status}", entity.Id, status);
   }
 
   /// <summary>
@@ -271,7 +271,7 @@ public class CrateService
 
     var action = assessActions.Select(action => action?["@id"]) ??
                  throw new NullReferenceException("No assessAction found with the given id");
-    var assessAction = roCrate.Entities[action.First()!.ToString()!];
+    var assessAction = roCrate.Entities[action.First()!.ToString()];
     return assessAction;
   }
 
