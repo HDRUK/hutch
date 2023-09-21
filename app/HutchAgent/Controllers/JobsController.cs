@@ -84,9 +84,10 @@ public class JobsController : ControllerBase
   /// <summary>
   /// Creates a Job entry and, if provided with a Crate URL, queues the job for Crate fetching.
   /// </summary>
+  [HttpPost]
   public async Task<ActionResult<JobStatusModel>> Submit(SubmitJobModel model)
   {
-    if (ModelState.IsValid) return BadRequest();
+    if (!ModelState.IsValid) return BadRequest();
 
     // If Valid (so far), create an initial Job state record.
     await _jobs.Create(new()
