@@ -16,14 +16,12 @@ namespace HutchAgent.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    ProjectName = table.Column<string>(type: "TEXT", nullable: false),
-                    ProjectId = table.Column<string>(type: "TEXT", nullable: false),
-                    OutputUrl = table.Column<string>(type: "TEXT", nullable: false),
-                    OutputAccess = table.Column<string>(type: "TEXT", nullable: true),
+                    CrateSource = table.Column<string>(type: "TEXT", nullable: true),
                     DataAccess = table.Column<string>(type: "TEXT", nullable: true),
                     WorkingDirectory = table.Column<string>(type: "TEXT", nullable: false),
                     ExecutorRunId = table.Column<string>(type: "TEXT", nullable: false),
                     ExitCode = table.Column<int>(type: "INTEGER", nullable: true),
+                    EgressTarget = table.Column<string>(type: "TEXT", nullable: true),
                     ExecutionStartTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
                     EndTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: true)
                 },

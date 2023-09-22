@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HutchAgent.Migrations
 {
     [DbContext(typeof(HutchAgentContext))]
-    [Migration("20230922112429_CrateSource")]
-    partial class CrateSource
+    [Migration("20230922124813_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
