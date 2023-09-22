@@ -55,7 +55,7 @@ public class JobsController : ControllerBase
   {
     try
     {
-      // Firest check the job exists from Hutch's perspective
+      // First check the job exists from Hutch's perspective
       var job = await _jobs.Get(id);
 
       // If so, then check if we've already got a crate

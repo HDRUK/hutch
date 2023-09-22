@@ -1,22 +1,22 @@
 using HutchAgent.Config;
 using HutchAgent.Constants;
-using HutchAgent.Services;
+using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
 
-namespace HutchAgent.HostedServices;
+namespace HutchAgent.Services.Hosted;
 
-public class QueuePollingHostedService : BackgroundService
+public class JobActionQueuePoller : BackgroundService
 {
   private readonly JobActionsQueueOptions _options;
-  private readonly ILogger<QueuePollingHostedService> _logger;
+  private readonly ILogger<JobActionQueuePoller> _logger;
   private readonly IServiceProvider _serviceProvider;
 
   private List<Task> _runningActions = new();
 
-  public QueuePollingHostedService(
+  public JobActionQueuePoller(
     IOptions<JobActionsQueueOptions> options,
-    ILogger<QueuePollingHostedService> logger,
+    ILogger<JobActionQueuePoller> logger,
     IServiceProvider serviceProvider)
   {
     _options = options.Value;
@@ -37,8 +37,7 @@ public class QueuePollingHostedService : BackgroundService
       using (var scope = _serviceProvider.CreateScope())
       {
         var queue = _serviceProvider.GetRequiredService<IQueueReader>();
-        var executeActionHandler = scope.ServiceProvider.GetRequiredService<ExecuteActionHandler>();
-        //var finalisationService = scope.ServiceProvider.GetRequiredService<FinaliseActionHandler>();
+
 
         // If a thread is available, per Max Parallelism, then
         // Pop a queue message, and Execute its action on the free thread
@@ -51,19 +50,20 @@ public class QueuePollingHostedService : BackgroundService
             continue;
           }
 
-          // Optionally, prepare the job's crate and state record before executing?
-
-          switch (message.ActionType)
+          // Define ActionHandlers for each type
+          var handlers = new Dictionary<string, Type>
           {
-            case JobActionTypes.Execute:
-              _runningActions.Add(Task.Run(async () => await executeActionHandler.Execute(message.JobId),
-                stoppingToken));
-              break;
-            // case JobActionTypes.Finalize:
-            //   _runningActions.Add(
-            //     Task.Run(async () => await finalisationService.Finalise(message.JobId), stoppingToken));
-            //   break;
-          }
+            [JobActionTypes.FetchAndExecute] = typeof(FetchAndExecuteActionHandler),
+            [JobActionTypes.Execute] = typeof(ExecuteActionHandler)
+            // [JobActionTypes.InitiateEgress] = typeof(ExecuteActionHandler)
+            // [JobActionTypes.Finalize] = typeof(ExecuteActionHandler)
+          };
+          
+          // Get the Handler and Handle its Action
+          var handler = (IActionHandler)scope.ServiceProvider
+            .GetRequiredService(handlers[message.ActionType]);
+
+          await handler.HandleAction(message.JobId);
         }
       }
 
@@ -76,7 +76,7 @@ public class QueuePollingHostedService : BackgroundService
 
   public override async Task StopAsync(CancellationToken stoppingToken)
   {
-    _logger.LogInformation("Stopping polling WorkflowJob Action Queue.");
+    _logger.LogInformation("Stopping polling WorkflowJob Action Queue");
 
     await base.StopAsync(stoppingToken);
   }

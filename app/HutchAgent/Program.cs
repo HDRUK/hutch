@@ -6,6 +6,7 @@ using HutchAgent.Extensions;
 using HutchAgent.HostedServices;
 using HutchAgent.Services;
 using HutchAgent.Services.Contracts;
+using HutchAgent.Services.Hosted;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
@@ -69,7 +70,7 @@ builder.Services
 
 // Hosted Services
 builder.Services
-  .AddHostedService<QueuePollingHostedService>();
+  .AddHostedService<JobActionQueuePoller>();
 
 // Other Application Services
 builder.Services
