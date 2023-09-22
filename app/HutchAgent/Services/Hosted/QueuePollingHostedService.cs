@@ -1,6 +1,7 @@
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Services;
+using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
 
 namespace HutchAgent.HostedServices;
@@ -37,7 +38,7 @@ public class QueuePollingHostedService : BackgroundService
       {
         var queue = _serviceProvider.GetRequiredService<IQueueReader>();
         var executeActionHandler = scope.ServiceProvider.GetRequiredService<ExecuteActionHandler>();
-        var finalisationService = scope.ServiceProvider.GetRequiredService<FinaliseActionHandler>();
+        //var finalisationService = scope.ServiceProvider.GetRequiredService<FinaliseActionHandler>();
 
         // If a thread is available, per Max Parallelism, then
         // Pop a queue message, and Execute its action on the free thread
@@ -58,10 +59,10 @@ public class QueuePollingHostedService : BackgroundService
               _runningActions.Add(Task.Run(async () => await executeActionHandler.Execute(message.JobId),
                 stoppingToken));
               break;
-            case JobActionTypes.Finalize:
-              _runningActions.Add(
-                Task.Run(async () => await finalisationService.Finalise(message.JobId), stoppingToken));
-              break;
+            // case JobActionTypes.Finalize:
+            //   _runningActions.Add(
+            //     Task.Run(async () => await finalisationService.Finalise(message.JobId), stoppingToken));
+            //   break;
           }
         }
       }

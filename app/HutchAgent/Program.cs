@@ -73,14 +73,15 @@ builder.Services
 
 // Other Application Services
 builder.Services
+  .AddTransient<JobLifecycleService>()
   .AddTransient<StatusReportingService>()
+  .AddTransient<WorkflowJobService>()
   .AddTransient<RequestCrateService>()
+  .AddSingleton<BagItService>()
+  .AddTransient<CrateService>()
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
   .AddResultsStore(builder.Configuration)
-  .AddTransient<WorkflowJobService>()
-  .AddTransient<CrateService>()
-  .AddSingleton<BagItService>()
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
   .AddTransient<IQueueReader, RabbitQueueReader>();
 
