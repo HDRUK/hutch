@@ -90,7 +90,7 @@ public class JobsController : ControllerBase
         // Get rid of anything we stored so far
         try
         {
-          Directory.Delete(job.WorkingDirectory);
+          Directory.Delete(job.WorkingDirectory, recursive: true);
         }
         catch (DirectoryNotFoundException)
         {
@@ -135,19 +135,19 @@ public class JobsController : ControllerBase
   [SwaggerResponse(409, "This Job already has a Request Crate submitted.")]
   public async Task<IActionResult> ProvideCrateUrl(string id, [FromBody] string url)
   {
-    // Check Crate URL
-    if (!IsValidCrateUrl(new Uri(url)))
-      return BadRequest($"Expected an HTTP(S) URL for crateUrl, but got: {url}");
-    
     try
     {
+      // Check Crate URL
+      if (!IsValidCrateUrl(new Uri(url)))
+        return BadRequest($"Expected an HTTP(S) URL for crateUrl, but got: {url}");
+
       // First check the job exists from Hutch's perspective
       var job = await _jobs.Get(id);
 
       // If so, then check if we've already got a crate
       if (job.HasCrateSubmitted())
         return Conflict("This Job has already had a Crate submitted.");
-      
+
       // Record this as the crate source
       job.CrateSource = url;
       await _jobs.Set(job);
