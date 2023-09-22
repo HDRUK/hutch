@@ -3,9 +3,9 @@ namespace HutchAgent.Config;
 public class PathOptions
 {
   /// <summary>
-  /// An absolute path for Hutch to use as a working directory.
+  /// A path for Hutch to use as a working directory. Relative paths start adjacent to the Hutch executable.
   /// </summary>
-  public string WorkingDirectoryBase { get; set; } = string.Empty;
+  public string WorkingDirectoryBase { get; set; } = "hutch-workdir";
 
   /// <summary>
   /// <para>A Path to where job working directories should be.</para>
