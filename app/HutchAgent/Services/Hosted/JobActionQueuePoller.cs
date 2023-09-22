@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Services.ActionHandlers;
@@ -60,6 +61,14 @@ public class JobActionQueuePoller : BackgroundService
           };
 
           // Get the Handler and Handle its Action
+          if (!handlers.ContainsKey(message.ActionType))
+          {
+            _logger.LogError("Encountered unknown Action Type in queue. QueueMessage: {Message}",
+              JsonSerializer.Serialize(message));
+            await delay;
+            continue;
+          }
+
           var handler = (IActionHandler)scope.ServiceProvider
             .GetRequiredService(handlers[message.ActionType]);
 

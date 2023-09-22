@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace HutchAgent.Models.JobQueue;
 
 public class JobQueueMessage
 {
-  public string JobId { get; set; } = string.Empty;
+  [JsonPropertyName("jobId")]
+  public required string JobId { get; init; }
 
-  public string ActionType { get; set; } = string.Empty;
+  [JsonPropertyName("actionType")]
+  public required string ActionType { get; init; }
 }

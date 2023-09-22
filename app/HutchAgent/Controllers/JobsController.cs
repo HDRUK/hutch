@@ -23,19 +23,21 @@ public class JobsController : ControllerBase
   private readonly IQueueWriter _queueWriter;
   private readonly StatusReportingService _status;
   private readonly JobLifecycleService _job;
-
+  private readonly PathOptions _paths;
 
   public JobsController(
     IOptions<JobActionsQueueOptions> queueOptions,
     IQueueWriter queueWriter,
     WorkflowJobService jobs,
     StatusReportingService status,
-    JobLifecycleService job)
+    JobLifecycleService job,
+    IOptions<PathOptions> paths)
   {
     _queueWriter = queueWriter;
     _jobs = jobs;
     _status = status;
     _job = job;
+    _paths = paths.Value;
     _queueOptions = queueOptions.Value;
   }
 
@@ -125,7 +127,7 @@ public class JobsController : ControllerBase
   /// </summary>
   /// <param name="id">The ID of the of the job to provide a crate URL for.</param>
   /// <param name="url">A URL to a TRE-FX 5 Safes RO-Crate for the job, which Hutch can retrieve with a GET Request.</param>
-  [HttpPost("{id}")]
+  [HttpPost("{id}/crate-url")]
   public IActionResult ProvideCrateUrl(string id, [FromBody] string url)
   {
     return Accepted();
@@ -152,7 +154,8 @@ public class JobsController : ControllerBase
       {
         Id = model.JobId,
         DataAccess = model.DataAccess,
-        CrateSource = model.CrateUrl?.ToString()
+        CrateSource = model.CrateUrl?.ToString(),
+        WorkingDirectory = _paths.JobWorkingDirectory(model.JobId)
       });
     }
     catch (DbUpdateException)

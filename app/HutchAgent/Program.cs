@@ -5,6 +5,7 @@ using HutchAgent.Data;
 using HutchAgent.Extensions;
 using HutchAgent.HostedServices;
 using HutchAgent.Services;
+using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
 using HutchAgent.Services.Hosted;
 using Microsoft.EntityFrameworkCore;
@@ -48,10 +49,12 @@ builder.Services.AddSwaggerGen(o =>
     $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
   
   o.EnableAnnotations();
+  o.SupportNonNullableReferenceTypes();
 });
 
-// Automapper
+// Other Services
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddHttpClient();
 
 // IOptions
 builder.Services
@@ -65,7 +68,9 @@ builder.Services
 
 // JobAction Handlers
 builder.Services
+  .AddScoped<FetchAndExecuteActionHandler>()
   .AddScoped<ExecuteActionHandler>()
+  //.AddScoped<ExecuteActionHandler>()
   .AddScoped<FinaliseActionHandler>();
 
 // Hosted Services
