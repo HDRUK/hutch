@@ -106,7 +106,7 @@ public class JobsController : ControllerBase
           ActionType = JobActionTypes.Execute
         });
 
-      _status.ReportStatus(job.Id, JobStatus.Queued);
+      await _status.ReportStatus(job.Id, JobStatus.Queued);
 
       return Accepted(new JobStatusModel
       {
@@ -171,7 +171,7 @@ public class JobsController : ControllerBase
           ActionType = JobActionTypes.FetchAndExecute,
         });
 
-      _status.ReportStatus(model.JobId, JobStatus.FetchingCrate);
+      await _status.ReportStatus(model.JobId, JobStatus.FetchingCrate);
       return Accepted(new JobStatusModel
       {
         Id = model.JobId,
@@ -180,7 +180,7 @@ public class JobsController : ControllerBase
     }
 
     // (otherwise, we expect a raw crate, or URL, to be submitted at a later time.)
-    _status.ReportStatus(model.JobId, JobStatus.WaitingForCrate);
+    await _status.ReportStatus(model.JobId, JobStatus.WaitingForCrate);
     return Ok(new JobStatusModel
     {
       Id = model.JobId,

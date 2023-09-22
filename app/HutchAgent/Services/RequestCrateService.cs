@@ -17,7 +17,8 @@ public class RequestCrateService
   private readonly ILogger<RequestCrateService> _logger;
 
   public RequestCrateService(
-    ILogger<RequestCrateService> logger, CrateService crates)
+    ILogger<RequestCrateService> logger,
+    CrateService crates)
   {
     _logger = logger;
     _crates = crates;

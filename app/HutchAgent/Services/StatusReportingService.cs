@@ -14,11 +14,13 @@ public class StatusReportingService
     _logger = logger;
   }
 
-  public void ReportStatus(string jobId, JobStatus type, string? message = null)
+  public Task ReportStatus(string jobId, JobStatus type, string? message = null)
   {
     // This is the most dummy version of this there could be <3
     _logger.LogInformation(
       "Job [{Id}] Status Report [{Type}]: {Message}",
       jobId, type.ToString(), message);
+
+    return Task.CompletedTask;
   }
 }
