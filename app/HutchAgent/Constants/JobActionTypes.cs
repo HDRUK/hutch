@@ -27,6 +27,7 @@ public static class JobActionTypes
   /// </summary>
   public const string Finalize = "Finalize";
   
+  // TODO This may not be an Action Type per se if it's a scheduled HostedService of its own?
   /// <summary>
   /// Clean up jobs that never had a Crate successfully submitted
   /// within a reasonable time (e.g. 30days).
