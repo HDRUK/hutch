@@ -1,3 +1,4 @@
+using AutoMapper;
 using HutchAgent.Data;
 using HutchAgent.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -7,10 +8,12 @@ namespace HutchAgent.Services;
 public class WorkflowJobService
 {
   private readonly HutchAgentContext _db;
+  private readonly IMapper _mapper;
 
-  public WorkflowJobService(HutchAgentContext db)
+  public WorkflowJobService(HutchAgentContext db, IMapper mapper)
   {
     _db = db;
+    _mapper = mapper;
   }
 
   /// <summary>
@@ -37,18 +40,10 @@ public class WorkflowJobService
   /// <returns>The list of <see cref="Models.WorkflowJob"/>s in the database.</returns>
   public async Task<List<Models.WorkflowJob>> List()
   {
-    return await _db.WorkflowJobs
-      .AsNoTracking()
-      .Select(entity => new Models.WorkflowJob
-        {
-          Id = entity.Id,
-          WorkingDirectory = entity.WorkingDirectory,
-          ExecutorRunId = entity.ExecutorRunId,
-          ExitCode = entity.ExitCode,
-          ExecutionStartTime = entity.ExecutionStartTime,
-          EndTime = entity.EndTime
-        }
-      ).ToListAsync();
+    return _mapper.Map<List<Models.WorkflowJob>>(
+      await _db.WorkflowJobs
+        .AsNoTracking()
+        .ToListAsync());
   }
 
   /// <summary>
@@ -60,16 +55,7 @@ public class WorkflowJobService
   {
     var entity = await _db.WorkflowJobs.FindAsync(jobId)
                  ?? throw new KeyNotFoundException();
-    var job = new Models.WorkflowJob
-    {
-      Id = entity.Id,
-      ExecutionStartTime = entity.ExecutionStartTime,
-      EndTime = entity.EndTime,
-      ExecutorRunId = entity.ExecutorRunId,
-      ExitCode = entity.ExitCode,
-      WorkingDirectory = entity.WorkingDirectory
-    };
-    return job;
+    return _mapper.Map<Models.WorkflowJob>(entity);
   }
 
   /// <summary>
@@ -85,15 +71,7 @@ public class WorkflowJobService
     _db.Entry(entity).CurrentValues.SetValues(job);
     await _db.SaveChangesAsync();
 
-    return new()
-    {
-      Id = entity.Id,
-      WorkingDirectory = entity.WorkingDirectory,
-      ExecutorRunId = entity.ExecutorRunId,
-      ExitCode = entity.ExitCode,
-      ExecutionStartTime = entity.ExecutionStartTime,
-      EndTime = entity.EndTime,
-    };
+    return _mapper.Map<Models.WorkflowJob>(entity);
   }
 
   /// <summary>

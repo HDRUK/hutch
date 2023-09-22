@@ -35,29 +35,6 @@ public class CrateService
   }
 
   /// <summary>
-  /// Unzips a zipped RO-Crate to a job-specific directory inside Hutch's configured working directory.
-  /// </summary>
-  /// <param name="jobId">The ID of the job this crate is for.</param>
-  /// <param name="crate">A stream of the crate's bytes.</param>
-  /// <returns></returns>
-  public string UnpackJobCrate(string jobId, Stream crate)
-  {
-    var baseJobsPath = Path.IsPathRooted(_paths.Jobs)
-      ? _paths.Jobs
-      : Path.Combine(_paths.WorkingDirectoryBase, _paths.Jobs);
-    var targetPath = Path.Combine(baseJobsPath, jobId);
-
-    using var archive = new ZipArchive(crate);
-
-    Directory.CreateDirectory(targetPath);
-    archive.ExtractToDirectory(targetPath, overwriteFiles: true);
-
-    _logger.LogInformation("Crate extracted at {TargetPath}", targetPath);
-
-    return targetPath;
-  }
-
-  /// <summary>
   /// Create an RO-Crate object based on a RO-Crate saved on disk
   /// </summary>
   /// <param name="cratePath">Path to RO-Crate</param>

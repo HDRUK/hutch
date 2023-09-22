@@ -1,4 +1,6 @@
+using AutoMapper;
 using HutchAgent.Data;
+using HutchAgent.MappingProfiles;
 using HutchAgent.Models;
 using HutchAgent.Services;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +10,8 @@ namespace HutchAgent.Tests;
 public class TestWorkflowJobService : IDisposable
 {
   private readonly HutchAgentContext _db;
+  private readonly IMapper _mapper;
+  
   private readonly string _id1 = Guid.NewGuid().ToString();
   private readonly string _id2 = Guid.NewGuid().ToString();
 
@@ -19,6 +23,12 @@ public class TestWorkflowJobService : IDisposable
       new DbContextOptionsBuilder<HutchAgentContext>()
         .UseInMemoryDatabase("TestWorkflowJobService")
         .Options);
+    
+    var config = new MapperConfiguration(cfg =>
+    {
+      cfg.AddProfile<WorkflowJobProfile>();
+    });
+    _mapper = config.CreateMapper();
   }
 
   [Fact]
@@ -26,7 +36,7 @@ public class TestWorkflowJobService : IDisposable
   {
     // Arrange
     var jobWorkDir = Path.Combine(_baseWorkingDirectory, _id1);
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     var createdId = await service.Create(new() { Id = _id1, WorkingDirectory = jobWorkDir });
@@ -61,7 +71,7 @@ public class TestWorkflowJobService : IDisposable
       new() { Id = _id2, WorkingDirectory = "second/path" }
     };
 
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     var actualValues = await service.List();
@@ -98,7 +108,7 @@ public class TestWorkflowJobService : IDisposable
       ExecutorRunId = _id2
     };
 
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     var actualObject = await service.Get(storedEntity.Id);
@@ -115,7 +125,7 @@ public class TestWorkflowJobService : IDisposable
     // Arrange
     var keyThatShouldNotExist = _id1;
 
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     var action = async () => await service.Get(keyThatShouldNotExist);
@@ -144,7 +154,7 @@ public class TestWorkflowJobService : IDisposable
       ExecutorRunId = _id2,
     };
 
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     var outputModel = await service.Set(inputModel);
@@ -166,7 +176,7 @@ public class TestWorkflowJobService : IDisposable
       Id = _id1,
     };
 
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     var action = async () => await service.Set(newObject);
@@ -186,7 +196,7 @@ public class TestWorkflowJobService : IDisposable
     _db.Add(originalEntity);
     _db.SaveChanges();
 
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     await service.Delete(originalEntity.Id);
@@ -200,7 +210,7 @@ public class TestWorkflowJobService : IDisposable
   public async void Delete_Succeeds_WhenJobNotFound()
   {
     // Arrange
-    var service = new WorkflowJobService(_db);
+    var service = new WorkflowJobService(_db, _mapper);
 
     // Act
     var action = async () => await service.Delete("42");

@@ -45,7 +45,12 @@ builder.Services.AddSwaggerGen(o =>
   o.IncludeXmlComments(Path.Combine(
     AppContext.BaseDirectory,
     $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+  
+  o.EnableAnnotations();
 });
+
+// Automapper
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // IOptions
 builder.Services
@@ -69,6 +74,7 @@ builder.Services
 // Other Application Services
 builder.Services
   .AddTransient<StatusReportingService>()
+  .AddTransient<RequestCrateService>()
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
   .AddResultsStore(builder.Configuration)
