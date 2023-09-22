@@ -46,9 +46,19 @@ public class JobLifecycleService
   /// <returns>A <see cref="BasicResult"/> indicating whether the Crate was accepted, and if not why not.</returns>
   public BasicResult AcceptRequestCrate(WorkflowJob job, Stream crate)
   {
-    var bagitPath = _requestCrates.Unpack(job, crate);
+    try
+    {
+      var bagitPath = _requestCrates.Unpack(job, crate);
 
-    return _requestCrates.IsValidToAccept(bagitPath.BagItPayloadPath());
+      return _requestCrates.IsValidToAccept(bagitPath.BagItPayloadPath());
+    }
+    catch (InvalidDataException)
+    {
+      return new()
+      {
+        Errors = new() { "The provided file is not a valid zip archive." }
+      };
+    }
   }
 
   /// <summary>
@@ -62,14 +72,14 @@ public class JobLifecycleService
 
     try
     {
-      Directory.Delete(job.WorkingDirectory);
+      Directory.Delete(job.WorkingDirectory, recursive: true);
     }
     catch (DirectoryNotFoundException)
     {
       /* Success */
     }
   }
-  
+
   /// <summary>
   /// Clean up everything related to a job;
   /// its db record, its working directory etc.
@@ -88,7 +98,7 @@ public class JobLifecycleService
       // Try and remove the "expected" working directory since we don't know the actual
       try
       {
-        Directory.Delete(_paths.JobWorkingDirectory(jobId));
+        Directory.Delete(_paths.JobWorkingDirectory(jobId), recursive: true);
       }
       catch (DirectoryNotFoundException)
       {
