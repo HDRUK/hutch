@@ -48,6 +48,7 @@ public class RequestCrateService
 
     // TODO: 5 safes crate profile validation? or do this during execution?
 
+    result.Success = true;
     return result;
   }
 
