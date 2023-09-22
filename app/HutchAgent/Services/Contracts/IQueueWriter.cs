@@ -1,4 +1,4 @@
-namespace HutchAgent.Services;
+namespace HutchAgent.Services.Contracts;
 
 public interface IQueueWriter
 {

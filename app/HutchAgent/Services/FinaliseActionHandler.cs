@@ -3,6 +3,8 @@ using System.IO.Compression;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
+using HutchAgent.Models.JobQueue;
+using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
 using YamlDotNet.RepresentationModel;
 
@@ -46,9 +48,13 @@ public class FinaliseActionHandler
     _workflowOptions = workflowOptions.Value;
     _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
+    
+    // TODO: don't like this in ctor
 
     // Find the WfExS cache directory path
-    var configYaml = File.ReadAllText(triggerOptions.Value.LocalConfigPath);
+    var configYaml = File.ReadAllText(
+      triggerOptions.Value.LocalConfigPath
+      ?? throw new InvalidOperationException("Workflow Executor Config Path is missing!"));
     var configYamlStream = new StringReader(configYaml);
     var yamlStream = new YamlStream();
     yamlStream.Load(configYamlStream);

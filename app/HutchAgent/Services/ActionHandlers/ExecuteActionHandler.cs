@@ -1,11 +1,13 @@
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
+using HutchAgent.Models.JobQueue;
+using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;
 
-public class ExecuteActionHandler
+public class ExecuteActionHandler : IActionHandler
 {
   private readonly WorkflowFetchService _workflowFetchService;
   private readonly WorkflowTriggerService _workflowTriggerService;
@@ -30,10 +32,10 @@ public class ExecuteActionHandler
     _crates = crates;
   }
 
-  public async Task Execute(string messageJobId)
+  public async Task HandleAction(string jobId)
   {
     // Get job.
-    var job = await _workflowJobService.Get(messageJobId);
+    var job = await _workflowJobService.Get(jobId);
 
     // Initialise RO-Crate 
     var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());

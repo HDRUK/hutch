@@ -11,7 +11,18 @@ public class WorkflowJob
   public string Id { get; set; } = string.Empty;
 
   /// <summary>
-  /// Absolute path to Hutch's working directory for this Job
+  /// Once known, record where the crate came from:
+  /// the URL if one was provided; or the original filename if submitted by payload.
+  /// </summary>
+  public string? CrateSource { get; set; }
+  
+  /// <summary>
+  /// Access credentials / Vault token for the Data Source the job's workflow interacts with
+  /// </summary>
+  public string? DataAccess { get; set; }
+
+  /// <summary>
+  /// Absolute path to Hutch's working directory for this Job.
   /// </summary>
   public string WorkingDirectory { get; set; } = string.Empty;
 
@@ -24,6 +35,11 @@ public class WorkflowJob
   /// Exit Code of the Workflow Executor Run
   /// </summary>
   public int? ExitCode { get; set; }
+  
+  /// <summary>
+  /// Once known, here are the details for egress
+  /// </summary>
+  public string? EgressTarget { get; set; }
 
   public DateTimeOffset? ExecutionStartTime { get; set; }
   public DateTimeOffset? EndTime { get; set; }

@@ -1,80 +1,250 @@
-using System.Runtime.CompilerServices;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
+using HutchAgent.Models.JobQueue;
 using HutchAgent.Services;
+using HutchAgent.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using ROCrates.Exceptions;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace HutchAgent.Controllers;
 
 [ApiController]
 [AllowAnonymous]
+[Produces("application/json")]
 [Route("api/[controller]")]
 public class JobsController : ControllerBase
 {
-  private readonly CrateService _crates;
   private readonly WorkflowJobService _jobs;
   private readonly JobActionsQueueOptions _queueOptions;
   private readonly IQueueWriter _queueWriter;
+  private readonly StatusReportingService _status;
+  private readonly JobLifecycleService _job;
+  private readonly PathOptions _paths;
 
   public JobsController(
     IOptions<JobActionsQueueOptions> queueOptions,
-    CrateService crates,
     IQueueWriter queueWriter,
-    WorkflowJobService jobs)
+    WorkflowJobService jobs,
+    StatusReportingService status,
+    JobLifecycleService job,
+    IOptions<PathOptions> paths)
   {
-    _crates = crates;
     _queueWriter = queueWriter;
     _jobs = jobs;
+    _status = status;
+    _job = job;
+    _paths = paths.Value;
     _queueOptions = queueOptions.Value;
   }
 
-  [HttpPost]
-  public async Task<IActionResult> Submit(SubmitJobModel model)
+  /// <summary>
+  /// Submit a crate via POST Request Body for an already created job with the given id.
+  /// </summary>
+  /// <param name="id">The ID of the of the job to submit a crate for.</param>
+  /// <param name="crate">A TRE-FX 5 Safes RO-Crate for the job.</param>
+  [HttpPost("{id}/crate")]
+  [Consumes("multipart/form-data")]
+  [SwaggerResponse(202, "The Submitted Request Crate was accepted and queued to be executed.",
+    typeof(JobStatusModel))]
+  [SwaggerResponse(400, "The Request Crate was invalid.", typeof(List<string>))]
+  [SwaggerResponse(404, "A Job with the provided ID could not be found.")]
+  [SwaggerResponse(409, "This Job already has a Request Crate submitted.")]
+  public async Task<IActionResult> SubmitCrate(string id, IFormFile crate)
   {
-    if (ModelState.IsValid) return BadRequest();
-
-    await using var stream = model.Crate.OpenReadStream();
-
-    // Unpack the crate
-    string? bagitPath;
-    {
-      if (stream is null)
-        throw new InvalidOperationException(
-          $"Couldn't open a stream for the crate in Job {model.JobId}");
-
-      bagitPath = _crates.UnpackJobCrate(model.JobId, stream);
-    }
-
-    // Validate the Crate
     try
     {
-      // TODO: BagIt checksum validation? or do this during execution?
+      // First check the job exists from Hutch's perspective
+      var job = await _jobs.Get(id);
 
-      // Validate that it's a crate at all, by trying to Initialise it
-      _crates.InitialiseCrate(bagitPath.BagItPayloadPath());
+      // If so, then check if we've already got a crate
+      if (job.HasCrateSubmitted())
+        return Conflict("This Job has already had a Crate submitted.");
 
-      // TODO: 5 safes crate profile validation? or do this during execution?
+      // Record this as the crate source for now to avoid repeat submissions
+      job.CrateSource = crate.FileName;
+      await _jobs.Set(job);
+
+      // Now check we can get the file
+      await using var stream = crate.OpenReadStream();
+      if (stream is null)
+      {
+        // Reset Crate Source
+        job.CrateSource = null;
+        await _jobs.Set(job);
+
+        throw new InvalidOperationException(
+          $"Couldn't open a stream for the crate in Job {id}");
+      }
+
+      var result = _job.AcceptRequestCrate(job, stream);
+      if (!result.Success)
+      {
+        // Reset Crate Source
+        job.CrateSource = null;
+        await _jobs.Set(job);
+
+        // Get rid of anything we stored so far
+        try
+        {
+          Directory.Delete(job.WorkingDirectory, recursive: true);
+        }
+        catch (DirectoryNotFoundException)
+        {
+          /* Success */
+        }
+
+        return BadRequest(result.Errors);
+      }
+
+      _queueWriter.SendMessage(
+        _queueOptions.QueueName,
+        new JobQueueMessage
+        {
+          JobId = job.Id,
+          ActionType = JobActionTypes.Execute
+        });
+
+      await _status.ReportStatus(job.Id, JobStatus.Queued);
+
+      return Accepted(new JobStatusModel
+      {
+        Id = job.Id,
+        Status = JobStatus.Queued.ToString()
+      });
     }
-    catch (Exception e) when (e is CrateReadException || e is MetadataException)
+    catch (KeyNotFoundException)
     {
-      try { Directory.Delete(bagitPath, recursive: true); }
-      catch (DirectoryNotFoundException) { /* Success! */ }
+      return NotFound();
+    }
+  }
 
-      return BadRequest("Crate Payload is not an RO-Crate.");
+  /// <summary>
+  /// Provide a crate URL via POST Request Body for an already created job with the given id.
+  /// </summary>
+  /// <param name="id">The ID of the of the job to provide a crate URL for.</param>
+  /// <param name="url">A URL to a TRE-FX 5 Safes RO-Crate for the job, which Hutch can retrieve with a GET Request.</param>
+  [HttpPost("{id}/crate-url")]
+  [SwaggerResponse(202, "The Submitted Request Crate URL was accepted and queued to be fetched.",
+    typeof(JobStatusModel))]
+  [SwaggerResponse(400, "The provided URL was invalid.")]
+  [SwaggerResponse(404, "A Job with the provided ID could not be found.")]
+  [SwaggerResponse(409, "This Job already has a Request Crate submitted.")]
+  public async Task<IActionResult> ProvideCrateUrl(string id, [FromBody] string url)
+  {
+    try
+    {
+      // Check Crate URL
+      if (!IsValidCrateUrl(new Uri(url)))
+        return BadRequest($"Expected an HTTP(S) URL for crateUrl, but got: {url}");
+
+      // First check the job exists from Hutch's perspective
+      var job = await _jobs.Get(id);
+
+      // If so, then check if we've already got a crate
+      if (job.HasCrateSubmitted())
+        return Conflict("This Job has already had a Crate submitted.");
+
+      // Record this as the crate source
+      job.CrateSource = url;
+      await _jobs.Set(job);
+
+      // Write Crate URL and Queue for Fetching
+      _queueWriter.SendMessage(
+        _queueOptions.QueueName,
+        new JobQueueMessage
+        {
+          JobId = id,
+          ActionType = JobActionTypes.FetchAndExecute,
+        });
+
+      await _status.ReportStatus(id, JobStatus.FetchingCrate);
+      return Accepted(new JobStatusModel
+      {
+        Id = id,
+        Status = JobStatus.FetchingCrate.ToString()
+      });
+    }
+    catch (UriFormatException e)
+    {
+      return BadRequest($"The URL is badly formed: {e.Message}");
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
+
+  /// <summary>
+  /// Check whether a provided crateUrl is valid for Hutch's purposes.
+  /// </summary>
+  /// <param name="crateUrl">The URL to check.</param>
+  /// <returns>Whether the provided URL is valid.</returns>
+  private static bool IsValidCrateUrl(Uri crateUrl)
+    => crateUrl.IsAbsoluteUri && new[] { "http", "https" }.Contains(crateUrl.Scheme);
+
+  /// <summary>
+  /// Creates a Job entry and, if provided with a Crate URL, queues the job for Crate fetching.
+  /// </summary>
+  [HttpPost]
+  [SwaggerResponse(200, "The Job was registered, and is awaiting submission of a Request Crate.",
+    typeof(JobStatusModel))]
+  [SwaggerResponse(202, "The Job was registered, and the submitted Request Crate URL queued to be fetched.",
+    typeof(JobStatusModel))]
+  [SwaggerResponse(400, "The Job details submitted are invalid.")]
+  [SwaggerResponse(409, "Hutch is already actively managing a Job with this Id.")]
+  public async Task<ActionResult<JobStatusModel>> Submit(SubmitJobModel model)
+  {
+    if (!ModelState.IsValid) return BadRequest();
+
+    // Check Crate URL if it's not null
+    if (model.CrateUrl is not null && !IsValidCrateUrl(model.CrateUrl))
+      return BadRequest($"Expected an HTTP(S) URL for crateUrl, but got: {model.CrateUrl}");
+
+    // If Valid (so far), create an initial Job state record.
+    try
+    {
+      await _jobs.Create(new()
+      {
+        Id = model.JobId,
+        DataAccess = model.DataAccess,
+        CrateSource = model.CrateUrl?.ToString(),
+        WorkingDirectory = _paths.JobWorkingDirectory(model.JobId)
+      });
+    }
+    catch (DbUpdateException)
+    {
+      return Conflict();
     }
 
-    // If Valid (so far), Queue the job for an execution attempt
-    await _jobs.Create(model.JobId, bagitPath);
-    _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
+    // If we have a crate URL, we should queue a fetch of the crate.
+    if (model.CrateUrl is not null)
     {
-      JobId = model.JobId,
-      ActionType = JobActionTypes.Execute
+      _queueWriter.SendMessage(
+        _queueOptions.QueueName,
+        new JobQueueMessage
+        {
+          JobId = model.JobId,
+          ActionType = JobActionTypes.FetchAndExecute,
+        });
+
+      await _status.ReportStatus(model.JobId, JobStatus.FetchingCrate);
+      return Accepted(new JobStatusModel
+      {
+        Id = model.JobId,
+        Status = JobStatus.FetchingCrate.ToString()
+      });
+    }
+
+    // (otherwise, we expect a raw crate, or URL, to be submitted at a later time.)
+    await _status.ReportStatus(model.JobId, JobStatus.WaitingForCrate);
+    return Ok(new JobStatusModel
+    {
+      Id = model.JobId,
+      Status = JobStatus.WaitingForCrate.ToString()
     });
-
-    return Accepted();
   }
 }

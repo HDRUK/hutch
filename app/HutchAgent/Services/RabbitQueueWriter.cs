@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using HutchAgent.Config;
 using HutchAgent.Constants;
+using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 

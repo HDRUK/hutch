@@ -1,6 +1,6 @@
-using HutchAgent.Models;
+using HutchAgent.Models.JobQueue;
 
-namespace HutchAgent.Services;
+namespace HutchAgent.Services.Contracts;
 
 public interface IQueueReader
 {
