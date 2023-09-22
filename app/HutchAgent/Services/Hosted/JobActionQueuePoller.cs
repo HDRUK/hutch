@@ -58,12 +58,22 @@ public class JobActionQueuePoller : BackgroundService
             // [JobActionTypes.InitiateEgress] = typeof(ExecuteActionHandler)
             // [JobActionTypes.Finalize] = typeof(ExecuteActionHandler)
           };
-          
+
           // Get the Handler and Handle its Action
           var handler = (IActionHandler)scope.ServiceProvider
             .GetRequiredService(handlers[message.ActionType]);
 
-          await handler.HandleAction(message.JobId);
+          try
+          {
+            await handler.HandleAction(message.JobId);
+          }
+          catch (Exception e) // ActionHandler exceptions shouldn't bring down the HostedService
+          {
+            _logger.LogError(e,
+              "{ActionType}ActionHandler threw an Exception while running for Job: {JobId}",
+              message.ActionType,
+              message.JobId);
+          }
         }
       }
 
