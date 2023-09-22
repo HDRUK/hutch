@@ -128,10 +128,63 @@ public class JobsController : ControllerBase
   /// <param name="id">The ID of the of the job to provide a crate URL for.</param>
   /// <param name="url">A URL to a TRE-FX 5 Safes RO-Crate for the job, which Hutch can retrieve with a GET Request.</param>
   [HttpPost("{id}/crate-url")]
-  public IActionResult ProvideCrateUrl(string id, [FromBody] string url)
+  [SwaggerResponse(202, "The Submitted Request Crate URL was accepted and queued to be fetched.",
+    typeof(JobStatusModel))]
+  [SwaggerResponse(400, "The provided URL was invalid.")]
+  [SwaggerResponse(404, "A Job with the provided ID could not be found.")]
+  [SwaggerResponse(409, "This Job already has a Request Crate submitted.")]
+  public async Task<IActionResult> ProvideCrateUrl(string id, [FromBody] string url)
   {
-    return Accepted();
+    // Check Crate URL
+    if (!IsValidCrateUrl(new Uri(url)))
+      return BadRequest($"Expected an HTTP(S) URL for crateUrl, but got: {url}");
+    
+    try
+    {
+      // First check the job exists from Hutch's perspective
+      var job = await _jobs.Get(id);
+
+      // If so, then check if we've already got a crate
+      if (job.HasCrateSubmitted())
+        return Conflict("This Job has already had a Crate submitted.");
+      
+      // Record this as the crate source
+      job.CrateSource = url;
+      await _jobs.Set(job);
+
+      // Write Crate URL and Queue for Fetching
+      _queueWriter.SendMessage(
+        _queueOptions.QueueName,
+        new JobQueueMessage
+        {
+          JobId = id,
+          ActionType = JobActionTypes.FetchAndExecute,
+        });
+
+      await _status.ReportStatus(id, JobStatus.FetchingCrate);
+      return Accepted(new JobStatusModel
+      {
+        Id = id,
+        Status = JobStatus.FetchingCrate.ToString()
+      });
+    }
+    catch (UriFormatException e)
+    {
+      return BadRequest($"The URL is badly formed: {e.Message}");
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
   }
+
+  /// <summary>
+  /// Check whether a provided crateUrl is valid for Hutch's purposes.
+  /// </summary>
+  /// <param name="crateUrl">The URL to check.</param>
+  /// <returns>Whether the provided URL is valid.</returns>
+  private static bool IsValidCrateUrl(Uri crateUrl)
+    => crateUrl.IsAbsoluteUri && new[] { "http", "https" }.Contains(crateUrl.Scheme);
 
   /// <summary>
   /// Creates a Job entry and, if provided with a Crate URL, queues the job for Crate fetching.
@@ -146,6 +199,10 @@ public class JobsController : ControllerBase
   public async Task<ActionResult<JobStatusModel>> Submit(SubmitJobModel model)
   {
     if (!ModelState.IsValid) return BadRequest();
+
+    // Check Crate URL if it's not null
+    if (model.CrateUrl is not null && !IsValidCrateUrl(model.CrateUrl))
+      return BadRequest($"Expected an HTTP(S) URL for crateUrl, but got: {model.CrateUrl}");
 
     // If Valid (so far), create an initial Job state record.
     try
