@@ -17,7 +17,7 @@ public class WorkflowStageFile
 
   [YamlMember(Alias = "outputs")] public List<Dictionary<string, Dictionary<string, string>>> Outputs = new();
 
-  [YamlMember(Alias = "params")] public List<object>? Params { get; set; }
+  [YamlMember(Alias = "params")] public object? Params { get; set; }
 }
 
 public class Configuration
