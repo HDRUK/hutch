@@ -8,6 +8,7 @@
 # the artifacts were published from
 name: GitHub Release
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       publish-run-id:
@@ -22,7 +23,7 @@ on:
 
 env:
   valid-workflow-id: 71266517 # publish.HutchAgent
-  run-id: ${{ github.event.inputs.publish-run-id }}
+  run-id: 6379706798 # ${{ github.event.inputs.publish-run-id }}
   is-latest: ${{ github.event.inputs.is-latest }}
 
 jobs:
