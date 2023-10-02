@@ -129,8 +129,7 @@ public class WorkflowTriggerService
            new StreamWriter(Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
              "hutch_cwl.wfex.stage")))
     {
-      var fileInput = new Dictionary<string, string>();
-
+      var parameters = new Dictionary<string, object>();
       foreach (var queryObject in queryObjects)
       {
         var id = queryObject?["@id"] ?? throw new InvalidOperationException($"No key @id found in {queryObject}");
@@ -149,22 +148,19 @@ public class WorkflowTriggerService
           var filePath = "file://" + absolutePath;
           var values = new Dictionary<string, string>()
           {
-            { "c-l-a-s-s", "File" },
-            { "url", filePath }
+            ["c-l-a-s-s"] = type,
+            ["url"] = filePath
           };
-          var json = JsonSerializer.Serialize(values);
-          fileInput.Add(name, json);
+          parameters[name] = values;
         }
-
         else
         {
           var value = objectEntity.Properties["value"] ??
                       throw new NullReferenceException("Could not get value for given input parameter.");
-          fileInput.Add(name, value.ToString());
+          parameters[name] = value.ToString();
         }
       }
-
-      stageFile.Params = fileInput;
+      stageFile.Params = parameters;
       var serializer = new SerializerBuilder()
         .Build();
       var yaml = serializer.Serialize(stageFile);
