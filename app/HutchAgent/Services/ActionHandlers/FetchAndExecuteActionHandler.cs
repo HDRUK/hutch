@@ -1,10 +1,13 @@
 using System.Text.Json;
 using HutchAgent.Constants;
-using HutchAgent.Data;
 using HutchAgent.Services.Contracts;
 
 namespace HutchAgent.Services.ActionHandlers;
 
+/// <summary>
+/// This ActionHandler will Fetch the Request Crate for a WorkflowJob from a remote URL,
+/// and attempt to Execute it if it passes validation.
+/// </summary>
 public class FetchAndExecuteActionHandler : IActionHandler
 {
   private readonly ExecuteActionHandler _executeHandler;
@@ -41,11 +44,11 @@ public class FetchAndExecuteActionHandler : IActionHandler
 
       // Fetch
       var crate = await _job.FetchRemoteRequestCrate(job.CrateSource);
-      var accepted = _job.AcceptRequestCrate(job, crate);
-      if (!accepted.Success)
+      var acceptResult = _job.AcceptRequestCrate(job, crate);
+      if (!acceptResult.IsSuccess)
       {
         await _status.ReportStatus(jobId, JobStatus.Failure,
-          $"The remote Request Crate was not accepted: ${JsonSerializer.Serialize(accepted.Errors)}. Please resubmit the job.");
+          $"The remote Request Crate was not accepted: ${JsonSerializer.Serialize(acceptResult.Errors)}. Please resubmit the job.");
 
         await _job.Cleanup(job);
         return;

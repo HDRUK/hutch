@@ -1,20 +1,32 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
+using HutchAgent.Models.Wfexs;
+using HutchAgent.Results;
 using Microsoft.Extensions.Options;
 using ROCrates;
+using YamlDotNet.RepresentationModel;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace HutchAgent.Services;
 
+// TODO this is all pretty wfexs specific;
+// maybe in future could be abstracted into a wfexs implementation of a more general interface?
 public class WorkflowTriggerService
 {
+  private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
+
+
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
   private readonly CrateService _crateService;
+  private readonly IDeserializer _unyaml;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
@@ -25,6 +37,51 @@ public class WorkflowTriggerService
     _crateService = crateService;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
+    _unyaml = new DeserializerBuilder()
+      .WithNamingConvention(CamelCaseNamingConvention.Instance)
+      .IgnoreUnmatchedProperties()
+      .Build();
+    
+  }
+
+  public string GetExecutorWorkingDirectory()
+  {
+    // Find the WfExS cache directory path
+    var rawLocalConfig = File.ReadAllText(_workflowOptions.LocalConfigPath
+                                          ?? throw new InvalidOperationException(
+                                            "Workflow Executor Config Path is missing!"));
+
+    var localConfig = _unyaml.Deserialize<WfexsLocalConfig>(rawLocalConfig);
+
+    var relativeWorkDir = localConfig.WorkDir;
+
+    return Path.GetFullPath(
+      relativeWorkDir,
+      Path.GetDirectoryName(_workflowOptions.LocalConfigPath)
+      ?? throw new InvalidOperationException());
+  }
+
+  public async Task<WorkflowCompletionResult> HasCompleted(string executorRunId)
+  {
+    var result = new WorkflowCompletionResult();
+
+    // find execution-state.yml for job
+    var pathToState = Path.Combine(GetExecutorWorkingDirectory(), executorRunId, _statePath);
+    if (!File.Exists(pathToState))
+    {
+      _logger.LogDebug("Could not find execution status file at '{StatePath}'", pathToState);
+      return result;
+    }
+
+    result.IsComplete = true;
+
+    var state = _unyaml.Deserialize<WfexsExecutionState>(await File.ReadAllTextAsync(pathToState));
+
+    result.ExitCode = state.ExitCode;
+    result.StartTime = state.StartTime;
+    result.EndTime = state.EndTime;
+
+    return result;
   }
 
   /// <summary>
@@ -33,9 +90,8 @@ public class WorkflowTriggerService
   /// <param name="job"></param>
   /// <param name="roCrate"></param>
   /// <exception cref="Exception"></exception>
-  public async Task TriggerWfexs(WorkflowJob job,ROCrate roCrate)
+  public async Task TriggerWfexs(WorkflowJob job, ROCrate roCrate)
   {
-
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(roCrate);
     executeAction.SetProperty("startTime", DateTime.Now);

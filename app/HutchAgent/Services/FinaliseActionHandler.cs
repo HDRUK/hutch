@@ -22,8 +22,6 @@ public class FinaliseActionHandler
   private readonly JobActionsQueueOptions _jobActionsQueue;
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly LicenseOptions _licenseOptions;
-  private readonly string _wfexsWorkDir;
-  private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
 
   public FinaliseActionHandler(
     BagItService bagItService,
@@ -32,7 +30,6 @@ public class FinaliseActionHandler
     IResultsStoreWriter storeWriter,
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,
-    IOptions<WorkflowTriggerOptions> triggerOptions,
     IQueueWriter queueWriter,
     IOptions<JobActionsQueueOptions> jobActionsQueue,
     IOptions<WorkflowTriggerOptions> workflowOptions,
@@ -48,24 +45,6 @@ public class FinaliseActionHandler
     _workflowOptions = workflowOptions.Value;
     _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
-    
-    // TODO: don't like this in ctor
-
-    // Find the WfExS cache directory path
-    var configYaml = File.ReadAllText(
-      triggerOptions.Value.LocalConfigPath
-      ?? throw new InvalidOperationException("Workflow Executor Config Path is missing!"));
-    var configYamlStream = new StringReader(configYaml);
-    var yamlStream = new YamlStream();
-    yamlStream.Load(configYamlStream);
-    var rootNode = yamlStream.Documents[0].RootNode;
-    _wfexsWorkDir = rootNode["workDir"].ToString();
-
-    // get absolute path to workdir from local config path
-    var configYamlDirectory = Path.GetDirectoryName(Path.GetFullPath(triggerOptions.Value.LocalConfigPath)) ??
-                              throw new InvalidOperationException();
-    _wfexsWorkDir = Path.GetFullPath(Path.Combine(configYamlDirectory, _wfexsWorkDir), configYamlDirectory);
-    _logger.LogInformation($"Found working directory {_wfexsWorkDir}");
   }
 
   /// <summary>
@@ -89,7 +68,6 @@ public class FinaliseActionHandler
       var job = await _jobService.Get(jobId);
 
       // Finalisation
-      await UpdateJob(job);
       MergeCrate(job);
       UpdateMetadata(job);
       DisclosureCheck(job);
@@ -118,14 +96,14 @@ public class FinaliseActionHandler
   {
     // Path the to the job outputs
     var executionCratePath = Path.Combine(
-      _wfexsWorkDir,
+      "", //_wfexsWorkDir,
       job.ExecutorRunId,
       "outputs",
       "execution.crate.zip");
 
     // Path to workflow containers
     var containersPath = Path.Combine(
-      _wfexsWorkDir,
+      "", //_wfexsWorkDir,
       job.ExecutorRunId,
       "containers");
 
@@ -215,48 +193,6 @@ public class FinaliseActionHandler
 
     // Delete the zipped BagIt to save disk space
     zipFile.Delete();
-  }
-
-  /// <summary>
-  /// Update a <see cref="Data.Entities.WorkflowJob"/> in the database to include run start and end times,
-  /// and exit code.
-  /// </summary>
-  /// <param name="job">The job entity to update.</param>
-  private async Task UpdateJob(WorkflowJob job)
-  {
-    // find execution-state.yml for job
-    var pathToState = Path.Combine(_wfexsWorkDir, job.ExecutorRunId, _statePath);
-    if (!File.Exists(pathToState))
-    {
-      _logger.LogWarning("Could not find execution status file at '{}'", pathToState);
-      var message = new JobQueueMessage { ActionType = JobActionTypes.Execute, JobId = job.Id };
-      _queueWriter.SendMessage(_jobActionsQueue.QueueName, message);
-      return;
-    }
-
-    var stateYaml = await File.ReadAllTextAsync(pathToState);
-    var configYamlStream = new StringReader(stateYaml);
-    var yamlStream = new YamlStream();
-    yamlStream.Load(configYamlStream);
-    var rootNode = yamlStream.Documents[0].RootNode[0];
-    // get the exit code
-    var exitCode = int.Parse(rootNode["exitVal"].ToString());
-    job.ExitCode = exitCode;
-
-    // get start and end times
-    DateTime.TryParse(rootNode["started"].ToString(),
-      CultureInfo.InvariantCulture,
-      DateTimeStyles.AdjustToUniversal,
-      out var startTime);
-    job.ExecutionStartTime = startTime;
-    DateTime.TryParse(rootNode["ended"].ToString(),
-      CultureInfo.InvariantCulture,
-      DateTimeStyles.AdjustToUniversal,
-      out var endTime);
-    job.EndTime = endTime;
-
-    // update job in DB
-    await _jobService.Set(job);
   }
 
   /// <summary>
