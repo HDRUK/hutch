@@ -1,4 +1,4 @@
-name: Build and Test HutchAgent
+name: Publish HutchAgent binaries
 
 on:
   workflow_dispatch:
