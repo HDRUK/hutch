@@ -21,7 +21,7 @@ on:
         type: boolean
 
 env:
-  valid-workflow-id: 0 # publish.HutchAgent
+  valid-workflow-id: 71266517 # publish.HutchAgent
   run-id: ${{ github.event.inputs.publish-run-id }}
   is-latest: ${{ github.event.inputs.is-latest }}
 
