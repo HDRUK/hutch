@@ -15,7 +15,7 @@ public class WorkflowStageFile
 
   [YamlMember(Alias = "crypt4gh")] public Crypt4ghOptions Crypt4Gh { get; set; } = new();
 
-  [YamlMember(Alias = "outputs")] public List<Dictionary<string, Dictionary<string, string>>> Outputs = new();
+  [YamlMember(Alias = "outputs")] public object Outputs = new();
 
   [YamlMember(Alias = "params")] public object? Params { get; set; }
 }

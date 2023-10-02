@@ -112,8 +112,7 @@ public class WorkflowTriggerService
                    throw new NullReferenceException("Cannot find main entity in RootDataset");
 
     var gitUrl = CreateGitUrl(cratePath, workflow!.Id);
-    // var workflowEntity = workflowCrate.Entities[workflow.Id];
-
+    
     // Create stage file object
     var stageFile = new WorkflowStageFile()
     {
@@ -124,12 +123,12 @@ public class WorkflowTriggerService
     // Get inputs from execute entity
     var executeEntity = _crateService.GetExecuteEntity(roCrate);
     var queryObjects = executeEntity.GetProperty<JsonArray>("object")!.ToList();
-    var inputParameter = new List<object>();
     using (StreamWriter outputStageFile =
            new StreamWriter(Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
              "hutch_cwl.wfex.stage")))
     {
       var parameters = new Dictionary<string, object>();
+      
       foreach (var queryObject in queryObjects)
       {
         var id = queryObject?["@id"] ?? throw new InvalidOperationException($"No key @id found in {queryObject}");
@@ -160,6 +159,24 @@ public class WorkflowTriggerService
           parameters[name] = value.ToString();
         }
       }
+      // Get outputs from workflow crate
+      var workflowMainEntity = workflowCrate.Entities[workflow.Id];
+      var outputs = workflowMainEntity.Properties["output"] ??
+                    throw new InvalidOperationException("No property 'output' found in Workflow RO-Crate");
+      if (outputs.GetType() == typeof(JsonObject))
+      {
+        var outputId = outputs["@id"].ToString();
+        var outputEntity = workflowCrate.Entities[outputId];
+        var outputName = outputEntity.Properties["name"] ?? throw new InvalidOperationException($"No property 'name' found for output {outputId}");
+        stageFile.Outputs = new Dictionary<string, object>()
+        {
+          [outputName.ToString()] = new Dictionary<string, string>()
+          {
+            ["c-l-a-s-s"] = "File"
+          }
+        };
+      }
+
       stageFile.Params = parameters;
       var serializer = new SerializerBuilder()
         .Build();
