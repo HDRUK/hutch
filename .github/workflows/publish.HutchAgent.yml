@@ -1,0 +1,73 @@
+name: Build and Test HutchAgent
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-config:
+        description: .NET Build Configuration
+        required: true
+        default: release
+  push:
+    branches: [main, support/*]
+    paths:
+      - app/HutchAgent/**
+      - app/HutchAgent.Tests/**
+      - .github/workflows/publish.HutchAgent.yml
+
+env:
+  ### Configure these
+
+  dotnet-build-config: ${{ github.event.inputs.build-config || 'release' }}
+  dotnet-version: 7.0.x
+
+  ###
+
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+  project: ./app/HutchAgent/HutchAgent.csproj
+  test-project: ./app/HutchAgent.Tests/HutchAgent.Tests.csproj
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      publish-dir: publish
+
+    strategy:
+      matrix:
+        include:
+          - artifact: linux-x64
+            args: >-
+              -r linux-x64
+              -p:PublishSingleFile=true
+              -p:PublishTrimmed=true
+              --self-contained
+          - artifact: dotnet
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.dotnet-version }}
+
+      - name: dotnet publish
+        run: >-
+          dotnet publish
+          ${{ env.project }}
+          -c ${{ env.dotnet-build-config }}
+          -o ${{ env.publish-dir }}
+          -p:GitHash=${GITHUB_SHA::8}
+          ${{ matrix.args }}
+
+      - name: dotnet test
+        run: >-
+          dotnet test
+          ${{ env.test-project }}
+          -c ${{ env.dotnet-build-config }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: hutch_${{ matrix.artifact == 'dotnet' && format('{0}-{1}', matrix.artifact, env.dotnet-version) || matrix.artifact }}
+          path: ${{ env.publish-dir }}
