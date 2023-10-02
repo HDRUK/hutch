@@ -3,7 +3,6 @@ using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Data;
 using HutchAgent.Extensions;
-using HutchAgent.HostedServices;
 using HutchAgent.Services;
 using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
