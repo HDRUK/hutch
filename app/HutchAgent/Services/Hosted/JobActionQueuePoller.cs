@@ -4,6 +4,7 @@ using HutchAgent.Constants;
 using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
+using RabbitMQ.Client.Exceptions;
 
 namespace HutchAgent.Services.Hosted;
 
@@ -37,52 +38,63 @@ public class JobActionQueuePoller : BackgroundService
 
       using (var scope = _serviceProvider.CreateScope())
       {
-        var queue = _serviceProvider.GetRequiredService<IQueueReader>();
-
-
-        // If a thread is available, per Max Parallelism, then
-        // Pop a queue message, and Execute its action on the free thread
-        if (_runningActions.Count < _options.MaxParallelism)
+        try
         {
-          var message = queue.Pop(_options.QueueName);
-          if (message is null)
-          {
-            await delay;
-            continue;
-          }
 
-          // Define ActionHandlers for each type
-          var handlers = new Dictionary<string, Type>
-          {
-            [JobActionTypes.FetchAndExecute] = typeof(FetchAndExecuteActionHandler),
-            [JobActionTypes.Execute] = typeof(ExecuteActionHandler)
-            // [JobActionTypes.InitiateEgress] = typeof(ExecuteActionHandler)
-            // [JobActionTypes.Finalize] = typeof(ExecuteActionHandler)
-          };
 
-          // Get the Handler and Handle its Action
-          if (!handlers.ContainsKey(message.ActionType))
-          {
-            _logger.LogError("Encountered unknown Action Type in queue. QueueMessage: {Message}",
-              JsonSerializer.Serialize(message));
-            await delay;
-            continue;
-          }
+          var queue = _serviceProvider.GetRequiredService<IQueueReader>();
 
-          var handler = (IActionHandler)scope.ServiceProvider
-            .GetRequiredService(handlers[message.ActionType]);
 
-          try
+          // If a thread is available, per Max Parallelism, then
+          // Pop a queue message, and Execute its action on the free thread
+          if (_runningActions.Count < _options.MaxParallelism)
           {
-            await handler.HandleAction(message.JobId);
+            var message = queue.Pop(_options.QueueName);
+            if (message is null)
+            {
+              await delay;
+              continue;
+            }
+
+            // Define ActionHandlers for each type
+            var handlers = new Dictionary<string, Type>
+            {
+              [JobActionTypes.FetchAndExecute] = typeof(FetchAndExecuteActionHandler),
+              [JobActionTypes.Execute] = typeof(ExecuteActionHandler)
+              // [JobActionTypes.InitiateEgress] = typeof(ExecuteActionHandler)
+              // [JobActionTypes.Finalize] = typeof(ExecuteActionHandler)
+            };
+
+            // Get the Handler and Handle its Action
+            if (!handlers.ContainsKey(message.ActionType))
+            {
+              _logger.LogError("Encountered unknown Action Type in queue. QueueMessage: {Message}",
+                JsonSerializer.Serialize(message));
+              await delay;
+              continue;
+            }
+
+            var handler = (IActionHandler)scope.ServiceProvider
+              .GetRequiredService(handlers[message.ActionType]);
+
+            try
+            {
+              await handler.HandleAction(message.JobId);
+            }
+            catch (Exception e) // ActionHandler exceptions shouldn't bring down the HostedService
+            {
+              _logger.LogError(e,
+                "{ActionType}ActionHandler threw an Exception while running for Job: {JobId}",
+                message.ActionType,
+                message.JobId);
+            }
           }
-          catch (Exception e) // ActionHandler exceptions shouldn't bring down the HostedService
-          {
-            _logger.LogError(e,
-              "{ActionType}ActionHandler threw an Exception while running for Job: {JobId}",
-              message.ActionType,
-              message.JobId);
-          }
+        }
+        catch (BrokerUnreachableException e)
+        {
+          _logger.LogCritical(e, "Couldn't connect to RabbitMQ. Is it running and are the connection details correct?");
+          _logger.LogCritical("Background jobs cannot run without RabbitMQ, and therefore Hutch will not function correctly!");
+          break;
         }
       }
 

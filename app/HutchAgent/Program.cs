@@ -70,7 +70,7 @@ builder.Services
 builder.Services
   .AddScoped<FetchAndExecuteActionHandler>()
   .AddScoped<ExecuteActionHandler>()
-  //.AddScoped<ExecuteActionHandler>()
+  .AddScoped<InitiateEgressActionHandler>()
   .AddScoped<FinaliseActionHandler>();
 
 // Hosted Services
@@ -83,6 +83,7 @@ builder.Services
   .AddTransient<StatusReportingService>()
   .AddTransient<WorkflowJobService>()
   .AddTransient<RequestCrateService>()
+  .AddTransient<ControllerApiService>()
   .AddSingleton<BagItService>()
   .AddTransient<CrateService>()
   .AddTransient<WorkflowTriggerService>()
