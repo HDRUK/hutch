@@ -192,7 +192,10 @@ public class WorkflowTriggerService
       outputStageFile.WriteLineAsync(yaml);
     }
 
-    return stageFilePath;
+    var absoluteStageFilePath = Path.Combine(
+      Path.GetFullPath(stageFilePath));
+
+    return absoluteStageFilePath;
   }
 
   private async void InitialiseRepo(string repoPath)
