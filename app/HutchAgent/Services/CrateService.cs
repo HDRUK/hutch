@@ -306,15 +306,6 @@ public class CrateService
     return stageFile.First()!["@id"]!.ToString();
   }
 
-  /// <summary>
-  /// Delete container images
-  /// </summary>
-  /// <param name="pathToImagesDir">The path to container images directory.</param>
-  public void DeleteContainerImages(string pathToImagesDir)
-  {
-    Directory.Delete(pathToImagesDir, recursive: true);
-  }
-
   public void CheckAssessActions(ROCrate roCrate)
   {
     //Check CheckValueType AssessAction exists and is Completed

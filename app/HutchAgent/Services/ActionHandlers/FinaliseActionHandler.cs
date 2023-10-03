@@ -1,48 +1,37 @@
-using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
-using HutchAgent.Models.JobQueue;
 using HutchAgent.Services.Contracts;
+using HutchAgent.Utilities;
 using Microsoft.Extensions.Options;
-using YamlDotNet.RepresentationModel;
 
-namespace HutchAgent.Services;
+namespace HutchAgent.Services.ActionHandlers;
 
-public class FinaliseActionHandler
+public class FinaliseActionHandler : IActionHandler
 {
   private readonly BagItService _bagItService;
   private readonly CrateService _crateService;
   private readonly ILogger<FinaliseActionHandler> _logger;
-  private readonly MinioStoreService _storeWriter;
-  private readonly WorkflowJobService _jobService;
+  private readonly MinioStoreWriter _storeWriter;
+  private readonly WorkflowJobService _jobs;
   private readonly PathOptions _pathOptions;
-  private readonly IQueueWriter _queueWriter;
-  private readonly JobActionsQueueOptions _jobActionsQueue;
-  private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly LicenseOptions _licenseOptions;
 
   public FinaliseActionHandler(
     BagItService bagItService,
     CrateService crateService,
     ILogger<FinaliseActionHandler> logger,
-    MinioStoreServiceFactory storeWriter,
-    WorkflowJobService jobService,
+    MinioStoreWriter storeWriter,
+    WorkflowJobService jobs,
     IOptions<PathOptions> pathOptions,
-    IQueueWriter queueWriter,
-    IOptions<JobActionsQueueOptions> jobActionsQueue,
-    IOptions<WorkflowTriggerOptions> workflowOptions,
     IOptions<LicenseOptions> licenseOptions)
   {
     _bagItService = bagItService;
     _crateService = crateService;
     _logger = logger;
-    _storeWriter = storeWriter.Create(); // TODO
-    _jobService = jobService;
-    _queueWriter = queueWriter;
-    _jobActionsQueue = jobActionsQueue.Value;
-    _workflowOptions = workflowOptions.Value;
+    _storeWriter = storeWriter;
+    _jobs = jobs;
     _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
   }
@@ -65,7 +54,7 @@ public class FinaliseActionHandler
   {
     try
     {
-      var job = await _jobService.Get(jobId);
+      var job = await _jobs.Get(jobId);
 
       // Finalisation
       //UpdateCrate(job);
@@ -76,8 +65,8 @@ public class FinaliseActionHandler
 
       // Post-finalisation clean-up
       await UploadToStore(job);
-      DeleteJobData(job);
-      await RemoveJobRecord(job);
+      //DeleteJobData(job);
+      //await RemoveJobRecord(job);
     }
     catch (KeyNotFoundException)
     {
@@ -179,21 +168,30 @@ public class FinaliseActionHandler
     crate.Save(job.WorkingDirectory.BagItPayloadPath());
   }
 
-  /// <summary>
-  /// Removes a job from the database.
-  /// </summary>
-  /// <param name="job">The job to remove.</param>
-  private async Task RemoveJobRecord(WorkflowJob job)
+  public async Task HandleAction(string jobId)
   {
-    await _jobService.Delete(job.Id);
-  }
+    var job = await _jobs.Get(jobId);
 
-  /// <summary>
-  /// Delete the data relating to the given job from disk.
-  /// </summary>
-  /// <param name="job">The job whose data need deleting.</param>
-  private void DeleteJobData(WorkflowJob job)
-  {
-    if (Directory.Exists(job.WorkingDirectory)) Directory.Delete(job.WorkingDirectory, recursive: true);
+    // 1. Copy approved outputs to the working crate
+    FilesystemUtility.CopyDirectory(
+      job.WorkingDirectory.JobEgressOutputs(),
+      Path.Combine(job.WorkingDirectory.JobCrateRoot().BagItPayloadPath(), "outputs"),
+      recursive: true);
+
+    // 2. Update Crate Metadata
+
+    // a) Add Outputs
+
+    // b) Mark CreateAction complete
+
+    // c) Complete Disclosure AssessAction with outcome
+
+    // d) Add Licence and Publisher details
+
+    // 3. BagIt Checksums
+
+    // 4. Zip
+
+    // 5. Upload
   }
 }

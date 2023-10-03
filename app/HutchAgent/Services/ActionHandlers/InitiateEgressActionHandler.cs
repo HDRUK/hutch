@@ -93,6 +93,9 @@ public class InitiateEgressActionHandler : IActionHandler
       useDefaultStore ? job.Id : ""); // In the default store, it's a shared bucket; otherwise expect a per-job bucket
     
     // 5. Inform TRE that outputs are ready for checks
+    
+    // TODO should we update metadata here with the fact the check was started? (yes)
+    
     await _controller.ConfirmOutputsTransferred(job.Id);
     await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
   }
