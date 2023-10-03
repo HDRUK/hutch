@@ -53,7 +53,7 @@ public class ExecuteActionHandler : IActionHandler
     _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
     {
       JobId = job.Id,
-      ActionType = JobActionTypes.Finalize
+      ActionType = JobActionTypes.InitiateEgress
     });
   }
 }
