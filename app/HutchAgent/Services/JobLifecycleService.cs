@@ -29,7 +29,7 @@ public class JobLifecycleService
   /// </summary>
   /// <param name="url">The URL to GET.</param>
   /// <returns>A <see cref="Stream"/> of the HTTP Response Body (hopefully an RO-Crate!)</returns>
-  public async Task<Stream> FetchRemoteRequestCrate(string url)
+  public async Task<Stream> FetchRemoteRequestCrate(string url) // TODO support Min.io as a crate Source
   {
     var response = await _http.GetAsync(url);
     response.EnsureSuccessStatusCode();
