@@ -5,16 +5,26 @@ using Minio.Exceptions;
 
 namespace HutchAgent.Services;
 
-public class MinioService : IResultsStoreWriter
+public class MinioStoreWriter
 {
-  private readonly MinioClient _minioClient;
-  private readonly ILogger<MinioService> _logger;
-  private readonly MinioOptions _options;
+  private readonly ILogger<MinioStoreWriter> _logger;
+  private MinioClient _minioClient = null!; // indirectly init in ctor
+  private MinioOptions _options = null!; // indirectly init in ctor
 
-  public MinioService(ILogger<MinioService> logger, IOptions<MinioOptions> options)
+  public MinioStoreWriter(
+    ILogger<MinioStoreWriter> logger,
+    IOptions<MinioOptions> options)
   {
     _logger = logger;
-    _options = options.Value;
+    UseOptions(options.Value);
+  }
+
+  /// <summary>
+  /// Replace the pre-configured store options with a specific set
+  /// </summary>
+  public void UseOptions(MinioOptions options)
+  {
+    _options = options;
     _minioClient = new MinioClient()
       .WithEndpoint(_options.Endpoint)
       .WithCredentials(_options.AccessKey, _options.SecretKey)
@@ -35,54 +45,59 @@ public class MinioService : IResultsStoreWriter
   /// <summary>
   /// Upload a file to an S3 bucket.
   /// </summary>
-  /// <param name="resultPath">The path of the file to be uploaded.</param>
+  /// <param name="sourcePath">The path of the file to be uploaded.</param>
+  /// <param name="targetPath">Optional Directory path to put the file in within the bucket.</param>
   /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
   /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
   /// <exception cref="FileNotFoundException">Thrown when the file to be uploaded does not exist.</exception>
-  public async Task WriteToStore(string resultPath)
+  public async Task WriteToStore(string sourcePath, string targetPath = "")
   {
     if (!await StoreExists())
       throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
 
-    if (!File.Exists(resultPath)) throw new FileNotFoundException();
+    if (!File.Exists(sourcePath)) throw new FileNotFoundException();
 
-    var objectName = Path.GetFileName(resultPath);
+    var objectName = CalculateObjectName(targetPath);
     var putObjectArgs = new PutObjectArgs()
       .WithBucket(_options.BucketName)
-      .WithFileName(resultPath)
+      .WithFileName(sourcePath)
       .WithObject(objectName);
 
-    _logger.LogInformation($"Uploading {objectName} to {_options.BucketName}...");
+    _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectName, _options.BucketName);
     await _minioClient.PutObjectAsync(putObjectArgs);
-    _logger.LogInformation($"Successfully uploaded {objectName} to {_options.BucketName}.");
+    _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectName, _options.BucketName);
+  }
+
+  public string CalculateObjectName(string sourcePath, string targetPath = "")
+  {
+    return Path.Combine(targetPath, Path.GetFileName(sourcePath));
   }
 
   /// <summary>
   /// Check if a file already exists in an S3 bucket.
   /// </summary>
-  /// <param name="resultPath">The name of the file to check in the bucket.</param>
+  /// <param name="objectName">The name of the file to check in the bucket.</param>
   /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
   /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
-  public async Task<bool> ResultExists(string resultPath)
+  public async Task<bool> ResultExists(string objectName)
   {
-    var resultName = Path.GetFileName(resultPath);
     if (!await StoreExists())
       throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
 
     var statObjectArgs = new StatObjectArgs()
       .WithBucket(_options.BucketName)
-      .WithObject(resultName);
+      .WithObject(objectName);
 
     try
     {
-      _logger.LogInformation($"Looking for {resultName} in {_options.BucketName}...");
+      _logger.LogInformation("Looking for {Object} in {Bucket}...", objectName, _options.BucketName);
       await _minioClient.StatObjectAsync(statObjectArgs);
-      _logger.LogInformation($"Found {resultName} in {_options.BucketName}.");
+      _logger.LogInformation("Found {Object} in {Bucket}", objectName, _options.BucketName);
       return true;
     }
     catch (ObjectNotFoundException)
     {
-      _logger.LogInformation($"Could not find {resultName} in {_options.BucketName}.");
+      _logger.LogInformation("Could not find {Object} in {Bucket}", objectName, _options.BucketName);
     }
 
     return false;
