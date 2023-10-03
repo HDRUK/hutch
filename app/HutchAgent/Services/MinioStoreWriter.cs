@@ -68,6 +68,12 @@ public class MinioStoreWriter
     _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectName, _options.BucketName);
   }
 
+  /// <summary>
+  /// Calculate what the object name in a bucket should be based on the source file path
+  /// </summary>
+  /// <param name="sourcePath">Path to the file to be uploaded</param>
+  /// <param name="targetPath">Optional directory path within the bucket to put the file at</param>
+  /// <returns>The full object name for the file to be placed in a bucket</returns>
   public string CalculateObjectName(string sourcePath, string targetPath = "")
   {
     return Path.Combine(targetPath, Path.GetFileName(sourcePath));

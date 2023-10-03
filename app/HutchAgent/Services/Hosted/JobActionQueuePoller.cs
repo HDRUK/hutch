@@ -60,8 +60,8 @@ public class JobActionQueuePoller : BackgroundService
             var handlers = new Dictionary<string, Type>
             {
               [JobActionTypes.FetchAndExecute] = typeof(FetchAndExecuteActionHandler),
-              [JobActionTypes.Execute] = typeof(ExecuteActionHandler)
-              // [JobActionTypes.InitiateEgress] = typeof(ExecuteActionHandler)
+              [JobActionTypes.Execute] = typeof(ExecuteActionHandler),
+              [JobActionTypes.InitiateEgress] = typeof(InitiateEgressActionHandler)
               // [JobActionTypes.Finalize] = typeof(ExecuteActionHandler)
             };
 
