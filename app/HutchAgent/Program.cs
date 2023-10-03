@@ -27,7 +27,8 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
   o.UseSqlite(connectionString ?? "Data Source=hutch-agent.db");
 });
 
-builder.Services.AddFeatureManagement();
+builder.Services.AddFeatureManagement(
+  builder.Configuration.GetSection("Flags"));
 
 builder.Services.AddSwaggerGen(o =>
 {
@@ -69,7 +70,7 @@ builder.Services
 builder.Services
   .AddScoped<FetchAndExecuteActionHandler>()
   .AddScoped<ExecuteActionHandler>()
-  //.AddScoped<ExecuteActionHandler>()
+  .AddScoped<InitiateEgressActionHandler>()
   .AddScoped<FinaliseActionHandler>();
 
 // Hosted Services
@@ -82,6 +83,7 @@ builder.Services
   .AddTransient<StatusReportingService>()
   .AddTransient<WorkflowJobService>()
   .AddTransient<RequestCrateService>()
+  .AddTransient<ControllerApiService>()
   .AddSingleton<BagItService>()
   .AddTransient<CrateService>()
   .AddTransient<WorkflowTriggerService>()

@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
   enum ResultsStoreProviders
   {
     Minio,
-    FileSystem
+    //FileSystem // TODO Restore Filesystem Store
   }
 
   /// <summary>
@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
       provider switch
       {
         ResultsStoreProviders.Minio => s.Configure<MinioOptions>,
-        ResultsStoreProviders.FileSystem => s.Configure<FileSystemResultsStoreOptions>,
+        //ResultsStoreProviders.FileSystem => s.Configure<FileSystemResultsStoreOptions>, // TODO Restore Filesystem Store
         _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, null)
       };
 
@@ -60,13 +60,14 @@ public static class ServiceCollectionExtensions
     var storeType = GetResultsStoreProvider(c);
 
     return s.ConfigureResultsStore(storeType, c)
-      .AddTransient(
-        typeof(IResultsStoreWriter),
-        storeType switch
-        {
-          ResultsStoreProviders.Minio => typeof(MinioService),
-          ResultsStoreProviders.FileSystem => typeof(FileSystemResultsStoreService),
-          _ => throw new ArgumentOutOfRangeException()
-        });
+      .AddTransient<MinioStoreWriter>();
+    // TODO Restore multiple Store types
+    // typeof(IResultsStoreWriter),
+    // storeType switch
+    // {
+    //   ResultsStoreProviders.Minio => typeof(MinioStoreWriter),
+    //   ResultsStoreProviders.FileSystem => typeof(FileSystemResultsStoreService),
+    //   _ => throw new ArgumentOutOfRangeException()
+    // });
   }
 }

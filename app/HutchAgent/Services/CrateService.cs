@@ -60,7 +60,7 @@ public class CrateService
     return crate;
   }
 
-
+// TODO not sure this is useful anymore?
   /// <summary>
   /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
   /// destination RO-Crate.
@@ -71,6 +71,7 @@ public class CrateService
   /// The directory you are attempting to merge doesn't exists.
   /// The parent of the destination directory couldn't be found or does not exists.
   /// </exception>
+  [Obsolete("TBC?")]
   public void MergeCrates(string sourceZip, string mergeInto)
   {
     // Get information on destination and make sure it exists

@@ -62,6 +62,26 @@ public class JobLifecycleService
   }
 
   /// <summary>
+  /// Update a WorkflowJob record with details pertaining to completion of its Workflow Execution
+  /// </summary>
+  /// <param name="job"></param>
+  /// <param name="details"></param>
+  /// <returns></returns>
+  /// <exception cref="ArgumentException"></exception>
+  public async Task<WorkflowJob> UpdateWithWorkflowCompletion(WorkflowJob job, WorkflowCompletionResult details)
+  {
+    if (!details.IsComplete)
+      throw new ArgumentException(
+        "Expected workflow execution to be complete!", nameof(details));
+    
+    job.ExitCode = details.ExitCode;
+    job.ExecutionStartTime = details.StartTime;
+    job.EndTime = details.EndTime;
+
+    return await _jobs.Set(job);
+  }
+
+  /// <summary>
   /// Clean up everything related to a job;
   /// its db record, its working directory etc.
   /// </summary>

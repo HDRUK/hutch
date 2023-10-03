@@ -1,9 +1,7 @@
 using System.IO.Compression;
-using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Results;
-using Microsoft.Extensions.Options;
 using ROCrates.Exceptions;
 
 namespace HutchAgent.Services;
@@ -48,7 +46,7 @@ public class RequestCrateService
 
     // TODO: 5 safes crate profile validation? or do this during execution?
 
-    result.Success = true;
+    result.IsSuccess = true;
     return result;
   }
 
