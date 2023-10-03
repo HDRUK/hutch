@@ -81,7 +81,7 @@ public class JobsController : ControllerBase
       }
 
       var result = _job.AcceptRequestCrate(job, stream);
-      if (!result.Success)
+      if (!result.IsSuccess)
       {
         // Reset Crate Source
         job.CrateSource = null;
