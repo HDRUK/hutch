@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
 using YamlDotNet.Serialization;
+
 namespace HutchAgent.Services;
 
 public class WorkflowTriggerService
@@ -42,18 +43,13 @@ public class WorkflowTriggerService
     var executeAction = _crateService.GetExecuteEntity(roCrate);
     executeAction.SetProperty("startTime", DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
-
-    // Temporarily - Generate stage file path assuming it comes in input RO-Crate
-    var stageFilePath = job.WorkingDirectory.JobBagItRoot().BagItPayloadPath();
-    // Create Stage file
-    WriteStageFile(job, roCrate);
-    //Get stage file name from RO-Crate
-    //Will not be needed once we can generate the stage file
-    var stageFileName = _crateService.GetStageFileName(roCrate);
+    
+    // Create stage file and save file path
+    var stageFilePath = WriteStageFile(job, roCrate);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {Path.Combine(stageFilePath, stageFileName)}";
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath}";
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -90,7 +86,7 @@ public class WorkflowTriggerService
     process.Close();
   }
 
-  private void WriteStageFile(WorkflowJob workflowJob, ROCrate roCrate)
+  private string WriteStageFile(WorkflowJob workflowJob, ROCrate roCrate)
   {
     //Get execution details
     var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ??
@@ -112,7 +108,7 @@ public class WorkflowTriggerService
                    throw new NullReferenceException("Cannot find main entity in RootDataset");
 
     var gitUrl = CreateGitUrl(cratePath, workflow!.Id);
-    
+
     // Create stage file object
     var stageFile = new WorkflowStageFile()
     {
@@ -123,67 +119,78 @@ public class WorkflowTriggerService
     // Get inputs from execute entity
     var executeEntity = _crateService.GetExecuteEntity(roCrate);
     var queryObjects = executeEntity.GetProperty<JsonArray>("object")!.ToList();
-    using (StreamWriter outputStageFile =
-           new StreamWriter(Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
-             "hutch_cwl.wfex.stage")))
+
+    var parameters = new Dictionary<string, object>();
+
+    foreach (var queryObject in queryObjects)
     {
-      var parameters = new Dictionary<string, object>();
-      
-      foreach (var queryObject in queryObjects)
-      {
-        var id = queryObject?["@id"] ?? throw new InvalidOperationException($"No key @id found in {queryObject}");
-        var objectEntity = roCrate.Entities[id.ToString()] ??
-                           throw new NullReferenceException($"No Entity with id {id} found in RO-Crate");
-        var exampleOfWork = objectEntity.GetProperty<Part>("exampleOfWork")!.Id;
-        var parameter = roCrate.Entities[exampleOfWork];
-        var name = parameter.Properties["name"]!.ToString();
-        var type = objectEntity.Properties["@type"]!.ToString();
+      var id = queryObject?["@id"] ?? throw new InvalidOperationException($"No key @id found in {queryObject}");
+      var objectEntity = roCrate.Entities[id.ToString()] ??
+                         throw new NullReferenceException($"No Entity with id {id} found in RO-Crate");
+      var exampleOfWork = objectEntity.GetProperty<Part>("exampleOfWork") ??
+                          throw new NullReferenceException($"No exampleOfWork property found in {objectEntity.Id}");
+      var parameter = roCrate.Entities[exampleOfWork.Id];
+      var name = parameter.Properties["name"] ??
+                 throw new NullReferenceException($"No name property found for {parameter.Id}");
+      var type = objectEntity.Properties["@type"] ??
+                 throw new NullReferenceException($"No type property found for {objectEntity.Id}");
 
-        if (type is "File")
-        {
-          var absolutePath = Path.Combine(
-            Path.GetFullPath(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath()),
-            objectEntity.Id);
-          var filePath = "file://" + absolutePath;
-          var values = new Dictionary<string, string>()
-          {
-            ["c-l-a-s-s"] = type,
-            ["url"] = filePath
-          };
-          parameters[name] = values;
-        }
-        else
-        {
-          var value = objectEntity.Properties["value"] ??
-                      throw new NullReferenceException("Could not get value for given input parameter.");
-          parameters[name] = value.ToString();
-        }
-      }
-      // Get outputs from workflow crate
-      var workflowMainEntity = workflowCrate.Entities[workflow.Id];
-      var outputs = workflowMainEntity.Properties["output"] ??
-                    throw new InvalidOperationException("No property 'output' found in Workflow RO-Crate");
-      if (outputs.GetType() == typeof(JsonObject))
+      if (type.ToString() is "File")
       {
-        var outputId = outputs["@id"].ToString();
-        var outputEntity = workflowCrate.Entities[outputId];
-        var outputName = outputEntity.Properties["name"] ?? throw new InvalidOperationException($"No property 'name' found for output {outputId}");
-        stageFile.Outputs = new Dictionary<string, object>()
+        // get absolute path to input
+        var absolutePath = Path.Combine(
+          Path.GetFullPath(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath()),
+          objectEntity.Id);
+        var filePath = "file://" + absolutePath;
+
+        var values = new Dictionary<string, string>()
         {
-          [outputName.ToString()] = new Dictionary<string, string>()
-          {
-            ["c-l-a-s-s"] = "File"
-          }
+          ["c-l-a-s-s"] = type.ToString(),
+          ["url"] = filePath
         };
+        parameters[name.ToString()] = values;
       }
-
-      stageFile.Params = parameters;
-      var serializer = new SerializerBuilder()
-        .Build();
-      var yaml = serializer.Serialize(stageFile);
-
-      outputStageFile.WriteLine(yaml);
+      else
+      {
+        var value = objectEntity.Properties["value"] ??
+                    throw new NullReferenceException("Could not get value for given input parameter.");
+        parameters[name.ToString()] = value.ToString();
+      }
     }
+
+    // Set input params
+    stageFile.Params = parameters;
+
+    // Get outputs from workflow crate
+    var workflowMainEntity = workflowCrate.Entities[workflow.Id];
+    var outputs = workflowMainEntity.Properties["output"] ??
+                  throw new InvalidOperationException("No property 'output' found in Workflow RO-Crate");
+
+    var outputId = outputs["@id"] ?? throw new NullReferenceException("Id not found for output object");
+    var outputEntity = workflowCrate.Entities[outputId.ToString()];
+    var outputName = outputEntity.Properties["name"] ??
+                     throw new InvalidOperationException($"No property 'name' found for output {outputId}");
+    var outputParam = new Dictionary<string, object>()
+    {
+      [outputName.ToString()] = new Dictionary<string, string>()
+      {
+        ["c-l-a-s-s"] = "File"
+      }
+    };
+    // set outputs in stage file
+    stageFile.Outputs = outputParam;
+    var serializer = new SerializerBuilder()
+      .Build();
+    var yaml = serializer.Serialize(stageFile);
+    var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
+      "hutch_cwl.wfex.stage");
+    using (StreamWriter outputStageFile =
+           new StreamWriter(stageFilePath))
+    {
+      outputStageFile.WriteLineAsync(yaml);
+    }
+
+    return stageFilePath;
   }
 
   private async void InitialiseRepo(string repoPath)
@@ -232,7 +239,7 @@ public class WorkflowTriggerService
     return absolutePath;
   }
 
-  [Obsolete] 
+  [Obsolete]
   private string RewritePath(WorkflowJob workflowJob, string line)
   {
     var (linePrefix, relativePath) = line.Split("crate://") switch
