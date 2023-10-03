@@ -26,12 +26,12 @@ public class Configuration
 
   [YamlMember(Alias = "secure")] public bool Secure { get; set; } = false;
 
-  [YamlMember(Alias = "writable_containers")]
-  public bool WritableContainers { get; set; } = false;
+  // [YamlMember(Alias = "writable_containers")]
+  // public bool WritableContainers { get; set; } = false;
 
-  [YamlMember(Alias = "cwl")] public CwlConfig Cwl { get; set; } = new();
-
-  [YamlMember(Alias = "nextflow")] public NextFlowConfig Nextflow { get; set; } = new();
+  // [YamlMember(Alias = "cwl")] public CwlConfig Cwl { get; set; } = new();
+  //
+  // [YamlMember(Alias = "nextflow")] public NextFlowConfig Nextflow { get; set; } = new();
 }
 
 public class Crypt4ghOptions
@@ -42,14 +42,14 @@ public class Crypt4ghOptions
   [YamlMember(Alias = "pub")] public string Public { get; set; } = "cosifer_test1_cwl.wfex.stage.pub";
 }
 
-public class CwlConfig
-{
-  [YamlMember(Alias = "version")] public string Version { get; set; } = "3.1.20210628163208";
-}
-
-public class NextFlowConfig
-{
-  [YamlMember(Alias = "version")] public string Version { get; set; } = "19.04.1";
-
-  [YamlMember(Alias = "profile")] public string Profile { get; set; } = string.Empty;
-}
+// public class CwlConfig
+// {
+//   [YamlMember(Alias = "version")] public string Version { get; set; } = "3.1.20210628163208";
+// }
+//
+// public class NextFlowConfig
+// {
+//   [YamlMember(Alias = "version")] public string Version { get; set; } = "19.04.1";
+//
+//   [YamlMember(Alias = "profile")] public string Profile { get; set; } = string.Empty;
+// }
