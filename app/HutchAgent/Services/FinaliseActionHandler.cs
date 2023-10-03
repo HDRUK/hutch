@@ -68,7 +68,8 @@ public class FinaliseActionHandler
       var job = await _jobService.Get(jobId);
 
       // Finalisation
-      MergeCrate(job);
+      //UpdateCrate(job);
+      //MergeCrate(job);
       UpdateMetadata(job);
       DisclosureCheck(job);
       await MakeChecksums(job);
@@ -86,34 +87,6 @@ public class FinaliseActionHandler
     {
       _logger.LogError("An unexpected error occurred while finalising job {}", jobId);
     }
-  }
-
-  /// <summary>
-  /// Merge a result crate from a workflow run back into its input crate.
-  /// </summary>
-  /// <param name="job">The workflow run that needs merging.</param>
-  private void MergeCrate(WorkflowJob job)
-  {
-    // Path the to the job outputs
-    var executionCratePath = Path.Combine(
-      "", //_wfexsWorkDir,
-      job.ExecutorRunId,
-      "outputs",
-      "execution.crate.zip");
-
-    // Path to workflow containers
-    var containersPath = Path.Combine(
-      "", //_wfexsWorkDir,
-      job.ExecutorRunId,
-      "containers");
-
-    if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
-
-    var mergeIntoPath = Path.Combine(
-      job.WorkingDirectory.BagItPayloadPath(),
-      "outputs");
-
-    _crateService.MergeCrates(executionCratePath, mergeIntoPath);
   }
 
   /// <summary>

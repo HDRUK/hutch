@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
 using HutchAgent.Constants;
@@ -18,9 +19,6 @@ namespace HutchAgent.Services;
 // maybe in future could be abstracted into a wfexs implementation of a more general interface?
 public class WorkflowTriggerService
 {
-  private readonly string _statePath = Path.Combine("meta", "execution-state.yaml");
-
-
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
@@ -41,7 +39,6 @@ public class WorkflowTriggerService
       .WithNamingConvention(CamelCaseNamingConvention.Instance)
       .IgnoreUnmatchedProperties()
       .Build();
-    
   }
 
   public string GetExecutorWorkingDirectory()
@@ -66,7 +63,11 @@ public class WorkflowTriggerService
     var result = new WorkflowCompletionResult();
 
     // find execution-state.yml for job
-    var pathToState = Path.Combine(GetExecutorWorkingDirectory(), executorRunId, _statePath);
+    var pathToState = Path.Combine(
+      GetExecutorWorkingDirectory(),
+      executorRunId,
+      "meta", "execution-state.yaml");
+    
     if (!File.Exists(pathToState))
     {
       _logger.LogDebug("Could not find execution status file at '{StatePath}'", pathToState);
@@ -82,6 +83,30 @@ public class WorkflowTriggerService
     result.EndTime = state.EndTime;
 
     return result;
+  }
+
+  public void UnpackOutputs(string executorRunId, string targetPath)
+  {
+    // Path the to the job outputs
+    var executionCratePath = Path.Combine(
+      GetExecutorWorkingDirectory(),
+      executorRunId,
+      "outputs",
+      "execution.crate.zip");
+
+    if (!Directory.Exists(targetPath))
+      Directory.CreateDirectory(targetPath);
+      
+    ZipFile.ExtractToDirectory(executionCratePath, targetPath);
+    
+    
+    // Path to workflow containers // TODO this should be INSIDE the unpacked crate!
+    var containersPath = Path.Combine(
+      "", //_wfexsWorkDir,
+      executorRunId,
+      "containers");
+    
+    //if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
   }
 
   /// <summary>

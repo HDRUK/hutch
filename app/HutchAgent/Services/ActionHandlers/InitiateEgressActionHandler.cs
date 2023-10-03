@@ -50,11 +50,13 @@ public class InitiateEgressActionHandler : IActionHandler
       _queueWriter.SendMessage(_queueOptions.QueueName, message);
       return;
     }
-    
+
     job = await _job.UpdateWithWorkflowCompletion(job, completionResult);
     
     // 2. Prepare outputs for egress checks
     await _status.ReportStatus(job.Id, JobStatus.PreparingOutputs);
+    
+    _workflow.UnpackOutputs(job.ExecutorRunId, job.WorkingDirectory.JobEgressOutputs());
 
     // 3. Get target bucket for egress checks
 
