@@ -27,7 +27,8 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
   o.UseSqlite(connectionString ?? "Data Source=hutch-agent.db");
 });
 
-builder.Services.AddFeatureManagement();
+builder.Services.AddFeatureManagement(
+  builder.Configuration.GetSection("Flags"));
 
 builder.Services.AddSwaggerGen(o =>
 {
