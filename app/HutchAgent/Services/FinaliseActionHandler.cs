@@ -15,7 +15,7 @@ public class FinaliseActionHandler
   private readonly BagItService _bagItService;
   private readonly CrateService _crateService;
   private readonly ILogger<FinaliseActionHandler> _logger;
-  private readonly MinioStoreWriter _storeWriter;
+  private readonly MinioStoreService _storeWriter;
   private readonly WorkflowJobService _jobService;
   private readonly PathOptions _pathOptions;
   private readonly IQueueWriter _queueWriter;
@@ -27,7 +27,7 @@ public class FinaliseActionHandler
     BagItService bagItService,
     CrateService crateService,
     ILogger<FinaliseActionHandler> logger,
-    MinioStoreWriter storeWriter,
+    MinioStoreService storeWriter,
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,
     IQueueWriter queueWriter,

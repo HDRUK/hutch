@@ -60,7 +60,7 @@ public static class ServiceCollectionExtensions
     var storeType = GetResultsStoreProvider(c);
 
     return s.ConfigureResultsStore(storeType, c)
-      .AddTransient<MinioStoreWriter>();
+      .AddTransient<MinioStoreService>();
     // TODO Restore multiple Store types
     // typeof(IResultsStoreWriter),
     // storeType switch

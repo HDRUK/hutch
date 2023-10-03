@@ -1,7 +1,5 @@
-using System.Text.Json;
 using HutchAgent.Config;
 using HutchAgent.Constants;
-using HutchAgent.Data;
 using HutchAgent.Models.JobQueue;
 using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
@@ -19,7 +17,7 @@ public class InitiateEgressActionHandler : IActionHandler
   private readonly ILogger<InitiateEgressActionHandler> _logger;
   private readonly IFeatureManager _features;
   private readonly WorkflowTriggerService _workflow;
-  private readonly MinioStoreWriter _store;
+  private readonly MinioStoreService _store;
   private readonly IQueueWriter _queueWriter;
   private readonly WorkflowJobService _jobs;
   private readonly StatusReportingService _status;
@@ -30,7 +28,7 @@ public class InitiateEgressActionHandler : IActionHandler
     ILogger<InitiateEgressActionHandler> logger,
     IFeatureManager features,
     WorkflowTriggerService workflow,
-    MinioStoreWriter store,
+    MinioStoreService store,
     IQueueWriter queueWriter,
     WorkflowJobService jobs,
     StatusReportingService status,

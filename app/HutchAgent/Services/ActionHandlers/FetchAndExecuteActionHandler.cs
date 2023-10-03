@@ -1,6 +1,8 @@
 using System.Text.Json;
 using HutchAgent.Constants;
+using HutchAgent.Models;
 using HutchAgent.Services.Contracts;
+using Microsoft.FeatureManagement;
 
 namespace HutchAgent.Services.ActionHandlers;
 
@@ -14,17 +16,23 @@ public class FetchAndExecuteActionHandler : IActionHandler
   private readonly JobLifecycleService _job;
   private readonly WorkflowJobService _jobs;
   private readonly StatusReportingService _status;
+  private readonly MinioStoreService _store;
+  private readonly IFeatureManager _features;
 
   public FetchAndExecuteActionHandler(
     ExecuteActionHandler executeHandler,
     WorkflowJobService jobs,
     StatusReportingService status,
-    JobLifecycleService job)
+    JobLifecycleService job,
+    MinioStoreService store,
+    IFeatureManager features)
   {
     _executeHandler = executeHandler;
     _jobs = jobs;
     _status = status;
     _job = job;
+    _store = store;
+    _features = features;
   }
 
   public async Task HandleAction(string jobId)
@@ -43,7 +51,34 @@ public class FetchAndExecuteActionHandler : IActionHandler
       }
 
       // Fetch
-      var crate = await _job.FetchRemoteRequestCrate(job.CrateSource);
+      var crateUrl = job.CrateSource;
+      try
+      {
+        var cloudCrate = JsonSerializer.Deserialize<FileStorageDetails>(job.CrateSource);
+
+        if (cloudCrate is not null)
+        {
+          // If the details deserialised successfully, then try and get a URL from Cloud Storage
+          // else assume the source is a URL and proceed anyway.
+
+          _store.UseOptions(new()
+          {
+            Endpoint = cloudCrate.Host,
+            BucketName = cloudCrate.Bucket,
+            Secure = true,
+            AccessKey = "", // TODO fetch via oidc?
+            SecretKey = "" // TODO fetch via oidc?
+          });
+
+          crateUrl = await _store.GetObjectUrl(cloudCrate.Path);
+        }
+      }
+      catch (JsonException)
+      {
+        // assume the source is a URL and proceed anyway.
+      }
+
+      var crate = await _job.FetchRemoteRequestCrate(crateUrl);
       var acceptResult = _job.AcceptRequestCrate(job, crate);
       if (!acceptResult.IsSuccess)
       {

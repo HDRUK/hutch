@@ -5,14 +5,17 @@ using Minio.Exceptions;
 
 namespace HutchAgent.Services;
 
-public class MinioStoreWriter
+// TODO: How to minio with oidc?
+// https://min.io/docs/minio/linux/operations/external-iam/configure-openid-external-identity-management.html
+
+public class MinioStoreService
 {
-  private readonly ILogger<MinioStoreWriter> _logger;
+  private readonly ILogger<MinioStoreService> _logger;
   private MinioClient _minioClient = null!; // indirectly init in ctor
   private MinioOptions _options = null!; // indirectly init in ctor
 
-  public MinioStoreWriter(
-    ILogger<MinioStoreWriter> logger,
+  public MinioStoreService(
+    ILogger<MinioStoreService> logger,
     IOptions<MinioOptions> options)
   {
     _logger = logger;
@@ -107,5 +110,27 @@ public class MinioStoreWriter
     }
 
     return false;
+  }
+
+  /// <summary>
+  /// For a given object in a Minio Bucket we have access to,
+  /// get a direct download link.
+  /// </summary>
+  /// <param name="objectId">ID of the object to get a link for</param>
+  /// <returns>The URL which the object can be downloaded from</returns>
+  public async Task<string> GetObjectUrl(string objectId)
+  {
+    Stream result;
+
+    // Check whether the object exists using statObject().
+    // If the object is not found, statObject() throws an exception,
+    // else it means that the object exists.
+    await _minioClient.StatObjectAsync(new StatObjectArgs()
+      .WithBucket(_options.BucketName)
+      .WithObject(objectId));
+
+    return await _minioClient.PresignedGetObjectAsync(new PresignedGetObjectArgs()
+      .WithBucket(_options.BucketName)
+      .WithObject(objectId));
   }
 }
