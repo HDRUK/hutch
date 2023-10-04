@@ -62,7 +62,7 @@ builder.Services
   .Configure<RabbitQueueOptions>(builder.Configuration.GetSection("Queue"))
   .Configure<JobActionsQueueOptions>(builder.Configuration.GetSection("Queue"))
   .Configure<MinioOptions>(builder.Configuration.GetSection("StoreDefaults"))
-  .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
+  .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowExecutor"))
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
   .Configure<LicenseOptions>(builder.Configuration.GetSection("License"));
 
