@@ -38,16 +38,33 @@ public class ControllerApiService
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
       throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
-    
-    // TODO: make API request and convert the results into StoreOptions Model
-    return new MinioOptions();
+
+    // Combine URIs
+    var baseUri = new Uri(_apiOptions.BaseUrl);
+    var fullUri = new Uri(baseUri, string.Format(_bucketRequestPath, jobId));
+
+    // Request the MinIO bucket details.
+    try
+    {
+      var response = await _http.GetAsync(fullUri);
+
+      // If the request was successful, deserialise the options and return them.
+      var body = await response.Content.ReadFromJsonAsync<MinioOptions>();
+
+      return body ?? throw new Exception();
+    }
+    catch (Exception)
+    {
+      _logger.LogError("Unable to fetch egress bucket details from {Url}", fullUri);
+      throw;
+    }
   }
 
   public async Task ConfirmOutputsTransferred(string jobId)
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
       return;
-    
+
     // TODO make API call
   }
 }
