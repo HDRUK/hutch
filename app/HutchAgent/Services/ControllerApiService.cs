@@ -10,16 +10,20 @@ namespace HutchAgent.Services;
 /// </summary>
 public class ControllerApiService
 {
+  private readonly ILogger<ControllerApiService> _logger;
   private readonly IFeatureManager _features;
   private readonly HttpClient _http;
   private readonly ControllerApiOptions _apiOptions;
+  private readonly string _bucketRequestPath = "api/Submission/GetOutputBucketInfo/?subId={0}";
 
   public ControllerApiService(
     IFeatureManager features,
     IHttpClientFactory httpFactory,
-    IOptions<ControllerApiOptions> apiOptions)
+    IOptions<ControllerApiOptions> apiOptions,
+    ILogger<ControllerApiService> logger)
   {
     _features = features;
+    _logger = logger;
     _apiOptions = apiOptions.Value;
     _http = httpFactory.CreateClient();
     _http.BaseAddress = new Uri(_apiOptions.BaseUrl);
