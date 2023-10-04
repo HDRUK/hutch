@@ -4,9 +4,9 @@
   tasks:
     - name: Clone WfExS
       ansible.builtin.git:
-        repo: https://github.com/dcl10/WfExS-backend.git
+        repo: https://github.com/inab/WfExS-backend.git
         dest: "{{ ansible_env.HOME }}/WfExS-backend"
-        version: "main"
+        version: 2648e3edf2dee3d4aad5984a5c5ca56824b4d585
 
     - name: WfExS virtual enviroment
       ansible.builtin.command:

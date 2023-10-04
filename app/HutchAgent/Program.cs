@@ -3,7 +3,6 @@ using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Data;
 using HutchAgent.Extensions;
-using HutchAgent.HostedServices;
 using HutchAgent.Services;
 using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
@@ -28,7 +27,8 @@ builder.Services.AddDbContext<HutchAgentContext>(o =>
   o.UseSqlite(connectionString ?? "Data Source=hutch-agent.db");
 });
 
-builder.Services.AddFeatureManagement();
+builder.Services.AddFeatureManagement(
+  builder.Configuration.GetSection("Flags"));
 
 builder.Services.AddSwaggerGen(o =>
 {
@@ -61,8 +61,8 @@ builder.Services
   .Configure<PathOptions>(builder.Configuration.GetSection("Paths"))
   .Configure<RabbitQueueOptions>(builder.Configuration.GetSection("Queue"))
   .Configure<JobActionsQueueOptions>(builder.Configuration.GetSection("Queue"))
-  .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
-  .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
+  .Configure<MinioOptions>(builder.Configuration.GetSection("StoreDefaults"))
+  .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowExecutor"))
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
   .Configure<LicenseOptions>(builder.Configuration.GetSection("License"));
 
@@ -70,7 +70,7 @@ builder.Services
 builder.Services
   .AddScoped<FetchAndExecuteActionHandler>()
   .AddScoped<ExecuteActionHandler>()
-  //.AddScoped<ExecuteActionHandler>()
+  .AddScoped<InitiateEgressActionHandler>()
   .AddScoped<FinaliseActionHandler>();
 
 // Hosted Services
@@ -83,11 +83,12 @@ builder.Services
   .AddTransient<StatusReportingService>()
   .AddTransient<WorkflowJobService>()
   .AddTransient<RequestCrateService>()
+  .AddTransient<ControllerApiService>()
   .AddSingleton<BagItService>()
   .AddTransient<CrateService>()
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
-  .AddResultsStore(builder.Configuration)
+  .AddIntermediaryStoreFactory(builder.Configuration)
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
   .AddTransient<IQueueReader, RabbitQueueReader>();
 

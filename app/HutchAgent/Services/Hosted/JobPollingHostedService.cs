@@ -15,7 +15,7 @@ public class JobPollingHostedService : BackgroundService
   private readonly JobActionsQueueOptions _options;
   private readonly WorkflowTriggerOptions _workflowTriggerOptions;
   private readonly ILogger<JobPollingHostedService> _logger;
-  private IResultsStoreWriter? _resultsStoreWriter;
+  private MinioStoreService? _resultsStoreWriter;
   private WorkflowJobService? _WorkflowJobService;
   private CrateService? _crateService;
   private readonly IServiceProvider _serviceProvider;
@@ -57,7 +57,7 @@ public class JobPollingHostedService : BackgroundService
     {
       using (var scope = _serviceProvider.CreateScope())
       {
-        _resultsStoreWriter = scope.ServiceProvider.GetService<IResultsStoreWriter>() ??
+        _resultsStoreWriter = scope.ServiceProvider.GetService<MinioStoreService>() ??
                               throw new InvalidOperationException();
         _WorkflowJobService = scope.ServiceProvider.GetService<WorkflowJobService>() ?? throw new InvalidOperationException();
         _crateService = scope.ServiceProvider.GetService<CrateService>() ??

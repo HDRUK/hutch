@@ -5,7 +5,7 @@ public class BasicResult
   /// <summary>
   /// Was the result successful?
   /// </summary>
-  public bool Success { get; set; }
+  public bool IsSuccess { get; set; }
 
   /// <summary>
   /// Any error feedback

@@ -3,7 +3,9 @@ using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;
 
-public class FileSystemResultsStoreService : IResultsStoreWriter
+// TODO: Make compatible with hot-changing options like the Minio Writer does.
+[Obsolete("To be updated for later use")]
+public class FileSystemResultsStoreService
 {
   private readonly FileSystemResultsStoreOptions _options;
   private readonly ILogger<FileSystemResultsStoreService> _logger;
