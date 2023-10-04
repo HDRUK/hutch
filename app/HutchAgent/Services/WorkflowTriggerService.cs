@@ -202,9 +202,9 @@ public class WorkflowTriggerService
   {
     var gitCommands = new List<string>()
     {
-      "git init",
+      "git -c init.defaultBranch=main init",
       "git add .",
-      @"git commit -m ""Initialise repo"" ",
+      "git -c user.name='Hutch' -c user.email='hutch@example.com' commit -m 'Initialise repo' ",
     };
     ProcessStartInfo gitProcessStartInfo = new ProcessStartInfo()
     {
@@ -238,7 +238,7 @@ public class WorkflowTriggerService
 
   private string CreateGitUrl(string pathToGitRepo, string pathToWorkflow)
   {
-    var absolutePath = "git+" + "file://" + Path.GetFullPath(pathToGitRepo) + ".git" + "#subdirectory=" +
+    var absolutePath ="file://" + Path.GetFullPath(pathToGitRepo) + "#subdirectory=" +
                        pathToWorkflow;
 
     return absolutePath;
