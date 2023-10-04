@@ -8,10 +8,12 @@ namespace HutchAgent.Services;
 public class StatusReportingService
 {
   private readonly ILogger<StatusReportingService> _logger;
+  private readonly ControllerApiService _controllerApi;
 
-  public StatusReportingService(ILogger<StatusReportingService> logger)
+  public StatusReportingService(ILogger<StatusReportingService> logger, ControllerApiService controllerApi)
   {
     _logger = logger;
+    _controllerApi = controllerApi;
   }
 
   public Task ReportStatus(string jobId, JobStatus type, string? message = null)
