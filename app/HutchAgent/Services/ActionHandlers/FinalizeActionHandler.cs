@@ -1,4 +1,6 @@
 using System.IO.Compression;
+using System.Text.Json;
+using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Services.Contracts;
@@ -50,8 +52,13 @@ public class FinalizeActionHandler : IActionHandler
   /// <exception cref="DirectoryNotFoundException">Could not locate the parent directory of the job's BagIt.</exception>
   private async Task UploadFinalCrate(WorkflowJob job)
   {
-    var store = _storeFactory.Create(); // TODO: egress options as stored earlier
-
+    if (string.IsNullOrWhiteSpace(job.EgressTarget))
+      throw new InvalidOperationException(
+        $"Finalized Job {job.Id} cannot be egressed as no egress target was recorded.");
+    
+    var egressTarget = JsonSerializer.Deserialize<MinioOptions>(job.EgressTarget);
+    var store = _storeFactory.Create(egressTarget);
+    
     // Make sure results store exists
     if (!await store.StoreExists())
     {
@@ -63,7 +70,7 @@ public class FinalizeActionHandler : IActionHandler
     }
 
     // Upload the zipped BagIt
-    _logger.LogDebug("Adding '{Package}' to results store", _finalPackageFilename);
+    _logger.LogDebug("Adding Final Results '{Package}' to intermediary store", _finalPackageFilename);
     await store.WriteToStore(
       Path.Combine(
         job.WorkingDirectory.JobEgressPackage(),

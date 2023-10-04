@@ -10,14 +10,18 @@ namespace HutchAgent.Services;
 
 public class MinioStoreServiceFactory
 {
-  private readonly MinioOptions _defaultOptions;
   private readonly IServiceProvider _services;
 
   public MinioStoreServiceFactory(IOptions<MinioOptions> defaultOptions, IServiceProvider services)
   {
-    _defaultOptions = defaultOptions.Value;
+    DefaultOptions = defaultOptions.Value;
     _services = services;
   }
+
+  /// <summary>
+  /// The Default Options for a Minio Store, as configured.
+  /// </summary>
+  public MinioOptions DefaultOptions { get; }
 
   private MinioClient GetClient(MinioOptions options)
   {
@@ -35,17 +39,17 @@ public class MinioStoreServiceFactory
     return new()
     {
       Endpoint = string.IsNullOrWhiteSpace(options?.Endpoint)
-        ? _defaultOptions.Endpoint
+        ? DefaultOptions.Endpoint
         : options.Endpoint,
       AccessKey = string.IsNullOrWhiteSpace(options?.AccessKey)
-        ? _defaultOptions.AccessKey
+        ? DefaultOptions.AccessKey
         : options.AccessKey,
       SecretKey = string.IsNullOrWhiteSpace(options?.SecretKey)
-        ? _defaultOptions.SecretKey
+        ? DefaultOptions.SecretKey
         : options.SecretKey,
-      Secure = options?.Secure ?? _defaultOptions.Secure,
+      Secure = options?.Secure ?? DefaultOptions.Secure,
       BucketName = string.IsNullOrWhiteSpace(options?.BucketName)
-        ? _defaultOptions.BucketName
+        ? DefaultOptions.BucketName
         : options.BucketName,
     };
   }
@@ -53,8 +57,8 @@ public class MinioStoreServiceFactory
   /// <summary>
   /// Create a new instance of MinioStoreService configured with the provided options.
   /// </summary>
-  /// <param name="options"></param>
-  /// <returns></returns>
+  /// <param name="options">The provided options - omissions will fallback to Hutch's configured Default options.</param>
+  /// <returns>A <see cref="MinioStoreService"/> instance configured with the provided options.</returns>
   public MinioStoreService Create(MinioOptions? options = null)
   {
     var mergedOptions = MergeOptions(options);
