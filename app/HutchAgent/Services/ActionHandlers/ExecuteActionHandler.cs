@@ -50,10 +50,10 @@ public class ExecuteActionHandler : IActionHandler
     await _workflowTriggerService.TriggerWfexs(job, roCrate);
 
     // Update the job action in the queue.
-    // _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
-    // {
-    //   JobId = job.Id,
-    //   ActionType = JobActionTypes.InitiateEgress
-    // });
+    _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
+    {
+      JobId = job.Id,
+      ActionType = JobActionTypes.InitiateEgress
+    });
   }
 }
