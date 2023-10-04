@@ -96,6 +96,7 @@ public class InitiateEgressActionHandler : IActionHandler
     
     // TODO should we update metadata here with the fact the check was started? (yes)
     
+    
     await _controller.ConfirmOutputsTransferred(job.Id);
     await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
   }

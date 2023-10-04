@@ -55,12 +55,14 @@ The agent can be configured via its `appsettings*.json` files or .NET user secre
   },
 
   // Configurable details to add to published Results Crates.
-  "Publisher": {
-    "Name": "" // Desired Name of the Publisher in Results Crates.
-  },
-  "License": {
-    "Uri": "", // A URI to be used as th License `@id` in Results crate metadata
-    "Properties": {} // Any valid CreativeWork properties as desirable to be included for the License.
+  "CratePublishing": {
+    "Publisher": {
+      "Id": "" // Desired Identifier (typically URL) for the Publisher in Results Crates.
+    },
+    "License": {
+      "Uri": "", // A URI to be used as th License `@id` in Results crate metadata
+      "Properties": {} // Any valid CreativeWork properties as desirable to be included for the License.
+    }
   }
 }
 ```

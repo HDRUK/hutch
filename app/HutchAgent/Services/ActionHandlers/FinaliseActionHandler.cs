@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Compression;
 using HutchAgent.Config;
 using HutchAgent.Constants;
@@ -5,24 +6,25 @@ using HutchAgent.Models;
 using HutchAgent.Services.Contracts;
 using HutchAgent.Utilities;
 using Microsoft.Extensions.Options;
+using ROCrates.Models;
 
 namespace HutchAgent.Services.ActionHandlers;
 
 public class FinaliseActionHandler : IActionHandler
 {
   private readonly BagItService _bagItService;
-  private readonly CrateService _crateService;
+  private readonly FiveSafesCrateService _crateService;
   private readonly ILogger<FinaliseActionHandler> _logger;
-  private readonly MinioStoreWriter _storeWriter;
+  private readonly MinioStoreServiceFactory _storeFactory;
   private readonly WorkflowJobService _jobs;
   private readonly PathOptions _pathOptions;
   private readonly LicenseOptions _licenseOptions;
 
   public FinaliseActionHandler(
     BagItService bagItService,
-    CrateService crateService,
+    FiveSafesCrateService crateService,
     ILogger<FinaliseActionHandler> logger,
-    MinioStoreWriter storeWriter,
+    MinioStoreServiceFactory storeFactory,
     WorkflowJobService jobs,
     IOptions<PathOptions> pathOptions,
     IOptions<LicenseOptions> licenseOptions)
@@ -30,7 +32,7 @@ public class FinaliseActionHandler : IActionHandler
     _bagItService = bagItService;
     _crateService = crateService;
     _logger = logger;
-    _storeWriter = storeWriter;
+    _storeFactory = storeFactory;
     _jobs = jobs;
     _licenseOptions = licenseOptions.Value;
     _pathOptions = pathOptions.Value;
@@ -59,8 +61,8 @@ public class FinaliseActionHandler : IActionHandler
       // Finalisation
       //UpdateCrate(job);
       //MergeCrate(job);
-      UpdateMetadata(job);
-      DisclosureCheck(job);
+      // UpdateMetadata(job);
+      // DisclosureCheck(job);
       await MakeChecksums(job);
 
       // Post-finalisation clean-up
@@ -84,37 +86,8 @@ public class FinaliseActionHandler : IActionHandler
   /// <param name="job">The job needing checksums.</param>
   private async Task MakeChecksums(WorkflowJob job)
   {
-    await _bagItService.WriteManifestSha512(job.WorkingDirectory);
-    await _bagItService.WriteTagManifestSha512(job.WorkingDirectory);
-  }
-
-  /// <summary>
-  /// Update the metadata of the RO-Crate for the given job ID.
-  /// </summary>
-  /// <param name="job">The job whose metadata needs updating.</param>
-  private void UpdateMetadata(WorkflowJob job)
-  {
-    var cratePath = job.WorkingDirectory.BagItPayloadPath();
-
-    /*
-     Update the job metadata to include the results of the workflow run, the license if configured,
-     and update the CreateAction based on the on the exit code from the workflow runner.
-    */
-    try
-    {
-      _crateService.UpdateMetadata(cratePath, job);
-      if (!string.IsNullOrEmpty(_licenseOptions.Uri) && _licenseOptions.Properties is not null &&
-          _licenseOptions.Properties.Count > 0)
-        _crateService.AddLicense(cratePath);
-      var crate = _crateService.InitialiseCrate(cratePath);
-      var executeAction = _crateService.GetExecuteEntity(crate);
-      _crateService.UpdateCrateActionStatus(
-        job.ExitCode == 0 ? ActionStatus.CompletedActionStatus : ActionStatus.FailedActionStatus, executeAction);
-    }
-    catch (Exception e) when (e is FileNotFoundException or InvalidDataException)
-    {
-      _logger.LogError("Unable to update the metadata for job: {}", job.Id);
-    }
+    await _bagItService.WriteManifestSha512(job.WorkingDirectory.JobCrateRoot());
+    await _bagItService.WriteTagManifestSha512(job.WorkingDirectory.JobCrateRoot());
   }
 
   /// <summary>
@@ -157,17 +130,6 @@ public class FinaliseActionHandler : IActionHandler
     zipFile.Delete();
   }
 
-  /// <summary>
-  /// Perform disclosure checks for a given job.
-  /// </summary>
-  /// <param name="job">The job needing disclosure checks.</param>
-  private void DisclosureCheck(WorkflowJob job)
-  {
-    var crate = _crateService.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());
-    _crateService.CreateDisclosureCheck(crate);
-    crate.Save(job.WorkingDirectory.BagItPayloadPath());
-  }
-
   public async Task HandleAction(string jobId)
   {
     var job = await _jobs.Get(jobId);
@@ -179,19 +141,16 @@ public class FinaliseActionHandler : IActionHandler
       recursive: true);
 
     // 2. Update Crate Metadata
-
-    // a) Add Outputs
-
-    // b) Mark CreateAction complete
-
-    // c) Complete Disclosure AssessAction with outcome
-
-    // d) Add Licence and Publisher details
+    _crateService.FinalizeMetadata(job);
 
     // 3. BagIt Checksums
+    await MakeChecksums(job);
 
     // 4. Zip
 
     // 5. Upload
+    
+    // 6. Clean up
+    
   }
 }

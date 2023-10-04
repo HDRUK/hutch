@@ -12,16 +12,16 @@ using File = System.IO.File;
 
 namespace HutchAgent.Tests;
 
-public class TestCrateService : IClassFixture<CrateServiceFixture>
+public class TestFiveSafesCrateService : IClassFixture<CrateServiceFixture>
 {
   private readonly CrateServiceFixture _crateServiceFixture;
   private readonly IOptions<PathOptions> _paths;
   private readonly IOptions<LicenseOptions> _license;
   private readonly IOptions<PublisherOptions> _publisher;
-  private readonly Mock<ILogger<CrateService>> _logger;
+  private readonly Mock<ILogger<FiveSafesCrateService>> _logger;
   private readonly string _metadataFileName = "ro-crate-metadata.json";
 
-  public TestCrateService(CrateServiceFixture crateServiceFixture)
+  public TestFiveSafesCrateService(CrateServiceFixture crateServiceFixture)
   {
     _crateServiceFixture = crateServiceFixture;
 
@@ -40,39 +40,7 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
     });
 
     _publisher = Options.Create(new PublisherOptions { Name = "TRE name" });
-    _logger = new Mock<ILogger<CrateService>>();
-  }
-
-  [Fact]
-  public void MergeCrates_Extract_ZipToDestinationDataOutputs()
-  {
-    // Arrange
-    var pathToOutputDir = Path.Combine("data", "outputs");
-    var destinationDir = new DirectoryInfo("save/here/");
-    var zipFile = new FileInfo("test-zip.zip");
-    var metaFile = new FileInfo("ro-crate-metadata.json");
-    var expectedFile = new FileInfo(Path.Combine(destinationDir.FullName, pathToOutputDir, metaFile.Name));
-
-    Directory.CreateDirectory(destinationDir.ToString());
-    File.Create(metaFile.Name).Close();
-
-    using (var zipArchive = ZipFile.Open(zipFile.ToString(), ZipArchiveMode.Create))
-    {
-      zipArchive.CreateEntryFromFile(metaFile.FullName, metaFile.Name);
-    }
-
-    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
-
-    // Act
-    service.MergeCrates(zipFile.Name, destinationDir.ToString());
-
-    // Assert
-    Assert.True(expectedFile.Exists);
-
-    // Clean up
-    if (zipFile.Exists) zipFile.Delete();
-    if (metaFile.Exists) metaFile.Delete();
-    if (destinationDir.Exists) destinationDir.Parent!.Delete(true);
+    _logger = new Mock<ILogger<FiveSafesCrateService>>();
   }
 
   [Fact]
@@ -86,7 +54,7 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
     Directory.CreateDirectory(destinationDir.ToString());
     File.Create(zipFile.ToString()).Close();
 
-    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
+    var service = new FiveSafesCrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     service.ZipCrate(destinationDir.ToString());
@@ -100,30 +68,11 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
   }
 
   [Fact]
-  public void MergeCrates_Throws_WhenDestinationNonExistent()
-  {
-    // Arrange
-    var zipFileName = "my-file.zip";
-    var destinationDir = "non/existent/dir/";
-    Directory.CreateDirectory("non/existent/");
-    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
-
-    // Act
-    var action = () => service.MergeCrates(zipFileName, destinationDir);
-
-    // Assert
-    Assert.Throws<DirectoryNotFoundException>(action);
-
-    // Clean up
-    if (Directory.Exists("non/")) Directory.Delete("non/", true);
-  }
-
-  [Fact]
   public void ZipCrate_Throws_WhenDestinationNonExistent()
   {
     // Arrange
     var destinationDir = "non/existent/dir/";
-    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
+    var service = new FiveSafesCrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     var action = () => service.ZipCrate(destinationDir);
@@ -140,7 +89,7 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
-    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
+    var service = new FiveSafesCrateService(_paths, _publisher, _logger.Object, _license);
 
     // Act
     var action = () => service.UpdateMetadata(pathToMetadata, job);
@@ -179,7 +128,7 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
                    + "\"";
     var pattern4 = "\"datePublished\": ";
 
-    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
+    var service = new FiveSafesCrateService(_paths, _publisher, _logger.Object, _license);
     var startTime = DateTime.Now;
     var endTime = startTime + TimeSpan.FromMinutes(2);
     var job = new Models.WorkflowJob { ExecutionStartTime = startTime, EndTime = endTime };
@@ -209,7 +158,7 @@ public class TestCrateService : IClassFixture<CrateServiceFixture>
     crate.Save(_crateServiceFixture.InputCrateDirName.BagItPayloadPath());
     var metadataInfo = new FileInfo(
       Path.Combine(_crateServiceFixture.InputCrateDirName.BagItPayloadPath(), _metadataFileName));
-    var service = new CrateService(_paths, _publisher, _logger.Object, _license);
+    var service = new FiveSafesCrateService(_paths, _publisher, _logger.Object, _license);
     _license.Value.Properties!.TryGetPropertyValue("identifier", out var expectedIdentifier);
     _license.Value.Properties!.TryGetPropertyValue("name", out var expectedName);
 

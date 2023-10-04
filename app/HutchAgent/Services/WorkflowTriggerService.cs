@@ -23,13 +23,13 @@ public class WorkflowTriggerService
   private readonly ILogger<WorkflowTriggerService> _logger;
   private readonly string _activateVenv;
   private const string _bashCmd = "bash";
-  private readonly CrateService _crateService;
+  private readonly FiveSafesCrateService _crateService;
   private readonly IDeserializer _unyaml;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
-    CrateService crateService)
+    FiveSafesCrateService crateService)
   {
     _logger = logger;
     _crateService = crateService;
