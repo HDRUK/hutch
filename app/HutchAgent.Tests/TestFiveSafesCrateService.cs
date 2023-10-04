@@ -32,7 +32,9 @@ public class TestFiveSafesCrateService : IClassFixture<CrateServiceFixture>
 
     _logger = new Mock<ILogger<FiveSafesCrateService>>();
   }
-  //
+
+  // TODO FinalizeMetadata (replacing UpdateMetadata) isn't pure enough to test.
+  // TODO Refactoring needed into pure testable components
   // [Fact]
   // public void UpdateMetadata_Adds_MergedEntity()
   // {

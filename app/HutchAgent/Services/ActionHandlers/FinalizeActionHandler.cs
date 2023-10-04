@@ -34,6 +34,34 @@ public class FinalizeActionHandler : IActionHandler
     _jobs = jobs;
     _job = job;
   }
+  
+  public async Task HandleAction(string jobId)
+  {
+    var job = await _jobs.Get(jobId);
+
+    // 1. Copy approved outputs to the working crate
+    FilesystemUtility.CopyDirectory(
+      job.WorkingDirectory.JobEgressOutputs(),
+      Path.Combine(job.WorkingDirectory.JobCrateRoot(), "outputs"),
+      recursive: true);
+
+    // 2. Update Crate Metadata
+    _crateService.FinalizeMetadata(job);
+
+    // 3. BagIt Checksums
+    await MakeChecksums(job);
+
+    // 4. Zip the final BagIt package
+    ZipFile.CreateFromDirectory(
+      job.WorkingDirectory.JobBagItRoot(),
+      Path.Combine(job.WorkingDirectory.JobEgressPackage(), _finalPackageFilename));
+
+    // 5. Upload
+    await UploadFinalCrate(job);
+
+    // 6. Clean up // TODO should this be deferred to an expiry process?
+    await _job.Cleanup(job);
+  }
 
   /// <summary>
   /// Make the checksums for the BagIt containing the job's data.
@@ -75,33 +103,5 @@ public class FinalizeActionHandler : IActionHandler
       Path.Combine(
         job.WorkingDirectory.JobEgressPackage(),
         _finalPackageFilename));
-  }
-
-  public async Task HandleAction(string jobId)
-  {
-    var job = await _jobs.Get(jobId);
-
-    // 1. Copy approved outputs to the working crate
-    FilesystemUtility.CopyDirectory(
-      job.WorkingDirectory.JobEgressOutputs(),
-      Path.Combine(job.WorkingDirectory.JobCrateRoot(), "outputs"),
-      recursive: true);
-
-    // 2. Update Crate Metadata
-    _crateService.FinalizeMetadata(job);
-
-    // 3. BagIt Checksums
-    await MakeChecksums(job);
-
-    // 4. Zip the final BagIt package
-    ZipFile.CreateFromDirectory(
-      job.WorkingDirectory.JobBagItRoot(),
-      Path.Combine(job.WorkingDirectory.JobEgressPackage(), _finalPackageFilename));
-
-    // 5. Upload
-    await UploadFinalCrate(job);
-
-    // 6. Clean up // TODO should this be deferred to an expiry process?
-    await _job.Cleanup(job);
   }
 }
