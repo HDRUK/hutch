@@ -13,16 +13,37 @@ public class SubmitJobModel
   public string JobId { get; set; } = string.Empty;
 
   /// <summary>
-  /// Project Database Credentials or Vault Token.
+  /// Optional Project Database Connection details.
   /// This allows the requested workflow to be granted access to the
-  /// data source it should run against.
+  /// data source it should run against, if any.
   /// </summary>
-  public string? DataAccess { get; set; } = string.Empty;
-  
+  public DatabaseConnectionDetails? DataAccess { get; set; }
+
   /// <summary>
-  /// Absolute URL where the Job's RO-Crate can be fetched from with a GET request.
+  /// <para>
+  /// Optional absolute URL where the Job's RO-Crate can be fetched from with a GET request.
+  /// </para>
   ///
-  /// If omitted, a later submission can be made to provide a Remote URL or a binary crate payload.
+  /// <para>Mutually exclusive with <see cref="CrateUrl"/></para>
+  ///
+  /// <para>
+  /// If all crate values are omitted at the time of Submission,
+  /// a later submission can be made to provide a Remote URL, Cloud Storage details, or a binary crate payload.
+  /// </para>
   /// </summary>
-  public Uri? CrateUrl { get; set; } = null;
+  public Uri? CrateUrl { get; set; }
+
+  /// <summary>
+  /// <para>
+  /// Optional details for where the crate can be found in a Cloud Storage Provider.
+  /// </para>
+  ///
+  /// <para>Mutually exclusive with <see cref="CrateUrl"/></para>
+  ///
+  /// <para>
+  /// If all crate values are omitted at the time of Submission,
+  /// a later submission can be made to provide a Remote URL, Cloud Storage details, or a binary crate payload.
+  /// </para>
+  /// </summary>
+  public FileStorageDetails? CrateSource { get; set; }
 }

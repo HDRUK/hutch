@@ -5,31 +5,81 @@ using Minio.Exceptions;
 
 namespace HutchAgent.Services;
 
-public class MinioStoreWriter
-{
-  private readonly ILogger<MinioStoreWriter> _logger;
-  private MinioClient _minioClient = null!; // indirectly init in ctor
-  private MinioOptions _options = null!; // indirectly init in ctor
+// TODO: How to minio with oidc?
+// https://min.io/docs/minio/linux/operations/external-iam/configure-openid-external-identity-management.html
 
-  public MinioStoreWriter(
-    ILogger<MinioStoreWriter> logger,
-    IOptions<MinioOptions> options)
+public class MinioStoreServiceFactory
+{
+  private readonly MinioOptions _defaultOptions;
+  private readonly IServiceProvider _services;
+
+  public MinioStoreServiceFactory(IOptions<MinioOptions> defaultOptions, IServiceProvider services)
   {
-    _logger = logger;
-    UseOptions(options.Value);
+    _defaultOptions = defaultOptions.Value;
+    _services = services;
+  }
+
+  private MinioClient GetClient(MinioOptions options)
+  {
+    return new MinioClient()
+      .WithEndpoint(options.Endpoint)
+      .WithCredentials(options.AccessKey, options.SecretKey)
+      .WithSSL(options.Secure)
+      .Build();
+  }
+
+  private MinioOptions MergeOptions(MinioOptions? options = null)
+  {
+    // TODO OIDC Minio Credentials support
+
+    return new()
+    {
+      Endpoint = string.IsNullOrWhiteSpace(options?.Endpoint)
+        ? _defaultOptions.Endpoint
+        : options.Endpoint,
+      AccessKey = string.IsNullOrWhiteSpace(options?.AccessKey)
+        ? _defaultOptions.AccessKey
+        : options.AccessKey,
+      SecretKey = string.IsNullOrWhiteSpace(options?.SecretKey)
+        ? _defaultOptions.SecretKey
+        : options.SecretKey,
+      Secure = options?.Secure ?? _defaultOptions.Secure,
+      BucketName = string.IsNullOrWhiteSpace(options?.BucketName)
+        ? _defaultOptions.BucketName
+        : options.BucketName,
+    };
   }
 
   /// <summary>
-  /// Replace the pre-configured store options with a specific set
+  /// Create a new instance of MinioStoreService configured with the provided options.
   /// </summary>
-  public void UseOptions(MinioOptions options)
+  /// <param name="options"></param>
+  /// <returns></returns>
+  public MinioStoreService Create(MinioOptions? options = null)
   {
+    var mergedOptions = MergeOptions(options);
+    
+    return new MinioStoreService(
+      _services.GetRequiredService<ILogger<MinioStoreService>>(),
+      mergedOptions,
+      GetClient(mergedOptions));
+  }
+}
+
+public class MinioStoreService
+{
+  private readonly ILogger<MinioStoreService> _logger;
+  private readonly MinioOptions _options;
+  private readonly MinioClient _minio;
+
+  public MinioStoreService(
+    ILogger<MinioStoreService> logger,
+    MinioOptions options,
+    MinioClient minio)
+  {
+    _logger = logger;
     _options = options;
-    _minioClient = new MinioClient()
-      .WithEndpoint(_options.Endpoint)
-      .WithCredentials(_options.AccessKey, _options.SecretKey)
-      .WithSSL(_options.Secure)
-      .Build();
+    _minio = minio;
   }
 
   /// <summary>
@@ -39,7 +89,7 @@ public class MinioStoreWriter
   public async Task<bool> StoreExists()
   {
     var args = new BucketExistsArgs().WithBucket(_options.BucketName);
-    return await _minioClient.BucketExistsAsync(args);
+    return await _minio.BucketExistsAsync(args);
   }
 
   /// <summary>
@@ -64,7 +114,7 @@ public class MinioStoreWriter
       .WithObject(objectName);
 
     _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectName, _options.BucketName);
-    await _minioClient.PutObjectAsync(putObjectArgs);
+    await _minio.PutObjectAsync(putObjectArgs);
     _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectName, _options.BucketName);
   }
 
@@ -97,7 +147,7 @@ public class MinioStoreWriter
     try
     {
       _logger.LogInformation("Looking for {Object} in {Bucket}...", objectName, _options.BucketName);
-      await _minioClient.StatObjectAsync(statObjectArgs);
+      await _minio.StatObjectAsync(statObjectArgs);
       _logger.LogInformation("Found {Object} in {Bucket}", objectName, _options.BucketName);
       return true;
     }
@@ -107,5 +157,26 @@ public class MinioStoreWriter
     }
 
     return false;
+  }
+
+  /// <summary>
+  /// For a given object in a Minio Bucket we have access to,
+  /// get a direct download link.
+  /// </summary>
+  /// <param name="objectId">ID of the object to get a link for</param>
+  /// <returns>The URL which the object can be downloaded from</returns>
+  public async Task<string> GetObjectUrl(string objectId)
+  {
+    // Check whether the object exists using statObject().
+    // If the object is not found, statObject() throws an exception,
+    // else it means that the object exists.
+    await _minio.StatObjectAsync(new StatObjectArgs()
+      .WithBucket(_options.BucketName)
+      .WithObject(objectId));
+
+    return await _minio.PresignedGetObjectAsync(new PresignedGetObjectArgs()
+      .WithExpiry((int)TimeSpan.FromDays(1).TotalSeconds)
+      .WithBucket(_options.BucketName)
+      .WithObject(objectId));
   }
 }
