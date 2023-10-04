@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Exceptions;
 using ROCrates.Models;
-using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
@@ -78,7 +77,7 @@ public class FiveSafesCrateService
       {
         Id = _publishOptions.Publisher.Id
       });
-    AddLicense(crate, _publishOptions.License);
+    AddLicense(crate);
 
     
     // e) Root datePublished
@@ -355,14 +354,13 @@ public class FiveSafesCrateService
   /// Add License details to a loaded 5S Results Crate.
   /// </summary>
   /// <param name="crate">The crate</param>
-  /// <param name="license"></param>
-  public void AddLicense(ROCrate crate, LicenseOptions? license)
+  public void AddLicense(ROCrate crate)
   {
-    if (string.IsNullOrEmpty(license?.Uri)) return;
+    if (string.IsNullOrEmpty(_publishOptions.License?.Uri)) return;
 
     var licenseEntity = new CreativeWork(
-      identifier: license.Uri,
-      properties: license.Properties);
+      identifier: _publishOptions.License.Uri,
+      properties: _publishOptions.License.Properties);
 
     // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
     licenseEntity.SetProperty("@type", "CreativeWork");
