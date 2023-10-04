@@ -32,11 +32,11 @@ The agent can be configured via its `appsettings*.json` files or .NET user secre
   // These are are used for Egress in Standalone Mode
   // And as a fallback for Submissions/Egress when only partial bucket details are provided.
   "StoreDefaults": {
-    "Endpoint": "localhost:9000",
+    "Host": "localhost:9000",
     "AccessKey": "accesskey",
     "SecretKey": "secretkey",
     "Secure": false,
-    "BucketName": "hutch.bucket"
+    "Bucket": "hutch.bucket"
   },
 
   // Configuration for tracking Workflow Execution
