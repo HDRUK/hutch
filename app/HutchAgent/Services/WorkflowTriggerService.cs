@@ -154,8 +154,6 @@ public class WorkflowTriggerService
 
     // Read the stdout of the WfExS run to get the run ID
     var reader = process.StandardOutput;
-    _logger.LogInformation($"Standard output {reader}");
-
     while (!process.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
     {
       var stdOutLine = await reader.ReadLineAsync();
