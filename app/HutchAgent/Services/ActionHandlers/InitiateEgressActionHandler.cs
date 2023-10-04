@@ -17,7 +17,7 @@ public class InitiateEgressActionHandler : IActionHandler
   private readonly ILogger<InitiateEgressActionHandler> _logger;
   private readonly IFeatureManager _features;
   private readonly WorkflowTriggerService _workflow;
-  private readonly MinioStoreService _store;
+  private readonly MinioStoreServiceFactory _storeFactory;
   private readonly IQueueWriter _queueWriter;
   private readonly WorkflowJobService _jobs;
   private readonly StatusReportingService _status;
@@ -28,7 +28,7 @@ public class InitiateEgressActionHandler : IActionHandler
     ILogger<InitiateEgressActionHandler> logger,
     IFeatureManager features,
     WorkflowTriggerService workflow,
-    MinioStoreService store,
+    MinioStoreServiceFactory storeFactory,
     IQueueWriter queueWriter,
     WorkflowJobService jobs,
     StatusReportingService status,
@@ -39,7 +39,7 @@ public class InitiateEgressActionHandler : IActionHandler
     _logger = logger;
     _features = features;
     _workflow = workflow;
-    _store = store;
+    _storeFactory = storeFactory;
     _queueWriter = queueWriter;
     _jobs = jobs;
     _status = status;
@@ -72,12 +72,15 @@ public class InitiateEgressActionHandler : IActionHandler
     // 3. Get target bucket for egress checks
     var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.UsePreconfiguredStore) 
                           || await _features.IsEnabledAsync(FeatureFlags.StandaloneMode);
-    if (!useDefaultStore) _store.UseOptions(await _controller.RequestEgressBucket(job.Id));
+    var store = _storeFactory.Create(
+      useDefaultStore
+        ? null
+        : await _controller.RequestEgressBucket(job.Id));
 
     await _status.ReportStatus(job.Id, JobStatus.DataOutRequested);
 
     // 4. Upload files to bucket
-    if (!await _store.StoreExists())
+    if (!await store.StoreExists())
     {
       const string message = "Could not write to the results store: Store not found";
       _logger.LogCritical(message);
@@ -85,6 +88,7 @@ public class InitiateEgressActionHandler : IActionHandler
     }
 
     await UploadFiles(
+      store,
       job.WorkingDirectory.JobEgressOutputs(),
       useDefaultStore ? job.Id : ""); // In the default store, it's a shared bucket; otherwise expect a per-job bucket
     
@@ -93,12 +97,12 @@ public class InitiateEgressActionHandler : IActionHandler
     await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
   }
 
-  private async Task UploadFiles(string sourcePath, string targetPrefix = "")
+  private async Task UploadFiles(MinioStoreService store, string sourcePath, string targetPrefix = "")
   {
-    await UploadFiles(sourcePath, "", targetPrefix);
+    await UploadFiles(store, sourcePath, "", targetPrefix);
   }
 
-  private async Task UploadFiles(string sourceRoot, string sourceSubPath, string targetPrefix)
+  private async Task UploadFiles(MinioStoreService store, string sourceRoot, string sourceSubPath, string targetPrefix)
   {
     // We do a bunch of path shenanigans to ensure relative directory paths are maintained inside the bucket
     var sourcePath = Path.Combine(sourceRoot, sourceSubPath);
@@ -111,12 +115,12 @@ public class InitiateEgressActionHandler : IActionHandler
           sourceRoot += Path.DirectorySeparatorChar;
         var relativeSubPath = entry.Replace(sourceRoot, "");
         
-        await UploadFiles(sourceRoot, relativeSubPath, targetPrefix);
+        await UploadFiles(store, sourceRoot, relativeSubPath, targetPrefix);
       }
     }
     else
     {
-      await _store.WriteToStore(sourcePath, Path.Combine(targetPrefix, sourceSubPath));
+      await store.WriteToStore(sourcePath, Path.Combine(targetPrefix, sourceSubPath));
     }
   }
 }

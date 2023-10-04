@@ -16,7 +16,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
   private readonly JobLifecycleService _job;
   private readonly WorkflowJobService _jobs;
   private readonly StatusReportingService _status;
-  private readonly MinioStoreService _store;
+  private readonly MinioStoreServiceFactory _storeFactory;
   private readonly IFeatureManager _features;
 
   public FetchAndExecuteActionHandler(
@@ -24,14 +24,14 @@ public class FetchAndExecuteActionHandler : IActionHandler
     WorkflowJobService jobs,
     StatusReportingService status,
     JobLifecycleService job,
-    MinioStoreService store,
+    MinioStoreServiceFactory storeFactory,
     IFeatureManager features)
   {
     _executeHandler = executeHandler;
     _jobs = jobs;
     _status = status;
     _job = job;
-    _store = store;
+    _storeFactory = storeFactory;
     _features = features;
   }
 
@@ -55,22 +55,20 @@ public class FetchAndExecuteActionHandler : IActionHandler
       try
       {
         var cloudCrate = JsonSerializer.Deserialize<FileStorageDetails>(job.CrateSource);
-
+        
         if (cloudCrate is not null)
         {
           // If the details deserialised successfully, then try and get a URL from Cloud Storage
           // else assume the source is a URL and proceed anyway.
-
-          _store.UseOptions(new()
+          var store = _storeFactory.Create(new()
           {
             Endpoint = cloudCrate.Host,
             BucketName = cloudCrate.Bucket,
-            Secure = true,
-            AccessKey = "", // TODO fetch via oidc?
-            SecretKey = "" // TODO fetch via oidc?
+            AccessKey = cloudCrate.AccessKey,
+            SecretKey = cloudCrate.SecretKey
           });
-
-          crateUrl = await _store.GetObjectUrl(cloudCrate.Path);
+          
+          crateUrl = await store.GetObjectUrl(cloudCrate.Path);
         }
       }
       catch (JsonException)

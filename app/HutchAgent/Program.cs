@@ -61,7 +61,7 @@ builder.Services
   .Configure<PathOptions>(builder.Configuration.GetSection("Paths"))
   .Configure<RabbitQueueOptions>(builder.Configuration.GetSection("Queue"))
   .Configure<JobActionsQueueOptions>(builder.Configuration.GetSection("Queue"))
-  .Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"))
+  .Configure<MinioOptions>(builder.Configuration.GetSection("StoreDefaults"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("Wfexs"))
   .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
   .Configure<LicenseOptions>(builder.Configuration.GetSection("License"));
@@ -88,7 +88,7 @@ builder.Services
   .AddTransient<CrateService>()
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
-  .AddResultsStore(builder.Configuration)
+  .AddIntermediaryStoreFactory(builder.Configuration)
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
   .AddTransient<IQueueReader, RabbitQueueReader>();
 

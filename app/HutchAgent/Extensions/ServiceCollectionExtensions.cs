@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
   /// </summary>
   /// <param name="c">The configuration object</param>
   /// <returns>The <c>enum</c> for the chosen Results Store Provider</returns>
-  private static ResultsStoreProviders GetResultsStoreProvider(IConfiguration c)
+  private static ResultsStoreProviders GetIntermediaryStoreProvider(IConfiguration c)
   {
     Enum.TryParse<ResultsStoreProviders>(
       c["ResultsStore:Provider"],
@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
     return resultsStoreProviders;
   }
 
-  private static IServiceCollection ConfigureResultsStore(
+  private static IServiceCollection ConfigureIntermediaryStore(
     this IServiceCollection s,
     ResultsStoreProviders provider,
     IConfiguration c)
@@ -55,13 +55,15 @@ public static class ServiceCollectionExtensions
   /// <param name="s"></param>
   /// <param name="c"></param>
   /// <returns></returns>
-  public static IServiceCollection AddResultsStore(this IServiceCollection s, IConfiguration c)
+  public static IServiceCollection AddIntermediaryStoreFactory(this IServiceCollection s, IConfiguration c)
   {
-    var storeType = GetResultsStoreProvider(c);
-
-    return s.ConfigureResultsStore(storeType, c)
-      .AddTransient<MinioStoreService>();
+    return s.Configure<MinioOptions>(c.GetSection("StoreDefaults"))
+      .AddTransient<MinioStoreServiceFactory>();
     // TODO Restore multiple Store types
+    //var storeType = GetResultsStoreProvider(c);
+
+    //return s.ConfigureResultsStore(storeType, c)
+    // .AddTransient(  
     // typeof(IResultsStoreWriter),
     // storeType switch
     // {
