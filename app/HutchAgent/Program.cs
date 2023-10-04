@@ -70,7 +70,7 @@ builder.Services
   .AddScoped<FetchAndExecuteActionHandler>()
   .AddScoped<ExecuteActionHandler>()
   .AddScoped<InitiateEgressActionHandler>()
-  .AddScoped<FinaliseActionHandler>();
+  .AddScoped<FinalizeActionHandler>();
 
 // Hosted Services
 builder.Services

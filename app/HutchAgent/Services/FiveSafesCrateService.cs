@@ -36,7 +36,7 @@ public class FiveSafesCrateService
   /// <param name="job">Details of the job this working crate is for</param>
   public void FinalizeMetadata(WorkflowJob job)
   {
-    var roCrateRootPath = job.WorkingDirectory.JobCrateRoot().BagItPayloadPath();
+    var roCrateRootPath = job.WorkingDirectory.JobCrateRoot();
     var crate = InitialiseCrate(roCrateRootPath);
 
     // Entites
@@ -159,23 +159,6 @@ public class FiveSafesCrateService
     }
 
     return crate;
-  }
-
-  /// <summary>
-  /// Zip a directory containing the contents of an RO-Crate, saving it in the directory's parent directory
-  /// with a name like "cratePath-merged.zip".
-  /// </summary>
-  /// <param name="cratePath">The path to the unzipped RO-Crate.</param>
-  /// <exception cref="DirectoryNotFoundException">
-  /// Thrown when the directory of the RO-Crate does not exists.
-  /// </exception>
-  public void ZipCrate(string cratePath)
-  {
-    var dirInfo = new DirectoryInfo(cratePath);
-    if (!dirInfo.Exists) throw new DirectoryNotFoundException($"{cratePath} does not exists.");
-    var parent = dirInfo.Parent;
-    var zipFile = $"{dirInfo.Name}-merged.zip";
-    ZipFile.CreateFromDirectory(cratePath, Path.Combine(parent!.ToString(), zipFile));
   }
 
   /// <summary>
