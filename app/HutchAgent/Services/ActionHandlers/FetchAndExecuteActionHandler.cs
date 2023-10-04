@@ -65,7 +65,8 @@ public class FetchAndExecuteActionHandler : IActionHandler
             Endpoint = cloudCrate.Host,
             BucketName = cloudCrate.Bucket,
             AccessKey = cloudCrate.AccessKey,
-            SecretKey = cloudCrate.SecretKey
+            SecretKey = cloudCrate.SecretKey,
+            Secure = cloudCrate.Secure
           });
           
           crateUrl = await store.GetObjectUrl(cloudCrate.Path);

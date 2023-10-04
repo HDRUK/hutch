@@ -10,6 +10,12 @@ public class FileStorageDetails
   public string Host { get; set; } = string.Empty;
 
   /// <summary>
+  /// Connection to <see cref="Host"/> should use SSL.
+  /// Defaults to true; should only really be false for development/testing.
+  /// </summary>
+  public bool Secure { get; set; } = true;
+
+  /// <summary>
   /// Cloud Storage Container name e.g. a Min.io Bucket. Defaults to preconfigured value if ommitted.
   /// </summary>
   public string Bucket { get; set; } = string.Empty;

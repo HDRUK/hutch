@@ -267,7 +267,7 @@ public class JobsController : ControllerBase
         DataAccess = JsonSerializer.Serialize(model.DataAccess),
         CrateSource = model.CrateUrl?.ToString()
                       ?? (model.CrateSource is not null
-                        ? JsonSerializer.Serialize(model.DataAccess)
+                        ? JsonSerializer.Serialize(model.CrateSource)
                         : null),
         WorkingDirectory = _paths.JobWorkingDirectory(model.JobId)
       });
@@ -277,8 +277,8 @@ public class JobsController : ControllerBase
       return Conflict();
     }
 
-    // If we have a crate URL, we should queue a fetch of the crate.
-    if (model.CrateUrl is not null)
+    // If we have a crate URL or Source, we should queue a fetch of the crate.
+    if (model.CrateUrl is not null || model.CrateSource is not null)
     {
       _queueWriter.SendMessage(
         _queueOptions.QueueName,

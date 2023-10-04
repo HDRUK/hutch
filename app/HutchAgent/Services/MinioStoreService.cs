@@ -175,6 +175,7 @@ public class MinioStoreService
       .WithObject(objectId));
 
     return await _minio.PresignedGetObjectAsync(new PresignedGetObjectArgs()
+      .WithExpiry((int)TimeSpan.FromDays(1).TotalSeconds)
       .WithBucket(_options.BucketName)
       .WithObject(objectId));
   }

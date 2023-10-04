@@ -27,7 +27,7 @@ public class FinaliseActionHandler
     BagItService bagItService,
     CrateService crateService,
     ILogger<FinaliseActionHandler> logger,
-    MinioStoreService storeWriter,
+    MinioStoreServiceFactory storeWriter,
     WorkflowJobService jobService,
     IOptions<PathOptions> pathOptions,
     IQueueWriter queueWriter,
@@ -38,7 +38,7 @@ public class FinaliseActionHandler
     _bagItService = bagItService;
     _crateService = crateService;
     _logger = logger;
-    _storeWriter = storeWriter;
+    _storeWriter = storeWriter.Create(); // TODO
     _jobService = jobService;
     _queueWriter = queueWriter;
     _jobActionsQueue = jobActionsQueue.Value;
