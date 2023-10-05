@@ -7,18 +7,18 @@ namespace HutchAgent.Services;
 
 public class JobLifecycleService
 {
-  private readonly RequestCrateService _requestCrates;
+  private readonly FiveSafesCrateService _crates;
   private readonly WorkflowJobService _jobs;
   private readonly HttpClient _http;
   private readonly PathOptions _paths;
 
   public JobLifecycleService(
-    RequestCrateService requestCrates,
+    FiveSafesCrateService crates,
     WorkflowJobService jobs,
     IHttpClientFactory httpClientFactory,
     IOptions<PathOptions> paths)
   {
-    _requestCrates = requestCrates;
+    _crates = crates;
     _jobs = jobs;
     _paths = paths.Value;
     _http = httpClientFactory.CreateClient();
@@ -48,9 +48,9 @@ public class JobLifecycleService
   {
     try
     {
-      var bagitPath = _requestCrates.Unpack(job, crate);
+      var bagitPath = _crates.Unpack(job, crate);
 
-      return _requestCrates.IsValidToAccept(bagitPath.BagItPayloadPath());
+      return _crates.IsValidToAccept(bagitPath.BagItPayloadPath());
     }
     catch (InvalidDataException)
     {

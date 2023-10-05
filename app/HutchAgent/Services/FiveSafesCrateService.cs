@@ -3,35 +3,135 @@ using System.IO.Compression;
 using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Constants;
+using HutchAgent.Models;
+using HutchAgent.Results;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Exceptions;
 using ROCrates.Models;
-using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
 /// <summary>
 /// This service is for Hutch specific actions taken with RO-Crates 😊
 /// </summary>
-public class CrateService
+public class FiveSafesCrateService
 {
-  private readonly string _pathToOutputDir = Path.Combine("data", "outputs");
-  private readonly PublisherOptions _publisherOptions;
-  private readonly PathOptions _paths;
-  private readonly LicenseOptions _license;
-  private readonly ILogger<CrateService> _logger;
+  private readonly CratePublishingOptions _publishOptions;
+  private readonly ILogger<FiveSafesCrateService> _logger;
 
-  public CrateService(
+  public FiveSafesCrateService(
     IOptions<PathOptions> paths,
-    IOptions<PublisherOptions> publisher,
-    ILogger<CrateService> logger,
-    IOptions<LicenseOptions> license)
+    IOptions<CratePublishingOptions> publishOptions,
+    ILogger<FiveSafesCrateService> logger)
   {
     _logger = logger;
-    _license = license.Value;
-    _publisherOptions = publisher.Value;
-    _paths = paths.Value;
+    _publishOptions = publishOptions.Value;
+  }
+
+  /// <summary>
+  /// Finalize a successful 5S Crate's metadata (The "Publishing Phase" of the spec) 
+  /// </summary>
+  /// <param name="job">Details of the job this working crate is for</param>
+  public void FinalizeMetadata(WorkflowJob job)
+  {
+    var roCrateRootPath = job.WorkingDirectory.JobCrateRoot();
+    var crate = InitialiseCrate(roCrateRootPath);
+
+    // Entites
+    var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
+
+    // a) Add Outputs
+    // TODO in future be more granular with outputs based on workflow definition?
+
+    // i. the actual outputs entity(/ies)
+    var outputs = new Dataset(source: "outputs");
+    crate.Add(outputs);
+
+    // ii. CreateAction results
+    createAction.AppendTo("result", outputs);
+
+    // iii. Root hasPart results
+    crate.RootDataset.AppendTo("hasPart", outputs);
+
+
+    // b) Mark CreateAction complete
+    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, createAction);
+    createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("endTime", job.EndTime?.ToString(CultureInfo.InvariantCulture));
+
+
+    // c) Complete Disclosure AssessAction with outcome
+    // i. Amend AssessAction
+    var disclosureAction = GetAssessAction(crate, ActionType.DisclosureCheck);
+    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
+    disclosureAction.SetProperty("endTime",
+      job.EndTime?.ToString(CultureInfo.InvariantCulture)); // TODO get time from approval endpoint?
+    // ii. Root mentions
+    crate.RootDataset.AppendTo("mentions", disclosureAction);
+
+    
+    // d) Add Licence and Publisher details
+    if (_publishOptions.Publisher is not null)
+      crate.RootDataset.SetProperty("publisher", new Part()
+      {
+        Id = _publishOptions.Publisher.Id
+      });
+    AddLicense(crate);
+
+    
+    // e) Root datePublished
+    crate.RootDataset.SetProperty("datePublished", DateTimeOffset.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+
+    crate.Save(roCrateRootPath);
+  }
+
+  /// <summary>
+  /// Perform cursory validation of a 5S Crate submission;
+  /// enough to know whether we accept it in principle to try and Execute later.
+  /// </summary>
+  /// <param name="cratePath">Path to an RO-Crate root (i.e. with metadata)</param>
+  /// <returns>A <see cref="BasicResult"/> indicating the outcome of the validation.</returns>
+  public BasicResult IsValidToAccept(string cratePath)
+  {
+    var result = new BasicResult();
+
+    // TODO: BagIt checksum validation? or do this during execution?
+
+    // Validate that it's an RO-Crate at all, by trying to Initialise it
+    try
+    {
+      InitialiseCrate(cratePath);
+    }
+    catch (Exception e) when (e is CrateReadException || e is MetadataException)
+    {
+      result.Errors.Add("The provided file is not an RO-Crate.");
+    }
+
+    // TODO: 5 safes crate profile validation? or do this during execution?
+
+    result.IsSuccess = true;
+    return result;
+  }
+
+  /// <summary>
+  /// Unzips a zipped 5 Safes RO-Crate inside a job's working directory.
+  /// </summary>
+  /// <param name="job">A model describing the job the crate is for.</param>
+  /// <param name="crate">A stream of the crate's bytes.</param>
+  /// <returns>The path where the crate was unpacked.</returns>
+  public string Unpack(WorkflowJob job, Stream crate)
+  {
+    var targetPath = job.WorkingDirectory.JobBagItRoot();
+
+    using var archive = new ZipArchive(crate);
+
+    Directory.CreateDirectory(targetPath);
+    archive.ExtractToDirectory(targetPath, overwriteFiles: true);
+
+    _logger.LogInformation("Crate extracted at {TargetPath}", targetPath);
+
+    return targetPath;
   }
 
   /// <summary>
@@ -58,98 +158,6 @@ public class CrateService
     }
 
     return crate;
-  }
-
-// TODO not sure this is useful anymore?
-  /// <summary>
-  /// Extract a source zipped RO-Crate into an unzipped destination RO-Crate `Data/outputs` directory and zip the
-  /// destination RO-Crate.
-  /// </summary>
-  /// <param name="sourceZip"></param>
-  /// <param name="mergeInto"></param>
-  /// <exception cref="DirectoryNotFoundException">
-  /// The directory you are attempting to merge doesn't exists.
-  /// The parent of the destination directory couldn't be found or does not exists.
-  /// </exception>
-  [Obsolete("TBC?")]
-  public void MergeCrates(string sourceZip, string mergeInto)
-  {
-    // Get information on destination and make sure it exists
-    var destinationInfo = new DirectoryInfo(mergeInto);
-    if (!destinationInfo.Exists) throw new DirectoryNotFoundException($"{mergeInto} does not exist.");
-
-    // Create output directory `Data/outputs/` to extract execution crate
-    var outputDir = Path.Combine(mergeInto, _pathToOutputDir);
-    Directory.CreateDirectory(outputDir);
-
-    // Extract the result (RO-Crate) into the unzipped original RO-Crate
-    ZipFile.ExtractToDirectory(sourceZip, outputDir);
-  }
-
-  /// <summary>
-  /// Zip a directory containing the contents of an RO-Crate, saving it in the directory's parent directory
-  /// with a name like "cratePath-merged.zip".
-  /// </summary>
-  /// <param name="cratePath">The path to the unzipped RO-Crate.</param>
-  /// <exception cref="DirectoryNotFoundException">
-  /// Thrown when the directory of the RO-Crate does not exists.
-  /// </exception>
-  public void ZipCrate(string cratePath)
-  {
-    var dirInfo = new DirectoryInfo(cratePath);
-    if (!dirInfo.Exists) throw new DirectoryNotFoundException($"{cratePath} does not exists.");
-    var parent = dirInfo.Parent;
-    var zipFile = $"{dirInfo.Name}-merged.zip";
-    ZipFile.CreateFromDirectory(cratePath, Path.Combine(parent!.ToString(), zipFile));
-  }
-
-
-  /// <summary>
-  /// Update the target metadata file in an RO-Crate.
-  /// </summary>
-  /// <param name="pathToMetadata">The path to the metadata file that needs updating.</param>
-  /// <param name="job"></param>
-  /// <exception cref="FileNotFoundException">
-  /// Metadata file could not be found.
-  /// </exception>
-  /// <exception cref="InvalidDataException">The metadata file is invalid.</exception>
-  public void UpdateMetadata(string pathToMetadata, Models.WorkflowJob job)
-  {
-    if (!File.Exists(Path.Combine(pathToMetadata, "ro-crate-metadata.json")))
-      throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
-
-    var metaDirInfo = new DirectoryInfo(pathToMetadata);
-
-    var outputsDirToAdd = Path.Combine(metaDirInfo.FullName, "outputs");
-    if (!Directory.Exists(outputsDirToAdd))
-      throw new DirectoryNotFoundException("Could not locate the folder to add to the metadata.");
-
-    // Create entity to represent the outputs folder
-    var outputs = new Dataset(source: Path.GetRelativePath(metaDirInfo.FullName, outputsDirToAdd));
-    // Create entities representing the files in the outputs folder
-    var outputFiles = Directory.EnumerateFiles(outputsDirToAdd, "*", SearchOption.AllDirectories).Select(file =>
-      new ROCrates.Models.File(source: Path.GetRelativePath(metaDirInfo.FullName, file))).ToList();
-
-    var crate = new ROCrate();
-    crate.Initialise(metaDirInfo.FullName);
-    crate.RootDataset.SetProperty("publisher", new Part()
-    {
-      Id = _publisherOptions.Name
-    });
-    crate.RootDataset.SetProperty("datePublished", DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
-
-    // Add dataset and files contained within and update the CreateAction
-    var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
-    createAction.SetProperty("started", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
-    createAction.SetProperty("ended", job.EndTime?.ToString(CultureInfo.InvariantCulture));
-    crate.Add(outputs);
-    foreach (var outputFile in outputFiles)
-    {
-      crate.Add(outputFile);
-      createAction.AppendTo("result", outputFile);
-    }
-
-    crate.Save(location: metaDirInfo.FullName);
   }
 
   /// <summary>
@@ -306,15 +314,6 @@ public class CrateService
     return stageFile.First()!["@id"]!.ToString();
   }
 
-  /// <summary>
-  /// Delete container images
-  /// </summary>
-  /// <param name="pathToImagesDir">The path to container images directory.</param>
-  public void DeleteContainerImages(string pathToImagesDir)
-  {
-    Directory.Delete(pathToImagesDir, recursive: true);
-  }
-
   public void CheckAssessActions(ROCrate roCrate)
   {
     //Check CheckValueType AssessAction exists and is Completed
@@ -352,25 +351,22 @@ public class CrateService
   }
 
   /// <summary>
-  /// Update an RO-Crate's metadata file to include a license configured by Hutch.
+  /// Add License details to a loaded 5S Results Crate.
   /// </summary>
-  /// <param name="pathToCrate">The the path to the RO-Crate</param>
-  /// <exception cref="FileNotFoundException">Thrown when the metadata file does not exist.</exception>
-  public void AddLicense(string pathToCrate)
+  /// <param name="crate">The crate</param>
+  public void AddLicense(ROCrate crate)
   {
-    if (!File.Exists(Path.Combine(pathToCrate, "ro-crate-metadata.json")))
-      throw new FileNotFoundException("Could not locate the metadata for the RO-Crate.");
+    if (string.IsNullOrEmpty(_publishOptions.License?.Uri)) return;
 
-    var license = new CreativeWork(
-      identifier: _license.Uri,
-      properties: _license.Properties);
+    var licenseEntity = new CreativeWork(
+      identifier: _publishOptions.License.Uri,
+      properties: _publishOptions.License.Properties);
 
     // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
-    license.SetProperty("@type", "CreativeWork");
+    licenseEntity.SetProperty("@type", "CreativeWork");
 
-    var crate = InitialiseCrate(pathToCrate);
-    crate.Add(license);
-    crate.RootDataset.SetProperty("license", new Part { Id = license.Id });
-    crate.Save(location: pathToCrate);
+    crate.Add(licenseEntity);
+
+    crate.RootDataset.SetProperty("license", new Part { Id = licenseEntity.Id });
   }
 }

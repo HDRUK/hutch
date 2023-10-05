@@ -11,12 +11,12 @@ namespace HutchAgent.Services;
 
 public class WorkflowFetchService
 {
-  private readonly CrateService _crates;
+  private readonly FiveSafesCrateService _crates;
   private readonly ILogger<WorkflowFetchService> _logger;
   private const string _workflowZip = "workflows.zip";
 
   public WorkflowFetchService(
-    CrateService crates,
+    FiveSafesCrateService crates,
     ILogger<WorkflowFetchService> logger)
   {
     _crates = crates;
