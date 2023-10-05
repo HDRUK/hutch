@@ -1,3 +1,5 @@
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using HutchAgent.Config;
 using HutchAgent.Models;
 using HutchAgent.Results;
@@ -9,19 +11,16 @@ public class JobLifecycleService
 {
   private readonly FiveSafesCrateService _crates;
   private readonly WorkflowJobService _jobs;
-  private readonly HttpClient _http;
   private readonly PathOptions _paths;
 
   public JobLifecycleService(
     FiveSafesCrateService crates,
     WorkflowJobService jobs,
-    IHttpClientFactory httpClientFactory,
     IOptions<PathOptions> paths)
   {
     _crates = crates;
     _jobs = jobs;
     _paths = paths.Value;
-    _http = httpClientFactory.CreateClient();
   }
 
   /// <summary>
@@ -31,10 +30,7 @@ public class JobLifecycleService
   /// <returns>A <see cref="Stream"/> of the HTTP Response Body (hopefully an RO-Crate!)</returns>
   public async Task<Stream> FetchRemoteRequestCrate(string url)
   {
-    var response = await _http.GetAsync(url);
-    response.EnsureSuccessStatusCode();
-
-    return await response.Content.ReadAsStreamAsync();
+    return await url.GetAsync().ReceiveStream();
   }
 
   /// <summary>
