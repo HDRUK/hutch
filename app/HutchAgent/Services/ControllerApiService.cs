@@ -18,6 +18,7 @@ public class ControllerApiService
   private readonly IFeatureManager _features;
   private readonly IFlurlClient _http;
   private readonly ControllerApiOptions _apiOptions;
+  private const string _standaloneModeError = "TRE Controller API should not be used in Standalone Mode.";
 
   public ControllerApiService(
     IFeatureManager features,
@@ -39,7 +40,7 @@ public class ControllerApiService
   public async Task<MinioOptions> RequestEgressBucket(string jobId)
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
-      throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
+      throw new InvalidOperationException(_standaloneModeError);
 
     var url = "Submission/GetOutputBucketInfo"
       .SetQueryParam("subId", jobId);
@@ -60,7 +61,7 @@ public class ControllerApiService
   public async Task ConfirmOutputsTransferred(string jobId, List<string> files)
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
-      throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
+      throw new InvalidOperationException(_standaloneModeError);
 
     var url = "Submission/FilesReadyForReview"
       .SetQueryParam("subId", jobId);
@@ -85,26 +86,16 @@ public class ControllerApiService
   public async Task UpdateStatusForTre(string jobId, JobStatus status, string? description)
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
-      throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
+      throw new InvalidOperationException(_standaloneModeError);
 
-    // Combine URIs
-    var fullUri = new UriBuilder(_updateStatusPath);
+    var url = "Submission/UpdateStatusForTre"
+      .SetQueryParams(new
+      {
+        subId = jobId,
+        statusType = (int)status,
+        description
+      });
 
-    // add query params
-    var query = HttpUtility.ParseQueryString(fullUri.Query);
-    query.Set("subId", jobId);
-    query.Set("statusType", status.ToString());
-    query.Set("description", description);
-
-    // send the update
-    try
-    {
-      await _http.PostAsync(fullUri.Uri, null);
-    }
-    catch (Exception e)
-    {
-      _logger.LogError(exception: e, "Request to update status for {JobId} failed", jobId);
-      throw;
-    }
+    await _http.Request(url).PostAsync();
   }
 }
