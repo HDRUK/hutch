@@ -77,7 +77,7 @@ public class ControllerApiService
   /// <param name="status">The new status of the submission.</param>
   /// <param name="description"></param>
   /// <exception cref="InvalidOperationException"></exception>
-  public async Task UpdateStatusForTre(string jobId, JobStatus status, string description)
+  public async Task UpdateStatusForTre(string jobId, JobStatus status, string? description)
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
       throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");

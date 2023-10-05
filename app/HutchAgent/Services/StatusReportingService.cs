@@ -16,13 +16,30 @@ public class StatusReportingService
     _controllerApi = controllerApi;
   }
 
-  public Task ReportStatus(string jobId, JobStatus type, string? message = null)
+  /// <summary>
+  /// Report status to the submission layer.
+  /// </summary>
+  /// <param name="jobId"></param>
+  /// <param name="type"></param>
+  /// <param name="message"></param>
+  public async Task ReportStatus(string jobId, JobStatus type, string? message = null)
   {
     // This is the most dummy version of this there could be <3
     _logger.LogInformation(
       "Job [{Id}] Status Report [{Type}]: {Message}",
       jobId, type.ToString(), message);
 
-    return Task.CompletedTask;
+    try
+    {
+      await _controllerApi.UpdateStatusForTre(jobId, type, message);
+    }
+    catch (InvalidOperationException e)
+    {
+      _logger.LogError(exception: e, message: e.Message);
+    }
+    catch (Exception e)
+    {
+      _logger.LogError(exception: e, "Unable to report status to submission layer");
+    }
   }
 }
