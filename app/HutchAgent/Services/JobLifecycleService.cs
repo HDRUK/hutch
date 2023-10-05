@@ -71,7 +71,7 @@ public class JobLifecycleService
     if (!details.IsComplete)
       throw new ArgumentException(
         "Expected workflow execution to be complete!", nameof(details));
-    
+
     job.ExitCode = details.ExitCode;
     job.ExecutionStartTime = details.StartTime;
     job.EndTime = details.EndTime;
@@ -82,8 +82,8 @@ public class JobLifecycleService
     _crates.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, createAction);
     createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
     createAction.SetProperty("endTime", job.EndTime?.ToString(CultureInfo.InvariantCulture));
-    crate.Save();
-    
+    crate.Save(job.WorkingDirectory.JobCrateRoot());
+
     return await _jobs.Set(job);
   }
 
@@ -91,7 +91,7 @@ public class JobLifecycleService
   {
     var crate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
     _crates.CreateDisclosureCheck(crate);
-    crate.Save();
+    crate.Save(job.WorkingDirectory.JobCrateRoot());
   }
 
   /// <summary>
