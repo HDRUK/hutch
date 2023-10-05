@@ -74,12 +74,12 @@ public class MinioStoreService
 {
   private readonly ILogger<MinioStoreService> _logger;
   private readonly MinioOptions _options;
-  private readonly MinioClient _minio;
+  private readonly IMinioClient _minio;
 
   public MinioStoreService(
     ILogger<MinioStoreService> logger,
     MinioOptions options,
-    MinioClient minio)
+    IMinioClient minio)
   {
     _logger = logger;
     _options = options;
@@ -185,18 +185,23 @@ public class MinioStoreService
   }
   
   /// <summary>
-  /// Upload a single file, or the contents of a Directory and its subdirectories,
+  /// Upload the contents of a Directory and its subdirectories,
   /// optionally with an objectId prefix to "subdirectory" the objects in the target bucket.
   /// </summary>
-  /// <param name="sourcePath">The file path, or starting directory path.</param>
+  /// <param name="sourcePath">The starting directory path. Must be a directory not a single file.</param>
   /// <param name="targetPrefix">Optional prefix to prepend to any uploaded objects (serves as a target directory path within the target bucket).</param>
   /// <returns>A List of object IDs uploaded (i.e. effective file paths relative to the bucket root).</returns>
   public async Task<List<string>> UploadFilesRecursively(string sourcePath, string targetPrefix = "")
   {
-    return await UploadFilesRecursively(new(), sourcePath, "", targetPrefix);
+    var a = File.GetAttributes(sourcePath);
+    if ((a & FileAttributes.Directory) != FileAttributes.Directory)
+      throw new ArgumentException(
+        $"Expected a path to a Directory, but got a file: {sourcePath}", nameof(sourcePath));
+    
+    return await UploadFilesRecursively(sourcePath, "", targetPrefix);
   }
 
-  private async Task<List<string>> UploadFilesRecursively(List<string> uploadedObjects, string sourceRoot, string sourceSubPath, string targetPrefix)
+  private async Task<List<string>> UploadFilesRecursively( string sourceRoot, string sourceSubPath, string targetPrefix)
   {
     // We do a bunch of path shenanigans to ensure relative directory paths are maintained inside the bucket
     var sourcePath = Path.Combine(sourceRoot, sourceSubPath);
@@ -205,16 +210,17 @@ public class MinioStoreService
     // Directory
     if ((a & FileAttributes.Directory) == FileAttributes.Directory)
     {
+      var results = new List<string>();
       foreach (var entry in Directory.EnumerateFileSystemEntries(sourcePath))
       {
         if (!Path.EndsInDirectorySeparator(sourceRoot))
           sourceRoot += Path.DirectorySeparatorChar;
         var relativeSubPath = entry.Replace(sourceRoot, "");
         
-        uploadedObjects.AddRange(await UploadFilesRecursively(uploadedObjects, sourceRoot, relativeSubPath, targetPrefix));
+        results.AddRange(await UploadFilesRecursively( sourceRoot, relativeSubPath, targetPrefix));
       }
-      
-      return uploadedObjects;
+
+      return results;
     }
 
     // Single File
