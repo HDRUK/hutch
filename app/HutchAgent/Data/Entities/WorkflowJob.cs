@@ -12,12 +12,12 @@ public class WorkflowJob
 
   /// <summary>
   /// Once known, record where the crate came from:
-  /// the URL if one was provided; or the original filename if submitted by payload.
+  /// Cloud Store access details or the URL if provided; or the original filename if submitted by payload.
   /// </summary>
   public string? CrateSource { get; set; }
   
   /// <summary>
-  /// Access credentials / Vault token for the Data Source the job's workflow interacts with
+  /// JSON Serialized DatabaseConnectionDetails Model for the Data Source the job's workflow interacts with
   /// </summary>
   public string? DataAccess { get; set; }
 
@@ -37,7 +37,7 @@ public class WorkflowJob
   public int? ExitCode { get; set; }
   
   /// <summary>
-  /// Once known, here are the details for egress
+  /// Once known, here are the details for egress (JSON Serialized MinioOptions)
   /// </summary>
   public string? EgressTarget { get; set; }
 

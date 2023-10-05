@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models.JobQueue;
@@ -70,12 +71,17 @@ public class InitiateEgressActionHandler : IActionHandler
     _workflow.UnpackOutputs(job.ExecutorRunId, job.WorkingDirectory.JobEgressOutputs());
 
     // 3. Get target bucket for egress checks
-    var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.UsePreconfiguredStore) 
+    var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.UsePreconfiguredStore)
                           || await _features.IsEnabledAsync(FeatureFlags.StandaloneMode);
-    var store = _storeFactory.Create(
-      useDefaultStore
-        ? null
-        : await _controller.RequestEgressBucket(job.Id));
+    var egressStore = useDefaultStore
+      ? null
+      : await _controller.RequestEgressBucket(job.Id);
+
+    var store = _storeFactory.Create(egressStore);
+
+    // Record the bucket details for later use
+    job.EgressTarget = JsonSerializer.Serialize(egressStore ?? _storeFactory.DefaultOptions);
+    await _jobs.Set(job);
 
     await _status.ReportStatus(job.Id, JobStatus.DataOutRequested);
 
@@ -91,8 +97,12 @@ public class InitiateEgressActionHandler : IActionHandler
       store,
       job.WorkingDirectory.JobEgressOutputs(),
       useDefaultStore ? job.Id : ""); // In the default store, it's a shared bucket; otherwise expect a per-job bucket
-    
+
     // 5. Inform TRE that outputs are ready for checks
+
+    // TODO should we update metadata here with the fact the check was started? (yes)
+
+
     await _controller.ConfirmOutputsTransferred(job.Id);
     await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
   }
@@ -114,7 +124,7 @@ public class InitiateEgressActionHandler : IActionHandler
         if (!Path.EndsInDirectorySeparator(sourceRoot))
           sourceRoot += Path.DirectorySeparatorChar;
         var relativeSubPath = entry.Replace(sourceRoot, "");
-        
+
         await UploadFiles(store, sourceRoot, relativeSubPath, targetPrefix);
       }
     }

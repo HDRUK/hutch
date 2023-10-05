@@ -2,7 +2,6 @@ using System.Text.Json;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Services.Contracts;
-using Microsoft.FeatureManagement;
 
 namespace HutchAgent.Services.ActionHandlers;
 
@@ -17,22 +16,19 @@ public class FetchAndExecuteActionHandler : IActionHandler
   private readonly WorkflowJobService _jobs;
   private readonly StatusReportingService _status;
   private readonly MinioStoreServiceFactory _storeFactory;
-  private readonly IFeatureManager _features;
 
   public FetchAndExecuteActionHandler(
     ExecuteActionHandler executeHandler,
     WorkflowJobService jobs,
     StatusReportingService status,
     JobLifecycleService job,
-    MinioStoreServiceFactory storeFactory,
-    IFeatureManager features)
+    MinioStoreServiceFactory storeFactory)
   {
     _executeHandler = executeHandler;
     _jobs = jobs;
     _status = status;
     _job = job;
     _storeFactory = storeFactory;
-    _features = features;
   }
 
   public async Task HandleAction(string jobId)
@@ -62,8 +58,8 @@ public class FetchAndExecuteActionHandler : IActionHandler
           // else assume the source is a URL and proceed anyway.
           var store = _storeFactory.Create(new()
           {
-            Endpoint = cloudCrate.Host,
-            BucketName = cloudCrate.Bucket,
+            Host = cloudCrate.Host,
+            Bucket = cloudCrate.Bucket,
             AccessKey = cloudCrate.AccessKey,
             SecretKey = cloudCrate.SecretKey,
             Secure = cloudCrate.Secure

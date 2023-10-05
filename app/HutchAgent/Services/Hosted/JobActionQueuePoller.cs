@@ -61,8 +61,8 @@ public class JobActionQueuePoller : BackgroundService
             {
               [JobActionTypes.FetchAndExecute] = typeof(FetchAndExecuteActionHandler),
               [JobActionTypes.Execute] = typeof(ExecuteActionHandler),
-              [JobActionTypes.InitiateEgress] = typeof(InitiateEgressActionHandler)
-              // [JobActionTypes.Finalize] = typeof(ExecuteActionHandler)
+              [JobActionTypes.InitiateEgress] = typeof(InitiateEgressActionHandler),
+              [JobActionTypes.Finalize] = typeof(FinalizeActionHandler)
             };
 
             // Get the Handler and Handle its Action

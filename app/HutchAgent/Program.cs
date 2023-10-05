@@ -63,15 +63,14 @@ builder.Services
   .Configure<JobActionsQueueOptions>(builder.Configuration.GetSection("Queue"))
   .Configure<MinioOptions>(builder.Configuration.GetSection("StoreDefaults"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowExecutor"))
-  .Configure<PublisherOptions>(builder.Configuration.GetSection("Publisher"))
-  .Configure<LicenseOptions>(builder.Configuration.GetSection("License"));
+  .Configure<CratePublishingOptions>(builder.Configuration.GetSection("CratePublishing"));
 
 // JobAction Handlers
 builder.Services
   .AddScoped<FetchAndExecuteActionHandler>()
   .AddScoped<ExecuteActionHandler>()
   .AddScoped<InitiateEgressActionHandler>()
-  .AddScoped<FinaliseActionHandler>();
+  .AddScoped<FinalizeActionHandler>();
 
 // Hosted Services
 builder.Services
@@ -82,10 +81,9 @@ builder.Services
   .AddTransient<JobLifecycleService>()
   .AddTransient<StatusReportingService>()
   .AddTransient<WorkflowJobService>()
-  .AddTransient<RequestCrateService>()
   .AddTransient<ControllerApiService>()
   .AddSingleton<BagItService>()
-  .AddTransient<CrateService>()
+  .AddTransient<FiveSafesCrateService>()
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
   .AddIntermediaryStoreFactory(builder.Configuration)
