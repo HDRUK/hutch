@@ -51,7 +51,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
       try
       {
         var cloudCrate = JsonSerializer.Deserialize<FileStorageDetails>(job.CrateSource);
-        
+
         if (cloudCrate is not null)
         {
           // If the details deserialised successfully, then try and get a URL from Cloud Storage
@@ -64,7 +64,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
             SecretKey = cloudCrate.SecretKey,
             Secure = cloudCrate.Secure
           });
-          
+
           crateUrl = await store.GetObjectUrl(cloudCrate.Path);
         }
       }

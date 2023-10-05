@@ -62,7 +62,7 @@ public class MinioStoreServiceFactory
   public MinioStoreService Create(MinioOptions? options = null)
   {
     var mergedOptions = MergeOptions(options);
-    
+
     return new MinioStoreService(
       _services.GetRequiredService<ILogger<MinioStoreService>>(),
       mergedOptions,
