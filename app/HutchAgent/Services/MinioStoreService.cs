@@ -26,7 +26,7 @@ public class MinioStoreServiceFactory
   private MinioClient GetClient(MinioOptions options)
   {
     return new MinioClient()
-      .WithEndpoint(options.Endpoint)
+      .WithEndpoint(options.Host)
       .WithCredentials(options.AccessKey, options.SecretKey)
       .WithSSL(options.Secure)
       .Build();
@@ -38,9 +38,9 @@ public class MinioStoreServiceFactory
 
     return new()
     {
-      Endpoint = string.IsNullOrWhiteSpace(options?.Endpoint)
-        ? DefaultOptions.Endpoint
-        : options.Endpoint,
+      Host = string.IsNullOrWhiteSpace(options?.Host)
+        ? DefaultOptions.Host
+        : options.Host,
       AccessKey = string.IsNullOrWhiteSpace(options?.AccessKey)
         ? DefaultOptions.AccessKey
         : options.AccessKey,
@@ -48,9 +48,9 @@ public class MinioStoreServiceFactory
         ? DefaultOptions.SecretKey
         : options.SecretKey,
       Secure = options?.Secure ?? DefaultOptions.Secure,
-      BucketName = string.IsNullOrWhiteSpace(options?.BucketName)
-        ? DefaultOptions.BucketName
-        : options.BucketName,
+      Bucket = string.IsNullOrWhiteSpace(options?.Bucket)
+        ? DefaultOptions.Bucket
+        : options.Bucket,
     };
   }
 
@@ -92,7 +92,7 @@ public class MinioStoreService
   /// <returns><c>true</c> if the bucket exists, else <c>false</c>.</returns>
   public async Task<bool> StoreExists()
   {
-    var args = new BucketExistsArgs().WithBucket(_options.BucketName);
+    var args = new BucketExistsArgs().WithBucket(_options.Bucket);
     return await _minio.BucketExistsAsync(args);
   }
 
@@ -107,19 +107,19 @@ public class MinioStoreService
   public async Task WriteToStore(string sourcePath, string targetPath = "")
   {
     if (!await StoreExists())
-      throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
+      throw new BucketNotFoundException(_options.Bucket, $"No such bucket: {_options.Bucket}");
 
     if (!File.Exists(sourcePath)) throw new FileNotFoundException();
 
     var objectName = CalculateObjectName(targetPath);
     var putObjectArgs = new PutObjectArgs()
-      .WithBucket(_options.BucketName)
+      .WithBucket(_options.Bucket)
       .WithFileName(sourcePath)
       .WithObject(objectName);
 
-    _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectName, _options.BucketName);
+    _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectName, _options.Bucket);
     await _minio.PutObjectAsync(putObjectArgs);
-    _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectName, _options.BucketName);
+    _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectName, _options.Bucket);
   }
 
   /// <summary>
@@ -142,22 +142,22 @@ public class MinioStoreService
   public async Task<bool> ResultExists(string objectName)
   {
     if (!await StoreExists())
-      throw new BucketNotFoundException(_options.BucketName, $"No such bucket: {_options.BucketName}");
+      throw new BucketNotFoundException(_options.Bucket, $"No such bucket: {_options.Bucket}");
 
     var statObjectArgs = new StatObjectArgs()
-      .WithBucket(_options.BucketName)
+      .WithBucket(_options.Bucket)
       .WithObject(objectName);
 
     try
     {
-      _logger.LogInformation("Looking for {Object} in {Bucket}...", objectName, _options.BucketName);
+      _logger.LogInformation("Looking for {Object} in {Bucket}...", objectName, _options.Bucket);
       await _minio.StatObjectAsync(statObjectArgs);
-      _logger.LogInformation("Found {Object} in {Bucket}", objectName, _options.BucketName);
+      _logger.LogInformation("Found {Object} in {Bucket}", objectName, _options.Bucket);
       return true;
     }
     catch (ObjectNotFoundException)
     {
-      _logger.LogInformation("Could not find {Object} in {Bucket}", objectName, _options.BucketName);
+      _logger.LogInformation("Could not find {Object} in {Bucket}", objectName, _options.Bucket);
     }
 
     return false;
@@ -175,12 +175,12 @@ public class MinioStoreService
     // If the object is not found, statObject() throws an exception,
     // else it means that the object exists.
     await _minio.StatObjectAsync(new StatObjectArgs()
-      .WithBucket(_options.BucketName)
+      .WithBucket(_options.Bucket)
       .WithObject(objectId));
 
     return await _minio.PresignedGetObjectAsync(new PresignedGetObjectArgs()
       .WithExpiry((int)TimeSpan.FromDays(1).TotalSeconds)
-      .WithBucket(_options.BucketName)
+      .WithBucket(_options.Bucket)
       .WithObject(objectId));
   }
 }
