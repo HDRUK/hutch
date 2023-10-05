@@ -9,7 +9,7 @@ public class TestUploadFilesRecursively : IClassFixture<UploadFilesRecursivelyFi
 {
   private readonly UploadFilesRecursivelyFixture _fixture;
   private readonly Mock<ILogger<MinioStoreService>> _logger = new();
-  private readonly Mock<IMinioClient> _minio = new(); // TODO
+  private readonly Mock<IMinioClient> _minio = new();
 
   public TestUploadFilesRecursively(UploadFilesRecursivelyFixture fixture)
   {
