@@ -22,7 +22,7 @@ public class ControllerApiService
     _features = features;
     _apiOptions = apiOptions.Value;
     _http = httpFactory.CreateClient();
-    _http.BaseAddress = new Uri(_apiOptions.BaseUrl);
+    if (!string.IsNullOrWhiteSpace(_apiOptions.BaseUrl)) _http.BaseAddress = new Uri(_apiOptions.BaseUrl);
   }
 
   /// <summary>

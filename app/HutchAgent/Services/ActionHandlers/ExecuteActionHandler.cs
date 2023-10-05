@@ -38,7 +38,7 @@ public class ExecuteActionHandler : IActionHandler
     var job = await _workflowJobService.Get(jobId);
 
     // Initialise RO-Crate 
-    var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());
+    var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.JobBagItRoot().BagItPayloadPath());
 
     // Check AssessActions exist and are complete
     _crates.CheckAssessActions(roCrate);
@@ -53,7 +53,7 @@ public class ExecuteActionHandler : IActionHandler
     _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
     {
       JobId = job.Id,
-      ActionType = JobActionTypes.Finalize
+      ActionType = JobActionTypes.InitiateEgress
     });
   }
 }
