@@ -52,18 +52,22 @@ public class InitiateEgressActionHandler : IActionHandler
   public async Task HandleAction(string jobId)
   {
     // 1. Check if job ready
+    _logger.LogInformation("Checking job status for job: {JobId}", jobId);
     var job = await _jobs.Get(jobId);
 
     var completionResult = await _workflow.HasCompleted(job.ExecutorRunId);
 
     if (!completionResult.IsComplete) // not ready; re-queue to check again later
     {
+      _logger.LogInformation("Job [{JobId}] has not completed execution: re-queueing", jobId);
       var message = new JobQueueMessage { ActionType = JobActionTypes.InitiateEgress, JobId = job.Id };
       _queueWriter.SendMessage(_queueOptions.QueueName, message);
       return;
     }
 
     job = await _job.UpdateWithWorkflowCompletion(job, completionResult);
+    
+    _logger.LogInformation("Job [{JobId}] updated with execution complete", jobId);
 
     // 2. Prepare outputs for egress checks
     await _status.ReportStatus(job.Id, JobStatus.PreparingOutputs);
@@ -93,44 +97,24 @@ public class InitiateEgressActionHandler : IActionHandler
       throw new InvalidOperationException(message);
     }
 
-    await UploadFiles(
-      store,
+    var files = await store.UploadFilesRecursively(
       job.WorkingDirectory.JobEgressOutputs(),
       useDefaultStore ? job.Id : ""); // In the default store, it's a shared bucket; otherwise expect a per-job bucket
 
     // 5. Inform TRE that outputs are ready for checks
-
-    // TODO should we update metadata here with the fact the check was started? (yes)
-
-
-    await _controller.ConfirmOutputsTransferred(job.Id);
-    await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
-  }
-
-  private async Task UploadFiles(MinioStoreService store, string sourcePath, string targetPrefix = "")
-  {
-    await UploadFiles(store, sourcePath, "", targetPrefix);
-  }
-
-  private async Task UploadFiles(MinioStoreService store, string sourceRoot, string sourceSubPath, string targetPrefix)
-  {
-    // We do a bunch of path shenanigans to ensure relative directory paths are maintained inside the bucket
-    var sourcePath = Path.Combine(sourceRoot, sourceSubPath);
-    var a = File.GetAttributes(sourcePath);
-    if ((a & FileAttributes.Directory) == FileAttributes.Directory)
+    if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
     {
-      foreach (var entry in Directory.EnumerateFileSystemEntries(sourcePath))
-      {
-        if (!Path.EndsInDirectorySeparator(sourceRoot))
-          sourceRoot += Path.DirectorySeparatorChar;
-        var relativeSubPath = entry.Replace(sourceRoot, "");
-
-        await UploadFiles(store, sourceRoot, relativeSubPath, targetPrefix);
-      }
+      _logger.LogInformation(
+        "Egress outputs uploaded for manual inspection: Notify `/api/jobs/{JobId}/approval` when complete", jobId);
     }
     else
     {
-      await store.WriteToStore(sourcePath, Path.Combine(targetPrefix, sourceSubPath));
+      await _controller.ConfirmOutputsTransferred(job.Id, files);
+      _logger.LogInformation("Job [{Jobid}]: TRE Controller notified of Data Transfer for Egress Inspection", jobId);
     }
+    
+    await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
+    
+    _job.DisclosureCheckInitiated(job);
   }
 }

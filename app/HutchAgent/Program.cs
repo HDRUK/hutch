@@ -1,4 +1,5 @@
 using System.Reflection;
+using Flurl.Http.Configuration;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Data;
@@ -53,8 +54,9 @@ builder.Services.AddSwaggerGen(o =>
 });
 
 // Other Services
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
-builder.Services.AddHttpClient();
+builder.Services
+  .AddAutoMapper(typeof(Program).Assembly)
+  .AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>();
 
 // IOptions
 builder.Services

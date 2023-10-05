@@ -70,10 +70,11 @@ public class WorkflowTriggerService
       GetExecutorWorkingDirectory(),
       executorRunId,
       "meta", "execution-state.yaml");
-    
+
     if (!File.Exists(pathToState))
     {
       _logger.LogDebug("Could not find execution status file at '{StatePath}'", pathToState);
+      // TODO check for wfexs errors? in case execution failed rather than is incomplete
       return result;
     }
 
@@ -99,16 +100,16 @@ public class WorkflowTriggerService
 
     if (!Directory.Exists(targetPath))
       Directory.CreateDirectory(targetPath);
-      
+
     ZipFile.ExtractToDirectory(executionCratePath, targetPath);
-    
-    
+
+
     // Path to workflow containers // TODO this should be INSIDE the unpacked crate!
     var containersPath = Path.Combine(
       "", //_wfexsWorkDir,
       executorRunId,
       "containers");
-    
+
     //if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
   }
 
@@ -124,7 +125,7 @@ public class WorkflowTriggerService
     var executeAction = _crateService.GetExecuteEntity(roCrate);
     executeAction.SetProperty("startTime", DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
-    
+
     // Create stage file and save file path
     var stageFilePath = WriteStageFile(job, roCrate);
     // Commands to install WfExS and execute a workflow
@@ -265,12 +266,10 @@ public class WorkflowTriggerService
     var yaml = serializer.Serialize(stageFile);
     var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
       "hutch_cwl.wfex.stage");
-    using (StreamWriter outputStageFile =
-           new StreamWriter(stageFilePath))
-    {
-      outputStageFile.WriteLineAsync(yaml);
-    }
 
+    await using var outputStageFile = new StreamWriter(stageFilePath);
+    await outputStageFile.WriteLineAsync(yaml);
+    
     var absoluteStageFilePath = Path.Combine(
       Path.GetFullPath(stageFilePath));
 
@@ -311,11 +310,12 @@ public class WorkflowTriggerService
       await streamWriter.FlushAsync();
       streamWriter.Close();
     }
+
     var reader = gitProcess.StandardOutput;
     while (!gitProcess.HasExited)
     {
       var stdOutLine = await reader.ReadLineAsync();
-      if (stdOutLine is null) continue; 
+      if (stdOutLine is null) continue;
     }
 
     gitProcess.Close();
@@ -323,7 +323,7 @@ public class WorkflowTriggerService
 
   private string CreateGitUrl(string pathToGitRepo, string pathToWorkflow)
   {
-    var absolutePath ="file://" + Path.GetFullPath(pathToGitRepo) + "#subdirectory=" +
+    var absolutePath = "file://" + Path.GetFullPath(pathToGitRepo) + "#subdirectory=" +
                        pathToWorkflow;
 
     return absolutePath;

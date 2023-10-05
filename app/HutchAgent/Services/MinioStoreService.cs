@@ -74,12 +74,12 @@ public class MinioStoreService
 {
   private readonly ILogger<MinioStoreService> _logger;
   private readonly MinioOptions _options;
-  private readonly MinioClient _minio;
+  private readonly IMinioClient _minio;
 
   public MinioStoreService(
     ILogger<MinioStoreService> logger,
     MinioOptions options,
-    MinioClient minio)
+    IMinioClient minio)
   {
     _logger = logger;
     _options = options;
@@ -182,5 +182,50 @@ public class MinioStoreService
       .WithExpiry((int)TimeSpan.FromDays(1).TotalSeconds)
       .WithBucket(_options.Bucket)
       .WithObject(objectId));
+  }
+  
+  /// <summary>
+  /// Upload the contents of a Directory and its subdirectories,
+  /// optionally with an objectId prefix to "subdirectory" the objects in the target bucket.
+  /// </summary>
+  /// <param name="sourcePath">The starting directory path. Must be a directory not a single file.</param>
+  /// <param name="targetPrefix">Optional prefix to prepend to any uploaded objects (serves as a target directory path within the target bucket).</param>
+  /// <returns>A List of object IDs uploaded (i.e. effective file paths relative to the bucket root).</returns>
+  public async Task<List<string>> UploadFilesRecursively(string sourcePath, string targetPrefix = "")
+  {
+    var a = File.GetAttributes(sourcePath);
+    if ((a & FileAttributes.Directory) != FileAttributes.Directory)
+      throw new ArgumentException(
+        $"Expected a path to a Directory, but got a file: {sourcePath}", nameof(sourcePath));
+    
+    return await UploadFilesRecursively(sourcePath, "", targetPrefix);
+  }
+
+  private async Task<List<string>> UploadFilesRecursively( string sourceRoot, string sourceSubPath, string targetPrefix)
+  {
+    // We do a bunch of path shenanigans to ensure relative directory paths are maintained inside the bucket
+    var sourcePath = Path.Combine(sourceRoot, sourceSubPath);
+    var a = File.GetAttributes(sourcePath);
+    
+    // Directory
+    if ((a & FileAttributes.Directory) == FileAttributes.Directory)
+    {
+      var results = new List<string>();
+      foreach (var entry in Directory.EnumerateFileSystemEntries(sourcePath))
+      {
+        if (!Path.EndsInDirectorySeparator(sourceRoot))
+          sourceRoot += Path.DirectorySeparatorChar;
+        var relativeSubPath = entry.Replace(sourceRoot, "");
+        
+        results.AddRange(await UploadFilesRecursively( sourceRoot, relativeSubPath, targetPrefix));
+      }
+
+      return results;
+    }
+
+    // Single File
+    var objectId = Path.Combine(targetPrefix, sourceSubPath);
+    await WriteToStore(sourcePath, objectId);
+    return new() { objectId };
   }
 }
