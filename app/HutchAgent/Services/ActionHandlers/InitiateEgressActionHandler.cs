@@ -52,18 +52,21 @@ public class InitiateEgressActionHandler : IActionHandler
   public async Task HandleAction(string jobId)
   {
     // 1. Check if job ready
+    _logger.LogInformation("Checking job status for job: {JobId}", jobId);
     var job = await _jobs.Get(jobId);
 
     var completionResult = await _workflow.HasCompleted(job.ExecutorRunId);
 
     if (!completionResult.IsComplete) // not ready; re-queue to check again later
     {
+      _logger.LogInformation("Job [{JobId}] has not completed execution: re-queueing", jobId);
       var message = new JobQueueMessage { ActionType = JobActionTypes.InitiateEgress, JobId = job.Id };
       _queueWriter.SendMessage(_queueOptions.QueueName, message);
       return;
     }
 
     job = await _job.UpdateWithWorkflowCompletion(job, completionResult);
+    _logger.LogInformation("Job [{JobId}] updated with execution complete", jobId);
 
     // 2. Prepare outputs for egress checks
     await _status.ReportStatus(job.Id, JobStatus.PreparingOutputs);

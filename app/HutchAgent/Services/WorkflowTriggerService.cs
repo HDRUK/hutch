@@ -74,6 +74,7 @@ public class WorkflowTriggerService
     if (!File.Exists(pathToState))
     {
       _logger.LogDebug("Could not find execution status file at '{StatePath}'", pathToState);
+      // TODO check for wfexs errors? in case execution failed rather than is incomplete
       return result;
     }
 
