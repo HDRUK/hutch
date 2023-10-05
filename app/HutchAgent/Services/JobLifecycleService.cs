@@ -1,6 +1,8 @@
+using System.Globalization;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using HutchAgent.Config;
+using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Results;
 using Microsoft.Extensions.Options;
@@ -74,6 +76,14 @@ public class JobLifecycleService
     job.ExecutionStartTime = details.StartTime;
     job.EndTime = details.EndTime;
 
+    // Update the working crate's metadata with completion
+    var crate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
+    var createAction = _crates.GetCreateAction(crate);
+    _crates.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, createAction);
+    createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("endTime", job.EndTime?.ToString(CultureInfo.InvariantCulture));
+    crate.Save();
+    
     return await _jobs.Set(job);
   }
 

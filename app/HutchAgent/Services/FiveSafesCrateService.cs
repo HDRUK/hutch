@@ -30,6 +30,16 @@ public class FiveSafesCrateService
   }
 
   /// <summary>
+  /// Get the CreateAction Entity for a 5S RO-Crate.
+  /// </summary>
+  /// <param name="crate">The 5S Crate to find the CreateAction in.</param>
+  /// <returns>The CreateAction Entity.</returns>
+  public Entity GetCreateAction(ROCrate crate) // TODO some methods in here, like this one, could be extension methods on the Crate itself <3
+  {
+    return crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
+  }
+
+  /// <summary>
   /// Finalize a successful 5S Crate's metadata (The "Publishing Phase" of the spec) 
   /// </summary>
   /// <param name="job">Details of the job this working crate is for</param>
@@ -37,9 +47,6 @@ public class FiveSafesCrateService
   {
     var roCrateRootPath = job.WorkingDirectory.JobCrateRoot();
     var crate = InitialiseCrate(roCrateRootPath);
-
-    // Entites
-    var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
 
     // a) Add Outputs
     // TODO in future be more granular with outputs based on workflow definition?
@@ -49,19 +56,13 @@ public class FiveSafesCrateService
     crate.Add(outputs);
 
     // ii. CreateAction results
+    var createAction = GetCreateAction(crate);
     createAction.AppendTo("result", outputs);
 
     // iii. Root hasPart results
     crate.RootDataset.AppendTo("hasPart", outputs);
-
-
-    // b) Mark CreateAction complete
-    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, createAction);
-    createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
-    createAction.SetProperty("endTime", job.EndTime?.ToString(CultureInfo.InvariantCulture));
-
-
-    // c) Complete Disclosure AssessAction with outcome
+    
+    // b) Complete Disclosure AssessAction with outcome
     // i. Amend AssessAction
     var disclosureAction = GetAssessAction(crate, ActionType.DisclosureCheck);
     UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
@@ -71,7 +72,7 @@ public class FiveSafesCrateService
     crate.RootDataset.AppendTo("mentions", disclosureAction);
 
     
-    // d) Add Licence and Publisher details
+    // c) Add Licence and Publisher details
     if (_publishOptions.Publisher is not null)
       crate.RootDataset.SetProperty("publisher", new Part()
       {
@@ -80,7 +81,7 @@ public class FiveSafesCrateService
     AddLicense(crate);
 
     
-    // e) Root datePublished
+    // d) Root datePublished
     crate.RootDataset.SetProperty("datePublished", DateTimeOffset.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
 
     crate.Save(roCrateRootPath);

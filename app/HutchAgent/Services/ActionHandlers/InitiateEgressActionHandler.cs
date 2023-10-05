@@ -67,8 +67,6 @@ public class InitiateEgressActionHandler : IActionHandler
 
     job = await _job.UpdateWithWorkflowCompletion(job, completionResult);
     
-    // TODO we should update CreateAction metadata here; as per the spec this occurs regardless of outstanding disclosure / publishing phases.
-    
     _logger.LogInformation("Job [{JobId}] updated with execution complete", jobId);
 
     // 2. Prepare outputs for egress checks
