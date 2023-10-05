@@ -91,6 +91,7 @@ public class JobLifecycleService
   {
     var crate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
     _crates.CreateDisclosureCheck(crate);
+    crate.Save();
   }
 
   /// <summary>
