@@ -66,6 +66,9 @@ public class InitiateEgressActionHandler : IActionHandler
     }
 
     job = await _job.UpdateWithWorkflowCompletion(job, completionResult);
+    
+    // TODO we should update CreateAction metadata here; as per the spec this occurs regardless of outstanding disclosure / publishing phases.
+    
     _logger.LogInformation("Job [{JobId}] updated with execution complete", jobId);
 
     // 2. Prepare outputs for egress checks
@@ -101,7 +104,6 @@ public class InitiateEgressActionHandler : IActionHandler
       useDefaultStore ? job.Id : ""); // In the default store, it's a shared bucket; otherwise expect a per-job bucket
 
     // 5. Inform TRE that outputs are ready for checks
-    // TODO should we update metadata here with the fact the check was started? (yes)
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
     {
       _logger.LogInformation(
@@ -114,5 +116,7 @@ public class InitiateEgressActionHandler : IActionHandler
     }
     
     await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
+    
+    // TODO should we update metadata here with the fact the check was started? (yes)
   }
 }
