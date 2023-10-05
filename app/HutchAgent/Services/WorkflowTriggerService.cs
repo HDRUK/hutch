@@ -130,7 +130,7 @@ public class WorkflowTriggerService
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath}";
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath} --full";
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
