@@ -36,10 +36,12 @@ public class StatusReportingService
     catch (InvalidOperationException e)
     {
       _logger.LogError(exception: e, message: e.Message);
+      throw;
     }
     catch (Exception e)
     {
       _logger.LogError(exception: e, "Unable to report status to submission layer");
+      throw;
     }
   }
 }
