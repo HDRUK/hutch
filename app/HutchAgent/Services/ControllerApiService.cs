@@ -67,22 +67,4 @@ public class ControllerApiService
 
     // TODO make API call
   }
-
-  /// <summary>
-  /// Get the list of files associated with a job ID that are ready to be reviewed.
-  /// </summary>
-  /// <param name="jobId"></param>
-  /// <returns></returns>
-  public async Task<List<string>> GetFilesReadyForReview(string jobId)
-  {
-    return new List<string>();
-  }
-
-  public async Task AddNewDataEgress()
-  {
-  }
-
-  public async Task Approval()
-  {
-  }
 }
