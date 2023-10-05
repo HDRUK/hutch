@@ -1,4 +1,5 @@
 using HutchAgent.Constants;
+using Microsoft.FeatureManagement;
 
 namespace HutchAgent.Services;
 
@@ -9,15 +10,19 @@ public class StatusReportingService
 {
   private readonly ILogger<StatusReportingService> _logger;
   private readonly ControllerApiService _controllerApi;
+  private readonly IFeatureManager _features;
 
-  public StatusReportingService(ILogger<StatusReportingService> logger, ControllerApiService controllerApi)
+  public StatusReportingService(ILogger<StatusReportingService> logger, ControllerApiService controllerApi,
+    IFeatureManager features)
   {
     _logger = logger;
     _controllerApi = controllerApi;
+    _features = features;
   }
 
   /// <summary>
   /// Report status to the submission layer.
+  /// Only log the status change in Standalone Mode.
   /// </summary>
   /// <param name="jobId"></param>
   /// <param name="type"></param>
@@ -31,12 +36,10 @@ public class StatusReportingService
 
     try
     {
+      if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
+        return;
+
       await _controllerApi.UpdateStatusForTre(jobId, type, message);
-    }
-    catch (InvalidOperationException e)
-    {
-      _logger.LogError(exception: e, message: e.Message);
-      throw;
     }
     catch (Exception e)
     {
