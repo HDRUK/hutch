@@ -277,7 +277,7 @@ public class WorkflowTriggerService
     return absoluteStageFilePath;
   }
 
-  private async void InitialiseRepo(string repoPath)
+  private async Task InitialiseRepo(string repoPath)
   {
     var gitCommands = new List<string>()
     {
