@@ -2,10 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HutchAgent.Models;
 
+/// <summary>
+/// Details for the Cloud Storage of a specific File
+/// </summary>
 public class FileStorageDetails
 {
   /// <summary>
-  /// Cloud Storage Host e.g. a Min.io Server. Defaults to preconfigured value if ommitted.
+  /// Cloud Storage Host e.g. a Min.io Server. Defaults to preconfigured value if omitted.
   /// </summary>
   public string Host { get; set; } = string.Empty;
 
@@ -16,7 +19,7 @@ public class FileStorageDetails
   public bool Secure { get; set; } = true;
 
   /// <summary>
-  /// Cloud Storage Container name e.g. a Min.io Bucket. Defaults to preconfigured value if ommitted.
+  /// Cloud Storage Container name e.g. a Min.io Bucket. Defaults to preconfigured value if omitted.
   /// </summary>
   public string Bucket { get; set; } = string.Empty;
 
@@ -28,12 +31,12 @@ public class FileStorageDetails
   public string Path { get; set; } = string.Empty;
 
   /// <summary>
-  /// Access Key for Cloud Storage. If ommitted, will use OIDC if configured, or default to preconfigured value if not.
+  /// Access Key for Cloud Storage. If omitted, will use OIDC if configured, or default to preconfigured value if not.
   /// </summary>
   public string AccessKey { get; set; } = string.Empty;
 
   /// <summary>
-  /// Secret Key for Cloud Storage. If ommitted, will use OIDC if configured, or default to preconfigured value if not.
+  /// Secret Key for Cloud Storage. If omitted, will use OIDC if configured, or default to preconfigured value if not.
   /// </summary>
   public string SecretKey { get; set; } = string.Empty;
 }

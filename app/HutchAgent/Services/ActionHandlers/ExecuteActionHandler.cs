@@ -14,7 +14,7 @@ public class ExecuteActionHandler : IActionHandler
   private readonly WorkflowJobService _workflowJobService;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _queueOptions;
-  private readonly CrateService _crates;
+  private readonly FiveSafesCrateService _crates;
 
   public ExecuteActionHandler(
     WorkflowFetchService workflowFetchService,
@@ -22,7 +22,7 @@ public class ExecuteActionHandler : IActionHandler
     WorkflowJobService workflowJobService,
     IQueueWriter queueWriter,
     IOptions<JobActionsQueueOptions> queueOptions,
-    CrateService crates)
+    FiveSafesCrateService crates)
   {
     _workflowFetchService = workflowFetchService;
     _workflowTriggerService = workflowTriggerService;
@@ -38,7 +38,7 @@ public class ExecuteActionHandler : IActionHandler
     var job = await _workflowJobService.Get(jobId);
 
     // Initialise RO-Crate 
-    var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.BagItPayloadPath());
+    var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.JobBagItRoot().BagItPayloadPath());
 
     // Check AssessActions exist and are complete
     _crates.CheckAssessActions(roCrate);
@@ -53,7 +53,7 @@ public class ExecuteActionHandler : IActionHandler
     _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
     {
       JobId = job.Id,
-      ActionType = JobActionTypes.Finalize
+      ActionType = JobActionTypes.InitiateEgress
     });
   }
 }

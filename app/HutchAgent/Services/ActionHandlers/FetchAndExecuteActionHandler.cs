@@ -2,7 +2,6 @@ using System.Text.Json;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Services.Contracts;
-using Microsoft.FeatureManagement;
 
 namespace HutchAgent.Services.ActionHandlers;
 
@@ -17,22 +16,19 @@ public class FetchAndExecuteActionHandler : IActionHandler
   private readonly WorkflowJobService _jobs;
   private readonly StatusReportingService _status;
   private readonly MinioStoreServiceFactory _storeFactory;
-  private readonly IFeatureManager _features;
 
   public FetchAndExecuteActionHandler(
     ExecuteActionHandler executeHandler,
     WorkflowJobService jobs,
     StatusReportingService status,
     JobLifecycleService job,
-    MinioStoreServiceFactory storeFactory,
-    IFeatureManager features)
+    MinioStoreServiceFactory storeFactory)
   {
     _executeHandler = executeHandler;
     _jobs = jobs;
     _status = status;
     _job = job;
     _storeFactory = storeFactory;
-    _features = features;
   }
 
   public async Task HandleAction(string jobId)
