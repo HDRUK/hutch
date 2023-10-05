@@ -42,7 +42,7 @@ public class ExecuteActionHandler : IActionHandler
     await _status.ReportStatus(jobId, JobStatus.ValidatingCrate);
 
     // Initialise RO-Crate 
-    var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.JobBagItRoot().BagItPayloadPath());
+    var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
 
     // Check AssessActions exist and are complete
     _crates.CheckAssessActions(roCrate);

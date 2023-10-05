@@ -186,7 +186,7 @@ public class WorkflowTriggerService
                              roCrate.Entities[mention!["@id"]!.ToString()].GetProperty<JsonNode>("result")) ??
                          throw new NullReferenceException("No download action found in the RO-Crate");
 
-    var cratePath = Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
+    var cratePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
       downloadAction.First()!["@id"]!.ToString());
     await InitialiseRepo(cratePath);
 
@@ -226,7 +226,7 @@ public class WorkflowTriggerService
       {
         // get absolute path to input
         var absolutePath = Path.Combine(
-          Path.GetFullPath(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath()),
+          Path.GetFullPath(workflowJob.WorkingDirectory.JobCrateRoot()),
           objectEntity.Id);
         var filePath = "file://" + absolutePath;
 
@@ -269,7 +269,7 @@ public class WorkflowTriggerService
     var serializer = new SerializerBuilder()
       .Build();
     var yaml = serializer.Serialize(stageFile);
-    var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
+    var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
       "hutch_cwl.wfex.stage");
 
     await using var outputStageFile = new StreamWriter(stageFilePath);
