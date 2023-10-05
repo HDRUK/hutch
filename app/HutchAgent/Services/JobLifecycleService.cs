@@ -87,6 +87,12 @@ public class JobLifecycleService
     return await _jobs.Set(job);
   }
 
+  public void DisclosureCheckInitiated(WorkflowJob job)
+  {
+    var crate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
+    _crates.CreateDisclosureCheck(crate);
+  }
+
   /// <summary>
   /// Clean up everything related to a job;
   /// its db record, its working directory etc.

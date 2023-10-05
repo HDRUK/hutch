@@ -115,6 +115,6 @@ public class InitiateEgressActionHandler : IActionHandler
     
     await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
     
-    // TODO should we update metadata here with the fact the check was started? (yes)
+    _job.DisclosureCheckInitiated(job);
   }
 }

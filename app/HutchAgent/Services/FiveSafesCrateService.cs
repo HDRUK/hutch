@@ -68,9 +68,8 @@ public class FiveSafesCrateService
     UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
     disclosureAction.SetProperty("endTime",
       job.EndTime?.ToString(CultureInfo.InvariantCulture)); // TODO get time from approval endpoint?
-    // ii. Root mentions
-    crate.RootDataset.AppendTo("mentions", disclosureAction);
-
+    disclosureAction.SetProperty("name", "Disclosure check of workflow results: Fully approved"); // TODO Partial approval some day
+    // ii. Root mentions - already done when the AssessAction was created
     
     // c) Add Licence and Publisher details
     if (_publishOptions.Publisher is not null)
