@@ -167,7 +167,7 @@ public class WorkflowTriggerService
     process.Close();
   }
 
-  private string WriteStageFile(WorkflowJob workflowJob, ROCrate roCrate)
+  private async Task<string> WriteStageFile(WorkflowJob workflowJob, ROCrate roCrate)
   {
     //Get execution details
     var mentions = roCrate.RootDataset.GetProperty<JsonArray>("mentions") ??
@@ -182,7 +182,7 @@ public class WorkflowTriggerService
 
     var cratePath = Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
       downloadAction.First()!["@id"]!.ToString());
-    InitialiseRepo(cratePath);
+    await InitialiseRepo(cratePath);
 
     var workflowCrate = _crateService.InitialiseCrate(cratePath);
     var workflow = workflowCrate.RootDataset.GetProperty<Part>("mainEntity") ??
