@@ -311,6 +311,12 @@ public class WorkflowTriggerService
       await streamWriter.FlushAsync();
       streamWriter.Close();
     }
+    var reader = gitProcess.StandardOutput;
+    while (!gitProcess.HasExited)
+    {
+      var stdOutLine = await reader.ReadLineAsync();
+      if (stdOutLine is null) continue; 
+    }
 
     gitProcess.Close();
   }
