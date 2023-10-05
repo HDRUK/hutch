@@ -1,11 +1,10 @@
 using HutchAgent.Config;
 using HutchAgent.Constants;
-using HutchAgent.Models;
 using HutchAgent.Models.JobQueue;
 using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
 
-namespace HutchAgent.Services;
+namespace HutchAgent.Services.ActionHandlers;
 
 public class ExecuteActionHandler : IActionHandler
 {
@@ -15,6 +14,7 @@ public class ExecuteActionHandler : IActionHandler
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _queueOptions;
   private readonly FiveSafesCrateService _crates;
+  private readonly StatusReportingService _status;
 
   public ExecuteActionHandler(
     WorkflowFetchService workflowFetchService,
@@ -22,7 +22,8 @@ public class ExecuteActionHandler : IActionHandler
     WorkflowJobService workflowJobService,
     IQueueWriter queueWriter,
     IOptions<JobActionsQueueOptions> queueOptions,
-    FiveSafesCrateService crates)
+    FiveSafesCrateService crates,
+    StatusReportingService status)
   {
     _workflowFetchService = workflowFetchService;
     _workflowTriggerService = workflowTriggerService;
@@ -30,12 +31,15 @@ public class ExecuteActionHandler : IActionHandler
     _queueWriter = queueWriter;
     _queueOptions = queueOptions.Value;
     _crates = crates;
+    _status = status;
   }
 
   public async Task HandleAction(string jobId)
   {
     // Get job.
     var job = await _workflowJobService.Get(jobId);
+
+    await _status.ReportStatus(jobId, JobStatus.ValidatingCrate);
 
     // Initialise RO-Crate 
     var roCrate = _crates.InitialiseCrate(job.WorkingDirectory.JobBagItRoot().BagItPayloadPath());
@@ -44,6 +48,8 @@ public class ExecuteActionHandler : IActionHandler
     _crates.CheckAssessActions(roCrate);
 
     // Fetch workflow.
+    await _status.ReportStatus(jobId, JobStatus.FetchingWorkflow);
+
     roCrate = await _workflowFetchService.FetchWorkflowCrate(job, roCrate);
 
     // Execute workflow.

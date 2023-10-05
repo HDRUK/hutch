@@ -28,14 +28,17 @@ public class WorkflowTriggerService
   private const string _bashCmd = "bash";
   private readonly FiveSafesCrateService _crateService;
   private readonly IDeserializer _unyaml;
+  private readonly StatusReportingService _status;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
-    FiveSafesCrateService crateService)
+    FiveSafesCrateService crateService,
+    StatusReportingService status)
   {
     _logger = logger;
     _crateService = crateService;
+    _status = status;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _unyaml = new DeserializerBuilder()
@@ -104,13 +107,9 @@ public class WorkflowTriggerService
     ZipFile.ExtractToDirectory(executionCratePath, targetPath);
 
 
-    // Path to workflow containers // TODO this should be INSIDE the unpacked crate!
-    var containersPath = Path.Combine(
-      "", //_wfexsWorkDir,
-      executorRunId,
-      "containers");
-
-    //if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
+    // Path to workflow containers
+    var containersPath = Path.Combine(targetPath, "containers");
+    if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
   }
 
   /// <summary>
@@ -119,8 +118,12 @@ public class WorkflowTriggerService
   /// <param name="job"></param>
   /// <param name="roCrate"></param>
   /// <exception cref="Exception"></exception>
-  public async Task TriggerWfexs(WorkflowJob job, ROCrate roCrate)
+  public async Task
+    TriggerWfexs(WorkflowJob job,
+      ROCrate roCrate) // TODO split this up into staging (producing the stage file) and executing (actually running wfexs)
   {
+    await _status.ReportStatus(job.Id, JobStatus.StagingWorkflow);
+
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(roCrate);
     executeAction.SetProperty("startTime", DateTime.Now);
@@ -128,6 +131,8 @@ public class WorkflowTriggerService
 
     // Create stage file and save file path
     var stageFilePath = WriteStageFile(job, roCrate);
+
+    await _status.ReportStatus(job.Id, JobStatus.ExecutingWorkflow);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
@@ -146,7 +151,7 @@ public class WorkflowTriggerService
     var process = Process.Start(processStartInfo);
     if (process == null)
       throw new Exception("Could not start process");
-    _logger.LogInformation($"Process started for job: {job.Id}");
+    _logger.LogInformation("Process started for job: {JobId}", job.Id);
 
     await process.StandardInput.WriteLineAsync(_activateVenv);
     await process.StandardInput.WriteLineAsync(command);
@@ -269,7 +274,7 @@ public class WorkflowTriggerService
 
     await using var outputStageFile = new StreamWriter(stageFilePath);
     await outputStageFile.WriteLineAsync(yaml);
-    
+
     var absoluteStageFilePath = Path.Combine(
       Path.GetFullPath(stageFilePath));
 
