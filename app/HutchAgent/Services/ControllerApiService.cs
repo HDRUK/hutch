@@ -15,8 +15,8 @@ public class ControllerApiService
   private readonly IFeatureManager _features;
   private readonly HttpClient _http;
   private readonly ControllerApiOptions _apiOptions;
-  private readonly string _bucketRequestPath = "api/Submission/GetOutputBucketInfo/?subId={0}";
-  private readonly string _updateStatusPath = "api/Submission/UpdateStatusForTre";
+  private readonly string _bucketRequestPath = "/api/Submission/GetOutputBucketInfo/?subId={0}";
+  private readonly string _updateStatusPath = "/api/Submission/UpdateStatusForTre";
 
   public ControllerApiService(
     IFeatureManager features,
@@ -42,8 +42,7 @@ public class ControllerApiService
       throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
 
     // Combine URIs
-    var baseUri = new Uri(_apiOptions.BaseUrl);
-    var fullUri = new Uri(baseUri, string.Format(_bucketRequestPath, jobId));
+    var fullUri = new Uri(string.Format(_bucketRequestPath, jobId));
 
     // Request the MinIO bucket details.
     try
@@ -83,23 +82,18 @@ public class ControllerApiService
       throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
 
     // Combine URIs
-    var baseUri = new Uri(_apiOptions.BaseUrl);
-    var fullUri = new Uri(baseUri, _updateStatusPath);
+    var fullUri = new UriBuilder(_updateStatusPath);
 
     // add query params
     var query = HttpUtility.ParseQueryString(fullUri.Query);
     query.Set("subId", jobId);
     query.Set("statusType", status.ToString());
     query.Set("description", description);
-    var fullUriWithQuery = new UriBuilder(fullUri)
-    {
-      Query = query.ToString()
-    };
 
     // send the update
     try
     {
-      await _http.PostAsync(fullUriWithQuery.Uri, null);
+      await _http.PostAsync(fullUri.Uri, null);
     }
     catch (Exception e)
     {
