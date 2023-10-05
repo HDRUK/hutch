@@ -183,4 +183,43 @@ public class MinioStoreService
       .WithBucket(_options.Bucket)
       .WithObject(objectId));
   }
+  
+  /// <summary>
+  /// Upload a single file, or the contents of a Directory and its subdirectories,
+  /// optionally with an objectId prefix to "subdirectory" the objects in the target bucket.
+  /// </summary>
+  /// <param name="sourcePath">The file path, or starting directory path.</param>
+  /// <param name="targetPrefix">Optional prefix to prepend to any uploaded objects (serves as a target directory path within the target bucket).</param>
+  /// <returns>A List of object IDs uploaded (i.e. effective file paths relative to the bucket root).</returns>
+  public async Task<List<string>> UploadFilesRecursively(string sourcePath, string targetPrefix = "")
+  {
+    return await UploadFilesRecursively(new(), sourcePath, "", targetPrefix);
+  }
+
+  private async Task<List<string>> UploadFilesRecursively(List<string> uploadedObjects, string sourceRoot, string sourceSubPath, string targetPrefix)
+  {
+    // We do a bunch of path shenanigans to ensure relative directory paths are maintained inside the bucket
+    var sourcePath = Path.Combine(sourceRoot, sourceSubPath);
+    var a = File.GetAttributes(sourcePath);
+    
+    // Directory
+    if ((a & FileAttributes.Directory) == FileAttributes.Directory)
+    {
+      foreach (var entry in Directory.EnumerateFileSystemEntries(sourcePath))
+      {
+        if (!Path.EndsInDirectorySeparator(sourceRoot))
+          sourceRoot += Path.DirectorySeparatorChar;
+        var relativeSubPath = entry.Replace(sourceRoot, "");
+        
+        uploadedObjects.AddRange(await UploadFilesRecursively(uploadedObjects, sourceRoot, relativeSubPath, targetPrefix));
+      }
+      
+      return uploadedObjects;
+    }
+
+    // Single File
+    var objectId = Path.Combine(targetPrefix, sourceSubPath);
+    await WriteToStore(sourcePath, objectId);
+    return new() { objectId };
+  }
 }

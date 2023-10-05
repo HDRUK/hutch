@@ -1,6 +1,9 @@
-using System.Web;
+using Flurl;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using HutchAgent.Config;
 using HutchAgent.Constants;
+using HutchAgent.Models.ControllerApi;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 
@@ -13,22 +16,19 @@ public class ControllerApiService
 {
   private readonly ILogger<ControllerApiService> _logger;
   private readonly IFeatureManager _features;
-  private readonly HttpClient _http;
+  private readonly IFlurlClient _http;
   private readonly ControllerApiOptions _apiOptions;
-  private readonly string _bucketRequestPath = "/api/Submission/GetOutputBucketInfo/?subId={0}";
-  private readonly string _updateStatusPath = "/api/Submission/UpdateStatusForTre";
 
   public ControllerApiService(
     IFeatureManager features,
-    IHttpClientFactory httpFactory,
+    IFlurlClientFactory httpFactory,
     IOptions<ControllerApiOptions> apiOptions,
     ILogger<ControllerApiService> logger)
   {
     _features = features;
     _logger = logger;
     _apiOptions = apiOptions.Value;
-    _http = httpFactory.CreateClient();
-    if (!string.IsNullOrWhiteSpace(_apiOptions.BaseUrl)) _http.BaseAddress = new Uri(_apiOptions.BaseUrl);
+    _http = httpFactory.Get(_apiOptions.BaseUrl); // TODO what if standalone mode?
   }
 
   /// <summary>
@@ -41,32 +41,38 @@ public class ControllerApiService
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
       throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
 
-    // Combine URIs
-    var fullUri = new Uri(string.Format(_bucketRequestPath, jobId));
+    var url = "Submission/GetOutputBucketInfo"
+      .SetQueryParam("subId", jobId);
 
-    // Request the MinIO bucket details.
-    try
-    {
-      var response = await _http.GetAsync(fullUri);
+    _logger.LogDebug("Requesting Egress Bucket from {Url}", Url.Combine(_apiOptions.BaseUrl, url));
 
-      // If the request was successful, deserialise the options and return them.
-      var body = await response.Content.ReadFromJsonAsync<MinioOptions>();
-
-      return body ?? throw new Exception();
-    }
-    catch (Exception)
-    {
-      _logger.LogError("Unable to fetch egress bucket details from {Url}", fullUri);
-      throw;
-    }
+    return await _http.Request(url).GetAsync().ReceiveJson<MinioOptions>()
+           ?? throw new InvalidOperationException(
+             "No Response Body was received for an Egress Bucket request.");
   }
 
-  public async Task ConfirmOutputsTransferred(string jobId)
+  /// <summary>
+  /// Confirm with the TRE Controller API that Egress Outputs have been transferred to the Intermediary Store.
+  /// </summary>
+  /// <param name="jobId">The Job Id this is for.</param>
+  /// <param name="files">A list of output file object IDs in the store.</param>
+  /// <exception cref="InvalidOperationException">TRE Controller API was attempted to be used in Standalone Mode.</exception>
+  public async Task ConfirmOutputsTransferred(string jobId, List<string> files)
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
-      return;
+      throw new InvalidOperationException("TRE Controller API should not be used in Standalone Mode.");
 
-    // TODO make API call
+    var url = "Submission/FilesReadyForReview"
+      .SetQueryParam("subId", jobId);
+
+    _logger.LogInformation(
+      "Job [{JobId}]: Confirming with TRE Controller API that Egress Outputs have been transferred", jobId);
+
+    await _http.Request(url).PostJsonAsync(
+      new FilesReadyForReviewRequest()
+      {
+        Files = files
+      });
   }
 
   /// <summary>
