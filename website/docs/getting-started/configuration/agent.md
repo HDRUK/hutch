@@ -4,12 +4,32 @@ sidebar_position: 2
 
 # Hutch Agent
 
-The agent can be configured via its `appsettings*.json` files or .NET user secrets.
+Hutch can be configured using the following source in [the usual .NET way](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration), in order of precedence:
+-  `appsettings.json` adjacent to the binary (`HutchAgent.dll`)
+- Environment Variables (with double underscore `__` as a hierarchical separator)
+- Command line arguments
+- (.NET User Secrets in development)
 
 ## Available values
 
 ```json
 {
+  // Kestrel options e.g. port bindings
+  // By default Hutch binds on all interfaces on specific non-privileged ports
+  // You can change the binding configuration
+  // but Hutch should not be bound on privileged ports (< 1024) if you don't want to run it evelated
+  // and Hutch should not be bound on 80/443 in airgapped environments where nginx is used to proxy workflow fetching (as nginx will use those ports)
+  "Kestrel": {
+    "Endpoints": {
+      "Http": {
+        "Url": "http://0.0.0.0:5209"
+      },
+      "Https": {
+        "Url": "https://0.0.0.0:7239"
+      }
+    }
+  },
+
   // Local working paths used by Hutch itself
   "Paths": {
     "WorkingDirectoryBase": "hutch-workdir", // Hutch's working directory
@@ -67,17 +87,12 @@ The agent can be configured via its `appsettings*.json` files or .NET user secre
 ```
 
 ## Guidance
-### Results Store
-- You must choose either a MinIO Results Store or a File System Results Store. You cannot configure both at the same time.
+### Intermediary Store
+- Primarily for Standalone mode or as a fallback; you may configure MinIO connection details to a default store here.
 
-### WfExS
+### Workflow Executor
 - The `ExecutorPath` must be the directory where WfExS is installed.
 
 - The `VirtualEnvironmentPath` must be the path to the `activate` script in the WfExS install directory, e.g. `/path/to/WfExS-backend/.pyWEenv/bin/activate`.
 
 - The `LocalConfigPath` is the path of a YAML file describing your WfExS installation.
-
-- The `CrateExtractPath` is the path where inbound RO-Crates will be unpacked so that they can be executed by WfExS.
-
-## Watch Folder
-- This is where the results of WfExS runs will be saved before being moved to the Results Store.
