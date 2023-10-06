@@ -1,4 +1,8 @@
+using System.Globalization;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using HutchAgent.Config;
+using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Results;
 using Microsoft.Extensions.Options;
@@ -9,19 +13,16 @@ public class JobLifecycleService
 {
   private readonly FiveSafesCrateService _crates;
   private readonly WorkflowJobService _jobs;
-  private readonly HttpClient _http;
   private readonly PathOptions _paths;
 
   public JobLifecycleService(
     FiveSafesCrateService crates,
     WorkflowJobService jobs,
-    IHttpClientFactory httpClientFactory,
     IOptions<PathOptions> paths)
   {
     _crates = crates;
     _jobs = jobs;
     _paths = paths.Value;
-    _http = httpClientFactory.CreateClient();
   }
 
   /// <summary>
@@ -31,10 +32,7 @@ public class JobLifecycleService
   /// <returns>A <see cref="Stream"/> of the HTTP Response Body (hopefully an RO-Crate!)</returns>
   public async Task<Stream> FetchRemoteRequestCrate(string url)
   {
-    var response = await _http.GetAsync(url);
-    response.EnsureSuccessStatusCode();
-
-    return await response.Content.ReadAsStreamAsync();
+    return await url.GetAsync().ReceiveStream();
   }
 
   /// <summary>
@@ -73,12 +71,27 @@ public class JobLifecycleService
     if (!details.IsComplete)
       throw new ArgumentException(
         "Expected workflow execution to be complete!", nameof(details));
-    
+
     job.ExitCode = details.ExitCode;
     job.ExecutionStartTime = details.StartTime;
     job.EndTime = details.EndTime;
 
+    // Update the working crate's metadata with completion
+    var crate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
+    var createAction = _crates.GetCreateAction(crate);
+    _crates.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, createAction);
+    createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("endTime", job.EndTime?.ToString(CultureInfo.InvariantCulture));
+    crate.Save(job.WorkingDirectory.JobCrateRoot());
+
     return await _jobs.Set(job);
+  }
+
+  public void DisclosureCheckInitiated(WorkflowJob job)
+  {
+    var crate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
+    _crates.CreateDisclosureCheck(crate);
+    crate.Save(job.WorkingDirectory.JobCrateRoot());
   }
 
   /// <summary>
