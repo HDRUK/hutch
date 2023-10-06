@@ -85,7 +85,7 @@
         "tags": [
           "Jobs"
         ],
-        "summary": "Provide a Cloud Storage Cratae Source via POST Request Body for an already created job with the given id.",
+        "summary": "Provide a Cloud Storage Crate Source via POST Request Body for an already created job with the given id.",
         "parameters": [
           {
             "name": "id",
