@@ -304,4 +304,38 @@ public class JobsController : ControllerBase
       Status = JobStatus.WaitingForCrate.ToString()
     });
   }
+
+  [HttpPost("{id}/approval")]
+  [SwaggerResponse(200, "")]
+  public async Task<IActionResult> Approval(string id, [FromBody] ApprovalResult result)
+  {
+    try
+    {
+      var job = await _jobs.Get(id);
+
+      if (result.Status == ApprovalType.FullyApproved)
+      {
+        _job.DisclosureCheckCompleted(job);
+
+        _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
+        {
+          ActionType = JobActionTypes.Finalize,
+          JobId = id
+        });
+
+        await _status.ReportStatus(id, JobStatus.PackagingApprovedResults);
+      }
+      else
+      {
+        await _job.Cleanup(job);
+      }
+      // Todo: support partial approval
+
+      return Ok();
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
 }
