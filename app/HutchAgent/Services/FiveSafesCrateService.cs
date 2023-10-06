@@ -352,7 +352,9 @@ public class FiveSafesCrateService
 
     var licenseEntity = new CreativeWork(
       identifier: _publishOptions.License.Uri,
-      properties: _publishOptions.License.Properties);
+      properties: new JsonObject(
+        _publishOptions.License.Properties
+        ?? new Dictionary<string, JsonNode?>()));
 
     // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
     licenseEntity.SetProperty("@type", "CreativeWork");

@@ -33,5 +33,5 @@ public class LicenseOptions
   /// <summary>
   /// This attribute contains any other properties for the license entity.
   /// </summary>
-  public JsonObject? Properties { get; set; }
+  public Dictionary<string,JsonNode?>? Properties { get; set; }
 }
