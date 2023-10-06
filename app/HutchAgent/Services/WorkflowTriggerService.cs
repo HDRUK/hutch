@@ -334,24 +334,6 @@ public class WorkflowTriggerService
     return absolutePath;
   }
 
-  [Obsolete]
-  private string RewritePath(WorkflowJob workflowJob, string line)
-  {
-    var (linePrefix, relativePath) = line.Split("crate://") switch
-    {
-      { Length: 2 } a => (a[0], a[1]),
-      _ => (null, null)
-    };
-    if (relativePath is null) return line;
-
-    var absolutePath = Path.Combine(Path.GetFullPath(workflowJob.WorkingDirectory), relativePath);
-    var newLine = linePrefix + "file://" + absolutePath;
-
-    _logger.LogInformation($"Writing absolute input path {newLine}");
-
-    return newLine;
-  }
-
   private string? _findRunName(string text)
   {
     var pattern =
