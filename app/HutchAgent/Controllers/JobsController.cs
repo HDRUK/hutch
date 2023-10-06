@@ -314,6 +314,8 @@ public class JobsController : ControllerBase
   /// <returns></returns>
   [HttpPost("{id}/approval")]
   [SwaggerResponse(200, "The approval process completed successfully.")]
+  [SwaggerResponse(400, "The request could not be parsed. " +
+                        "Check the status field is a supported value.")]
   [SwaggerResponse(404, "The job corresponding to the given ID doesn't exist.")]
   public async Task<IActionResult> Approval(string id, [FromBody] ApprovalResult result)
   {
