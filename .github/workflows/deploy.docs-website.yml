@@ -9,12 +9,55 @@ on:
 
 env:
   # Configure these
-  CI_node-version: "16"
-  CI_package: website
+  node-version: "20"
+  package: website
+
+  dotnet-version: 7.0.x
+  swagger-project: app/HutchAgent/HutchAgent.csproj
+  swagger-assembly: HutchAgent.dll
+  swagger-spec: v1
+
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
 
 jobs:
+  swagger:
+    name: Produce Swagger Spec
+    runs-on: ubuntu-latest
+    env:
+      assembly-path: .swaggerpub
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.dotnet-version }}
+
+      - name: dotnet tool restore
+        run: dotnet tool restore
+
+      - name: dotnet publish
+        run: >-
+          dotnet publish
+          ${{ env.swagger-project }}
+          -c Release
+          -o ${{ env.assembly-path }}
+
+      - name: Swagger Gen
+        run: >-
+          dotnet swagger
+          tofile
+          --output swagger.json
+          ${{ env.assembly-path }}/${{ env.swagger-assembly }}
+          ${{ env.swagger-spec }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: hutch-swagger
+          path: swagger.json
+
   deploy:
     name: Deploy to GitHub Pages
+    needs: swagger
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,10 +66,17 @@ jobs:
           version: 8.6.12
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.CI_node-version }}
+          node-version: ${{ env.node-version }}
           cache: pnpm
-      - run: pnpm i --frozen-lockfile --filter ${{ env.CI_package }}
-      - run: pnpm --filter ${{ env.CI_package }} build
+
+      - name: Prepare Swagger Spec
+        uses: actions/download-artifact@v3
+        with:
+          name: hutch-swagger
+          path: website/static
+
+      - run: pnpm i --frozen-lockfile --filter ${{ env.package }}
+      - run: pnpm --filter ${{ env.package }} build
 
       # Popular action to deploy to GitHub Pages:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
