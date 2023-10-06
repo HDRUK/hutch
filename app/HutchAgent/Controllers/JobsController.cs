@@ -317,6 +317,11 @@ public class JobsController : ControllerBase
   [SwaggerResponse(404, "The job corresponding to the given ID doesn't exist.")]
   public async Task<IActionResult> Approval(string id, [FromBody] ApprovalResult result)
   {
+    var jobStatus = new JobStatusModel()
+    {
+      Id = id,
+      Status = ""
+    };
     try
     {
       var job = await _jobs.Get(id);
@@ -330,6 +335,7 @@ public class JobsController : ControllerBase
           ActionType = JobActionTypes.Finalize,
           JobId = id
         });
+        jobStatus.Status = JobStatus.PackagingApprovedResults.ToString();
 
         await _status.ReportStatus(id, JobStatus.PackagingApprovedResults);
       }
@@ -342,10 +348,13 @@ public class JobsController : ControllerBase
         // record disclosure check as failed and finalise without outputs.
 
         // TODO: return some sort of job status
+
+
+        jobStatus.Status = JobStatus.Failure.ToString();
         await _job.Cleanup(job);
       }
 
-      return Ok();
+      return Ok(jobStatus);
     }
     catch (KeyNotFoundException)
     {
