@@ -124,7 +124,7 @@ public class JobsController : ControllerBase
   }
 
   /// <summary>
-  /// Provide a Cloud Storage Cratae Source via POST Request Body for an already created job with the given id.
+  /// Provide a Cloud Storage Crate Source via POST Request Body for an already created job with the given id.
   /// </summary>
   /// <param name="id">The ID of the of the job to provide a crate URL for.</param>
   /// <param name="source">An object detailing where to find a TRE-FX 5 Safes RO-Crate for the job,

@@ -16,6 +16,7 @@ public class FinalizeActionHandler : IActionHandler
   private readonly MinioStoreServiceFactory _storeFactory;
   private readonly WorkflowJobService _jobs;
   private readonly JobLifecycleService _job;
+  private readonly StatusReportingService _status;
 
   private const string _finalPackageFilename = "final-result-crate.zip";
 
@@ -25,7 +26,8 @@ public class FinalizeActionHandler : IActionHandler
     ILogger<FinalizeActionHandler> logger,
     MinioStoreServiceFactory storeFactory,
     WorkflowJobService jobs,
-    JobLifecycleService job)
+    JobLifecycleService job,
+    StatusReportingService status)
   {
     _bagItService = bagItService;
     _crateService = crateService;
@@ -33,12 +35,17 @@ public class FinalizeActionHandler : IActionHandler
     _storeFactory = storeFactory;
     _jobs = jobs;
     _job = job;
+    _status = status;
   }
   
   public async Task HandleAction(string jobId)
   {
     var job = await _jobs.Get(jobId);
+    
+    // TODO Should we be checking if the job is actually ready instead of assuming it can only be queued if it is?!
 
+    await _status.ReportStatus(jobId, JobStatus.PackagingApprovedResults);
+    
     // 1. Copy approved outputs to the working crate
     FilesystemUtility.CopyDirectory(
       job.WorkingDirectory.JobEgressOutputs(),
@@ -55,11 +62,13 @@ public class FinalizeActionHandler : IActionHandler
     ZipFile.CreateFromDirectory(
       job.WorkingDirectory.JobBagItRoot(),
       Path.Combine(job.WorkingDirectory.JobEgressPackage(), _finalPackageFilename));
-
+    
     // 5. Upload
     await UploadFinalCrate(job);
 
-    // 6. Clean up // TODO should this be deferred to an expiry process?
+    await _status.ReportStatus(jobId, JobStatus.Complete);
+    
+    // 6. Clean up // TODO should this be deferred to an expiry process, so we keep the artifacts for a configured amount of time?
     await _job.Cleanup(job);
   }
 
