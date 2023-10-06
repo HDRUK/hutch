@@ -66,7 +66,7 @@ jobs:
           version: 8.6.12
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.CI_node-version }}
+          node-version: ${{ env.node-version }}
           cache: pnpm
 
       - name: Prepare Swagger Spec
@@ -75,8 +75,8 @@ jobs:
           name: hutch-swagger
           path: website/static
 
-      - run: pnpm i --frozen-lockfile --filter ${{ env.CI_package }}
-      - run: pnpm --filter ${{ env.CI_package }} build
+      - run: pnpm i --frozen-lockfile --filter ${{ env.package }}
+      - run: pnpm --filter ${{ env.package }} build
 
       # Popular action to deploy to GitHub Pages:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
