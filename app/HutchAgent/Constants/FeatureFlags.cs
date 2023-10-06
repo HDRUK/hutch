@@ -15,4 +15,9 @@ public static class FeatureFlags
   /// Useful for Development.
   /// </summary>
   public const string StandaloneMode = nameof(StandaloneMode);
+
+  /// <summary>
+  /// When possible, retain the working directory and db records for jobs that have failed
+  /// </summary>
+  public const string RetainFailures = nameof(RetainFailures);
 }
