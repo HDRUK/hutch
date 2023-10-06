@@ -304,4 +304,63 @@ public class JobsController : ControllerBase
       Status = JobStatus.WaitingForCrate.ToString()
     });
   }
+
+  /// <summary>
+  /// Accept an approval outcome for a job. If a job with the specified ID is fully approved, queue it for finalization.
+  /// Otherwise treat the job as failed.
+  /// </summary>
+  /// <param name="id">The ID of the job.</param>
+  /// <param name="result">The outcome of the approval checks.</param>
+  /// <returns></returns>
+  [HttpPost("{id}/approval")]
+  [SwaggerResponse(200, "The approval process completed successfully.")]
+  [SwaggerResponse(400, "The request could not be parsed. " +
+                        "Check the status field is a supported value.")]
+  [SwaggerResponse(404, "The job corresponding to the given ID doesn't exist.")]
+  public async Task<IActionResult> Approval(string id, [FromBody] ApprovalResult result)
+  {
+    var jobStatus = new JobStatusModel()
+    {
+      Id = id,
+      Status = ""
+    };
+    try
+    {
+      var job = await _jobs.Get(id);
+
+      if (result.Status == ApprovalType.FullyApproved)
+      {
+        _job.DisclosureCheckCompleted(job);
+
+        _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
+        {
+          ActionType = JobActionTypes.Finalize,
+          JobId = id
+        });
+        jobStatus.Status = JobStatus.PackagingApprovedResults.ToString();
+
+        await _status.ReportStatus(id, JobStatus.PackagingApprovedResults);
+      }
+      else
+      {
+        // Todo: support partial approval
+        // Only finalise and include the approved files.
+
+        // Todo: when failed
+        // record disclosure check as failed and finalise without outputs.
+
+        // TODO: return some sort of job status
+
+
+        jobStatus.Status = JobStatus.Failure.ToString();
+        await _job.Cleanup(job);
+      }
+
+      return Ok(jobStatus);
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
+  }
 }

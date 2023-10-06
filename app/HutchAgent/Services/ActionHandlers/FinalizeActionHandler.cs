@@ -37,15 +37,13 @@ public class FinalizeActionHandler : IActionHandler
     _job = job;
     _status = status;
   }
-  
+
   public async Task HandleAction(string jobId)
   {
     var job = await _jobs.Get(jobId);
-    
+
     // TODO Should we be checking if the job is actually ready instead of assuming it can only be queued if it is?!
 
-    await _status.ReportStatus(jobId, JobStatus.PackagingApprovedResults);
-    
     // 1. Copy approved outputs to the working crate
     FilesystemUtility.CopyDirectory(
       job.WorkingDirectory.JobEgressOutputs(),
@@ -62,12 +60,12 @@ public class FinalizeActionHandler : IActionHandler
     ZipFile.CreateFromDirectory(
       job.WorkingDirectory.JobBagItRoot(),
       Path.Combine(job.WorkingDirectory.JobEgressPackage(), _finalPackageFilename));
-    
+
     // 5. Upload
     await UploadFinalCrate(job);
 
     await _status.ReportStatus(jobId, JobStatus.Complete);
-    
+
     // 6. Clean up // TODO should this be deferred to an expiry process, so we keep the artifacts for a configured amount of time?
     await _job.Cleanup(job);
   }
@@ -92,10 +90,10 @@ public class FinalizeActionHandler : IActionHandler
     if (string.IsNullOrWhiteSpace(job.EgressTarget))
       throw new InvalidOperationException(
         $"Finalized Job {job.Id} cannot be egressed as no egress target was recorded.");
-    
+
     var egressTarget = JsonSerializer.Deserialize<MinioOptions>(job.EgressTarget);
     var store = _storeFactory.Create(egressTarget);
-    
+
     // Make sure results store exists
     if (!await store.StoreExists())
     {

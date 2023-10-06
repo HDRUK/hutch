@@ -34,7 +34,8 @@ public class FiveSafesCrateService
   /// </summary>
   /// <param name="crate">The 5S Crate to find the CreateAction in.</param>
   /// <returns>The CreateAction Entity.</returns>
-  public Entity GetCreateAction(ROCrate crate) // TODO some methods in here, like this one, could be extension methods on the Crate itself <3
+  public Entity
+    GetCreateAction(ROCrate crate) // TODO some methods in here, like this one, could be extension methods on the Crate itself <3
   {
     return crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
   }
@@ -61,17 +62,8 @@ public class FiveSafesCrateService
 
     // iii. Root hasPart results
     crate.RootDataset.AppendTo("hasPart", outputs);
-    
-    // b) Complete Disclosure AssessAction with outcome
-    // i. Amend AssessAction
-    var disclosureAction = GetAssessAction(crate, ActionType.DisclosureCheck);
-    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
-    disclosureAction.SetProperty("endTime",
-      job.EndTime?.ToString(CultureInfo.InvariantCulture)); // TODO get time from approval endpoint?
-    disclosureAction.SetProperty("name", "Disclosure check of workflow results: Fully approved"); // TODO Partial approval some day
-    // ii. Root mentions - already done when the AssessAction was created
-    
-    // c) Add Licence and Publisher details
+
+    // b) Add Licence and Publisher details
     if (_publishOptions.Publisher is not null)
       crate.RootDataset.SetProperty("publisher", new Part()
       {
@@ -79,8 +71,8 @@ public class FiveSafesCrateService
       });
     AddLicense(crate);
 
-    
-    // d) Root datePublished
+
+    // c) Root datePublished
     crate.RootDataset.SetProperty("datePublished", DateTimeOffset.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
 
     crate.Save(roCrateRootPath);
@@ -368,5 +360,22 @@ public class FiveSafesCrateService
     crate.Add(licenseEntity);
 
     crate.RootDataset.SetProperty("license", new Part { Id = licenseEntity.Id });
+  }
+
+  /// <summary>
+  /// Mark a disclosure check as successfully completed.
+  /// </summary>
+  /// <param name="crate"></param>
+  /// <param name="checkEndTime"></param>
+  public void CompleteDisclosureCheck(ROCrate crate, DateTimeOffset checkEndTime)
+  {
+    // i. Amend AssessAction
+    var disclosureAction = GetAssessAction(crate, ActionType.DisclosureCheck);
+    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
+    disclosureAction.SetProperty("endTime",
+      checkEndTime.ToString(CultureInfo.InvariantCulture));
+    disclosureAction.SetProperty("name",
+      "Disclosure check of workflow results: Fully approved"); // TODO Partial approval some day
+    // ii. Root mentions - already done when the AssessAction was created
   }
 }
