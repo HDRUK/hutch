@@ -1,0 +1,1 @@
+(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[464],{60991:(e,t,s)=>{"use strict";s.r(t),s.d(t,{default:()=>a});var u=s(97921),l=s(70079),r=s(23829);const a=()=>l.createElement(u.Z,null,l.createElement(r.Z,{url:"/hutch/swagger.json",supportedSubmitMethods:[]}))},78950:()=>{}}]);
