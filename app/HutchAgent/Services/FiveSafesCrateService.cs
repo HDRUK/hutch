@@ -369,4 +369,13 @@ public class FiveSafesCrateService
 
     crate.RootDataset.SetProperty("license", new Part { Id = licenseEntity.Id });
   }
+
+  public bool WorkflowIsRelativePath(ROCrate roCrate, WorkflowJob workflowJob)
+  {
+    var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ??
+                     throw new NullReferenceException("No main entity found in RO-Crate");
+  
+    var isRelativePath = !mainEntity.Id.StartsWith("/") && Path.Exists(Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),mainEntity.Id));
+    return isRelativePath;
+  }
 }

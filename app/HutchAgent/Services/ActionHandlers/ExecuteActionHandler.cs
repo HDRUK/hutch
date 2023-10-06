@@ -42,10 +42,14 @@ public class ExecuteActionHandler : IActionHandler
 
     // Check AssessActions exist and are complete
     _crates.CheckAssessActions(roCrate);
-
-    // Fetch workflow.
-    roCrate = await _workflowFetchService.FetchWorkflowCrate(job, roCrate);
-
+    
+    // Check if Workflow RO-Crate URL is relative path
+    if (!_crates.WorkflowIsRelativePath(roCrate, job))
+    {
+      // Fetch workflow.
+      roCrate = await _workflowFetchService.FetchWorkflowCrate(job, roCrate);
+    }
+    
     // Execute workflow.
     await _workflowTriggerService.TriggerWfexs(job, roCrate);
 
