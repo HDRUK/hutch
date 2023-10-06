@@ -335,11 +335,16 @@ public class JobsController : ControllerBase
       }
       else
       {
+        // Todo: support partial approval
+        // Only finalise and include the approved files.
+
+        // Todo: when failed
+        // record disclosure check as failed and finalise without outputs.
+
+        // TODO: return some sort of job status
         await _job.Cleanup(job);
       }
-      // Todo: support partial approval
 
-      // TODO: return some sort of job status
       return Ok();
     }
     catch (KeyNotFoundException)
