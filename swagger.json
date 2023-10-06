@@ -254,10 +254,83 @@
           }
         }
       }
+    },
+    "/api/Jobs/{id}/approval": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Accept an approval outcome for a job. If a job with the specified ID is fully approved, queue it for finalization.\r\nOtherwise treat the job as failed.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the job.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The outcome of the approval checks.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalResult"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalResult"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalResult"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The approval process completed successfully."
+          },
+          "400": {
+            "description": "The request could not be parsed. Check the status field is a supported value."
+          },
+          "404": {
+            "description": "The job corresponding to the given ID doesn't exist."
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ApprovalResult": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ApprovalType"
+          },
+          "fileResults": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ApprovalType": {
+        "enum": [
+          "FullyApproved",
+          "PartiallyApproved",
+          "NotApproved"
+        ],
+        "type": "string"
+      },
       "DatabaseConnectionDetails": {
         "required": [
           "database",
