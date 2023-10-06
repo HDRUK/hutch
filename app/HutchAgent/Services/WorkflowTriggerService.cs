@@ -270,7 +270,9 @@ public class WorkflowTriggerService
       .Build();
     var yaml = serializer.Serialize(stageFile);
     var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
-      "hutch_cwl.wfex.stage");
+      "hutch_cwl.wfex.stage"); // TODO rename later maybe if we support more than cwl ;)
+    
+    // TODO should we write metadata for the stage file?
 
     await using var outputStageFile = new StreamWriter(stageFilePath);
     await outputStageFile.WriteLineAsync(yaml);
