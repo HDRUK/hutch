@@ -305,8 +305,16 @@ public class JobsController : ControllerBase
     });
   }
 
+  /// <summary>
+  /// Accept an approval outcome for a job. If a job with the specified ID is fully approved, queue it for finalization.
+  /// Otherwise treat the job as failed.
+  /// </summary>
+  /// <param name="id">The ID of the job.</param>
+  /// <param name="result">The outcome of the approval checks.</param>
+  /// <returns></returns>
   [HttpPost("{id}/approval")]
-  [SwaggerResponse(200, "")]
+  [SwaggerResponse(200, "The approval process completed successfully.")]
+  [SwaggerResponse(404, "The job corresponding to the given ID doesn't exist.")]
   public async Task<IActionResult> Approval(string id, [FromBody] ApprovalResult result)
   {
     try
@@ -331,6 +339,7 @@ public class JobsController : ControllerBase
       }
       // Todo: support partial approval
 
+      // TODO: return some sort of job status
       return Ok();
     }
     catch (KeyNotFoundException)
