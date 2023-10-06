@@ -66,6 +66,12 @@ public class WorkflowFetchService
     _logger.LogInformation("Successfully downloaded workflow");
     var workflowCrateExtractPath =
       Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), "workflow", workflowId);
+    
+    // ensure temp/ is available for downloading the workflow zip
+    if (!Directory.Exists(workflowJob.WorkingDirectory.JobTemp()))
+      Directory.CreateDirectory(workflowJob.WorkingDirectory.JobTemp());
+    
+    // download and extract the workflow zip
     using (var archive =
            new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.JobTemp(),
              _workflowZip))))
