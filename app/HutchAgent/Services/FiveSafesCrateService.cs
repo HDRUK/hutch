@@ -73,7 +73,9 @@ public class FiveSafesCrateService
 
 
     // c) Root datePublished
-    crate.RootDataset.SetProperty("datePublished", DateTimeOffset.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+    crate.RootDataset.SetProperty(
+      "datePublished",
+      DateTimeOffset.UtcNow.ToString("o", CultureInfo.InvariantCulture));
 
     crate.Save(roCrateRootPath);
   }
@@ -352,7 +354,9 @@ public class FiveSafesCrateService
 
     var licenseEntity = new CreativeWork(
       identifier: _publishOptions.License.Uri,
-      properties: _publishOptions.License.Properties);
+      properties: new JsonObject(
+        _publishOptions.License.Properties
+        ?? new Dictionary<string, JsonNode?>()));
 
     // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
     licenseEntity.SetProperty("@type", "CreativeWork");
@@ -373,7 +377,7 @@ public class FiveSafesCrateService
     var disclosureAction = GetAssessAction(crate, ActionType.DisclosureCheck);
     UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
     disclosureAction.SetProperty("endTime",
-      checkEndTime.ToString(CultureInfo.InvariantCulture));
+      checkEndTime.ToString("o", CultureInfo.InvariantCulture));
     disclosureAction.SetProperty("name",
       "Disclosure check of workflow results: Fully approved"); // TODO Partial approval some day
     // ii. Root mentions - already done when the AssessAction was created

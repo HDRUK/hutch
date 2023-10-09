@@ -2,6 +2,7 @@ using System.Text.Json;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Services.Contracts;
+using Microsoft.FeatureManagement;
 
 namespace HutchAgent.Services.ActionHandlers;
 
@@ -16,19 +17,22 @@ public class FetchAndExecuteActionHandler : IActionHandler
   private readonly WorkflowJobService _jobs;
   private readonly StatusReportingService _status;
   private readonly MinioStoreServiceFactory _storeFactory;
+  private readonly IFeatureManager _features;
 
   public FetchAndExecuteActionHandler(
     ExecuteActionHandler executeHandler,
     WorkflowJobService jobs,
     StatusReportingService status,
     JobLifecycleService job,
-    MinioStoreServiceFactory storeFactory)
+    MinioStoreServiceFactory storeFactory,
+    IFeatureManager features)
   {
     _executeHandler = executeHandler;
     _jobs = jobs;
     _status = status;
     _job = job;
     _storeFactory = storeFactory;
+    _features = features;
   }
 
   public async Task HandleAction(string jobId)
@@ -42,7 +46,9 @@ public class FetchAndExecuteActionHandler : IActionHandler
         await _status.ReportStatus(jobId, JobStatus.Failure,
           $"The remote crate could not be fetched from the provided source: {job.CrateSource}");
 
-        await _job.Cleanup(job);
+        if(!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
+          await _job.Cleanup(job);
+        
         return;
       }
 
@@ -80,7 +86,8 @@ public class FetchAndExecuteActionHandler : IActionHandler
         await _status.ReportStatus(jobId, JobStatus.Failure,
           $"The remote Request Crate was not accepted: ${JsonSerializer.Serialize(acceptResult.Errors)}. Please resubmit the job.");
 
-        await _job.Cleanup(job);
+        if(!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
+          await _job.Cleanup(job);
         return;
       }
 
@@ -96,7 +103,10 @@ public class FetchAndExecuteActionHandler : IActionHandler
     {
       await _status.ReportStatus(jobId, JobStatus.Failure,
         $"An unrecoverable error occurred attempting to fetch the remote Request Crate. Please resubmit the Job.");
-      await _job.Cleanup(jobId);
+      
+      if(!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
+        await _job.Cleanup(jobId);
+      
       throw;
     }
   }

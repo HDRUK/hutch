@@ -29,16 +29,18 @@ public class WorkflowTriggerService
   private readonly FiveSafesCrateService _crateService;
   private readonly IDeserializer _unyaml;
   private readonly StatusReportingService _status;
+  private readonly WorkflowJobService _jobs;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     FiveSafesCrateService crateService,
-    StatusReportingService status)
+    StatusReportingService status, WorkflowJobService jobs)
   {
     _logger = logger;
     _crateService = crateService;
     _status = status;
+    _jobs = jobs;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _unyaml = new DeserializerBuilder()
@@ -83,7 +85,8 @@ public class WorkflowTriggerService
 
     result.IsComplete = true;
 
-    var state = _unyaml.Deserialize<WfexsExecutionState>(await File.ReadAllTextAsync(pathToState));
+    // TODO do we need to support multiple executions in this state file?
+    var state = _unyaml.Deserialize<List<WfexsExecutionState>>(await File.ReadAllTextAsync(pathToState))[0];
 
     result.ExitCode = state.ExitCode;
     result.StartTime = state.StartTime;
@@ -130,14 +133,20 @@ public class WorkflowTriggerService
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
 
     // Create stage file and save file path
-    var stageFilePath = WriteStageFile(job, roCrate);
+    var stageFilePath = await WriteStageFile(job, roCrate);
 
     await _status.ReportStatus(job.Id, JobStatus.ExecutingWorkflow);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath} --full";
-    var processStartInfo = new ProcessStartInfo
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath}";
+
+    if (_workflowOptions.GenerateFullProvenanceCrate)
+      command += " --full";
+
+    var p = new Process();
+
+    p.StartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
       RedirectStandardInput = true,
@@ -147,30 +156,81 @@ public class WorkflowTriggerService
       FileName = _bashCmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
+    if (_workflowOptions.RemainAttached)
+    {
+      p.EnableRaisingEvents = true;
+      const string message = "Job [{JobId}] ({ExecutorRunId}) {Stream}: {Data}";
+
+      // TODO tidy this the hell up
+      p.OutputDataReceived += async (sender, args) =>
+      {
+        if (string.IsNullOrEmpty(job.ExecutorRunId) && args.Data is not null)
+        {
+          job.ExecutorRunId = FindRunName(args.Data) ?? "";
+          if (!string.IsNullOrEmpty(job.ExecutorRunId))
+          {
+            _logger.LogInformation(
+              "Job [{JobId}] found ExecutorRunId: {RunId}", job.Id, job.ExecutorRunId);
+            await _jobs.Set(job);
+          }
+        }
+
+        // TODO Log Debug
+        _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdOut",
+          args.Data ?? "event received but data was null");
+      };
+
+      p.ErrorDataReceived += (sender, args) =>
+      {
+        // TODO Log Debug
+        _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdErr",
+          args.Data ?? "event received but data was null");
+      };
+    }
+
     // start process
-    var process = Process.Start(processStartInfo);
-    if (process == null)
+    if (!p.Start())
       throw new Exception("Could not start process");
     _logger.LogInformation("Process started for job: {JobId}", job.Id);
 
-    await process.StandardInput.WriteLineAsync(_activateVenv);
-    await process.StandardInput.WriteLineAsync(command);
-    await process.StandardInput.FlushAsync();
-    process.StandardInput.Close();
+    // venv
+    _logger.LogInformation("Virtual Environment command: {Command}", _activateVenv);
+    await p.StandardInput.WriteLineAsync(_activateVenv);
+    await p.StandardInput.FlushAsync();
+    _logger.LogInformation("Virtual Environment activated");
+
+    // wfexs
+    _logger.LogInformation("Executor command: {Command}", command);
+    await p.StandardInput.WriteLineAsync(command);
+    await p.StandardInput.FlushAsync();
+    _logger.LogInformation("Executor command executed");
+
+    p.StandardInput.Close();
 
     // Read the stdout of the WfExS run to get the run ID
-    var reader = process.StandardOutput;
-    while (!process.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
+    if (!_workflowOptions.RemainAttached)
     {
-      var stdOutLine = await reader.ReadLineAsync();
-      if (stdOutLine is null) continue;
-      var runName = _findRunName(stdOutLine);
-      if (runName is null) continue;
-      job.ExecutorRunId = runName;
+      var reader = p.StandardOutput;
+      while (!p.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
+      {
+        var stdOutLine = await reader.ReadLineAsync();
+        if (stdOutLine is null) continue;
+        job.ExecutorRunId = FindRunName(stdOutLine) ?? "";
+        if (string.IsNullOrEmpty(job.ExecutorRunId)) continue;
+        await _jobs.Set(job);
+      }
+    }
+    else
+    {
+      p.BeginOutputReadLine();
+      p.BeginErrorReadLine();
+      await p.WaitForExitAsync();
+      p.CancelErrorRead();
+      p.CancelOutputRead();
     }
 
     // close our connection to the process
-    process.Close();
+    p.Close();
   }
 
   private async Task<string> WriteStageFile(WorkflowJob workflowJob, ROCrate roCrate)
@@ -201,6 +261,10 @@ public class WorkflowTriggerService
     {
       WorkflowId = gitUrl,
       Nickname = "HutchAgent" + workflowJob.Id,
+      WorkflowConfig = new()
+      {
+        Container = _workflowOptions.ContainerEngine // TODO in future validate values 
+      },
       Params = new object()
     };
     // Get inputs from execute entity
@@ -241,7 +305,23 @@ public class WorkflowTriggerService
       {
         var value = objectEntity.Properties["value"] ??
                     throw new NullReferenceException("Could not get value for given input parameter.");
-        parameters[name.ToString()] = value.ToString();
+
+        // TODO this is a temporary hack and should instead happen against dbAccess in a job payload
+        // rewrite "localhost" to the container engine appropriate form.
+        // if triggering systems REALLY mean localhost, they can use the loopback ip
+        if (name.ToString() == "db_host" && value.ToString() == "localhost")
+          value = _workflowOptions.ContainerEngine switch
+          {
+            "podman" => "host.containers.internal",
+            "docker" => "172.17.0.1",
+            "singularity" => "localhost",
+            _ => throw new InvalidOperationException(
+              $"Unexpected Container Engine configured: {_workflowOptions.ContainerEngine}")
+          };
+
+        parameters[name.ToString()] = value?.ToString() ??
+                                      throw new NullReferenceException(
+                                        "Could not get value for given input parameter.");
       }
     }
 
@@ -270,7 +350,9 @@ public class WorkflowTriggerService
       .Build();
     var yaml = serializer.Serialize(stageFile);
     var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
-      "hutch_cwl.wfex.stage");
+      "hutch_cwl.wfex.stage"); // TODO rename later maybe if we support more than cwl ;)
+
+    // TODO should we write metadata for the stage file?
 
     await using var outputStageFile = new StreamWriter(stageFilePath);
     await outputStageFile.WriteLineAsync(yaml);
@@ -334,7 +416,7 @@ public class WorkflowTriggerService
     return absolutePath;
   }
 
-  private string? _findRunName(string text)
+  private string? FindRunName(string text)
   {
     var pattern =
       @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*";

@@ -49,6 +49,11 @@ public class WorkflowFetchService
     try
     {
       var clientStream = await downloadAddress.GetAsync().ReceiveStream();
+
+      // ensure temp/ is available for downloading the workflow zip
+      if (!Directory.Exists(workflowJob.WorkingDirectory.JobTemp()))
+        Directory.CreateDirectory(workflowJob.WorkingDirectory.JobTemp());
+
       await using var file =
         File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.JobTemp(), _workflowZip));
       await clientStream.CopyToAsync(file);
@@ -66,6 +71,8 @@ public class WorkflowFetchService
     _logger.LogInformation("Successfully downloaded workflow");
     var workflowCrateExtractPath =
       Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), "workflow", workflowId);
+
+    // extract the workflow zip
     using (var archive =
            new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.JobTemp(),
              _workflowZip))))

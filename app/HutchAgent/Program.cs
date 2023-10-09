@@ -65,7 +65,8 @@ builder.Services
   .Configure<JobActionsQueueOptions>(builder.Configuration.GetSection("Queue"))
   .Configure<MinioOptions>(builder.Configuration.GetSection("StoreDefaults"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowExecutor"))
-  .Configure<CratePublishingOptions>(builder.Configuration.GetSection("CratePublishing"));
+  .Configure<CratePublishingOptions>(builder.Configuration.GetSection("CratePublishing"))
+  .Configure<ControllerApiOptions>(builder.Configuration.GetSection("ControllerApi"));
 
 // JobAction Handlers
 builder.Services

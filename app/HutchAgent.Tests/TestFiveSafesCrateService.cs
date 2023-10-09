@@ -100,11 +100,11 @@ public class TestFiveSafesCrateService : IClassFixture<CrateServiceFixture>
         License = new()
         {
           Uri = _licenseUrl,
-          Properties = new JsonObject(new Dictionary<string, JsonNode?>()
+          Properties = new Dictionary<string, JsonNode?>
           {
             ["name"] = _licenseName,
             ["identifier"] = _licenseId
-          })
+          }
         }
       }),
       _logger.Object);

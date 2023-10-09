@@ -45,7 +45,6 @@ The agent can be configured via its `appsettings*.json` files or .NET user secre
     "ExecutorPath": "/WfExS-backend",
     "VirtualEnvironmentPath": "/WfExS-backend/.pyWEenv/bin/activate",
     "LocalConfigPath": "workflow_examples/local_config.yaml",
-    "CrateExtractPath": "/WfExS-backend/workflow_examples/ipc/"
   },
 
   // Connection strings for different services
