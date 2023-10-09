@@ -181,17 +181,6 @@ public class WorkflowTriggerService
 
       p.ErrorDataReceived += async (sender, args) =>
       {
-        if (string.IsNullOrEmpty(job.ExecutorRunId) && args.Data is not null)
-        {
-          job.ExecutorRunId = FindRunName(args.Data) ?? "";
-          if (!string.IsNullOrEmpty(job.ExecutorRunId))
-          {
-            _logger.LogInformation(
-              "Job [{JobId}] found ExecutorRunId: {RunId}", job.Id, job.ExecutorRunId);
-            await _jobs.Set(job);
-          }
-        }
-
         // TODO Log Debug
         _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdErr",
           args.Data ?? "event received but data was null");
