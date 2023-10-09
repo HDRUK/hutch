@@ -225,9 +225,8 @@ public class WorkflowTriggerService
       {
         var stdOutLine = await reader.ReadLineAsync();
         if (stdOutLine is null) continue;
-        runName = FindRunName(stdOutLine);
-        if (runName is null) continue;
-        job.ExecutorRunId = runName;
+        job.ExecutorRunId = FindRunName(stdOutLine) ?? "";
+        if (string.IsNullOrEmpty(job.ExecutorRunId)) continue;
         await _jobs.Set(job);
       }
     }
@@ -316,7 +315,22 @@ public class WorkflowTriggerService
       {
         var value = objectEntity.Properties["value"] ??
                     throw new NullReferenceException("Could not get value for given input parameter.");
-        parameters[name.ToString()] = value.ToString();
+
+        // TODO this is a temporary hack and should instead happen against dbAccess in a job payload
+        // rewrite "localhost" to the container engine appropriate form.
+        // if triggering systems REALLY mean localhost, they can use the loopback ip
+        if (name.ToString() == "db_host" && value.ToString() == "localhost")
+          value = _workflowOptions.ContainerEngine switch
+          {
+            "podman" => "host.containers.internal",
+            "docker" => "172.17.0.1",
+            _ => throw new InvalidOperationException(
+              $"Unexpected Container Engine configured: {_workflowOptions.ContainerEngine}")
+          };
+
+        parameters[name.ToString()] = value?.ToString() ??
+                                      throw new NullReferenceException(
+                                        "Could not get value for given input parameter.");
       }
     }
 
