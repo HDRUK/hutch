@@ -66,7 +66,7 @@ public class InitiateEgressActionHandler : IActionHandler
     }
 
     job = await _job.UpdateWithWorkflowCompletion(job, completionResult);
-    
+
     _logger.LogInformation("Job [{JobId}] updated with execution complete", jobId);
 
     // 2. Prepare outputs for egress checks
@@ -87,6 +87,8 @@ public class InitiateEgressActionHandler : IActionHandler
     job.EgressTarget = JsonSerializer.Serialize(egressStore ?? _storeFactory.DefaultOptions);
     await _jobs.Set(job);
 
+    _logger.LogInformation("job [{JobId}] Egress Target: {Target}", job.Id, job.EgressTarget);
+    
     await _status.ReportStatus(job.Id, JobStatus.DataOutRequested);
 
     // 4. Upload files to bucket
@@ -112,9 +114,9 @@ public class InitiateEgressActionHandler : IActionHandler
       await _controller.ConfirmOutputsTransferred(job.Id, files);
       _logger.LogInformation("Job [{Jobid}]: TRE Controller notified of Data Transfer for Egress Inspection", jobId);
     }
-    
+
     await _status.ReportStatus(job.Id, JobStatus.TransferredForDataOut);
-    
+
     _job.DisclosureCheckInitiated(job);
   }
 }
