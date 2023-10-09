@@ -180,7 +180,7 @@ public class WorkflowTriggerService
           args.Data ?? "event received but data was null");
       };
 
-      p.ErrorDataReceived += async (sender, args) =>
+      p.ErrorDataReceived += (sender, args) =>
       {
         // TODO Log Debug
         _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdErr",
