@@ -157,6 +157,7 @@ public class WorkflowTriggerService
     string? runName = null;
     if (_workflowOptions.RemainAttached)
     {
+      p.EnableRaisingEvents = true;
       p.OutputDataReceived += (sender, args) =>
       {
         if (args.Data is not null)
