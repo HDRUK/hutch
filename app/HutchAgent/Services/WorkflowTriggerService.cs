@@ -29,16 +29,18 @@ public class WorkflowTriggerService
   private readonly FiveSafesCrateService _crateService;
   private readonly IDeserializer _unyaml;
   private readonly StatusReportingService _status;
+  private readonly WorkflowJobService _jobs;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     FiveSafesCrateService crateService,
-    StatusReportingService status)
+    StatusReportingService status, WorkflowJobService jobs)
   {
     _logger = logger;
     _crateService = crateService;
     _status = status;
+    _jobs = jobs;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _unyaml = new DeserializerBuilder()
@@ -158,29 +160,60 @@ public class WorkflowTriggerService
     if (_workflowOptions.RemainAttached)
     {
       p.EnableRaisingEvents = true;
-      p.OutputDataReceived += (sender, args) =>
+      const string message = "Job [{JobId}] ({ExecutorRunId}) StdOut: {Data}";
+      
+      p.OutputDataReceived += async (sender, args) =>
       {
         if (args.Data is not null)
         {
           if (runName is null)
+          {
             runName = _findRunName(args.Data);
+            if (runName is not null)
+            {
+              job.ExecutorRunId = runName;
+              await _jobs.Set(job);
+            }
+          }
+
           // TODO Log Debug
           _logger.LogInformation(
-            "Job [{JobId}] ({ExecutorRunId}) StdOut: {Data}",
+            message,
             job.Id,
             job.ExecutorRunId,
             args.Data);
         }
+        else
+          _logger.LogInformation(message, job.Id,
+            job.ExecutorRunId, "StdOut event received but data was null");
+      };
+
+      p.ErrorDataReceived += (sender, args) =>
+      {
+        if (args.Data is not null)
+        {
+          // TODO Log Debug
+          _logger.LogInformation(
+            message,
+            job.Id,
+            job.ExecutorRunId,
+            args.Data);
+        }
+        else
+          _logger.LogInformation(message, job.Id,
+            job.ExecutorRunId, "StdErr event received but data was null");
       };
     }
-
+    
     // start process
     if (!p.Start())
       throw new Exception("Could not start process");
     _logger.LogInformation("Process started for job: {JobId}", job.Id);
 
     await p.StandardInput.WriteLineAsync(_activateVenv);
+    _logger.LogInformation("Virtual Environment activated");
     await p.StandardInput.WriteLineAsync(command);
+    _logger.LogInformation("Executor command executed");
     await p.StandardInput.FlushAsync();
     p.StandardInput.Close();
 
@@ -195,12 +228,16 @@ public class WorkflowTriggerService
         runName = _findRunName(stdOutLine);
         if (runName is null) continue;
         job.ExecutorRunId = runName;
+        await _jobs.Set(job);
       }
     }
     else
     {
       p.BeginOutputReadLine();
+      p.BeginErrorReadLine();
       await p.WaitForExitAsync();
+      p.CancelErrorRead();
+      p.CancelOutputRead();
     }
 
     // close our connection to the process
