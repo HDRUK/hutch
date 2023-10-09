@@ -5,6 +5,7 @@ using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Services.Contracts;
 using HutchAgent.Utilities;
+using Microsoft.FeatureManagement;
 
 namespace HutchAgent.Services.ActionHandlers;
 
@@ -57,6 +58,9 @@ public class FinalizeActionHandler : IActionHandler
     await MakeChecksums(job);
 
     // 4. Zip the final BagIt package
+    if (!Directory.Exists(job.WorkingDirectory.JobEgressPackage()))
+      Directory.CreateDirectory(job.WorkingDirectory.JobEgressPackage());
+    
     ZipFile.CreateFromDirectory(
       job.WorkingDirectory.JobBagItRoot(),
       Path.Combine(job.WorkingDirectory.JobEgressPackage(), _finalPackageFilename));
