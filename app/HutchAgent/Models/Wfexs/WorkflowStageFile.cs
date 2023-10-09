@@ -22,7 +22,7 @@ public class WorkflowStageFile
 
 public class Configuration
 {
-  [YamlMember(Alias = "container")] public string Container { get; set; } = "podman";
+  [YamlMember(Alias = "container")] public string Container { get; set; } = "docker";
 
   [YamlMember(Alias = "secure")] public bool Secure { get; set; } = false;
 

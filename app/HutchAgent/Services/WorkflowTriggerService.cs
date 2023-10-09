@@ -136,7 +136,11 @@ public class WorkflowTriggerService
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath} --full";
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath}";
+    
+    if (_workflowOptions.GenerateFullProvenanceCrate)
+      command += " --full";
+    
     var processStartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
@@ -201,6 +205,10 @@ public class WorkflowTriggerService
     {
       WorkflowId = gitUrl,
       Nickname = "HutchAgent" + workflowJob.Id,
+      WorkflowConfig = new()
+      {
+        Container = _workflowOptions.ContainerEngine // TODO in future validate values 
+      },
       Params = new object()
     };
     // Get inputs from execute entity

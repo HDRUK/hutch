@@ -26,7 +26,7 @@ public class WorkflowTriggerOptions
   /// Ask WfExS for a full provenance output crarte (using `--full`).
   /// This is typically preferred but can be unreliable in some environments.
   /// </summary>
-  public bool GenerateFullProvenancecrate { get; set; }
+  public bool GenerateFullProvenanceCrate { get; set; }
 
   /// <summary>
   /// The container engine generated stage files should use e.g. `docker` (default) or `podman`.
