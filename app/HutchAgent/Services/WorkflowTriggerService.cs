@@ -142,7 +142,7 @@ public class WorkflowTriggerService
 
     if (_workflowOptions.GenerateFullProvenanceCrate)
       command += " --full";
-    
+
     var p = new Process();
 
     p.StartInfo = new ProcessStartInfo
@@ -155,21 +155,21 @@ public class WorkflowTriggerService
       FileName = _bashCmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
-
-    string? runName = null;
     if (_workflowOptions.RemainAttached)
     {
       p.EnableRaisingEvents = true;
       const string message = "Job [{JobId}] ({ExecutorRunId}) {Stream}: {Data}";
 
+      // TODO tidy this the hell up
       p.OutputDataReceived += async (sender, args) =>
       {
-        if (runName is null && args.Data is not null)
+        if (string.IsNullOrEmpty(job.ExecutorRunId) && args.Data is not null)
         {
-          runName = _findRunName(args.Data);
-          if (runName is not null)
+          job.ExecutorRunId = FindRunName(args.Data) ?? "";
+          if (!string.IsNullOrEmpty(job.ExecutorRunId))
           {
-            job.ExecutorRunId = runName;
+            _logger.LogInformation(
+              "Job [{JobId}] found ExecutorRunId: {RunId}", job.Id, job.ExecutorRunId);
             await _jobs.Set(job);
           }
         }
@@ -179,8 +179,19 @@ public class WorkflowTriggerService
           args.Data ?? "event received but data was null");
       };
 
-      p.ErrorDataReceived += (sender, args) =>
+      p.ErrorDataReceived += async (sender, args) =>
       {
+        if (string.IsNullOrEmpty(job.ExecutorRunId) && args.Data is not null)
+        {
+          job.ExecutorRunId = FindRunName(args.Data) ?? "";
+          if (!string.IsNullOrEmpty(job.ExecutorRunId))
+          {
+            _logger.LogInformation(
+              "Job [{JobId}] found ExecutorRunId: {RunId}", job.Id, job.ExecutorRunId);
+            await _jobs.Set(job);
+          }
+        }
+
         // TODO Log Debug
         _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdErr",
           args.Data ?? "event received but data was null");
@@ -214,7 +225,7 @@ public class WorkflowTriggerService
       {
         var stdOutLine = await reader.ReadLineAsync();
         if (stdOutLine is null) continue;
-        runName = _findRunName(stdOutLine);
+        runName = FindRunName(stdOutLine);
         if (runName is null) continue;
         job.ExecutorRunId = runName;
         await _jobs.Set(job);
@@ -400,7 +411,7 @@ public class WorkflowTriggerService
     return absolutePath;
   }
 
-  private string? _findRunName(string text)
+  private string? FindRunName(string text)
   {
     var pattern =
       @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*";
