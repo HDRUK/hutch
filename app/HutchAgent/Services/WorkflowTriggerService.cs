@@ -142,7 +142,7 @@ public class WorkflowTriggerService
 
     if (_workflowOptions.GenerateFullProvenanceCrate)
       command += " --full";
-
+    
     var p = new Process();
 
     p.StartInfo = new ProcessStartInfo
@@ -173,7 +173,7 @@ public class WorkflowTriggerService
             await _jobs.Set(job);
           }
         }
-        
+
         // TODO Log Debug
         _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdOut",
           args.Data ?? "event received but data was null");
@@ -192,11 +192,18 @@ public class WorkflowTriggerService
       throw new Exception("Could not start process");
     _logger.LogInformation("Process started for job: {JobId}", job.Id);
 
+    // venv
+    _logger.LogInformation("Virtual Environment command: {Command}", _activateVenv);
     await p.StandardInput.WriteLineAsync(_activateVenv);
-    _logger.LogInformation("Virtual Environment activated");
-    await p.StandardInput.WriteLineAsync(command);
-    _logger.LogInformation("Executor command executed");
     await p.StandardInput.FlushAsync();
+    _logger.LogInformation("Virtual Environment activated");
+
+    // wfexs
+    _logger.LogInformation("Executor command: {Command}", command);
+    await p.StandardInput.WriteLineAsync(command);
+    await p.StandardInput.FlushAsync();
+    _logger.LogInformation("Executor command executed");
+
     p.StandardInput.Close();
 
     // Read the stdout of the WfExS run to get the run ID
