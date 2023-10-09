@@ -132,7 +132,7 @@ public class WorkflowTriggerService
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
 
     // Create stage file and save file path
-    var stageFilePath = WriteStageFile(job, roCrate);
+    var stageFilePath = await WriteStageFile(job, roCrate);
 
     await _status.ReportStatus(job.Id, JobStatus.ExecutingWorkflow);
     // Commands to install WfExS and execute a workflow
