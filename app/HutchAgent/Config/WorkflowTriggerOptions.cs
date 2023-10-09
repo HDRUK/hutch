@@ -34,4 +34,10 @@ public class WorkflowTriggerOptions
   /// </summary>
   // TODO enum this
   public string ContainerEngine { get; set; } = "docker";
+  
+  /// <summary>
+  /// Keep Hutch attached to Executor processes that it triggers.
+  /// This uses up threads in the pool, but is useful for debugging.
+  /// </summary>
+  public bool RemainAttached { get; set; }
 }

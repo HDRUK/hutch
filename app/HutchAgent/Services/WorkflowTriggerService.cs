@@ -137,11 +137,13 @@ public class WorkflowTriggerService
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
       $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath}";
-    
+
     if (_workflowOptions.GenerateFullProvenanceCrate)
       command += " --full";
-    
-    var processStartInfo = new ProcessStartInfo
+
+    var p = new Process();
+
+    p.StartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
       RedirectStandardInput = true,
@@ -151,30 +153,57 @@ public class WorkflowTriggerService
       FileName = _bashCmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
+
+    string? runName = null;
+    if (_workflowOptions.RemainAttached)
+    {
+      p.OutputDataReceived += (sender, args) =>
+      {
+        if (args.Data is not null)
+        {
+          if (runName is null)
+            runName = _findRunName(args.Data);
+          // TODO Log Debug
+          _logger.LogInformation(
+            "Job [{JobId}] ({ExecutorRunId}) StdOut: {Data}",
+            job.Id,
+            job.ExecutorRunId,
+            args.Data);
+        }
+      };
+    }
+
     // start process
-    var process = Process.Start(processStartInfo);
-    if (process == null)
+    if (!p.Start())
       throw new Exception("Could not start process");
     _logger.LogInformation("Process started for job: {JobId}", job.Id);
 
-    await process.StandardInput.WriteLineAsync(_activateVenv);
-    await process.StandardInput.WriteLineAsync(command);
-    await process.StandardInput.FlushAsync();
-    process.StandardInput.Close();
+    await p.StandardInput.WriteLineAsync(_activateVenv);
+    await p.StandardInput.WriteLineAsync(command);
+    await p.StandardInput.FlushAsync();
+    p.StandardInput.Close();
 
     // Read the stdout of the WfExS run to get the run ID
-    var reader = process.StandardOutput;
-    while (!process.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
+    if (!_workflowOptions.RemainAttached)
     {
-      var stdOutLine = await reader.ReadLineAsync();
-      if (stdOutLine is null) continue;
-      var runName = _findRunName(stdOutLine);
-      if (runName is null) continue;
-      job.ExecutorRunId = runName;
+      var reader = p.StandardOutput;
+      while (!p.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
+      {
+        var stdOutLine = await reader.ReadLineAsync();
+        if (stdOutLine is null) continue;
+        runName = _findRunName(stdOutLine);
+        if (runName is null) continue;
+        job.ExecutorRunId = runName;
+      }
+    }
+    else
+    {
+      p.BeginOutputReadLine();
+      await p.WaitForExitAsync();
     }
 
     // close our connection to the process
-    process.Close();
+    p.Close();
   }
 
   private async Task<string> WriteStageFile(WorkflowJob workflowJob, ROCrate roCrate)
@@ -279,7 +308,7 @@ public class WorkflowTriggerService
     var yaml = serializer.Serialize(stageFile);
     var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
       "hutch_cwl.wfex.stage"); // TODO rename later maybe if we support more than cwl ;)
-    
+
     // TODO should we write metadata for the stage file?
 
     await using var outputStageFile = new StreamWriter(stageFilePath);
