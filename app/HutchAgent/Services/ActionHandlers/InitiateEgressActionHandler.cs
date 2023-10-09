@@ -108,6 +108,7 @@ public class InitiateEgressActionHandler : IActionHandler
     {
       _logger.LogInformation(
         "Egress outputs uploaded for manual inspection: Notify `/api/jobs/{JobId}/approval` when complete", jobId);
+      files.ForEach(x => _logger.LogInformation("Output: {ObjectId}", x));
     }
     else
     {
