@@ -160,51 +160,33 @@ public class WorkflowTriggerService
     if (_workflowOptions.RemainAttached)
     {
       p.EnableRaisingEvents = true;
-      const string message = "Job [{JobId}] ({ExecutorRunId}) StdOut: {Data}";
-      
+      const string message = "Job [{JobId}] ({ExecutorRunId}) {Stream}: {Data}";
+
       p.OutputDataReceived += async (sender, args) =>
       {
-        if (args.Data is not null)
+        if (runName is null && args.Data is not null)
         {
-          if (runName is null)
+          runName = _findRunName(args.Data);
+          if (runName is not null)
           {
-            runName = _findRunName(args.Data);
-            if (runName is not null)
-            {
-              job.ExecutorRunId = runName;
-              await _jobs.Set(job);
-            }
+            job.ExecutorRunId = runName;
+            await _jobs.Set(job);
           }
-
-          // TODO Log Debug
-          _logger.LogInformation(
-            message,
-            job.Id,
-            job.ExecutorRunId,
-            args.Data);
         }
-        else
-          _logger.LogInformation(message, job.Id,
-            job.ExecutorRunId, "StdOut event received but data was null");
+        
+        // TODO Log Debug
+        _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdOut",
+          args.Data ?? "event received but data was null");
       };
 
       p.ErrorDataReceived += (sender, args) =>
       {
-        if (args.Data is not null)
-        {
-          // TODO Log Debug
-          _logger.LogInformation(
-            message,
-            job.Id,
-            job.ExecutorRunId,
-            args.Data);
-        }
-        else
-          _logger.LogInformation(message, job.Id,
-            job.ExecutorRunId, "StdErr event received but data was null");
+        // TODO Log Debug
+        _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdErr",
+          args.Data ?? "event received but data was null");
       };
     }
-    
+
     // start process
     if (!p.Start())
       throw new Exception("Could not start process");
