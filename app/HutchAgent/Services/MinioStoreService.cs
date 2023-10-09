@@ -100,67 +100,24 @@ public class MinioStoreService
   /// Upload a file to an S3 bucket.
   /// </summary>
   /// <param name="sourcePath">The path of the file to be uploaded.</param>
-  /// <param name="targetPath">Optional Directory path to put the file in within the bucket.</param>
+  /// <param name="objectId">Intended ObjectId in the target storage.</param>
   /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
   /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
   /// <exception cref="FileNotFoundException">Thrown when the file to be uploaded does not exist.</exception>
-  public async Task WriteToStore(string sourcePath, string targetPath = "")
+  public async Task WriteToStore(string sourcePath, string objectId)
   {
     if (!await StoreExists())
       throw new BucketNotFoundException(_options.Bucket, $"No such bucket: {_options.Bucket}");
 
     if (!File.Exists(sourcePath)) throw new FileNotFoundException();
-
-    var objectName = CalculateObjectName(sourcePath, targetPath);
     var putObjectArgs = new PutObjectArgs()
       .WithBucket(_options.Bucket)
       .WithFileName(sourcePath)
-      .WithObject(objectName);
+      .WithObject(objectId);
 
-    _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectName, _options.Bucket);
+    _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectId, _options.Bucket);
     await _minio.PutObjectAsync(putObjectArgs);
-    _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectName, _options.Bucket);
-  }
-
-  /// <summary>
-  /// Calculate what the object name in a bucket should be based on the source file path
-  /// </summary>
-  /// <param name="sourcePath">Path to the file to be uploaded</param>
-  /// <param name="targetPath">Optional directory path within the bucket to put the file at</param>
-  /// <returns>The full object name for the file to be placed in a bucket</returns>
-  public string CalculateObjectName(string sourcePath, string targetPath = "")
-  {
-    return Path.Combine(targetPath, Path.GetFileName(sourcePath));
-  }
-
-  /// <summary>
-  /// Check if a file already exists in an S3 bucket.
-  /// </summary>
-  /// <param name="objectName">The name of the file to check in the bucket.</param>
-  /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
-  /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
-  public async Task<bool> ResultExists(string objectName)
-  {
-    if (!await StoreExists())
-      throw new BucketNotFoundException(_options.Bucket, $"No such bucket: {_options.Bucket}");
-
-    var statObjectArgs = new StatObjectArgs()
-      .WithBucket(_options.Bucket)
-      .WithObject(objectName);
-
-    try
-    {
-      _logger.LogInformation("Looking for {Object} in {Bucket}...", objectName, _options.Bucket);
-      await _minio.StatObjectAsync(statObjectArgs);
-      _logger.LogInformation("Found {Object} in {Bucket}", objectName, _options.Bucket);
-      return true;
-    }
-    catch (ObjectNotFoundException)
-    {
-      _logger.LogInformation("Could not find {Object} in {Bucket}", objectName, _options.Bucket);
-    }
-
-    return false;
+    _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectId, _options.Bucket);
   }
 
   /// <summary>

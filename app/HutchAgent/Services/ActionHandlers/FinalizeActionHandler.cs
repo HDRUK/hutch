@@ -109,6 +109,7 @@ public class FinalizeActionHandler : IActionHandler
     await store.WriteToStore(
       Path.Combine(
         job.WorkingDirectory.JobEgressPackage(),
-        _finalPackageFilename));
+        _finalPackageFilename),
+      $"{job.Id}_{_finalPackageFilename}");
   }
 }
