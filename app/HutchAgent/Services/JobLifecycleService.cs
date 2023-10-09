@@ -79,8 +79,8 @@ public class JobLifecycleService
     var crate = _crates.InitialiseCrate(job.WorkingDirectory.JobCrateRoot());
     var createAction = _crates.GetCreateAction(crate);
     _crates.UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, createAction);
-    createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
-    createAction.SetProperty("endTime", job.EndTime?.ToString(CultureInfo.InvariantCulture));
+    createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString("o", CultureInfo.InvariantCulture));
+    createAction.SetProperty("endTime", job.EndTime?.ToString("o", CultureInfo.InvariantCulture));
     crate.Save(job.WorkingDirectory.JobCrateRoot());
 
     return await _jobs.Set(job);
