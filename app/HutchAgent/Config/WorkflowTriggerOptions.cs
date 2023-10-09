@@ -20,5 +20,18 @@ public class WorkflowTriggerOptions
   /// <summary>
   /// Should container images downloaded for workflows be included in the outputs?
   /// </summary>
-  public bool IncludeContainersInOutput { get; set; } = false;
+  public bool IncludeContainersInOutput { get; set; }
+  
+  /// <summary>
+  /// Ask WfExS for a full provenance output crarte (using `--full`).
+  /// This is typically preferred but can be unreliable in some environments.
+  /// </summary>
+  public bool GenerateFullProvenancecrate { get; set; }
+
+  /// <summary>
+  /// The container engine generated stage files should use e.g. `docker` (default) or `podman`.
+  /// Should match the `containerType` configured in the Executor's local config.
+  /// </summary>
+  // TODO enum this
+  public string ContainerEngine { get; set; } = "docker";
 }
