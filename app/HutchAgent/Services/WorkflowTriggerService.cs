@@ -314,6 +314,7 @@ public class WorkflowTriggerService
           {
             "podman" => "host.containers.internal",
             "docker" => "172.17.0.1",
+            "singularity" => "localhost",
             _ => throw new InvalidOperationException(
               $"Unexpected Container Engine configured: {_workflowOptions.ContainerEngine}")
           };
