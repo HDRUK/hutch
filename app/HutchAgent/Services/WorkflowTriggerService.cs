@@ -85,7 +85,8 @@ public class WorkflowTriggerService
 
     result.IsComplete = true;
 
-    var state = _unyaml.Deserialize<WfexsExecutionState>(await File.ReadAllTextAsync(pathToState));
+    // TODO do we need to support multiple executions in this state file?
+    var state = _unyaml.Deserialize<List<WfexsExecutionState>>(await File.ReadAllTextAsync(pathToState))[0];
 
     result.ExitCode = state.ExitCode;
     result.StartTime = state.StartTime;
