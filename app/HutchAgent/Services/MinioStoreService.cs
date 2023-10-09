@@ -111,7 +111,7 @@ public class MinioStoreService
 
     if (!File.Exists(sourcePath)) throw new FileNotFoundException();
 
-    var objectName = CalculateObjectName(targetPath);
+    var objectName = CalculateObjectName(sourcePath, targetPath);
     var putObjectArgs = new PutObjectArgs()
       .WithBucket(_options.Bucket)
       .WithFileName(sourcePath)
