@@ -330,16 +330,7 @@ public class WorkflowTriggerService
           {
             value = name.ToString() switch
             {
-              // for db_host we may need to map "localhost" to the container engine's host machine target.
-              // if triggering systems REALLY mean the container's localhost, they can use the loopback ip 127.0.0.1
-              "db_host" => dataAccess.Hostname != "localhost"
-                ? dataAccess.Hostname
-                : _workflowOptions.ContainerEngine switch
-                {
-                  "podman" => "host.containers.internal",
-                  "docker" or "singularity" => "172.17.0.1",
-                  _ => dataAccess.Hostname
-                },
+              "db_host" => dataAccess.GetContainerHost(_workflowOptions.ContainerEngine),
               "db_port" => dataAccess.Port.ToString(),
               "db_name" => dataAccess.Database,
               "db_user" => dataAccess.Username,
