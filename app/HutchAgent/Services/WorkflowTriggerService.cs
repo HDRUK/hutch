@@ -303,25 +303,52 @@ public class WorkflowTriggerService
       }
       else
       {
-        var value = objectEntity.Properties["value"] ??
+        var value = objectEntity.Properties["value"]?.ToString() ??
                     throw new NullReferenceException("Could not get value for given input parameter.");
 
-        // TODO this is a temporary hack and should instead happen against dbAccess in a job payload
-        // rewrite "localhost" to the container engine appropriate form.
-        // if triggering systems REALLY mean localhost, they can use the loopback ip
-        if (name.ToString() == "db_host" && value.ToString() == "localhost")
-          value = _workflowOptions.ContainerEngine switch
-          {
-            "podman" => "host.containers.internal",
-            "docker" => "172.17.0.1",
-            "singularity" => "localhost",
-            _ => throw new InvalidOperationException(
-              $"Unexpected Container Engine configured: {_workflowOptions.ContainerEngine}")
-          };
 
-        parameters[name.ToString()] = value?.ToString() ??
-                                      throw new NullReferenceException(
-                                        "Could not get value for given input parameter.");
+        // TODO the below is a temporary hack until we test wfexs environment variables
+        // and update workflows and guidance around data access.
+        try
+        {
+          // Basically we currently modify inputs with known names
+          // to have values from the job submission's data access details
+          // instead of what's contained in the job crate.
+          //
+          // This approach does rely on the job crate having the inputs defined,
+          // but they can have dummy values that will be replaced.
+          //
+          // When we switch to environment variables, they won't need defining as inputs or anything
+          // within the job crate; they'll just be added to the execution environment
+          // and optionally used by the workflow if it cares.
+
+          // Try and get the data access details
+          var dataAccess = JsonSerializer.Deserialize<DatabaseConnectionDetails>(workflowJob.DataAccess ?? "");
+
+          // Input value replacements!
+          if (dataAccess is not null)
+          {
+            value = name.ToString() switch
+            {
+              "db_host" => dataAccess.GetContainerHost(_workflowOptions.ContainerEngine),
+              "db_port" => dataAccess.Port.ToString(),
+              "db_name" => dataAccess.Database,
+              "db_user" => dataAccess.Username,
+              "db_password" => dataAccess.Password,
+              _ => value // leave it untouched
+            };
+          }
+        }
+        catch (JsonException)
+        {
+          // we've failed to deserialize data access.
+          // not much we can do, but shouldn't stop the job trying to run.
+          // 
+          // it may fail if it intends to try and access the data source,
+          // but that'll get handled and reported in the usual way.
+        }
+
+        parameters[name.ToString()] = value;
       }
     }
 
@@ -352,7 +379,7 @@ public class WorkflowTriggerService
     var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
       "hutch_cwl.wfex.stage"); // TODO rename later maybe if we support more than cwl ;)
 
-    // TODO should we write metadata for the stage file?
+    // TODO should we write metadata for the stage file? (yes)
 
     await using var outputStageFile = new StreamWriter(stageFilePath);
     await outputStageFile.WriteLineAsync(yaml);

@@ -29,7 +29,7 @@ public class WorkflowTriggerOptions
   public bool GenerateFullProvenanceCrate { get; set; }
 
   /// <summary>
-  /// The container engine generated stage files should use e.g. `docker` (default) or `podman`.
+  /// The container engine generated stage files should use e.g. `docker` (default), singularity or `podman`.
   /// Should match the `containerType` configured in the Executor's local config.
   /// </summary>
   // TODO enum this
