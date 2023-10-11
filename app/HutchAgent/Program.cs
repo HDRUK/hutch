@@ -66,7 +66,8 @@ builder.Services
   .Configure<MinioOptions>(builder.Configuration.GetSection("StoreDefaults"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowExecutor"))
   .Configure<CratePublishingOptions>(builder.Configuration.GetSection("CratePublishing"))
-  .Configure<ControllerApiOptions>(builder.Configuration.GetSection("ControllerApi"));
+  .Configure<ControllerApiOptions>(builder.Configuration.GetSection("ControllerApi"))
+  .Configure<OpenIdOptions>(builder.Configuration.GetSection("OpenId"));
 
 // JobAction Handlers
 builder.Services

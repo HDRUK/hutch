@@ -351,7 +351,6 @@ public class JobsController : ControllerBase
 
         // TODO: return some sort of job status
 
-
         jobStatus.Status = JobStatus.Failure.ToString();
         await _job.Cleanup(job);
       }
