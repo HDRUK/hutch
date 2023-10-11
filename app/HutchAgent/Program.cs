@@ -56,7 +56,8 @@ builder.Services.AddSwaggerGen(o =>
 // Other Services
 builder.Services
   .AddAutoMapper(typeof(Program).Assembly)
-  .AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>();
+  .AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>()
+  .AddHttpClient(); // We prefer Flurl for most use cases, but IdentityModel has extensions for vanilla HttpClient
 
 // IOptions
 builder.Services
@@ -67,7 +68,7 @@ builder.Services
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowExecutor"))
   .Configure<CratePublishingOptions>(builder.Configuration.GetSection("CratePublishing"))
   .Configure<ControllerApiOptions>(builder.Configuration.GetSection("ControllerApi"))
-  .Configure<OpenIdOptions>(builder.Configuration.GetSection("OpenId"));
+  .Configure<OpenIdOptions>(builder.Configuration.GetSection("IdentityProvider"));
 
 // JobAction Handlers
 builder.Services
@@ -91,6 +92,7 @@ builder.Services
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
   .AddIntermediaryStoreFactory(builder.Configuration)
+  .AddTransient<OpenIdIdentityService>()
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
   .AddTransient<IQueueReader, RabbitQueueReader>();
 

@@ -29,8 +29,8 @@ Capability Config:
 
 - Client authentication: `ON`
 - Authentication Flow:
-  - [x] Service accounts roles
-    - Hutch will use the Client Credentials flow as it doesn't act on a user's behalf
+  - [x] Direct access grants
+    - This is OIDC's "Resource Owner Password Credentials Grant" and is currently all Hutch supports, because MinIO and the TRE Controller API expect user tokens, not client ones.
 
 Login Settings:
 
@@ -38,6 +38,12 @@ not sure what is needed here as we aren't doing an interactive user login flow..
 
 - Root URL should be Hutch's configured URL e.g. for development `http://host.docker.internal:5209`
 - Most other settings are URLs and for development can just be wildcarded with `*`
+
+### Create (a) User(s)
+
+Both MinIO and the TRE Controller API expect user tokens, so Hutch currently must have a user to get tokens for.
+
+In future Client Credentials may be a better fit for Hutch.
 
 ### Configure Hutch
 
@@ -48,3 +54,4 @@ Hutch can then be configured with
 - the keycloak URL e.g. `localhost:9090`
 - its client id e.g. `hutch-agent`
 - its client secret
+- a username and password for a user to get a token on behalf of

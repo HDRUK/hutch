@@ -75,6 +75,7 @@ public class MinioStoreServiceFactory
       // set the credentials to those from the STS response
 
       // TODO do we need the session token? per the docs, "some clients" do...
+      var x = 1;
     }
 
     return new()
