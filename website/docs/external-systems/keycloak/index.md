@@ -41,9 +41,9 @@ not sure what is needed here as we aren't doing an interactive user login flow..
 
 ### Create (a) User(s)
 
-Both MinIO and the TRE Controller API expect user tokens, so Hutch currently must have a user to get tokens for.
+Both MinIO and the TRE Controller API currently expect user tokens, so Hutch currently must have a user to get tokens for, which it does via the Password Grant Flow.
 
-In future Client Credentials may be a better fit for Hutch.
+Additionally it's worth being aware that the TRE Controller expects an **access token** (so in future Hutch could use the Client Credentials flow), but Minio requires an **identity token**.
 
 ### Configure Hutch
 

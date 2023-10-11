@@ -42,11 +42,7 @@ public class ControllerApiService
   private async Task UpdateToken()
   {
     // TODO one day support Client Credentials?
-    _accessToken = await _identity.RequestUserAccessToken(
-      _identityOptions.ClientId,
-      _identityOptions.ClientSecret,
-      _identityOptions.Username,
-      _identityOptions.Password);
+    _accessToken = (await _identity.RequestUserTokens(_identityOptions)).access;
   }
 
   /// <summary>

@@ -66,16 +66,15 @@ public class MinioStoreServiceFactory
         "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
 
       // Get an OIDC Access token
-      var token = await _identity.RequestUserAccessToken(_identityOptions);
+      var (idToken, _) = await _identity.RequestUserTokens(_identityOptions);
 
-      // Get a MinIO STS with the access token
+      // Get a MinIO STS with the user's identity token
       // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
       // looks like an XML response? :( // TODO Test in postman?
 
       // set the credentials to those from the STS response
-
-      // TODO do we need the session token? per the docs, "some clients" do...
       var x = 1;
+      // TODO do we need the session token? per the docs, "some clients" do...
     }
 
     return new()

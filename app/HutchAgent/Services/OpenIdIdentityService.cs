@@ -59,7 +59,7 @@ public class OpenIdIdentityService
   }
 
   /// <summary>
-  /// Follow the OIDC Authorization Code flow to get a token on behalf of a user
+  /// Follow the OIDC Resource Owner Password Credentials Grant Flow to get identity and access tokens on behalf of a user
   /// from the configured Identity Provider, using the provided user credentials.
   /// </summary>
   /// <param name="options">
@@ -70,20 +70,21 @@ public class OpenIdIdentityService
   /// Note that this options object won't override the target IdP BaseURL used.
   /// </para>
   /// </param>
-  /// <returns>The requested token</returns>
-  public async Task<string> RequestUserAccessToken(OpenIdOptions options)
-    => await RequestUserAccessToken(options.ClientId, options.ClientSecret, options.Username, options.Password);
+  /// <returns>The requested tokens</returns>
+  public async Task<(string identity, string access)> RequestUserTokens(OpenIdOptions options)
+    => await RequestUserTokens(options.ClientId, options.ClientSecret, options.Username, options.Password);
 
   /// <summary>
-  /// Follow the OIDC Authorization Code flow to get a token on behalf of a user
+  /// Follow the OIDC Resource Owner Password Credentials Grant Flow to get identity and access tokens on behalf of a user
   /// from the configured Identity Provider, using the provided user credentials.
   /// </summary>
   /// <param name="clientId">Client ID</param>
   /// <param name="secret">Client Secret</param>
   /// <param name="username">The User's Username</param>
   /// <param name="password">The User's Password</param>
-  /// <returns>The requested token</returns>
-  public async Task<string> RequestUserAccessToken(string clientId, string secret, string username, string password)
+  /// <returns>The requested tokens</returns>
+  public async Task<(string identity, string access)> RequestUserTokens(string clientId, string secret, string username,
+    string password)
   {
     var disco = await _http.GetDiscoveryDocumentAsync(new DiscoveryDocumentRequest
     {
@@ -107,7 +108,8 @@ public class OpenIdIdentityService
       ClientId = clientId,
       ClientSecret = secret,
       UserName = username,
-      Password = password
+      Password = password,
+      Scope = "openid" // we want an id_token (for the Minio) as well as an access_token (for everything else)
     });
 
     if (tokenResponse.IsError)
@@ -118,8 +120,8 @@ public class OpenIdIdentityService
 
     // TODO any claim validation Hutch cares about? somewhat depends on use case (e.g. Controller vs Store?)
 
-    // return the access token for use
-    return tokenResponse.AccessToken;
+    // return the tokens for use
+    return (tokenResponse.IdentityToken, tokenResponse.AccessToken);
   }
 
   /// <summary>
