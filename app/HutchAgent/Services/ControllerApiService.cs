@@ -16,20 +16,37 @@ public class ControllerApiService
 {
   private readonly ILogger<ControllerApiService> _logger;
   private readonly IFeatureManager _features;
+  private readonly OpenIdOptions _identityOptions;
   private readonly IFlurlClient _http;
   private readonly ControllerApiOptions _apiOptions;
+  private readonly OpenIdIdentityService _identity;
   private const string _standaloneModeError = "TRE Controller API should not be used in Standalone Mode.";
+  private string _accessToken = string.Empty;
 
   public ControllerApiService(
     IFeatureManager features,
     IFlurlClientFactory httpFactory,
     IOptions<ControllerApiOptions> apiOptions,
-    ILogger<ControllerApiService> logger)
+    IOptions<OpenIdOptions> identityOptions,
+    ILogger<ControllerApiService> logger,
+    OpenIdIdentityService identity)
   {
     _features = features;
     _logger = logger;
+    _identity = identity;
+    _identityOptions = identityOptions.Value;
     _apiOptions = apiOptions.Value;
-    _http = httpFactory.Get(_apiOptions.BaseUrl); // TODO what if standalone mode?
+    _http = httpFactory.Get(_apiOptions.BaseUrl);
+  }
+
+  private async Task UpdateToken()
+  {
+    // TODO one day support Client Credentials?
+    _accessToken = await _identity.RequestUserAccessToken(
+      _identityOptions.ClientId,
+      _identityOptions.ClientSecret,
+      _identityOptions.Username,
+      _identityOptions.Password);
   }
 
   /// <summary>
@@ -47,9 +64,11 @@ public class ControllerApiService
 
     _logger.LogDebug("Requesting Egress Bucket from {Url}", Url.Combine(_apiOptions.BaseUrl, url));
 
+    if (!_identity.IsTokenValid(_accessToken)) await UpdateToken();
     return await _http.Request(url).GetAsync().ReceiveJson<MinioOptions>()
            ?? throw new InvalidOperationException(
              "No Response Body was received for an Egress Bucket request.");
+    // TODO attempt refreshing if token rejected?
   }
 
   /// <summary>
@@ -69,11 +88,13 @@ public class ControllerApiService
     _logger.LogInformation(
       "Job [{JobId}]: Confirming with TRE Controller API that Egress Outputs have been transferred", jobId);
 
+    if (!_identity.IsTokenValid(_accessToken)) await UpdateToken();
     await _http.Request(url).PostJsonAsync(
       new FilesReadyForReviewRequest()
       {
         Files = files
       });
+    // TODO attempt refreshing if token rejected?
   }
 
   /// <summary>
@@ -96,6 +117,8 @@ public class ControllerApiService
         description
       });
 
+    if (!_identity.IsTokenValid(_accessToken)) await UpdateToken();
     await _http.Request(url).PostAsync();
+    // TODO attempt refreshing if token rejected?
   }
 }

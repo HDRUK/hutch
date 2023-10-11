@@ -1,6 +1,8 @@
+using System.IdentityModel.Tokens.Jwt;
 using HutchAgent.Config;
 using IdentityModel.Client;
 using Microsoft.Extensions.Options;
+using Scriban.Parsing;
 
 namespace HutchAgent.Services;
 
@@ -21,6 +23,39 @@ public class OpenIdIdentityService
     _logger = logger;
     _http = httpClientFactory.CreateClient();
     _openIdOptions = openIdOptions.Value;
+  }
+
+  /// <summary>
+  /// Check that a JWT is valid and unexpired
+  /// </summary>
+  /// <param name="jwt">the token to check</param>
+  /// <returns>Whether the token is valid and unexpired</returns>
+  public bool IsTokenValid(string jwt)
+  {
+    try
+    {
+      if (string.IsNullOrWhiteSpace(jwt)) return false;
+      
+      var token = new JwtSecurityToken(jwt);
+      return IsTokenValid(token);
+    }
+    catch (Exception)
+    {
+      return false;
+    }
+  }
+  
+  /// <summary>
+  /// Check that a JWT is valid and unexpired
+  /// </summary>
+  /// <param name="jwt">the token to check</param>
+  /// <returns>Whether the token is valid and unexpired</returns>
+  public bool IsTokenValid(JwtSecurityToken jwt)
+  {
+    var now = DateTimeOffset.UtcNow;
+    
+    // TODO in future we could check issuer, checksum etc?
+    return jwt.ValidFrom >= now && jwt.ValidTo < now;
   }
 
   /// <summary>
