@@ -81,7 +81,7 @@ public class InitiateEgressActionHandler : IActionHandler
       ? null
       : await _controller.RequestEgressBucket(job.Id);
 
-    var store = _storeFactory.Create(egressStore);
+    var store = await _storeFactory.Create(egressStore);
 
     // Record the bucket details for later use
     job.EgressTarget = JsonSerializer.Serialize(egressStore ?? _storeFactory.DefaultOptions);

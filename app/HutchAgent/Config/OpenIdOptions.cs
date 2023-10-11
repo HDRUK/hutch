@@ -31,3 +31,21 @@ public class OpenIdOptions
   ///  TODO in future it should be possible to omit this and use the Client Credentials flow?
   public string Password { get; set; } = string.Empty;
 }
+
+public static class OpenIdOptionsExtensions
+{
+  /// <summary>
+  /// Does this set of options at least contain values for all required properties?
+  /// </summary>
+  /// <returns></returns>
+  public static bool IsConfigComplete(this OpenIdOptions self)
+    => !new[]
+    {
+      // required properties
+      self.OpenIdBaseUrl,
+      self.ClientId,
+      self.ClientSecret,
+      self.Username,
+      self.Password
+    }.Any(string.IsNullOrWhiteSpace);
+}

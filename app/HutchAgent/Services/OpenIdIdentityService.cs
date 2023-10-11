@@ -35,7 +35,7 @@ public class OpenIdIdentityService
     try
     {
       if (string.IsNullOrWhiteSpace(jwt)) return false;
-      
+
       var token = new JwtSecurityToken(jwt);
       return IsTokenValid(token);
     }
@@ -44,7 +44,7 @@ public class OpenIdIdentityService
       return false;
     }
   }
-  
+
   /// <summary>
   /// Check that a JWT is valid and unexpired
   /// </summary>
@@ -53,10 +53,26 @@ public class OpenIdIdentityService
   public bool IsTokenValid(JwtSecurityToken jwt)
   {
     var now = DateTimeOffset.UtcNow;
-    
+
     // TODO in future we could check issuer, checksum etc?
     return jwt.ValidFrom >= now && jwt.ValidTo < now;
   }
+
+  /// <summary>
+  /// Follow the OIDC Authorization Code flow to get a token on behalf of a user
+  /// from the configured Identity Provider, using the provided user credentials.
+  /// </summary>
+  /// <param name="options">
+  /// <para>
+  /// An options model to extract Client ID, Client Secret, Username and Password from.
+  /// </para>
+  /// <para>
+  /// Note that this options object won't override the target IdP BaseURL used.
+  /// </para>
+  /// </param>
+  /// <returns>The requested token</returns>
+  public async Task<string> RequestUserAccessToken(OpenIdOptions options)
+    => await RequestUserAccessToken(options.ClientId, options.ClientSecret, options.Username, options.Password);
 
   /// <summary>
   /// Follow the OIDC Authorization Code flow to get a token on behalf of a user
@@ -66,6 +82,7 @@ public class OpenIdIdentityService
   /// <param name="secret">Client Secret</param>
   /// <param name="username">The User's Username</param>
   /// <param name="password">The User's Password</param>
+  /// <returns>The requested token</returns>
   public async Task<string> RequestUserAccessToken(string clientId, string secret, string username, string password)
   {
     var disco = await _http.GetDiscoveryDocumentAsync(new DiscoveryDocumentRequest
@@ -92,7 +109,7 @@ public class OpenIdIdentityService
       UserName = username,
       Password = password
     });
-    
+
     if (tokenResponse.IsError)
     {
       _logger.LogError("Attempted OIDC Token Request failed: {Error}", tokenResponse.Error);
@@ -118,7 +135,7 @@ public class OpenIdIdentityService
     throw new NotImplementedException(
       "TRE Controller API and Intermediary Store don't support this yet, so neither does Hutch at this time.");
   }
-  
+
   // JWT content validation example
   // var jwtHandler = new JwtSecurityTokenHandler();
   // var token = jwtHandler.ReadJwtToken(tokenResponse.AccessToken);
