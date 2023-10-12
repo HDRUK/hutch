@@ -141,7 +141,7 @@ public class WorkflowTriggerService
     var command =
       $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath}";
 
-    if (_workflowOptions.GenerateFullProvenanceCrate)
+    if (!_workflowOptions.SkipFullProvenanceCrate)
       command += " --full";
 
     var p = new Process();

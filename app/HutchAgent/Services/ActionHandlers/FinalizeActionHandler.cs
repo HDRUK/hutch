@@ -96,7 +96,7 @@ public class FinalizeActionHandler : IActionHandler
         $"Finalized Job {job.Id} cannot be egressed as no egress target was recorded.");
 
     var egressTarget = JsonSerializer.Deserialize<MinioOptions>(job.EgressTarget);
-    var store = _storeFactory.Create(egressTarget);
+    var store = await _storeFactory.Create(egressTarget);
 
     // Make sure results store exists
     if (!await store.StoreExists())

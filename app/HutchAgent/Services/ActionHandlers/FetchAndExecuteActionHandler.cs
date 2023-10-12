@@ -62,7 +62,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
         {
           // If the details deserialised successfully, then try and get a URL from Cloud Storage
           // else assume the source is a URL and proceed anyway.
-          var store = _storeFactory.Create(new()
+          var store = await _storeFactory.Create(new()
           {
             Host = cloudCrate.Host,
             Bucket = cloudCrate.Bucket,

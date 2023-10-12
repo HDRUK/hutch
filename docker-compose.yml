@@ -1,4 +1,17 @@
 services:
+  ## Hutch dependencies
+
+  # required for internal Hutch job queueing
+  rabbitmq:
+    image: rabbitmq:3.10.1-management
+    restart: always
+    ports:
+      - 5672:5672 # port for the queue
+      - 15672:15672 # port for the in-browser manager
+
+  ## local Data Source
+
+  # optional data source; alternatively run an existing service on host machine
   postgres:
     image: postgres
     restart: always
@@ -7,6 +20,7 @@ services:
     environment:
       POSTGRES_PASSWORD: example
 
+  # optional webview for the data source
   adminer:
     image: adminer
     restart: always
@@ -15,13 +29,52 @@ services:
     environment:
       ADMINER_DESIGN: pepa-linha
 
-  rabbitmq:
-    image: rabbitmq:3.10.1-management
-    restart: always
-    ports:
-      - 5672:5672 # port for the queue
-      - 15672:15672 # port for the in-browser manager
+  ## local Intermediary Store
 
+  # optional. local Intermediary Store, optionally with oidc auth (run keycloak)
+  minio:
+    image: minio/minio:RELEASE.2023-04-20T17-56-55Z
+    restart: always
+    command: minio server $HOME/minio-data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+      # to use with oidc (keycloak below)
+      - MINIO_IDENTITY_OPENID_CONFIG_URL=http://keycloak:8080/realms/hutch-dev/.well-known/openid-configuration
+      - MINIO_IDENTITY_OPENID_CLIENT_ID=minio
+      - MINIO_IDENTITY_OPENID_DISPLAY_NAME=KEYCLOAK
+      - MINIO_IDENTITY_OPENID_SCOPES=openid
+      - MINIO_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC=on
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # web console
+    volumes:
+      - $HOME/minio-data:$HOME/minio-data
+
+  # optional. used for TRE Controller and optionally MinIO auth
+  keycloak:
+    image: docker.io/bitnami/keycloak:21
+    environment:
+      - KEYCLOAK_LOG_LEVEL=DEBUG
+      - KEYCLOAK_CREATE_ADMIN_USER=true
+      - KEYCLOAK_ADMIN_USER=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_MANAGEMENT_USER=manager
+      - KEYCLOAK_MANAGEMENT_PASSWORD=manager
+      - KEYCLOAK_ENABLE_STATISTICS=true
+      - KEYCLOAK_DATABASE_HOST=host.docker.internal
+      - KEYCLOAK_DATABASE_NAME=bitnami_keycloak
+      - KEYCLOAK_DATABASE_USER=postgres
+      - KEYCLOAK_DATABASE_PASSWORD=example
+      - REDIRECT_SOCKET="proxy-https"
+      - PROXY_ADDRESS_FORWARDING="true"
+      - KEYCLOAK_PROXY=edge
+    ports:
+      - "9090:8080"
+
+  ## local Airgapping
+
+  # optional. used as an airgapped workflow store and container registry
   nexus:
     image: sonatype/nexus3:3.52.0
     restart: always
@@ -30,16 +83,7 @@ services:
       - "8082:8082" # port for the docker registry
       - "8083:8083" # port for the git system
 
-  minio:
-    image: minio/minio:RELEASE.2023-04-20T17-56-55Z
-    restart: always
-    ports:
-      - "9000:9000" # S3 API
-      - "9001:9001" # web console
-    volumes:
-      - $HOME/minio-data:$HOME/minio-data
-    command: minio server $HOME/minio-data --console-address ":9001"
-
+  # optional. Used for airgapped workflowhub proxy
   nginx:
     image: nginx
     restart: always
