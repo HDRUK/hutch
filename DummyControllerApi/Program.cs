@@ -1,6 +1,10 @@
+using DummyControllerApi.Config;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.Configure<EgressBucketDetailsOptions>(builder.Configuration.GetSection("EgressBucketDetails"));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
