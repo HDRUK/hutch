@@ -1,0 +1,15 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "DummyControllerApi": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7127;http://localhost:5289",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
