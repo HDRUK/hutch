@@ -1,3 +1,5 @@
+using System.Xml;
+using System.Xml.Linq;
 using Flurl;
 using Flurl.Http;
 using HutchAgent.Config;
@@ -36,14 +38,18 @@ public class MinioStoreServiceFactory
   /// </summary>
   public MinioOptions DefaultOptions { get; }
 
-  private MinioClient GetClient(MinioOptions options)
+  private MinioClient GetClient(MinioOptions options, string? sessionToken)
   {
-    return new MinioClient()
+    var clientBuilder = new MinioClient()
       .WithEndpoint(options.Host)
       //.WithSessionToken() // Might we also need this for STS?
       .WithCredentials(options.AccessKey, options.SecretKey)
-      .WithSSL(options.Secure)
-      .Build();
+      .WithSSL(options.Secure);
+
+    if (sessionToken is not null)
+      clientBuilder.WithSessionToken(sessionToken);
+    
+    return clientBuilder.Build();
   }
 
   /// <summary>
@@ -52,10 +58,14 @@ public class MinioStoreServiceFactory
   /// <param name="minioBaseUrl">The base url for the minio server - i.e. a scheme (http(s)) + the configured host</param>
   /// <param name="token">The client's Access token or the User's Identity Token</param>
   /// <param name="asUser">Whether to request credentials as a client or a user</param>
-  /// <returns>temporary access key and secret key for use with Minio</returns>
-  private async Task<(string accessKey, string secretKey)> GetTemporaryCredentials(string minioBaseUrl, string token,
+  /// <returns>Temporary access key and secret key for use with Minio</returns>
+  private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(string minioBaseUrl, string token,
     bool asUser)
   {
+    if (!asUser)
+      throw new NotImplementedException(
+        "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is not finished and untested.");
+    
     // TODO pre-validate id token for policy presence?
 
     var url = minioBaseUrl
@@ -67,27 +77,36 @@ public class MinioStoreServiceFactory
       })
       .SetQueryParam(asUser ? "WebIdentityToken" : "Token", token, true);
 
-    var response = await url.GetStringAsync();
+    var response = await url.PostAsync().ReceiveString();
 
-    return ("", "");
+    return ParseAssumeRoleResponse(response);
   }
 
   /// <summary>
-  /// Combine provided options with default fallbacks where necessary,
-  /// and optionally fetching missing credentials via OIDC if configured
+  /// Parse the XML response from an STS AssumeRole request to extract the desired details.
+  /// </summary>
+  /// <param name="response">The XML response from an STS AssumeRole request as a string.</param>
+  /// <returns>Access Token and Secret Key from the response.</returns>
+  private static (string accessKey, string secretKey, string sessionToken) ParseAssumeRoleResponse(string response)
+  {
+    var xml = XElement.Parse(response);
+    var accessKey = xml.Descendants().Single(x => x.Name.LocalName == "AccessKeyId").Value;
+    var secretKey = xml.Descendants().Single(x => x.Name.LocalName == "SecretAccessKey").Value;
+    var sessionToken = xml.Descendants().Single(x => x.Name.LocalName == "SessionToken").Value;
+
+    return (accessKey, secretKey, sessionToken);
+  }
+
+  /// <summary>
+  /// Combine provided options with default fallbacks where necessary
   /// </summary>
   /// <param name="options">The provided options</param>
   /// <returns>
   /// A complete options object built from those provided,
-  /// falling back on OIDC for credentials if possible,
-  /// and pre-configured defaults for everything else.
+  /// falling back on pre-configured defaults.
   /// </returns>
-  private async Task<MinioOptions> MergeOptions(MinioOptions? options = null)
+  private MinioOptions MergeOptionsWithDefaults(MinioOptions? options = null)
   {
-    var useOpenId = string.IsNullOrWhiteSpace(options?.SecretKey)
-                    && string.IsNullOrWhiteSpace(options?.AccessKey)
-                    && _identityOptions.IsConfigComplete();
-
     var mergedOptions = new MinioOptions
     {
       Host = string.IsNullOrWhiteSpace(options?.Host)
@@ -105,35 +124,6 @@ public class MinioStoreServiceFactory
         : options.Bucket,
     };
 
-    if (useOpenId)
-    {
-      _logger.LogInformation(
-        "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
-
-      // Get an OIDC token
-      var asUser = false; // TODO is this really configurable?
-      var token = asUser
-        ? (await _identity.RequestUserTokens(_identityOptions)).identity
-        : await _identity.RequestClientAccessToken(_identityOptions);
-      // 
-
-      // Get MinIO STS credentials with the user's identity token
-      // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
-      // or with a client access token
-      // https://github.com/minio/minio/blob/master/docs/sts/client-grants.md
-      // looks like an XML response? :(
-      var (accessKey, secretKey) = await GetTemporaryCredentials(
-        $"{(mergedOptions.Secure ? "https" : "http")}://{mergedOptions.Host}",
-        token,
-        asUser);
-
-      // set the credentials to those from the STS response
-      mergedOptions.AccessKey = accessKey;
-      mergedOptions.SecretKey = secretKey;
-
-      // TODO do we need the session token? per the docs, "some clients" do...
-    }
-
     return mergedOptions;
   }
 
@@ -144,12 +134,44 @@ public class MinioStoreServiceFactory
   /// <returns>A <see cref="MinioStoreService"/> instance configured with the provided options.</returns>
   public async Task<MinioStoreService> Create(MinioOptions? options = null)
   {
-    var mergedOptions = await MergeOptions(options);
+    var useOpenId = string.IsNullOrWhiteSpace(options?.SecretKey)
+                    && string.IsNullOrWhiteSpace(options?.AccessKey)
+                    && _identityOptions.IsConfigComplete();
+    
+    var mergedOptions = MergeOptionsWithDefaults(options);
+
+    string? sessionToken = null;
+    if (useOpenId)
+    {
+      _logger.LogInformation(
+        "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
+
+      // Get an OIDC token
+      var asUser = true; // Minio only supports user tokens currently
+      var token = asUser
+        ? (await _identity.RequestUserTokens(_identityOptions)).identity
+        : await _identity.RequestClientAccessToken(_identityOptions);
+      // 
+
+      // Get MinIO STS credentials with the user's identity token
+      // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
+      // or with a client access token // NOTE: this seems to be unfinished; it's not in the docs site and gives 400 Bad Request on a real server
+      // https://github.com/minio/minio/blob/master/docs/sts/client-grants.md
+      var (accessKey, secretKey, returnedSessionToken) = await GetTemporaryCredentials(
+        $"{(mergedOptions.Secure ? "https" : "http")}://{mergedOptions.Host}",
+        token,
+        asUser);
+
+      // set the credentials to those from the STS response
+      mergedOptions.AccessKey = accessKey;
+      mergedOptions.SecretKey = secretKey;
+      sessionToken = returnedSessionToken;
+    }
 
     return new MinioStoreService(
       _services.GetRequiredService<ILogger<MinioStoreService>>(),
       mergedOptions,
-      GetClient(mergedOptions));
+      GetClient(mergedOptions, sessionToken));
   }
 }
 
