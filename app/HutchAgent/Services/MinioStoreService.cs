@@ -1,3 +1,5 @@
+using Flurl;
+using Flurl.Http;
 using HutchAgent.Config;
 using Microsoft.Extensions.Options;
 using Minio;
@@ -45,6 +47,29 @@ public class MinioStoreServiceFactory
   }
 
   /// <summary>
+  /// Get temporary Minio access credentials via a user identity token
+  /// </summary>
+  /// <param name="minioBaseUrl">The base url for the minio server - i.e. a scheme (http(s)) + the configured host</param>
+  /// <param name="idToken">The User's Identity Token</param>
+  /// <returns>temporary access key and secret key for use with Minio</returns>
+  private async Task<(string accessKey, string secretKey)> GetTemporaryCredentials(string minioBaseUrl, string idToken)
+  {
+    // TODO pre-validate id token for policy presence?
+
+    var url = minioBaseUrl.SetQueryParams(new
+    {
+      Action = "AssumeRoleWithWebIdentity",
+      WebIdentityToken = idToken,
+      Version = "2011-06-15", // WTF?
+      DurationSeconds = 604800 // this is the max (7 days)
+    });
+
+    var response = await url.GetStringAsync();
+
+    return ("", "");
+  }
+
+  /// <summary>
   /// Combine provided options with default fallbacks where necessary,
   /// and optionally fetching missing credentials via OIDC if configured
   /// </summary>
@@ -60,24 +85,7 @@ public class MinioStoreServiceFactory
                     && string.IsNullOrWhiteSpace(options?.AccessKey)
                     && _identityOptions.IsConfigComplete();
 
-    if (useOpenId)
-    {
-      _logger.LogInformation(
-        "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
-
-      // Get an OIDC Access token
-      var (idToken, _) = await _identity.RequestUserTokens(_identityOptions);
-
-      // Get a MinIO STS with the user's identity token
-      // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
-      // looks like an XML response? :( // TODO Test in postman?
-
-      // set the credentials to those from the STS response
-      var x = 1;
-      // TODO do we need the session token? per the docs, "some clients" do...
-    }
-
-    return new()
+    var mergedOptions = new MinioOptions
     {
       Host = string.IsNullOrWhiteSpace(options?.Host)
         ? DefaultOptions.Host
@@ -93,6 +101,30 @@ public class MinioStoreServiceFactory
         ? DefaultOptions.Bucket
         : options.Bucket,
     };
+
+    if (useOpenId)
+    {
+      _logger.LogInformation(
+        "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
+
+      // Get an OIDC Access token
+      var (idToken, _) = await _identity.RequestUserTokens(_identityOptions);
+
+      // Get a MinIO STS with the user's identity token
+      // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
+      // looks like an XML response? :( // TODO Test in postman?
+      var (accessKey, secretKey) = await GetTemporaryCredentials(
+        $"{(mergedOptions.Secure ? "https" : "http")}://{mergedOptions.Host}",
+        idToken);
+
+      // set the credentials to those from the STS response
+      mergedOptions.AccessKey = accessKey;
+      mergedOptions.SecretKey = secretKey;
+
+      // TODO do we need the session token? per the docs, "some clients" do...
+    }
+
+    return mergedOptions;
   }
 
   /// <summary>
@@ -125,7 +157,7 @@ public class MinioStoreService
     _logger = logger;
     _options = options;
     _minio = minio;
-    
+
     // TODO One day we might need to handle expiry / refresh of credentials
     // since the options provided to this instance may contain temporary credentials.
     // Fetching new ones within the lifetime of a single store instance?

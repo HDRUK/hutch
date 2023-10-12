@@ -40,9 +40,10 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
       # to use with oidc (keycloak below)
-      - MINIO_IDENTITY_OPENID_CONFIG_URL=http://keycloak:8080/realms/hutch-dev/.well-known/openid-configuration
+      # - MINIO_IDENTITY_OPENID_CONFIG_URL=http://keycloak:8080/realms/hutch-dev/.well-known/openid-configuration
+      - MINIO_IDENTITY_OPENID_CONFIG_URL=https://app.please-open.it/auth/realms/a194e68a-de51-48e1-9643-191ebf3c93e9/.well-known/openid-configuration
       - MINIO_IDENTITY_OPENID_CLIENT_ID=minio
-      - MINIO_IDENTITY_OPENID_CLIENT_SECRET=${KeyCloakMinioClientSecret}
+      - MINIO_IDENTITY_OPENID_CLIENT_SECRET=d7WFjJHBnhNFbO4qOv1T6lwiyPn1za3W
       - MINIO_IDENTITY_OPENID_DISPLAY_NAME=KEYCLOAK
       - MINIO_IDENTITY_OPENID_SCOPES=openid
       - MINIO_IDENTITY_OPENID_REDIRECT_URI_DYNAMIC=on

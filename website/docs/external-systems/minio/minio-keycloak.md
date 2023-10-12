@@ -53,11 +53,13 @@ To do this:
 1. Go to the `profile` scope.
 1. On the `Mappers` tab, choose `Add mapper` -> `By Configuration`
 1. Choose the type `Hardcoded claim`
-1. Add a friendly name of your choice for the Mapper, e.g. `Minio Policies`
+  - in Production you might instead map a per-User attribute here
+1. Add a friendly name of your choice for the Mapper, possibly aligned with the claim it maps - e.g. `policy`
 1. Token Claim Name should be `policy` to match Minio's default expectation
 1. Claim value should be one or more [valid Minio Policies][Minio Policies]
   - `consoleAdmin` is a simple choice **for development only**
   - this value determines what rights within Minio the user(s) will be granted.
+1. ensure `Add to id token` is `On` - we want this claim in id tokens as Minio needs it.
 1. Save
 
 [Minio Policies]: https://min.io/docs/minio/linux/administration/identity-access-management/policy-based-access-control.html#minio-policy

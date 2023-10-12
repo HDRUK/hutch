@@ -10,6 +10,8 @@ To use KeyCloak, some configuration is needed.
 
 The `docker-compose` in the Hutch repo has an example of a keycloak instance suitable for development.
 
+// TODO please-open.it
+
 There is some futher configuration once this is running before it can be used.
 
 ## Further configuration
