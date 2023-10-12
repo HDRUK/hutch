@@ -42,7 +42,6 @@ public class MinioStoreServiceFactory
   {
     var clientBuilder = new MinioClient()
       .WithEndpoint(options.Host)
-      //.WithSessionToken() // Might we also need this for STS?
       .WithCredentials(options.AccessKey, options.SecretKey)
       .WithSSL(options.Secure);
 
@@ -64,16 +63,14 @@ public class MinioStoreServiceFactory
   {
     if (!asUser)
       throw new NotImplementedException(
-        "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is not finished and untested.");
-    
-    // TODO pre-validate id token for policy presence?
+        "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is unfinished and untested.");
 
     var url = minioBaseUrl
       .SetQueryParams(new
       {
         Action = asUser ? "AssumeRoleWithWebIdentity" : "AssumeRoleWithClientGrants",
-        Version = "2011-06-15", // WTF?
-        DurationSeconds = 604800 // this is the max (7 days)
+        Version = "2011-06-15", // AWS stipulates this version for this endpoint...
+        DurationSeconds = 604800 // we ask for the max (7 days) - the credentials issued may be shorter
       })
       .SetQueryParam(asUser ? "WebIdentityToken" : "Token", token, true);
 
@@ -86,7 +83,7 @@ public class MinioStoreServiceFactory
     }
     catch (FlurlHttpException e)
     {
-      _logger.LogError("Request failed: {ResponseBody}", await e.GetResponseStringAsync());
+      _logger.LogError("S3 STS AssumeRole Request failed: {ResponseBody}", await e.GetResponseStringAsync());
       throw;
     }
   }

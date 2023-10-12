@@ -5,7 +5,7 @@ public class OpenIdOptions
   /// <summary>
   /// Fully qualified absolute base URL for API interactions with an OpenID Connect (OIDC) compliant
   /// Identity Provider (IdP), such as Keycloak.
-  /// e.g. https://keycloak.tre.com/realms/hutch-dev
+  /// e.g. https://keycloak.tre.com/realms/tre-fx
   /// </summary>
   public string OpenIdBaseUrl { get; set; } = string.Empty;
 
@@ -15,7 +15,7 @@ public class OpenIdOptions
   public string ClientId { get; set; } = string.Empty;
 
   /// <summary>
-  /// Hutch Client Secret for an OIDC IdP
+  /// Hutch Client Secret for an OIDC IdP (if the IdP's Client config requires it)
   /// </summary>
   public string ClientSecret { get; set; } = string.Empty;
 
