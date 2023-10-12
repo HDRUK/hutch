@@ -1,23 +1,33 @@
+using System.IdentityModel.Tokens.Jwt;
 using DummyControllerApi.Config;
 using DummyControllerApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Auth
-builder.Services.AddAuthentication()
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
   .AddJwtBearer(
     opts =>
     {
       opts.TokenValidationParameters = new TokenValidationParameters
       {
-        // TODO we're not interested in actually checking in with whatever idp is in use
-        // we just want to confirm Hutch is sending a token
-        // everything else will be environment setup dependent anyway
+        // We basically validate nothing about the token to avoid needing extra config about oidc.
+        // We just want to confirm Hutch is sending an access token for a user.
+        // Everything else will be environment setup dependent anyway
+        ValidateActor = false,
         ValidateIssuer = false,
         ValidateIssuerSigningKey = false,
-        RequireExpirationTime = true
+        ValidateLifetime = false,
+        ValidateAudience = false,
+        ValidateTokenReplay = false,
+        RequireSignedTokens = false,
+        SignatureValidator = (token, _) => new JwtSecurityToken(token),
+        
+        RequireExpirationTime = true,
+        RequireAudience = true,
       };
     });
 builder.Services.AddAuthorization(o =>

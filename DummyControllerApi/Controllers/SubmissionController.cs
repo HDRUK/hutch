@@ -36,14 +36,12 @@ public class SubmissionController : ControllerBase
   public IActionResult UpdateStatusForTre(
     [FromQuery] string subId,
     [FromQuery] int statusType,
-    [FromQuery] string description)
+    [FromQuery] string? description)
   {
     // Cursory format validation
 
     // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
     // but the validation here should at least help make sure Hutch's request behaviours are as expected
-
-    if (string.IsNullOrWhiteSpace(subId)) return BadRequest($"Expected a {nameof(subId)}");
 
     if (statusType is < 30 or > 42)
       return BadRequest($"{nameof(statusType)} was outside the expected enum range for Hutch");
@@ -82,11 +80,6 @@ public class SubmissionController : ControllerBase
   [HttpGet("GetOutputBucketInfo")]
   public IActionResult GetOutputBucketInfo([FromQuery] string subId)
   {
-    // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
-    // but the validation here should at least help make sure Hutch's request behaviours are as expected
-
-    if (string.IsNullOrWhiteSpace(subId)) return BadRequest("Expected a subId");
-
     var details = new EgressBucketResponseModel
     {
       Host = _bucketOptions.Host,
