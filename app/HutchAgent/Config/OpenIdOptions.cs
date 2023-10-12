@@ -44,8 +44,8 @@ public static class OpenIdOptionsExtensions
       // required properties
       self.OpenIdBaseUrl,
       self.ClientId,
-      self.ClientSecret,
-      self.Username,
-      self.Password
+      // self.ClientSecret, // Technically not required if OIDC is configured to not need it
+      self.Username, // Required while we exclusively use User tokens
+      self.Password // Required while we exclusively use User tokens
     }.Any(string.IsNullOrWhiteSpace);
 }

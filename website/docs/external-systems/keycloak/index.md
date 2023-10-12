@@ -22,6 +22,8 @@ Minio in the sample `docker-compose` expects the realm to be called `hutch-dev`.
 
 ### Create a Client for Hutch
 
+NOTE: You may wish to re-use the same client for Hutch and MinIO, since MinIO will only accept token from Hutch if they were requested using the MinIO Client Credentials.
+
 General Settings:
 
 - type: `OpenID Connect`

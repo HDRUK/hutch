@@ -8,13 +8,30 @@ Note that this setup is using the **JWT Claim** approach detailed [here][Minio J
 
 This aligns with the current behaviour expected by the rest of the TRE-FX stack.
 
+If this is done and Hutch is expected to get credentials for MinIO with an OIDC token, Hutch **MUST** use MinIO's client credentials to request the token, not a different client. This is because MinIO checks the `azp` claim in the token and expects it to match its own OIDC client-id, otherwise:
+
+```xml
+<ErrorResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
+  <Error>
+    <Type></Type>
+    <Code>InvalidParameterValue</Code>
+    <Message>
+    STS JWT Token has `azp` claim invalid, `azp` must match configured OpenID Client ID
+    </Message>
+  </Error>
+  <RequestId>178D5E53CEF44BA1</RequestId>
+</ErrorResponse>
+```
+
+This is kinda infuriating as really `azp` should be the token requester (Hutch) and `aud` should be the token consumer(s) (arguably Hutch but definitely MinIO).
+
 ## Create a Realm
 
 If not already created, follow the instructions on creating a Realm in the Keycloak section.
 
 It should match the realm name used in Minio's OpenID Config URL setting, e.g. `hutch-dev` for the development `docker-compose`. 
 
-## Create a Client for Minio
+## Create a Client for Minio (and Hutch!)
 
 General Settings:
 
@@ -24,9 +41,16 @@ General Settings:
 
 Capability Config:
 
+- Client Authentication: `Off` (**for development**)
+  - If you set this to `On` clients must provide a secret
+  - You typically want this in production
+  - but for the development `docker-compose` it's easier to leave it `Off`
+  - so that MinIO (and Hutch!) doesn't need configuring with the secret that you can't generate until keycloak is already running
 - Authentication Flow:
   - [x] Standard flow
     - This is OIDC's "Authorization Code Flow" and is the only flow minio supports
+  - [x] Direct access grants
+    - This is OIDC's "Resource Owner Password Credentials Grant" and is currently all Hutch supports, because MinIO and the TRE Controller API expect user tokens, not client ones.
 
 Login Settings:
 

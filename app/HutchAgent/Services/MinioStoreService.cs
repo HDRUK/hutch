@@ -77,9 +77,18 @@ public class MinioStoreServiceFactory
       })
       .SetQueryParam(asUser ? "WebIdentityToken" : "Token", token, true);
 
-    var response = await url.PostAsync().ReceiveString();
+    try
+    {
 
-    return ParseAssumeRoleResponse(response);
+      var response = await url.PostAsync().ReceiveString();
+
+      return ParseAssumeRoleResponse(response);
+    }
+    catch (FlurlHttpException e)
+    {
+      _logger.LogError("Request failed: {ResponseBody}", await e.GetResponseStringAsync());
+      throw;
+    }
   }
 
   /// <summary>
