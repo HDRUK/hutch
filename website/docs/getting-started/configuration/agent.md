@@ -59,12 +59,46 @@ Hutch can be configured using the following source in [the usual .NET way](https
     "Bucket": "hutch.bucket"
   },
 
+  "IdentityProvider": {
+    "OpenIdBaseUrl": "", // e.g. https://keycloak.tre.com/realms/tre-fx
+    
+    // If you want Hutch to use OIDC for Minio credentials,
+    // this must match the Minio OIDC Client ID!
+    // Otherwise it can be a Hutch specific client
+    "ClientId": "",
+
+    // May be optional depending on the IdP client config
+    // If required and using OIDC for Minio credentials,
+    // this must match the Minio OIDC Client Secret!
+    "ClientSecret": "",
+    
+    // User credentials Hutch will act on behalf of
+    "Username": "",
+    "Password": ""
+  },
+
   // Configuration for tracking Workflow Execution
   // Currently WfExS specific
   "WorkflowExecutor": {
     "ExecutorPath": "/WfExS-backend",
     "VirtualEnvironmentPath": "/WfExS-backend/.pyWEenv/bin/activate",
     "LocalConfigPath": "workflow_examples/local_config.yaml",
+    "ContainerEngine": "docker", // other valid options are "singularity" and "podman"
+
+    // The below are more for development / debugging
+
+    // Really we always want a full crate, but some wfexs configs
+    // particularly with certain container engines
+    // are unreliable with `--full`` on or off, so it can be configured for testing.
+    "SkipFullProvenanceCrate": false,
+    
+    // by default Hutch detaches from the wfexs process once it starts it,
+    // to free up threads.
+    // This forces Hutch to keep the executing thread attached to the wfexs process
+    // which means you can see stdout/stderr from wfexs in realtime,
+    // and better understand the circumstances under which wfexs exited.
+    // Intended for dev/test use while executing one job at a time.
+    "RemainAttached": false,
   },
 
   // Connection strings for different services
@@ -82,6 +116,15 @@ Hutch can be configured using the following source in [the usual .NET way](https
       "Uri": "", // A URI to be used as th License `@id` in Results crate metadata
       "Properties": {} // Any valid CreativeWork properties as desirable to be included for the License.
     }
+  },
+
+  // Development Flags
+  // These are really intended for development or debugging use
+  // and their continued presence cannot be relied upon from one build to the next!
+  "Flags": {
+    "StandaloneMode": false, // Hutch will skip TRE Controller interactions
+    "RetainFailures": false, // Hutch will not clean up working directories or database records for jobs that fail.
+    "
   }
 }
 ```

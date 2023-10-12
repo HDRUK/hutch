@@ -75,8 +75,7 @@ public class InitiateEgressActionHandler : IActionHandler
     _workflow.UnpackOutputs(job.ExecutorRunId, job.WorkingDirectory.JobEgressOutputs());
 
     // 3. Get target bucket for egress checks
-    var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.UsePreconfiguredStore)
-                          || await _features.IsEnabledAsync(FeatureFlags.StandaloneMode);
+    var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.StandaloneMode);
     var egressStore = useDefaultStore
       ? null
       : await _controller.RequestEgressBucket(job.Id);

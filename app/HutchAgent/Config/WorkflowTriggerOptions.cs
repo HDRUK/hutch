@@ -23,10 +23,11 @@ public class WorkflowTriggerOptions
   public bool IncludeContainersInOutput { get; set; }
   
   /// <summary>
-  /// Ask WfExS for a full provenance output crarte (using `--full`).
-  /// This is typically preferred but can be unreliable in some environments.
+  /// Don't ask WfExS for a full provenance output crate (i.e. don't use `--full`).
+  /// `--full` is typically preferred but can be unreliable in some environments,
+  /// so it can be turned off here.
   /// </summary>
-  public bool GenerateFullProvenanceCrate { get; set; }
+  public bool SkipFullProvenanceCrate { get; set; }
 
   /// <summary>
   /// The container engine generated stage files should use e.g. `docker` (default), singularity or `podman`.
