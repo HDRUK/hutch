@@ -58,6 +58,26 @@ public class OpenIdIdentityService
     return jwt.ValidFrom >= now && jwt.ValidTo < now;
   }
 
+  private async Task<DiscoveryDocumentResponse> GetDiscoveryDocument()
+  {
+    var disco = await _http.GetDiscoveryDocumentAsync(new DiscoveryDocumentRequest
+    {
+      Address = _openIdOptions.OpenIdBaseUrl,
+      Policy = new DiscoveryPolicy
+      {
+        ValidateIssuerName = false, // Keycloak may have a different issuer name format // TODO probably should fix this for production vs development
+      }
+    });
+    if (disco.IsError)
+    {
+      _logger.LogError("OIDC Discovery failed for the Identity Provider at {Address}", _openIdOptions.OpenIdBaseUrl);
+      _logger.LogError("Attempted OIDC Discovery yielded the error: {Error}", disco.Error);
+      throw new InvalidOperationException(disco.Error);
+    }
+
+    return disco;
+  }
+
   /// <summary>
   /// Follow the OIDC Resource Owner Password Credentials Grant Flow to get identity and access tokens on behalf of a user
   /// from the configured Identity Provider, using the provided user credentials.
@@ -86,20 +106,7 @@ public class OpenIdIdentityService
   public async Task<(string identity, string access)> RequestUserTokens(string clientId, string secret, string username,
     string password)
   {
-    var disco = await _http.GetDiscoveryDocumentAsync(new DiscoveryDocumentRequest
-    {
-      Address = _openIdOptions.OpenIdBaseUrl,
-      Policy = new DiscoveryPolicy
-      {
-        ValidateIssuerName = false, // Keycloak may have a different issuer name format
-      }
-    });
-    if (disco.IsError)
-    {
-      _logger.LogError("OIDC Discovery failed for the Identity Provider at {Address}", _openIdOptions.OpenIdBaseUrl);
-      _logger.LogError("Attempted OIDC Discovery yielded the error: {Error}", disco.Error);
-      throw new InvalidOperationException(disco.Error);
-    }
+    var disco = await GetDiscoveryDocument();
 
     // Make a password token request for a user
     var tokenResponse = await _http.RequestPasswordTokenAsync(new()
@@ -109,7 +116,7 @@ public class OpenIdIdentityService
       ClientSecret = secret,
       UserName = username,
       Password = password,
-      Scope = "openid" // we want an id_token (for the Minio) as well as an access_token (for everything else)
+      Scope = "openid" // we may want an id_token as well as an access_token when acting as a user
     });
 
     if (tokenResponse.IsError)
@@ -132,10 +139,28 @@ public class OpenIdIdentityService
   /// <param name="secret">Client Secret</param>
   /// <exception cref="NotImplementedException">Client Credentials flow currently not supported</exception>
   // TODO this is the "technically correct" thing for Hutch to do, but the other systems are expecting user tokens
-  public Task RequestClientAccessToken(string clientId, string secret)
+  public async Task<string> RequestClientAccessToken(string clientId, string secret)
   {
-    throw new NotImplementedException(
-      "TRE Controller API and Intermediary Store don't support this yet, so neither does Hutch at this time.");
+    var disco = await GetDiscoveryDocument();
+
+    // Make a password token request for a user
+    var tokenResponse = await _http.RequestClientCredentialsTokenAsync(new()
+    {
+      Address = disco.TokenEndpoint,
+      ClientId = clientId,
+      ClientSecret = secret,
+    });
+
+    if (tokenResponse.IsError)
+    {
+      _logger.LogError("Attempted OIDC Token Request failed: {Error}", tokenResponse.Error);
+      throw new InvalidOperationException(tokenResponse.Error);
+    }
+
+    // TODO any claim validation Hutch cares about? somewhat depends on use case (e.g. Controller vs Store?)
+
+    // return the tokens for use
+    return tokenResponse.AccessToken;
   }
 
   // JWT content validation example
