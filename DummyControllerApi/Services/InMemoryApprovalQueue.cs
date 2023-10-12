@@ -13,4 +13,9 @@ public class InMemoryApprovalQueue
   {
     return _queue.Dequeue();
   }
+
+  public bool HasItems()
+  {
+    return _queue.Count > 0;
+  }
 }

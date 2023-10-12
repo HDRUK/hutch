@@ -51,16 +51,18 @@ public class SubmissionController : ControllerBase
   }
 
   [HttpPost("FilesReadyForReview")]
-  public IActionResult FilesReadyForReview([FromQuery] string subId)
+  public IActionResult FilesReadyForReview([FromBody] FilesReadyRequestModel model)
   {
     // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
     // but the validation here should at least help make sure Hutch's request behaviours are as expected
-    
-    if(string.IsNullOrWhiteSpace(subId)) return BadRequest("Expected a subId");
-    
-    _approvalQueue.Enqueue(subId);
 
-    return Ok(); // Unsure of this response; TODO confirm with swagger
+    if (string.IsNullOrWhiteSpace(model.SubId)) return BadRequest($"Expected a {nameof(model.SubId)}");
+    if (!model.Files.Any())
+      return BadRequest($"Expected at least one file in {nameof(model.Files)}");
+
+    _approvalQueue.Enqueue(model.SubId); // TODO could persist the file list later for funzies but rn Hutch doesn't care
+
+    return Ok(); // Unsure of this response body and code; TODO confirm with swagger
 
     // TODO presumably we'll need to queue a delayed task that responds with approval
     // AFTER this endpoint gives a response
@@ -72,9 +74,9 @@ public class SubmissionController : ControllerBase
   {
     // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
     // but the validation here should at least help make sure Hutch's request behaviours are as expected
-    
-    if(string.IsNullOrWhiteSpace(subId)) return BadRequest("Expected a subId");
-    
+
+    if (string.IsNullOrWhiteSpace(subId)) return BadRequest("Expected a subId");
+
     // Unknown what encoding etc is expected here; just the content - TODO confirm with Swagger
     return Ok(new EgressBucketResponseModel
     {

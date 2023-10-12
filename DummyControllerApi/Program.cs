@@ -12,9 +12,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-// Use this for delaying approvals while running
-builder.Services.AddSingleton<InMemoryApprovalQueue>();
+// Use this combo for delaying approvals while running
+builder.Services
+  .AddSingleton<InMemoryApprovalQueue>()
+  .AddHostedService<EgressApprovalHostedService>();
 
 var app = builder.Build();
 
