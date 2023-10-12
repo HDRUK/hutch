@@ -1,6 +1,7 @@
 using System.Text.Json;
 using DummyControllerApi.Config;
 using DummyControllerApi.Models;
+using DummyControllerApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -16,18 +17,21 @@ namespace DummyControllerApi.Controllers;
 public class SubmissionController : ControllerBase
 {
   private readonly ILogger<SubmissionController> _logger;
+  private readonly InMemoryApprovalQueue _approvalQueue;
   private readonly EgressBucketDetailsOptions _bucketOptions;
 
   public SubmissionController(
     ILogger<SubmissionController> logger,
-    IOptions<EgressBucketDetailsOptions> bucketOptions)
+    IOptions<EgressBucketDetailsOptions> bucketOptions,
+    InMemoryApprovalQueue approvalQueue)
   {
     _logger = logger;
+    _approvalQueue = approvalQueue;
     _bucketOptions = bucketOptions.Value;
   }
 
   [HttpPost("UpdateStatusForTre")]
-  public async Task<IActionResult> UpdateStatusForTre(
+  public IActionResult UpdateStatusForTre(
     [FromQuery] string subId,
     [FromQuery] int statusType,
     [FromQuery] string description)
@@ -37,18 +41,27 @@ public class SubmissionController : ControllerBase
     // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
     // but the validation here should at least help make sure Hutch's request behaviours are as expected
 
-    if (string.IsNullOrWhiteSpace(subId)) return BadRequest("Expected a subId");
+    if (string.IsNullOrWhiteSpace(subId)) return BadRequest($"Expected a {nameof(subId)}");
 
     if (statusType is < 30 or > 42)
-      return BadRequest("Status Type was outside the expected enum range for Hutch");
+      return BadRequest($"{nameof(statusType)} was outside the expected enum range for Hutch");
 
     // documented return type is a `text/plain` encoded json object :S
     return Ok(JsonSerializer.Serialize(new UpdateStatusResponseModel()));
   }
 
   [HttpPost("FilesReadyForReview")]
-  public async Task<IActionResult> FilesReadyForReview([FromQuery] string subId)
+  public IActionResult FilesReadyForReview([FromQuery] string subId)
   {
+    // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
+    // but the validation here should at least help make sure Hutch's request behaviours are as expected
+    
+    if(string.IsNullOrWhiteSpace(subId)) return BadRequest("Expected a subId");
+    
+    _approvalQueue.Enqueue(subId);
+
+    return Ok(); // Unsure of this response; TODO confirm with swagger
+
     // TODO presumably we'll need to queue a delayed task that responds with approval
     // AFTER this endpoint gives a response
     // so that Hutch is ready for the /approval request
@@ -60,10 +73,9 @@ public class SubmissionController : ControllerBase
     // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
     // but the validation here should at least help make sure Hutch's request behaviours are as expected
     
-    if(string.IsNullOrWhiteSpace(subId))
-      return BadRequest("Expected a subId");
+    if(string.IsNullOrWhiteSpace(subId)) return BadRequest("Expected a subId");
     
-    // Unknown what encoding etc is expected here; just the content
+    // Unknown what encoding etc is expected here; just the content - TODO confirm with Swagger
     return Ok(new EgressBucketResponseModel
     {
       Host = _bucketOptions.Host,

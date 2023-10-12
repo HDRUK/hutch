@@ -1,4 +1,5 @@
 using DummyControllerApi.Config;
+using DummyControllerApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+// Use this for delaying approvals while running
+builder.Services.AddSingleton<InMemoryApprovalQueue>();
 
 var app = builder.Build();
 
