@@ -47,22 +47,25 @@ public class MinioStoreServiceFactory
   }
 
   /// <summary>
-  /// Get temporary Minio access credentials via a user identity token
+  /// Get temporary Minio access credentials via a client access token or a user identity token
   /// </summary>
   /// <param name="minioBaseUrl">The base url for the minio server - i.e. a scheme (http(s)) + the configured host</param>
-  /// <param name="idToken">The User's Identity Token</param>
+  /// <param name="token">The client's Access token or the User's Identity Token</param>
+  /// <param name="asUser">Whether to request credentials as a client or a user</param>
   /// <returns>temporary access key and secret key for use with Minio</returns>
-  private async Task<(string accessKey, string secretKey)> GetTemporaryCredentials(string minioBaseUrl, string idToken)
+  private async Task<(string accessKey, string secretKey)> GetTemporaryCredentials(string minioBaseUrl, string token,
+    bool asUser)
   {
     // TODO pre-validate id token for policy presence?
 
-    var url = minioBaseUrl.SetQueryParams(new
-    {
-      Action = "AssumeRoleWithWebIdentity",
-      WebIdentityToken = idToken,
-      Version = "2011-06-15", // WTF?
-      DurationSeconds = 604800 // this is the max (7 days)
-    });
+    var url = minioBaseUrl
+      .SetQueryParams(new
+      {
+        Action = asUser ? "AssumeRoleWithWebIdentity" : "AssumeRoleWithClientGrants",
+        Version = "2011-06-15", // WTF?
+        DurationSeconds = 604800 // this is the max (7 days)
+      })
+      .SetQueryParam(asUser ? "WebIdentityToken" : "Token", token, true);
 
     var response = await url.GetStringAsync();
 
@@ -107,15 +110,22 @@ public class MinioStoreServiceFactory
       _logger.LogInformation(
         "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
 
-      // Get an OIDC Access token
-      var (idToken, _) = await _identity.RequestUserTokens(_identityOptions);
+      // Get an OIDC token
+      var asUser = false; // TODO is this really configurable?
+      var token = asUser
+        ? (await _identity.RequestUserTokens(_identityOptions)).identity
+        : await _identity.RequestClientAccessToken(_identityOptions);
+      // 
 
-      // Get a MinIO STS with the user's identity token
+      // Get MinIO STS credentials with the user's identity token
       // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
-      // looks like an XML response? :( // TODO Test in postman?
+      // or with a client access token
+      // https://github.com/minio/minio/blob/master/docs/sts/client-grants.md
+      // looks like an XML response? :(
       var (accessKey, secretKey) = await GetTemporaryCredentials(
         $"{(mergedOptions.Secure ? "https" : "http")}://{mergedOptions.Host}",
-        idToken);
+        token,
+        asUser);
 
       // set the credentials to those from the STS response
       mergedOptions.AccessKey = accessKey;

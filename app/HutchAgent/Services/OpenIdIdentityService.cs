@@ -65,7 +65,8 @@ public class OpenIdIdentityService
       Address = _openIdOptions.OpenIdBaseUrl,
       Policy = new DiscoveryPolicy
       {
-        ValidateIssuerName = false, // Keycloak may have a different issuer name format // TODO probably should fix this for production vs development
+        ValidateIssuerName =
+          false, // Keycloak may have a different issuer name format // TODO probably should fix this for production vs development
       }
     });
     if (disco.IsError)
@@ -135,10 +136,25 @@ public class OpenIdIdentityService
   /// Follow the OIDC Client Credentials flow to get a token
   /// from the configured Identity Provider, using the provided client id and secret.
   /// </summary>
+  /// <param name="options">
+  /// <para>
+  /// Options model from which Client ID and Client Secret only will be used.
+  /// </para>
+  /// <para>
+  /// Note that this options object won't override the target IdP BaseURL used.
+  /// </para>
+  /// </param>
+  /// <returns>An OIDC access token for the requesting client.</returns>
+  public async Task<string> RequestClientAccessToken(OpenIdOptions options)
+    => await RequestClientAccessToken(options.ClientId, options.ClientSecret);
+
+  /// <summary>
+  /// Follow the OIDC Client Credentials flow to get a token
+  /// from the configured Identity Provider, using the provided client id and secret.
+  /// </summary>
   /// <param name="clientId">Client ID</param>
   /// <param name="secret">Client Secret</param>
-  /// <exception cref="NotImplementedException">Client Credentials flow currently not supported</exception>
-  // TODO this is the "technically correct" thing for Hutch to do, but the other systems are expecting user tokens
+  /// <returns>An OIDC access token for the requesting client.</returns>
   public async Task<string> RequestClientAccessToken(string clientId, string secret)
   {
     var disco = await GetDiscoveryDocument();
