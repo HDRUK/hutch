@@ -36,19 +36,28 @@ public class EgressApprovalHostedService : BackgroundService
         if (queue.HasItems())
         {
           var subId = queue.Dequeue();
-          
+
+          _logger.LogInformation("Submission [{SubId}] found in approval queue", subId);
+
           // delay 5 seconds after picking it up to ensure Hutch is ready and to "pretend" to approve stuff
           await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-          
+
           // TODO in future the egress request should be able to tell Hutch none is required...
 
           // TODO make an HTTP Request to Hutch
           var url = Url.Combine(config["HutchApiBaseUrl"], "jobs", subId, "approval");
 
-          await url.PostJsonAsync(new HutchApprovalRequestModel
+          var details = new HutchApprovalRequestModel
           {
             Files = new() { ["file1"] = true, ["file2"] = true }
-          }, cancellationToken: stoppingToken);
+          };
+
+          await url.PostJsonAsync(details, cancellationToken: stoppingToken);
+
+          _logger.LogInformation(
+            "Submission [{SubId}] approval sent to Hutch: {Details}",
+            subId,
+            JsonSerializer.Serialize(details));
         }
 
         await delay;
