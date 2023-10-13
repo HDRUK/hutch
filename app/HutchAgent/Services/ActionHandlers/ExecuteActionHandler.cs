@@ -13,6 +13,7 @@ public class ExecuteActionHandler : IActionHandler
   private readonly WorkflowJobService _workflowJobService;
   private readonly IQueueWriter _queueWriter;
   private readonly JobActionsQueueOptions _queueOptions;
+  private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly FiveSafesCrateService _crates;
   private readonly StatusReportingService _status;
 
@@ -23,7 +24,8 @@ public class ExecuteActionHandler : IActionHandler
     IQueueWriter queueWriter,
     IOptions<JobActionsQueueOptions> queueOptions,
     FiveSafesCrateService crates,
-    StatusReportingService status)
+    StatusReportingService status,
+    IOptions<WorkflowTriggerOptions> workflowOptions)
   {
     _workflowFetchService = workflowFetchService;
     _workflowTriggerService = workflowTriggerService;
@@ -32,6 +34,7 @@ public class ExecuteActionHandler : IActionHandler
     _queueOptions = queueOptions.Value;
     _crates = crates;
     _status = status;
+    _workflowOptions = workflowOptions.Value;
   }
 
   public async Task HandleAction(string jobId)
@@ -53,7 +56,8 @@ public class ExecuteActionHandler : IActionHandler
     roCrate = await _workflowFetchService.FetchWorkflowCrate(job, roCrate);
 
     // Execute workflow.
-    await _workflowTriggerService.TriggerWfexs(job, roCrate);
+    if (string.IsNullOrWhiteSpace(_workflowOptions.SkipExecutionUsingOutputFile))
+      await _workflowTriggerService.TriggerWfexs(job, roCrate);
 
     // Update the job action in the queue.
     _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
