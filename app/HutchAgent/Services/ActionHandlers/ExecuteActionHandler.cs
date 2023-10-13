@@ -38,7 +38,7 @@ public class ExecuteActionHandler : IActionHandler
     _workflowOptions = workflowOptions.Value;
   }
 
-  public async Task HandleAction(string jobId)
+  public async Task HandleAction(string jobId, object? payload)
   {
     // Get job.
     var job = await _workflowJobService.Get(jobId);

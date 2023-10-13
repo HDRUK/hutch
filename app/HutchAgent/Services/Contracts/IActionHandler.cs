@@ -2,5 +2,5 @@ namespace HutchAgent.Services.Contracts;
 
 public interface IActionHandler
 {
-  public Task HandleAction(string jobId);
+  public Task HandleAction(string jobId, object? payload);
 }

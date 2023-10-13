@@ -49,12 +49,12 @@ public class InitiateEgressActionHandler : IActionHandler
     _queueOptions = queueOptions.Value;
   }
 
-  public async Task HandleAction(string jobId)
+  public async Task HandleAction(string jobId, object? payload)
   {
     // 1. Check if job ready
     _logger.LogInformation("Checking job status for job: {JobId}", jobId);
     var job = await _jobs.Get(jobId);
-
+    
     var completionResult = await _workflow.HasCompleted(job.ExecutorRunId);
 
     if (!completionResult.IsComplete) // not ready; re-queue to check again later

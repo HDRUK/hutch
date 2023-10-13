@@ -39,7 +39,7 @@ public class FinalizeActionHandler : IActionHandler
     _status = status;
   }
 
-  public async Task HandleAction(string jobId)
+  public async Task HandleAction(string jobId, object? payload)
   {
     var job = await _jobs.Get(jobId);
 
