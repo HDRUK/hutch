@@ -245,7 +245,7 @@ public class JobsController : ControllerBase
   [SwaggerResponse(202, "The Job was registered, and the submitted Request Crate Source queued to be fetched.",
     typeof(JobStatusModel))]
   [SwaggerResponse(400, "The Job details submitted are invalid.")]
-  [SwaggerResponse(409, "Hutch is already actively managing a Job with this Id.")]
+  [SwaggerResponse(409, "Hutch is already actively managing a Job with this Submission Id.")]
   public async Task<ActionResult<JobStatusModel>> Submit(SubmitJobModel model)
   {
     if (!ModelState.IsValid) return BadRequest();
@@ -263,13 +263,13 @@ public class JobsController : ControllerBase
     {
       await _jobs.Create(new()
       {
-        Id = model.JobId,
+        Id = model.SubId,
         DataAccess = JsonSerializer.Serialize(model.DataAccess),
         CrateSource = model.CrateUrl?.ToString()
                       ?? (model.CrateSource is not null
                         ? JsonSerializer.Serialize(model.CrateSource)
                         : null),
-        WorkingDirectory = _paths.JobWorkingDirectory(model.JobId)
+        WorkingDirectory = _paths.JobWorkingDirectory(model.SubId)
       });
     }
     catch (DbUpdateException)
@@ -284,23 +284,23 @@ public class JobsController : ControllerBase
         _queueOptions.QueueName,
         new JobQueueMessage
         {
-          JobId = model.JobId,
+          JobId = model.SubId,
           ActionType = JobActionTypes.FetchAndExecute,
         });
 
-      await _status.ReportStatus(model.JobId, JobStatus.FetchingCrate);
+      await _status.ReportStatus(model.SubId, JobStatus.FetchingCrate);
       return Accepted(new JobStatusModel
       {
-        Id = model.JobId,
+        Id = model.SubId,
         Status = JobStatus.FetchingCrate.ToString()
       });
     }
 
     // (otherwise, we expect a raw crate, or URL, to be submitted at a later time.)
-    await _status.ReportStatus(model.JobId, JobStatus.WaitingForCrate);
+    await _status.ReportStatus(model.SubId, JobStatus.WaitingForCrate);
     return Ok(new JobStatusModel
     {
-      Id = model.JobId,
+      Id = model.SubId,
       Status = JobStatus.WaitingForCrate.ToString()
     });
   }
