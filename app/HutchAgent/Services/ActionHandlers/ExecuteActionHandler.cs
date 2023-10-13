@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models.JobQueue;
@@ -59,11 +60,18 @@ public class ExecuteActionHandler : IActionHandler
     if (string.IsNullOrWhiteSpace(_workflowOptions.SkipExecutionUsingOutputFile))
       await _workflowTriggerService.TriggerWfexs(job, roCrate);
 
-    // Update the job action in the queue.
-    _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
+    // Queue Egress Initiation
+    var queueMessage = new JobQueueMessage
     {
       JobId = job.Id,
-      ActionType = JobActionTypes.InitiateEgress
-    });
+      ActionType = JobActionTypes.InitiateEgress,
+      Payload = !string.IsNullOrWhiteSpace(_workflowOptions.SkipExecutionUsingOutputFile)
+        ? JsonSerializer.Serialize(new InitiateEgressPayloadModel
+        {
+          OutputFile = _workflowOptions.SkipExecutionUsingOutputFile
+        })
+        : null
+    };
+    _queueWriter.SendMessage(_queueOptions.QueueName, queueMessage);
   }
 }
