@@ -36,4 +36,12 @@
     <PackageReference Include="YamlDotNet" Version="13.1.1" />
   </ItemGroup>
 
+<!-- Ensure the contents of `hutch-workdir` is never interpreted as project source files -->
+  <ItemGroup>
+    <Compile Remove="hutch-workdir\**" />
+    <EmbeddedResource Remove="hutch-workdir\**" />
+    <Content Remove="hutch-workdir\**" />
+    <None Remove="hutch-workdir\**" />
+  </ItemGroup>
+
 </Project>

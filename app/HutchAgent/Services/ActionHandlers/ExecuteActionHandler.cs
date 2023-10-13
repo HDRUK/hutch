@@ -9,6 +9,7 @@ namespace HutchAgent.Services.ActionHandlers;
 
 public class ExecuteActionHandler : IActionHandler
 {
+  private readonly ILogger<ExecuteActionHandler> _logger;
   private readonly WorkflowFetchService _workflowFetchService;
   private readonly WorkflowTriggerService _workflowTriggerService;
   private readonly WorkflowJobService _workflowJobService;
@@ -19,6 +20,7 @@ public class ExecuteActionHandler : IActionHandler
   private readonly StatusReportingService _status;
 
   public ExecuteActionHandler(
+    ILogger<ExecuteActionHandler> logger,
     WorkflowFetchService workflowFetchService,
     WorkflowTriggerService workflowTriggerService,
     WorkflowJobService workflowJobService,
@@ -28,6 +30,7 @@ public class ExecuteActionHandler : IActionHandler
     StatusReportingService status,
     IOptions<WorkflowTriggerOptions> workflowOptions)
   {
+    _logger = logger;
     _workflowFetchService = workflowFetchService;
     _workflowTriggerService = workflowTriggerService;
     _workflowJobService = workflowJobService;
@@ -59,6 +62,13 @@ public class ExecuteActionHandler : IActionHandler
     // Execute workflow.
     if (string.IsNullOrWhiteSpace(_workflowOptions.SkipExecutionUsingOutputFile))
       await _workflowTriggerService.TriggerWfexs(job, roCrate);
+    else
+    {
+      _logger.LogInformation(
+        "Job [{JobId}] Skipping Execution to use configured output file: {OutputFile}",
+        jobId,
+        _workflowOptions.SkipExecutionUsingOutputFile);
+    }
 
     // Queue Egress Initiation
     var queueMessage = new JobQueueMessage

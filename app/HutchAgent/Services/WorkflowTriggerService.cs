@@ -30,17 +30,21 @@ public class WorkflowTriggerService
   private readonly IDeserializer _unyaml;
   private readonly StatusReportingService _status;
   private readonly WorkflowJobService _jobs;
+  private readonly PathOptions _paths;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
     FiveSafesCrateService crateService,
-    StatusReportingService status, WorkflowJobService jobs)
+    StatusReportingService status,
+    WorkflowJobService jobs,
+    IOptions<PathOptions> paths)
   {
     _logger = logger;
     _crateService = crateService;
     _status = status;
     _jobs = jobs;
+    _paths = paths.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _unyaml = new DeserializerBuilder()
@@ -100,13 +104,19 @@ public class WorkflowTriggerService
     if (!Directory.Exists(targetPath))
       Directory.CreateDirectory(targetPath);
 
+    // Relative paths should be relative to Hutch working directory
+    if (!Path.IsPathFullyQualified(sourcePath))
+      sourcePath = Path.Combine(_paths.WorkingDirectoryBase, sourcePath);
+    
     ZipFile.ExtractToDirectory(sourcePath, targetPath);
 
 
     // Path to workflow containers // TODO retain metadata; delete images only!
     var containersPath = Path.Combine(targetPath, "containers");
-    if (!_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
+    if (!_workflowOptions.IncludeContainersInOutput)
+      Directory.Delete(containersPath, recursive: true);
   }
+  
   public void UnpackOutputs(string executorRunId, string targetPath)
   {
     // Path the to the job outputs

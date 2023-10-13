@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 
 namespace HutchAgent.Models.JobQueue;
 
+// for some unknown reason, these *need* JsonPropertyName attributes to work
+// when serializing/deserializing with the queue?
 public class JobQueueMessage
 {
   [JsonPropertyName("jobId")]
@@ -14,5 +16,6 @@ public class JobQueueMessage
   /// <summary>
   /// Optional payload which should be deserializable to an `{ActionType}PayloadModel` if present
   /// </summary>
-  public string? Payload { get; init; }
+  [JsonPropertyName("payload")]
+  public string? Payload { get; set; }
 }

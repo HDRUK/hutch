@@ -58,6 +58,13 @@ public class InitiateEgressActionHandler : IActionHandler
     _logger.LogInformation("Checking job status for job: {JobId}", jobId);
     var job = await _jobs.Get(jobId);
 
+    if (!string.IsNullOrWhiteSpace(payload?.OutputFile))
+    {
+      _logger.LogInformation(
+        "Job [{JobId}] OutputFile specified - Execution was skipped and Egress will be performed using the file at {OutputPath}",
+        jobId,
+        payload.OutputFile);
+    }
 
     var completionResult = string.IsNullOrWhiteSpace(payload?.OutputFile)
       ? await _workflow.HasCompleted(job.ExecutorRunId)
@@ -86,10 +93,19 @@ public class InitiateEgressActionHandler : IActionHandler
     await _status.ReportStatus(job.Id, JobStatus.PreparingOutputs);
 
     // Unpack outputs from the appropriate source
-    if(!string.IsNullOrWhiteSpace(payload?.OutputFile))
+    if (!string.IsNullOrWhiteSpace(payload?.OutputFile))
+    {
+      _logger.LogInformation("Job [{JobId}] Unpacking outputs directly from {OutputPath}", jobId, payload.OutputFile);
       _workflow.UnpackOutputsFromPath(payload.OutputFile, job.WorkingDirectory.JobEgressOutputs());
+    }
     else
+    {
+      _logger.LogInformation(
+        "Job [{JobId}] Unpacking outputs from Executor Run [{RunId}] working directory",
+        jobId,
+        job.ExecutorRunId);
       _workflow.UnpackOutputs(job.ExecutorRunId, job.WorkingDirectory.JobEgressOutputs());
+    }
 
     // 3. Get target bucket for egress checks
     var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.StandaloneMode);
