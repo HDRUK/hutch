@@ -19,6 +19,7 @@ public class FinalizeActionHandler : IActionHandler
   private readonly JobLifecycleService _job;
   private readonly StatusReportingService _status;
   private readonly IFeatureManager _features;
+  private readonly ControllerApiService _controller;
 
   private const string _finalPackageFilename = "final-result-crate.zip";
 
@@ -30,7 +31,8 @@ public class FinalizeActionHandler : IActionHandler
     WorkflowJobService jobs,
     JobLifecycleService job,
     StatusReportingService status,
-    IFeatureManager features)
+    IFeatureManager features,
+    ControllerApiService controller)
   {
     _bagItService = bagItService;
     _crateService = crateService;
@@ -40,6 +42,7 @@ public class FinalizeActionHandler : IActionHandler
     _job = job;
     _status = status;
     _features = features;
+    _controller = controller;
   }
 
   public async Task HandleAction(string jobId, object? payload)
@@ -70,9 +73,14 @@ public class FinalizeActionHandler : IActionHandler
       Path.Combine(job.WorkingDirectory.JobEgressPackage(), _finalPackageFilename));
 
     // 5. Upload
-    await UploadFinalCrate(job);
+    var uploadPath = await UploadFinalCrate(job);
 
-    // TODO submit FinalOutcome to Controller API
+    if (!await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
+    {
+      // Submit FinalOutcome to Controller API
+      await _controller.FinalOutcome(job.Id, uploadPath);
+    }
+
     await _status.ReportStatus(jobId, JobStatus.Complete);
 
     // 6. Clean up // TODO should this be deferred to an expiry process, so we keep the artifacts for a configured amount of time?
