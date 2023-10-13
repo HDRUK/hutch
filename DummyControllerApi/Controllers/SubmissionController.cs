@@ -59,8 +59,7 @@ public class SubmissionController : ControllerBase
   {
     // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
     // but the validation here should at least help make sure Hutch's request behaviours are as expected
-
-    if (string.IsNullOrWhiteSpace(model.SubId)) return BadRequest($"Expected a {nameof(model.SubId)}");
+    
     if (!model.Files.Any())
       return BadRequest($"Expected at least one file in {nameof(model.Files)}");
 
@@ -91,5 +90,17 @@ public class SubmissionController : ControllerBase
 
     // Unknown what encoding etc is expected here; just the content - TODO confirm with Swagger
     return Ok(details);
+  }
+
+  [HttpPost("finalOutcome")]
+  public IActionResult FinalOutcome([FromBody] FinalOutcomeRequestModel model)
+  {
+    _logger.LogInformation(
+      "Submission [{SubId}] FinalOutcome file submitted: {FileObjectId}",
+      model.SubId,
+      JsonSerializer.Serialize(model.File));
+
+    // Unsure of this response body and code; TODO confirm with swagger
+    return Ok();
   }
 }
