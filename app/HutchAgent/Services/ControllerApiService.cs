@@ -61,7 +61,10 @@ public class ControllerApiService
     _logger.LogDebug("Requesting Egress Bucket from {Url}", Url.Combine(_apiOptions.BaseUrl, url));
 
     if (!_identity.IsTokenValid(_accessToken)) await UpdateToken();
-    return await _http.Request(url).GetAsync().ReceiveJson<MinioOptions>()
+    return await _http.Request(url)
+             .WithOAuthBearerToken(_accessToken)
+             .GetAsync()
+             .ReceiveJson<MinioOptions>()
            ?? throw new InvalidOperationException(
              "No Response Body was received for an Egress Bucket request.");
     // TODO attempt refreshing if token rejected?
@@ -78,18 +81,20 @@ public class ControllerApiService
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
       throw new InvalidOperationException(_standaloneModeError);
 
-    var url = "Submission/FilesReadyForReview"
-      .SetQueryParam("subId", jobId);
+    var url = "Submission/FilesReadyForReview";
 
     _logger.LogInformation(
       "Job [{JobId}]: Confirming with TRE Controller API that Egress Outputs have been transferred", jobId);
 
     if (!_identity.IsTokenValid(_accessToken)) await UpdateToken();
-    await _http.Request(url).PostJsonAsync(
-      new FilesReadyForReviewRequest()
-      {
-        Files = files
-      });
+    await _http.Request(url)
+      .WithOAuthBearerToken(_accessToken)
+      .PostJsonAsync(
+        new FilesReadyForReviewRequest()
+        {
+          SubId = jobId,
+          Files = files
+        });
     // TODO attempt refreshing if token rejected?
   }
 
@@ -114,7 +119,9 @@ public class ControllerApiService
       });
 
     if (!_identity.IsTokenValid(_accessToken)) await UpdateToken();
-    await _http.Request(url).PostAsync();
+    await _http.Request(url)
+      .WithOAuthBearerToken(_accessToken)
+      .PostAsync();
     // TODO attempt refreshing if token rejected?
   }
 }

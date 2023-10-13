@@ -1,6 +1,6 @@
-namespace HutchAgent.Models.ControllerApi;
+namespace DummyControllerApi.Models;
 
-public class FilesReadyForReviewRequest
+public class FilesReadyRequestModel
 {
   public string SubId { get; set; } = string.Empty;
   public List<string> Files { get; set; } = new();
