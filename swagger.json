@@ -250,7 +250,7 @@
             "description": "The Job details submitted are invalid."
           },
           "409": {
-            "description": "Hutch is already actively managing a Job with this Id."
+            "description": "Hutch is already actively managing a Job with this Submission Id."
           }
         }
       }
@@ -420,14 +420,14 @@
       },
       "SubmitJobModel": {
         "required": [
-          "jobId"
+          "subId"
         ],
         "type": "object",
         "properties": {
-          "jobId": {
+          "subId": {
             "minLength": 1,
             "type": "string",
-            "description": "This is a Job ID as provided by the TRE Agent.\r\nHutch continues to use it to identify the job internally,\r\nbut also to interact with the TRE Agent in future."
+            "description": "This is a Submission ID as provided by the TRE Controller.\r\nHutch continues to use it to identify the job internally,\r\nbut also to interact with the TRE Controller API in future."
           },
           "dataAccess": {
             "$ref": "#/components/schemas/DatabaseConnectionDetails"
