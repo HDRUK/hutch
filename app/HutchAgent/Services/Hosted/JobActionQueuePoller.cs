@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HutchAgent.Config;
 using HutchAgent.Constants;
+using HutchAgent.Models.JobQueue;
 using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
@@ -40,8 +41,6 @@ public class JobActionQueuePoller : BackgroundService
       {
         try
         {
-
-
           var queue = _serviceProvider.GetRequiredService<IQueueReader>();
 
 
@@ -56,13 +55,14 @@ public class JobActionQueuePoller : BackgroundService
               continue;
             }
 
-            // Define ActionHandlers for each type
-            var handlers = new Dictionary<string, Type>
+            // Define ActionHandlers and optionally PayloadModel for each type
+            var handlers = new Dictionary<string, (Type handlerType, Type? payloadType)>
             {
-              [JobActionTypes.FetchAndExecute] = typeof(FetchAndExecuteActionHandler),
-              [JobActionTypes.Execute] = typeof(ExecuteActionHandler),
-              [JobActionTypes.InitiateEgress] = typeof(InitiateEgressActionHandler),
-              [JobActionTypes.Finalize] = typeof(FinalizeActionHandler)
+              [JobActionTypes.FetchAndExecute] = (typeof(FetchAndExecuteActionHandler), null),
+              [JobActionTypes.Execute] = (typeof(ExecuteActionHandler), null),
+              [JobActionTypes.InitiateEgress] =
+                (typeof(InitiateEgressActionHandler), typeof(InitiateEgressPayloadModel)),
+              [JobActionTypes.Finalize] = (typeof(FinalizeActionHandler), null)
             };
 
             // Get the Handler and Handle its Action
@@ -75,11 +75,17 @@ public class JobActionQueuePoller : BackgroundService
             }
 
             var handler = (IActionHandler)scope.ServiceProvider
-              .GetRequiredService(handlers[message.ActionType]);
+              .GetRequiredService(handlers[message.ActionType].handlerType);
 
             try
             {
-              await handler.HandleAction(message.JobId);
+              // deserialize payload if present and a payload type is configured for the handler
+              var payloadType = handlers[message.ActionType].payloadType;
+              var payload = payloadType is not null && message.Payload is not null
+                ? JsonSerializer.Deserialize(message.Payload, payloadType)
+                : null;
+              
+              await handler.HandleAction(message.JobId, payload);
             }
             catch (Exception e) // ActionHandler exceptions shouldn't bring down the HostedService
             {
@@ -93,7 +99,8 @@ public class JobActionQueuePoller : BackgroundService
         catch (BrokerUnreachableException e)
         {
           _logger.LogCritical(e, "Couldn't connect to RabbitMQ. Is it running and are the connection details correct?");
-          _logger.LogCritical("Background jobs cannot run without RabbitMQ, and therefore Hutch will not function correctly!");
+          _logger.LogCritical(
+            "Background jobs cannot run without RabbitMQ, and therefore Hutch will not function correctly!");
           break;
         }
       }

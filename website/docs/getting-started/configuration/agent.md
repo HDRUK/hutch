@@ -87,6 +87,10 @@ Hutch can be configured using the following source in [the usual .NET way](https
 
     // The below are more for development / debugging
 
+    // If a path is provided, Hutch will skip Workflow Execution altogether
+    // and instead use the zip file from this path as if it were the execution output
+    "SkipExecutionUsingOutputFile": "path/to/exection.crate.zip",
+
     // Really we always want a full crate, but some wfexs configs
     // particularly with certain container engines
     // are unreliable with `--full`` on or off, so it can be configured for testing.

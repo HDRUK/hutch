@@ -35,7 +35,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
     _features = features;
   }
 
-  public async Task HandleAction(string jobId)
+  public async Task HandleAction(string jobId, object? payload)
   {
     try
     {
@@ -92,7 +92,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
       }
 
       // Execute
-      await _executeHandler.HandleAction(jobId);
+      await _executeHandler.HandleAction(jobId, null);
     }
     catch (KeyNotFoundException e)
     {

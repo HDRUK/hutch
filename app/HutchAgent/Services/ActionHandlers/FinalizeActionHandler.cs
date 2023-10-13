@@ -39,11 +39,12 @@ public class FinalizeActionHandler : IActionHandler
     _status = status;
   }
 
-  public async Task HandleAction(string jobId)
+  public async Task HandleAction(string jobId, object? payload)
   {
     var job = await _jobs.Get(jobId);
 
     // TODO Should we be checking if the job is actually ready instead of assuming it can only be queued if it is?!
+    // yes - at minimum check that the disclosure check assessaction is complete
 
     // 1. Copy approved outputs to the working crate
     FilesystemUtility.CopyDirectory(
