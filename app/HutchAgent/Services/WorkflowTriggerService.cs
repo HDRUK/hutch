@@ -95,6 +95,18 @@ public class WorkflowTriggerService
     return result;
   }
 
+  public void UnpackOutputsFromPath(string sourcePath, string targetPath)
+  {
+    if (!Directory.Exists(targetPath))
+      Directory.CreateDirectory(targetPath);
+
+    ZipFile.ExtractToDirectory(sourcePath, targetPath);
+
+
+    // Path to workflow containers // TODO retain metadata; delete images only!
+    var containersPath = Path.Combine(targetPath, "containers");
+    if (!_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
+  }
   public void UnpackOutputs(string executorRunId, string targetPath)
   {
     // Path the to the job outputs
@@ -104,15 +116,7 @@ public class WorkflowTriggerService
       "outputs",
       "execution.crate.zip");
 
-    if (!Directory.Exists(targetPath))
-      Directory.CreateDirectory(targetPath);
-
-    ZipFile.ExtractToDirectory(executionCratePath, targetPath);
-
-
-    // Path to workflow containers
-    var containersPath = Path.Combine(targetPath, "containers");
-    if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
+    UnpackOutputsFromPath(executionCratePath, targetPath);
   }
 
   /// <summary>
