@@ -12,6 +12,12 @@ Here's how to run a local development stack, and guidance on developing differen
 1. A **RabbitMQ** instance
 1. A **WfExS** environment (if you need to be actually running workflows)
 
+### Partial Running
+
+It is possible to run Hutch in various "partial" setups, where it does not fully interact with external services but still performs all its functionality for an end to end job run (within the scope of Hutch's responsibilities, i.e. from job submission to Hutch, through to uploading a final results package to the Intermediary Store).
+
+These partial setups are detailed [here](partial-running.md)
+
 ### Optional for running workflows end to end
 
 - **Podman** - typically Hutch will use WfExS with Podman rather than Docker for airgapped environments
