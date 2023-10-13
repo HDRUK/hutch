@@ -100,7 +100,7 @@ public class SubmissionController : ControllerBase
     _logger.LogInformation(
       "Submission [{SubId}] FinalOutcome file submitted: {FileObjectId}",
       model.SubId,
-      JsonSerializer.Serialize(model.File));
+      model.File);
 
     // Unsure of this response body and code; TODO confirm with swagger
     return Ok();
