@@ -30,10 +30,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         RequireAudience = true,
       };
     });
-builder.Services.AddAuthorization(o =>
-{
-  //o.DefaultPolicy = ;
-});
+builder.Services.AddAuthorization();
 
 // Configure Options Models
 builder.Services.Configure<EgressBucketDetailsOptions>(builder.Configuration.GetSection("EgressBucketDetails"));

@@ -12,8 +12,6 @@ namespace DummyControllerApi.Controllers;
 // or a REST API at all for that matter (query string parameters, much?)
 // However it is vital it matches the specification of the TRE Controller API for testing interactions.
 
-// TODO Token Auth
-
 [ApiController]
 [Route("api/[controller]")]
 public class SubmissionController : ControllerBase
@@ -66,15 +64,15 @@ public class SubmissionController : ControllerBase
     if (!model.Files.Any())
       return BadRequest($"Expected at least one file in {nameof(model.Files)}");
 
+
+    // We need to queue a delayed task that responds with approval
+    // AFTER this endpoint gives a response
+    // so that Hutch is ready for the /approval request
     _approvalQueue.Enqueue(model.SubId); // TODO could persist the file list later for funzies but rn Hutch doesn't care
 
     _logger.LogInformation("Submission [{SubId}] Files Queued for Approval", model.SubId);
     
     return Ok(); // Unsure of this response body and code; TODO confirm with swagger
-
-    // TODO presumably we'll need to queue a delayed task that responds with approval
-    // AFTER this endpoint gives a response
-    // so that Hutch is ready for the /approval request
   }
 
   [HttpGet("GetOutputBucketInfo")]

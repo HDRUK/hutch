@@ -44,7 +44,7 @@ public class EgressApprovalHostedService : BackgroundService
 
           // TODO in future the egress request should be able to tell Hutch none is required...
 
-          // TODO make an HTTP Request to Hutch
+          // Make an HTTP Request to Hutch for /approval
           var url = Url.Combine(config["HutchApiBaseUrl"], "jobs", subId, "approval");
 
           var details = new HutchApprovalRequestModel
@@ -72,7 +72,7 @@ public class EgressApprovalHostedService : BackgroundService
 
   public override async Task StopAsync(CancellationToken stoppingToken)
   {
-    _logger.LogInformation("Stopping polling WorkflowJob Action Queue");
+    _logger.LogInformation("Stopping EgressApproval Queue Handler");
 
     await base.StopAsync(stoppingToken);
   }
