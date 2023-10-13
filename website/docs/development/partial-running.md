@@ -1,3 +1,5 @@
+# Partial Running
+
 It's possible to run Hutch with only partial engagement with the external services it interacts with.
 
 This document provides notes around how to configure Hutch to skip certain external interactions, which can simplify development setup and actually developing and testing certain areas of the application.
@@ -10,7 +12,11 @@ Hutch provides a dummy implementation of the TRE Controller API which is interfa
 
 You can run this in development as a substitute for a real Controller API implementation, but it still requires OIDC config.
 
-## Standalone Mode
+Since the Dummy Controller API is not a complete implementation, interaction with Hutch differs as follows:
+
+- You must manually submit jobs to the Hutch Agent `/jobs` endpoint
+
+## Standalone Mode
 
 Standalone mode forces Hutch to run without ever interacting with a TRE Controller API (not even the dummy one).
 

@@ -1,3 +1,9 @@
+---
+sidebar_position: 2
+---
+
+# MinIO and Keycloak
+
 You can connect Minio to Keycloak as an additional authentication source.
 
 The `docker-compose` gives an example of this setup.
