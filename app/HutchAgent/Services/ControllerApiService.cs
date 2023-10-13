@@ -81,8 +81,7 @@ public class ControllerApiService
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
       throw new InvalidOperationException(_standaloneModeError);
 
-    var url = "Submission/FilesReadyForReview"
-      .SetQueryParam("subId", jobId);
+    var url = "Submission/FilesReadyForReview";
 
     _logger.LogInformation(
       "Job [{JobId}]: Confirming with TRE Controller API that Egress Outputs have been transferred", jobId);
@@ -93,6 +92,7 @@ public class ControllerApiService
       .PostJsonAsync(
         new FilesReadyForReviewRequest()
         {
+          SubId = jobId,
           Files = files
         });
     // TODO attempt refreshing if token rejected?
