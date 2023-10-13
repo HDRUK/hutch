@@ -4,6 +4,7 @@ using DummyControllerApi.Models;
 using DummyControllerApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace DummyControllerApi.Controllers;
 
@@ -31,6 +32,7 @@ public class SubmissionController : ControllerBase
   }
 
   [HttpPost("UpdateStatusForTre")]
+  [SwaggerResponse(200, "Status update recorded", typeof(UpdateStatusResponseModel))]
   public IActionResult UpdateStatusForTre(
     [FromQuery] string subId,
     [FromQuery] int statusType,
@@ -50,8 +52,7 @@ public class SubmissionController : ControllerBase
       statusType,
       description);
 
-    // documented return type is a `text/plain` encoded json object :S
-    return Ok(JsonSerializer.Serialize(new UpdateStatusResponseModel()));
+    return Ok(new UpdateStatusResponseModel());
   }
 
   [HttpPost("FilesReadyForReview")]
@@ -60,7 +61,6 @@ public class SubmissionController : ControllerBase
     // TODO we actually don't know what unsuccessful reponses the real API returns under what conditions
     // but the validation here should at least help make sure Hutch's request behaviours are as expected
 
-    if (string.IsNullOrWhiteSpace(model.SubId)) return BadRequest($"Expected a {nameof(model.SubId)}");
     if (!model.Files.Any())
       return BadRequest($"Expected at least one file in {nameof(model.Files)}");
 
@@ -71,11 +71,12 @@ public class SubmissionController : ControllerBase
     _approvalQueue.Enqueue(model.SubId); // TODO could persist the file list later for funzies but rn Hutch doesn't care
 
     _logger.LogInformation("Submission [{SubId}] Files Queued for Approval", model.SubId);
-    
+
     return Ok(); // Unsure of this response body and code; TODO confirm with swagger
   }
 
   [HttpGet("GetOutputBucketInfo")]
+  [SwaggerResponse(200, "The requested bucket details", typeof(EgressBucketResponseModel))]
   public IActionResult GetOutputBucketInfo([FromQuery] string subId)
   {
     var details = new EgressBucketResponseModel
@@ -83,7 +84,7 @@ public class SubmissionController : ControllerBase
       Host = _bucketOptions.Host,
       Bucket = _bucketOptions.Bucket
     };
-    
+
     _logger.LogInformation(
       "Submission [{SubId}] Egress Bucket Requested: {Details}",
       subId,
@@ -91,5 +92,17 @@ public class SubmissionController : ControllerBase
 
     // Unknown what encoding etc is expected here; just the content - TODO confirm with Swagger
     return Ok(details);
+  }
+
+  [HttpPost("finalOutcome")]
+  public IActionResult FinalOutcome([FromBody] FinalOutcomeRequestModel model)
+  {
+    _logger.LogInformation(
+      "Submission [{SubId}] FinalOutcome file submitted: {FileObjectId}",
+      model.SubId,
+      JsonSerializer.Serialize(model.File));
+
+    // Unsure of this response body and code; TODO confirm with swagger
+    return Ok();
   }
 }

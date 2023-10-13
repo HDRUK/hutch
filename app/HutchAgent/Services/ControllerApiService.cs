@@ -124,4 +124,28 @@ public class ControllerApiService
       .PostAsync();
     // TODO attempt refreshing if token rejected?
   }
+
+  /// <summary>
+  /// Notify the TRE Controller API that the job's final outcome has been uploaded
+  /// to the specified object id in the store as provided by the Controller API previously
+  /// (in <see cref="RequestEgressBucket"/>).
+  /// </summary>
+  /// <param name="jobId">ID of the Job this is for.</param>
+  /// <param name="resultsObjectId">Store ObjectId for the results package.</param>
+  public async Task FinalOutcome(string jobId, string resultsObjectId)
+  {
+    if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
+      throw new InvalidOperationException(_standaloneModeError);
+
+    var url = "Submission/FinalOutcome";
+
+    if (!_identity.IsTokenValid(_accessToken)) await UpdateToken();
+    await _http.Request(url)
+      .WithOAuthBearerToken(_accessToken)
+      .PostJsonAsync(new FinalOutcomeRequest
+      {
+        SubId = jobId,
+        File = resultsObjectId
+      });
+  }
 }
