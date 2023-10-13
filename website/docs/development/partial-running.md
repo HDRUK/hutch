@@ -48,7 +48,7 @@ If Hutch is also in Standalone Mode, then OIDC is not required at all, and Hutch
 
 ## Skip Workflow Execution
 
-When Hutch receives a job, it fetches a referenced workflow for the job and executes it, the handles returning the outputs to the job's source via the Intermediary Store.
+Normally, when Hutch receives a job, it fetches a referenced workflow for the job and executes it, then handles returning the outputs to the job's source via the Intermediary Store.
 
 However this requires environment setup of the actual Workflow Executor (e.g. Wfexs), and workflow staging and execution can be quite slow.
 
@@ -58,4 +58,4 @@ To do this, you'll need a suitable zip file to act as the outputs from the execu
 
 It's recommended to use a real execution output if possible - even better if it's for the input job's workflow, to at least appear to be authentic.
 
-Set the setting `WorkflowExecutor:SkipExecutionWithOutputFile` to a non-empty value, which should be the path to your dummy output zip. Absolute paths are fine; relative paths are relative to the working directory root for Hutch as defined in the setting `Paths:WorkingDirectoryBase`. It's intended for this file to be used statically across multiple job runs, so it's not a per-job path.
+Set the setting `WorkflowExecutor:SkipExecutionUsingOutputFile` to a non-empty value, which should be the path to your dummy output zip. Absolute paths are fine; relative paths are relative to the working directory root for Hutch as defined in the setting `Paths:WorkingDirectoryBase`. It's intended for this file to be used statically across multiple job runs, so it's not a per-job path.
