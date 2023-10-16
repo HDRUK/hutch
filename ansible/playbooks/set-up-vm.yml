@@ -2,6 +2,11 @@
 - name: Set up VM
   hosts: tre_server
   tasks:
+    - name: Update apt
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+
     - name: Install pip, venv and build-essential
       become: true
       ansible.builtin.apt:
@@ -9,7 +14,6 @@
           - python3-pip
           - python3-venv
           - build-essential
-        update_cache: true
 
     - name: Install Java
       become: true
