@@ -2,6 +2,13 @@
 - name: Install WfExS
   hosts: tre_server
   tasks:
+    - name: Install side dependencies for WfExS
+      become: true
+      ansible.builtin.apt:
+        name:
+          - graphviz
+          - encfs
+
     - name: Clone WfExS
       ansible.builtin.git:
         repo: https://github.com/uon-drs/WfExS-backend.git
@@ -17,4 +24,9 @@
     - name: Install WfExS basic requirements
       ansible.builtin.command:
         cmd: ./full-installer.bash
+        chdir: "{{ ansible_env.HOME }}/WfExS-backend"
+
+    - name: Install singularity
+      ansible.builtin.command:
+        cmd: ./singularity-local-installer.bash
         chdir: "{{ ansible_env.HOME }}/WfExS-backend"
