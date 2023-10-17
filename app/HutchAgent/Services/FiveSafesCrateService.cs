@@ -19,13 +19,16 @@ public class FiveSafesCrateService
 {
   private readonly CratePublishingOptions _publishOptions;
   private readonly ILogger<FiveSafesCrateService> _logger;
+  private readonly BagItService _bagIt;
 
   public FiveSafesCrateService(
     IOptions<PathOptions> paths,
     IOptions<CratePublishingOptions> publishOptions,
-    ILogger<FiveSafesCrateService> logger)
+    ILogger<FiveSafesCrateService> logger,
+    BagItService bagIt)
   {
     _logger = logger;
+    _bagIt = bagIt;
     _publishOptions = publishOptions.Value;
   }
 
@@ -90,16 +93,24 @@ public class FiveSafesCrateService
   {
     var result = new BasicResult();
 
-    // TODO: BagIt checksum validation? or do this during execution?
-
-    // Validate that it's an RO-Crate at all, by trying to Initialise it
-    try
+    // throw invalid data if checksums don't match
+    var bagItDir = new DirectoryInfo(cratePath).Parent?.FullName;
+    if (bagItDir is not null && _bagIt.VerifyChecksums(bagItDir).Result)
     {
-      InitialiseCrate(cratePath);
+      // Validate that it's an RO-Crate at all, by trying to Initialise it
+      try
+      {
+        InitialiseCrate(cratePath);
+      }
+      catch (Exception e) when (e is CrateReadException || e is MetadataException)
+      {
+        result.Errors.Add("The provided file is not an RO-Crate.");
+      }
     }
-    catch (Exception e) when (e is CrateReadException || e is MetadataException)
+    else
     {
-      result.Errors.Add("The provided file is not an RO-Crate.");
+      result.Errors.Add(
+        "The files' checksums do not match. Check their contents, remake the checksums and re-submit the job.");
     }
 
     // TODO: 5 safes crate profile validation? or do this during execution?

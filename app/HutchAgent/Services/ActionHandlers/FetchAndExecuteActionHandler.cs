@@ -18,7 +18,6 @@ public class FetchAndExecuteActionHandler : IActionHandler
   private readonly StatusReportingService _status;
   private readonly MinioStoreServiceFactory _storeFactory;
   private readonly IFeatureManager _features;
-  private readonly BagItService _bagIt;
 
   public FetchAndExecuteActionHandler(
     ExecuteActionHandler executeHandler,
@@ -26,7 +25,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
     StatusReportingService status,
     JobLifecycleService job,
     MinioStoreServiceFactory storeFactory,
-    IFeatureManager features, BagItService bagIt)
+    IFeatureManager features)
   {
     _executeHandler = executeHandler;
     _jobs = jobs;
@@ -34,7 +33,6 @@ public class FetchAndExecuteActionHandler : IActionHandler
     _job = job;
     _storeFactory = storeFactory;
     _features = features;
-    _bagIt = bagIt;
   }
 
   public async Task HandleAction(string jobId, object? payload)
@@ -93,9 +91,6 @@ public class FetchAndExecuteActionHandler : IActionHandler
         return;
       }
 
-      // throw invalid data if checksums don't match
-      if (!await _bagIt.VerifyChecksums(jobId.BagItPayloadPath())) throw new InvalidDataException();
-
       // Execute
       await _executeHandler.HandleAction(jobId, null);
     }
@@ -103,16 +98,6 @@ public class FetchAndExecuteActionHandler : IActionHandler
     {
       throw new InvalidOperationException(
         $"Hutch somehow queued an Action for a Job (id: {jobId}) that doesn't exist.", e);
-    }
-    catch (InvalidDataException)
-    {
-      await _status.ReportStatus(jobId, JobStatus.Failure,
-        "The files' checksums do not match. Check their contents, remake the checksums and re-submit the job.");
-
-      if (!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
-        await _job.Cleanup(jobId);
-
-      throw;
     }
     catch
     {
