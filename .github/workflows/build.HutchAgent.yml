@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths:
       - app/HutchAgent/**
-      - app/HutchAgent.Tests/**
+      - test/HutchAgent.Tests/**
       - .github/workflows/build.HutchAgent.yml
 
 env:
