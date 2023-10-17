@@ -18,12 +18,17 @@
   hosts: tre_server
   vars:
     hutch_version: v1.0.0-beta.2
+    hutch_dest: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}.zip"
   tasks:
     - name: Download Hutch
       ansible.builtin.get_url:
-        dest: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}.zip"
+        dest: "{{ hutch_dest }}"
         url: "https://github.com/HDRUK/hutch/releases/download/{{ hutch_version }}/hutch_linux-x64.zip"
         mode: "0644"
+    - name: Unzip Hutch
+      ansible.builtin.unarchive:
+        src: "{{ hutch_dest }}"
+        dest: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}"
 # - name: Run Nexus, MinIO, Postgres, etc.
 #   hosts: tre_server
 #   tasks:
