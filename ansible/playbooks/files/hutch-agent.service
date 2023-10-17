@@ -1,0 +1,18 @@
+[Unit]
+Description=HutchAgent ASP.NET app
+
+[Service]
+WorkingDirectory=/home/ansible/HutchAgent
+ExecStart=/home/ansible/HutchAgent/HutchAgent
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=hutch-agent
+User=ansible
+Environment=ASPNETCORE_ENVIRONMENT=Release
+# opt out of telemetry; see https://learn.microsoft.com/en-us/dotnet/core/tools/telemetry#how-to-opt-out
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=true
+
+[Install]
+WantedBy=multi-user.target

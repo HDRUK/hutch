@@ -25,6 +25,7 @@
         dest: "{{ ansible_env.HOME }}/docker-compose.yml"
         mode: "0644"
       when: dev_mode | bool
+
     - name: Run Nexus, MinIO, Postgres, etc.
       community.docker.docker_compose:
         project_src: "{{ ansible_env.HOME }}"
@@ -46,18 +47,39 @@
         dest: "{{ download_zip }}"
         url: "https://github.com/HDRUK/hutch/releases/download/{{ hutch_version }}/hutch_linux-x64.zip"
         mode: "0644"
+
     - name: Make Install Directory
       ansible.builtin.file:
         path: "{{ install_dir }}"
         state: directory
         mode: "0755"
+
     - name: Unzip Hutch
       ansible.builtin.unarchive:
         src: "{{ download_zip }}"
         remote_src: true
         dest: "{{ install_dir }}"
+
     - name: Update Program Permissions
       ansible.builtin.file:
         path: "{{ install_dir }}/HutchAgent"
         state: "file"
         mode: u+x
+
+    - name: dotnet dev certs
+      ansible.builtin.command:
+        cmd: dotnet dev-certs https --trust
+
+    - name: Upload hutch-agent.service
+      become: true
+      ansible.builtin.copy:
+        src: playbooks/files/hutch-agent.service
+        dest: /etc/systemd/system/hutch-agent.service
+        mode: "0644"
+
+    - name: Start HutchAgent
+      become: true
+      ansible.builtin.systemd_service:
+        name: hutch-agent
+        enabled: true
+        state: started
