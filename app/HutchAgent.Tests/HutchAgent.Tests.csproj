@@ -28,4 +28,8 @@
     <ProjectReference Include="..\HutchAgent\HutchAgent.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Update="TestBagit/**/*" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
 </Project>
