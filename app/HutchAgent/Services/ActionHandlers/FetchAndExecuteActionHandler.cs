@@ -104,7 +104,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
       throw new InvalidOperationException(
         $"Hutch somehow queued an Action for a Job (id: {jobId}) that doesn't exist.", e);
     }
-    catch (InvalidDataException e)
+    catch (InvalidDataException)
     {
       await _status.ReportStatus(jobId, JobStatus.Failure,
         "The files' checksums do not match. Check their contents, remake the checksums and re-submit the job.");
