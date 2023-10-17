@@ -18,17 +18,29 @@
   hosts: tre_server
   vars:
     hutch_version: v1.0.0-beta.2
-    hutch_dest: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}.zip"
+    download_zip: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}.zip"
+    install_dir: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}"
   tasks:
     - name: Download Hutch
       ansible.builtin.get_url:
-        dest: "{{ hutch_dest }}"
+        dest: "{{ download_zip }}"
         url: "https://github.com/HDRUK/hutch/releases/download/{{ hutch_version }}/hutch_linux-x64.zip"
+        mode: "0644"
+    - name: Make Install Directory
+      ansible.builtin.file:
+        path: "{{ install_dir }}"
+        state: directory
         mode: "0644"
     - name: Unzip Hutch
       ansible.builtin.unarchive:
-        src: "{{ hutch_dest }}"
-        dest: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}"
+        src: "{{ download_zip }}"
+        remote_src: true
+        dest: "{{ install_dir }}"
+    - name: Update Program Permissions
+      ansible.builtin.file:
+        path: "{{ install_dir }}/HutchAgent"
+        state: "file"
+        mode: u+x
 # - name: Run Nexus, MinIO, Postgres, etc.
 #   hosts: tre_server
 #   tasks:
