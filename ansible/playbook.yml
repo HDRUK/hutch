@@ -16,20 +16,21 @@
 
 - name: Install HutchAgent
   hosts: tre_server
+  vars:
+    hutch_version: v1.0.0-beta.2
   tasks:
-    - name: Clone HUTCH
-      ansible.builtin.git:
-        repo: https://github.com/HDRUK/hutch
-        dest: "{{ ansible_env.HOME }}/hutch"
-        version: main
-
-- name: Run Nexus, MinIO, Postgres, etc.
-  hosts: tre_server
-  tasks:
-    - name: Run Docker Compose
-      community.docker.docker_compose:
-        project_src: "{{ ansible_env.HOME }}/hutch"
-        project_name: hutch
-        files:
-          - docker-compose.yml
-      register: output
+    - name: Download Hutch
+      ansible.builtin.get_url:
+        dest: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}.zip"
+        url: "https://github.com/HDRUK/hutch/releases/download/{{ hutch_version }}/hutch_linux-x64.zip"
+        mode: "0644"
+# - name: Run Nexus, MinIO, Postgres, etc.
+#   hosts: tre_server
+#   tasks:
+#     - name: Run Docker Compose
+#       community.docker.docker_compose:
+#         project_src: "{{ ansible_env.HOME }}/hutch"
+#         project_name: hutch
+#         files:
+#           - docker-compose.yml
+#       register: output
