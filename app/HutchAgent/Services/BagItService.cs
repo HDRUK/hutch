@@ -69,10 +69,11 @@ public class BagItService
   }
 
   /// <summary>
-  /// 
+  /// Check that the checksums in the <c>manifest-sha512.txt</c> and <c>tagmanifest-sha512.txt</c> files match the
+  /// contents of the files they describe.
   /// </summary>
-  /// <param name="bagItDir"></param>
-  /// <returns></returns>
+  /// <param name="bagItDir">The path to the BagIt archive to check.</param>
+  /// <returns><c>true</c> if the checksums match, else <c>false</c></returns>
   public async Task<bool> VerifyChecksums(string bagItDir)
   {
     var hashes = new List<string>();
