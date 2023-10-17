@@ -233,9 +233,9 @@ public class MinioStoreService
       .WithFileName(sourcePath)
       .WithObject(objectId);
 
-    _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectId, _options.Bucket);
+    _logger.LogDebug("Uploading '{TargetObject} to {Bucket}...", objectId, _options.Bucket);
     await _minio.PutObjectAsync(putObjectArgs);
-    _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectId, _options.Bucket);
+    _logger.LogDebug("Successfully uploaded {TargetObject} to {Bucket}", objectId, _options.Bucket);
   }
 
   /// <summary>

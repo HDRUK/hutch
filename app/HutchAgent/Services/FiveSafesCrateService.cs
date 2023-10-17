@@ -134,7 +134,7 @@ public class FiveSafesCrateService
     Directory.CreateDirectory(targetPath);
     archive.ExtractToDirectory(targetPath, overwriteFiles: true);
 
-    _logger.LogInformation("Crate extracted at {TargetPath}", targetPath);
+    _logger.LogInformation("Job [{JobId}] Crate extracted at {TargetPath}", job.Id, targetPath);
 
     return targetPath;
   }
@@ -176,7 +176,7 @@ public class FiveSafesCrateService
     {
       Id = status
     });
-    _logger.LogInformation("Set {EntityId} actionStatus to {Status}", entity.Id, status);
+    _logger.LogDebug("Set {EntityId} actionStatus to {Status}", entity.Id, status);
   }
 
   /// <summary>
@@ -208,7 +208,7 @@ public class FiveSafesCrateService
       roCrate.Entities[
         executeEntityId.First()?["@id"]!.ToString() ??
         throw new InvalidOperationException($"No entity found with id of {executeEntityId.First()?["@id"]}")];
-    _logger.LogInformation("Retrieved execution details from RO-Crate");
+    _logger.LogDebug("Retrieved execution details from RO-Crate");
     return executeAction;
   }
 
