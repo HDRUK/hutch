@@ -14,7 +14,7 @@ env:
   CI_build-config: Release
   CI_dotnet-version: 7.0.x
   Agent_project: ./app/HutchAgent/HutchAgent.csproj
-  Agent_test_project: ./app/HutchAgent.Tests/HutchAgent.Tests.csproj
+  Agent_test_project: ./test/HutchAgent.Tests/HutchAgent.Tests.csproj
 
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
