@@ -171,7 +171,7 @@ public class TagManifestFixture : IDisposable
   private static string[] contents = { "hello world", "foo bar", "baz" };
 
   private static string[] _tagFiles =
-    { "bagit.txt", "bagit-info.txt", "manifest-sha512.txt" };
+    { "bagit.txt", "bag-info.txt", "manifest-sha512.txt" };
 
   public string TagManifestPath => Path.Combine(_dir.FullName, _tagManifestFile);
   public DirectoryInfo Dir => _dir;

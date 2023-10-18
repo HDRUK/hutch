@@ -23,7 +23,7 @@ public class BagItService
   private const string _tagManifestName = "tagmanifest-sha512.txt";
 
   private static string[] _tagFiles =
-    { "bagit.txt", "bagit-info.txt", "manifest-sha512.txt" };
+    { "bagit.txt", "bag-info.txt", "manifest-sha512.txt" };
 
   /// <summary>
   /// Compute the SHA512 for each file in the Bagit archive's <c>data</c> subdirectory and write a
