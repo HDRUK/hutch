@@ -3,9 +3,12 @@ using DummyControllerApi.Config;
 using DummyControllerApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((context, configuration) =>
+  configuration.ReadFrom.Configuration(context.Configuration));
 
 // Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -25,7 +28,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateTokenReplay = false,
         RequireSignedTokens = false,
         SignatureValidator = (token, _) => new JwtSecurityToken(token),
-        
+
         RequireExpirationTime = true,
         RequireAudience = true,
       };
@@ -57,6 +60,8 @@ if (app.Environment.IsDevelopment())
   app.UseSwagger();
   app.UseSwaggerUI();
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 

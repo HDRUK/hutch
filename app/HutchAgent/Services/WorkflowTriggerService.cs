@@ -183,21 +183,19 @@ public class WorkflowTriggerService
           job.ExecutorRunId = FindRunName(args.Data) ?? "";
           if (!string.IsNullOrEmpty(job.ExecutorRunId))
           {
-            _logger.LogInformation(
+            _logger.LogDebug(
               "Job [{JobId}] found ExecutorRunId: {RunId}", job.Id, job.ExecutorRunId);
             await _jobs.Set(job);
           }
         }
-
-        // TODO Log Debug
-        _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdOut",
+        
+        _logger.LogDebug(message, job.Id, job.ExecutorRunId, "StdOut",
           args.Data ?? "event received but data was null");
       };
 
       p.ErrorDataReceived += (sender, args) =>
       {
-        // TODO Log Debug
-        _logger.LogInformation(message, job.Id, job.ExecutorRunId, "StdErr",
+        _logger.LogDebug(message, job.Id, job.ExecutorRunId, "StdErr",
           args.Data ?? "event received but data was null");
       };
     }
@@ -208,13 +206,13 @@ public class WorkflowTriggerService
     _logger.LogInformation("Process started for job: {JobId}", job.Id);
 
     // venv
-    _logger.LogInformation("Virtual Environment command: {Command}", _activateVenv);
+    _logger.LogDebug("Virtual Environment command: {Command}", _activateVenv);
     await p.StandardInput.WriteLineAsync(_activateVenv);
     await p.StandardInput.FlushAsync();
     _logger.LogInformation("Virtual Environment activated");
 
     // wfexs
-    _logger.LogInformation("Executor command: {Command}", command);
+    _logger.LogDebug("Executor command: {Command}", command);
     await p.StandardInput.WriteLineAsync(command);
     await p.StandardInput.FlushAsync();
     _logger.LogInformation("Executor command executed");

@@ -79,7 +79,7 @@ public class InitiateEgressActionHandler : IActionHandler
 
     if (!completionResult.IsComplete) // not ready; re-queue to check again later
     {
-      _logger.LogInformation("Job [{JobId}] has not completed execution: re-queueing", jobId);
+      _logger.LogDebug("Job [{JobId}] has not completed execution: re-queueing", jobId);
       var message = new JobQueueMessage { ActionType = JobActionTypes.InitiateEgress, JobId = job.Id };
       _queueWriter.SendMessage(_queueOptions.QueueName, message);
       return;
@@ -119,7 +119,7 @@ public class InitiateEgressActionHandler : IActionHandler
     job.EgressTarget = JsonSerializer.Serialize(egressStore ?? _storeFactory.DefaultOptions);
     await _jobs.Set(job);
 
-    _logger.LogInformation("job [{JobId}] Egress Target: {Target}", job.Id, job.EgressTarget);
+    _logger.LogDebug("job [{JobId}] Egress Target: {Target}", job.Id, job.EgressTarget);
 
     await _status.ReportStatus(job.Id, JobStatus.DataOutRequested);
 
@@ -140,7 +140,7 @@ public class InitiateEgressActionHandler : IActionHandler
     {
       _logger.LogInformation(
         "Egress outputs uploaded for manual inspection: Notify `/api/jobs/{JobId}/approval` when complete", jobId);
-      files.ForEach(x => _logger.LogInformation("Output: {ObjectId}", x));
+      _logger.LogDebug("Outputs: {ObjectIds}", JsonSerializer.Serialize(files));
     }
     else
     {

@@ -79,7 +79,7 @@ public class WorkflowFetchService
     {
       Directory.CreateDirectory(workflowCrateExtractPath);
       archive.ExtractToDirectory(workflowCrateExtractPath);
-      _logger.LogInformation(
+      _logger.LogDebug(
         "Unpacked workflow to {TargetPath}",
         Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), "workflow", workflowId));
     }
@@ -123,7 +123,7 @@ public class WorkflowFetchService
     roCrate.Add(workflowEntity);
     roCrate.RootDataset.AppendTo("mentions", downloadAction);
     roCrate.Save(workflowJob.WorkingDirectory.JobCrateRoot());
-    _logger.LogInformation("Saved updated RO-Crate to {TargetPath}", workflowJob.WorkingDirectory.JobCrateRoot());
+    _logger.LogDebug("Saved updated RO-Crate to {TargetPath}", workflowJob.WorkingDirectory.JobCrateRoot());
 
     return roCrate;
   }
