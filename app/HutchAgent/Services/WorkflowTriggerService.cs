@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Globalization;
+using System.IO.Abstractions;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
@@ -9,6 +9,7 @@ using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Models.Wfexs;
 using HutchAgent.Results;
+using HutchAgent.Utilities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -20,7 +21,7 @@ namespace HutchAgent.Services;
 
 // TODO this is all pretty wfexs specific;
 // maybe in future could be abstracted into a wfexs implementation of a more general interface?
-public class WorkflowTriggerService
+public partial class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
@@ -31,6 +32,7 @@ public class WorkflowTriggerService
   private readonly StatusReportingService _status;
   private readonly WorkflowJobService _jobs;
   private readonly PathOptions _paths;
+  private readonly FileSystemUtility _fsu;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
@@ -38,12 +40,14 @@ public class WorkflowTriggerService
     FiveSafesCrateService crateService,
     StatusReportingService status,
     WorkflowJobService jobs,
-    IOptions<PathOptions> paths)
+    IOptions<PathOptions> paths,
+    FileSystemUtility fsu)
   {
     _logger = logger;
     _crateService = crateService;
     _status = status;
     _jobs = jobs;
+    _fsu = fsu;
     _paths = paths.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
@@ -99,6 +103,9 @@ public class WorkflowTriggerService
     return result;
   }
 
+  [GeneratedRegex(@".*meta\.json$")]
+  private static partial Regex MatchContainerMetadataFiles();
+
   public void UnpackOutputsFromPath(string sourcePath, string targetPath)
   {
     if (!Directory.Exists(targetPath))
@@ -107,16 +114,17 @@ public class WorkflowTriggerService
     // Relative paths should be relative to Hutch working directory
     if (!Path.IsPathFullyQualified(sourcePath))
       sourcePath = Path.Combine(_paths.WorkingDirectoryBase, sourcePath);
-    
+
     ZipFile.ExtractToDirectory(sourcePath, targetPath);
 
-
-    // Path to workflow containers // TODO retain metadata; delete images only!
-    var containersPath = Path.Combine(targetPath, "containers");
     if (!_workflowOptions.IncludeContainersInOutput)
-      Directory.Delete(containersPath, recursive: true);
+    {
+      // Path to workflow containers
+      var containersPath = Path.Combine(targetPath, "containers");
+      _fsu.SelectivelyDelete(containersPath, MatchContainerMetadataFiles());
+    }
   }
-  
+
   public void UnpackOutputs(string executorRunId, string targetPath)
   {
     // Path the to the job outputs
@@ -188,7 +196,7 @@ public class WorkflowTriggerService
             await _jobs.Set(job);
           }
         }
-        
+
         _logger.LogDebug(message, job.Id, job.ExecutorRunId, "StdOut",
           args.Data ?? "event received but data was null");
       };
@@ -455,13 +463,13 @@ public class WorkflowTriggerService
     return absolutePath;
   }
 
+  [GeneratedRegex(
+    @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*")]
+  private static partial Regex WfexsRunIdLogLine();
+
   private string? FindRunName(string text)
   {
-    var pattern =
-      @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*";
-    var regex = new Regex(pattern);
-
-    var match = regex.Match(text);
+    var match = WfexsRunIdLogLine().Match(text);
     if (!match.Success)
     {
       _logger.LogError("Didn't match the pattern!");
