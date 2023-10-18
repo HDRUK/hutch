@@ -18,6 +18,8 @@ public class WorkflowStageFile
   [YamlMember(Alias = "outputs")] public object Outputs = new();
 
   [YamlMember(Alias = "params")] public object? Params { get; set; }
+  
+  [YamlMember(Alias = "environment")] public object EnvironmentVars { get; set; } = new();
 }
 
 public class Configuration
