@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using System.Reflection;
 using Flurl.Http.Configuration;
 using HutchAgent.Config;
@@ -8,6 +9,7 @@ using HutchAgent.Services;
 using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
 using HutchAgent.Services.Hosted;
+using HutchAgent.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
@@ -62,7 +64,8 @@ builder.Services.AddSwaggerGen(o =>
 builder.Services
   .AddAutoMapper(typeof(Program).Assembly)
   .AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>()
-  .AddHttpClient(); // We prefer Flurl for most use cases, but IdentityModel has extensions for vanilla HttpClient
+  .AddHttpClient()  // We prefer Flurl for most use cases, but IdentityModel has extensions for vanilla HttpClient
+  .AddTransient<IFileSystem,FileSystem>();
 
 // IOptions
 builder.Services
@@ -88,6 +91,7 @@ builder.Services
 
 // Other Application Services
 builder.Services
+  .AddTransient<FileSystemUtility>()
   .AddTransient<JobLifecycleService>()
   .AddTransient<StatusReportingService>()
   .AddTransient<WorkflowJobService>()

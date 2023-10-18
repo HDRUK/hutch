@@ -53,7 +53,7 @@ public class FinalizeActionHandler : IActionHandler
     // yes - at minimum check that the disclosure check assessaction is complete
 
     // 1. Copy approved outputs to the working crate
-    FilesystemUtility.CopyDirectory(
+    FileSystemUtility.CopyDirectory(
       job.WorkingDirectory.JobEgressOutputs(),
       Path.Combine(job.WorkingDirectory.JobCrateRoot(), "outputs"),
       recursive: true);

@@ -34,6 +34,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.2" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="19.2.69" />
     <PackageReference Include="YamlDotNet" Version="13.1.1" />
   </ItemGroup>
 
