@@ -107,16 +107,22 @@ public class WorkflowTriggerService
     // Relative paths should be relative to Hutch working directory
     if (!Path.IsPathFullyQualified(sourcePath))
       sourcePath = Path.Combine(_paths.WorkingDirectoryBase, sourcePath);
-    
+
     ZipFile.ExtractToDirectory(sourcePath, targetPath);
 
 
-    // Path to workflow containers // TODO retain metadata; delete images only!
+    // Path to workflow containers
     var containersPath = Path.Combine(targetPath, "containers");
     if (!_workflowOptions.IncludeContainersInOutput)
-      Directory.Delete(containersPath, recursive: true);
+    {
+      foreach (var filePath in Directory.EnumerateFiles(containersPath))
+      {
+        if (!filePath.EndsWith("meta.json")) // retain small metadata files :)
+          File.Delete(filePath);
+      }
+    }
   }
-  
+
   public void UnpackOutputs(string executorRunId, string targetPath)
   {
     // Path the to the job outputs
