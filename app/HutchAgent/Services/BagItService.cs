@@ -2,7 +2,8 @@ using HutchAgent.Utilities;
 
 namespace HutchAgent.Services;
 
-public static class BagItUtilities {
+public static class BagItUtilities
+{
   public const string RelativePayloadPath = "data";
 
   /// <summary>
@@ -22,7 +23,7 @@ public class BagItService
   private const string _tagManifestName = "tagmanifest-sha512.txt";
 
   private static string[] _tagFiles =
-    { "bagit.txt", "bag-info.txt", "manifest-sha512.txt" };
+    { "bagit.txt", "bagit-info.txt", "manifest-sha512.txt" };
 
   /// <summary>
   /// Compute the SHA512 for each file in the Bagit archive's <c>data</c> subdirectory and write a
@@ -65,5 +66,46 @@ public class BagItService
       // Note there should be 2 spaces between the checksum and the file path
       await writer.WriteLineAsync($"{checksum}  {tagFile}");
     }
+  }
+
+  /// <summary>
+  /// Check that the checksums in the <c>manifest-sha512.txt</c> and <c>tagmanifest-sha512.txt</c> files match the
+  /// contents of the files they describe.
+  /// </summary>
+  /// <param name="bagItDir">The path to the BagIt archive to check.</param>
+  /// <returns><c>true</c> if the checksums match, else <c>false</c></returns>
+  public async Task<bool> VerifyChecksums(string bagItDir)
+  {
+    var hashes = new List<string>();
+    var paths = new List<string>();
+
+    // read manifest-sha512.txt
+    foreach (var line in await File.ReadAllLinesAsync(Path.Combine(bagItDir, _manifestName)))
+    {
+      var splitLine = line.Split("  ");
+      hashes.Add(splitLine.First());
+      paths.Add(splitLine.Last());
+    }
+
+    // read tagmanifest-sha512.txt
+    foreach (var line in await File.ReadAllLinesAsync(Path.Combine(bagItDir, _tagManifestName)))
+    {
+      var splitLine = line.Split("  ");
+      hashes.Add(splitLine.First());
+      paths.Add(splitLine.Last());
+    }
+
+    // check equality of hashes to file hashes of file contents
+    for (int i = 0; i < paths.Count; i++)
+    {
+      var fs = new FileStream(
+        Path.Combine(bagItDir, paths[i]),
+        FileMode.Open,
+        FileAccess.Read);
+      var checksum = ChecksumUtility.ComputeSha512(fs);
+      if (hashes[i] != checksum) return false;
+    }
+
+    return true;
   }
 }
