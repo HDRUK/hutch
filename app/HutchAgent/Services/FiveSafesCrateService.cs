@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Exceptions;
 using ROCrates.Models;
+using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
@@ -70,7 +71,7 @@ public class FiveSafesCrateService
     // ii. Root mentions
     crate.RootDataset.AppendTo("mentions", disclosureAction);
 
-    
+
     // d) Add Licence and Publisher details
     if (_publishOptions.Publisher is not null)
       crate.RootDataset.SetProperty("publisher", new Part()
@@ -79,7 +80,7 @@ public class FiveSafesCrateService
       });
     AddLicense(crate);
 
-    
+
     // e) Root datePublished
     crate.RootDataset.SetProperty("datePublished", DateTimeOffset.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
 
@@ -370,12 +371,70 @@ public class FiveSafesCrateService
     crate.RootDataset.SetProperty("license", new Part { Id = licenseEntity.Id });
   }
 
+  private void AddWorkflowEntity(ROCrate roCrate, Part mainEntity, string workflowPath)
+  {
+    var workflowEntity = new Entity(roCrate, identifier: workflowPath);
+    roCrate.Entities.TryGetValue(mainEntity.Id, out var property);
+    workflowEntity.SetProperty("sameAs", new Part()
+    {
+      Id = property!.Id
+    });
+    workflowEntity.SetProperty("@type", property.Properties["@type"]);
+    workflowEntity.SetProperty("name", property.Properties["name"]);
+    workflowEntity.SetProperty("conformsTo", property.Properties["conformsTo"]);
+    workflowEntity.SetProperty("distribution", property.Properties["distribution"]);
+    roCrate.Add(workflowEntity);
+    roCrate.RootDataset.AppendTo("hasPart",workflowEntity);
+  }
+
   public bool WorkflowIsRelativePath(ROCrate roCrate, WorkflowJob workflowJob)
   {
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ??
                      throw new NullReferenceException("No main entity found in RO-Crate");
-  
-    var isRelativePath = !mainEntity.Id.StartsWith("/") && Path.Exists(Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),mainEntity.Id));
-    return isRelativePath;
+    // Check if mainEntity is remote URL
+    if (Uri.IsWellFormedUriString(mainEntity.Id, UriKind.Absolute))
+    {
+      return false;
+    }
+    // Check if mainEntity is absolute url
+    if (mainEntity.Id.StartsWith("/"))
+    {
+      var workflowDir = new DirectoryInfo(mainEntity.Id);
+      if (!workflowDir.Exists)
+        throw new DirectoryNotFoundException($"Directory not found: {workflowDir}");
+      InitialiseCrate(workflowDir.FullName);
+      var destinationDir = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), "workflow");
+      
+      Directory.CreateDirectory(destinationDir);
+      
+      var directories = Directory.GetDirectories(workflowDir.FullName, "*", SearchOption.AllDirectories);
+      foreach (string dir in directories) 
+      { 
+        string dirToCreate = dir.Replace(workflowDir.FullName, destinationDir); 
+        Directory.CreateDirectory(dirToCreate); 
+      }
+      var files = Directory.GetFiles(workflowDir.FullName, "*.*", SearchOption.AllDirectories);
+      foreach (string newPath in files) 
+      {
+        File.Copy(newPath, newPath.Replace(workflowDir.FullName, destinationDir),overwrite:true); 
+      }
+
+      AddWorkflowEntity(roCrate, mainEntity, "workflow/");
+      roCrate.Save(workflowJob.WorkingDirectory.JobCrateRoot());
+      return true;
+    }
+    
+    var relPath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), mainEntity.Id);
+    // If not absolute, check it exists
+    if (Path.Exists(relPath))
+    {
+      {
+        // check it's a valid crate
+        InitialiseCrate(relPath);
+        return true;
+      }
+    }
+
+    return false;
   }
 }

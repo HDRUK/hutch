@@ -1,11 +1,10 @@
 using HutchAgent.Config;
 using HutchAgent.Constants;
-using HutchAgent.Models;
 using HutchAgent.Models.JobQueue;
 using HutchAgent.Services.Contracts;
 using Microsoft.Extensions.Options;
 
-namespace HutchAgent.Services;
+namespace HutchAgent.Services.ActionHandlers;
 
 public class ExecuteActionHandler : IActionHandler
 {
