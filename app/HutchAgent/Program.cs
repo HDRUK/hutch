@@ -11,8 +11,13 @@ using HutchAgent.Services.Hosted;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) => 
+  configuration.ReadFrom.Configuration(context.Configuration));
+
 
 #region Configure Service
 
@@ -48,7 +53,7 @@ builder.Services.AddSwaggerGen(o =>
   o.IncludeXmlComments(Path.Combine(
     AppContext.BaseDirectory,
     $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
-  
+
   o.EnableAnnotations();
   o.SupportNonNullableReferenceTypes();
 });
@@ -99,6 +104,8 @@ builder.Services
 #endregion
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 app.UseRouting();
 app.UseSwagger();

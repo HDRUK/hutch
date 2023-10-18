@@ -19,13 +19,16 @@ public class FiveSafesCrateService
 {
   private readonly CratePublishingOptions _publishOptions;
   private readonly ILogger<FiveSafesCrateService> _logger;
+  private readonly BagItService _bagIt;
 
   public FiveSafesCrateService(
     IOptions<PathOptions> paths,
     IOptions<CratePublishingOptions> publishOptions,
-    ILogger<FiveSafesCrateService> logger)
+    ILogger<FiveSafesCrateService> logger,
+    BagItService bagIt)
   {
     _logger = logger;
+    _bagIt = bagIt;
     _publishOptions = publishOptions.Value;
   }
 
@@ -90,16 +93,24 @@ public class FiveSafesCrateService
   {
     var result = new BasicResult();
 
-    // TODO: BagIt checksum validation? or do this during execution?
-
-    // Validate that it's an RO-Crate at all, by trying to Initialise it
-    try
+    // throw invalid data if checksums don't match
+    var bagItDir = new DirectoryInfo(cratePath).Parent?.FullName;
+    if (bagItDir is not null && _bagIt.VerifyChecksums(bagItDir).Result)
     {
-      InitialiseCrate(cratePath);
+      // Validate that it's an RO-Crate at all, by trying to Initialise it
+      try
+      {
+        InitialiseCrate(cratePath);
+      }
+      catch (Exception e) when (e is CrateReadException || e is MetadataException)
+      {
+        result.Errors.Add("The provided file is not an RO-Crate.");
+      }
     }
-    catch (Exception e) when (e is CrateReadException || e is MetadataException)
+    else
     {
-      result.Errors.Add("The provided file is not an RO-Crate.");
+      result.Errors.Add(
+        "The files' checksums do not match. Check their contents, remake the checksums and re-submit the job.");
     }
 
     // TODO: 5 safes crate profile validation? or do this during execution?
@@ -123,7 +134,7 @@ public class FiveSafesCrateService
     Directory.CreateDirectory(targetPath);
     archive.ExtractToDirectory(targetPath, overwriteFiles: true);
 
-    _logger.LogInformation("Crate extracted at {TargetPath}", targetPath);
+    _logger.LogInformation("Job [{JobId}] Crate extracted at {TargetPath}", job.Id, targetPath);
 
     return targetPath;
   }
@@ -165,7 +176,7 @@ public class FiveSafesCrateService
     {
       Id = status
     });
-    _logger.LogInformation("Set {EntityId} actionStatus to {Status}", entity.Id, status);
+    _logger.LogDebug("Set {EntityId} actionStatus to {Status}", entity.Id, status);
   }
 
   /// <summary>
@@ -197,7 +208,7 @@ public class FiveSafesCrateService
       roCrate.Entities[
         executeEntityId.First()?["@id"]!.ToString() ??
         throw new InvalidOperationException($"No entity found with id of {executeEntityId.First()?["@id"]}")];
-    _logger.LogInformation("Retrieved execution details from RO-Crate");
+    _logger.LogDebug("Retrieved execution details from RO-Crate");
     return executeAction;
   }
 

@@ -1,13 +1,13 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32002.185
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchAgent", "app\HutchAgent\HutchAgent.csproj", "{2D9B3839-B34E-4897-ADF2-96F47A3C401F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchAgent.Tests", "app\HutchAgent.Tests\HutchAgent.Tests.csproj", "{6066B321-C00D-4478-8F95-71EEB91BC797}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchAgent.Tests", "test\HutchAgent.Tests\HutchAgent.Tests.csproj", "{6066B321-C00D-4478-8F95-71EEB91BC797}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyControllerApi", "DummyControllerApi\DummyControllerApi.csproj", "{D8EB96F0-45C6-4AF1-8743-3E05F77459CC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DummyControllerApi", "app\DummyControllerApi\DummyControllerApi.csproj", "{D8EB96F0-45C6-4AF1-8743-3E05F77459CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

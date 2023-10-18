@@ -25,7 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HutchAgent\HutchAgent.csproj" />
+    <ProjectReference Include="..\..\app\HutchAgent\HutchAgent.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestBagit/**/*" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
 </Project>

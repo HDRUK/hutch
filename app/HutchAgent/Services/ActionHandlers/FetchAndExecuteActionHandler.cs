@@ -46,9 +46,9 @@ public class FetchAndExecuteActionHandler : IActionHandler
         await _status.ReportStatus(jobId, JobStatus.Failure,
           $"The remote crate could not be fetched from the provided source: {job.CrateSource}");
 
-        if(!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
+        if (!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
           await _job.Cleanup(job);
-        
+
         return;
       }
 
@@ -86,7 +86,7 @@ public class FetchAndExecuteActionHandler : IActionHandler
         await _status.ReportStatus(jobId, JobStatus.Failure,
           $"The remote Request Crate was not accepted: ${JsonSerializer.Serialize(acceptResult.Errors)}. Please resubmit the job.");
 
-        if(!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
+        if (!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
           await _job.Cleanup(job);
         return;
       }
@@ -103,10 +103,10 @@ public class FetchAndExecuteActionHandler : IActionHandler
     {
       await _status.ReportStatus(jobId, JobStatus.Failure,
         $"An unrecoverable error occurred attempting to fetch the remote Request Crate. Please resubmit the Job.");
-      
-      if(!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
+
+      if (!await _features.IsEnabledAsync(FeatureFlags.RetainFailures))
         await _job.Cleanup(jobId);
-      
+
       throw;
     }
   }
