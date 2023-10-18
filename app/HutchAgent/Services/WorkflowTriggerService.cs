@@ -104,7 +104,7 @@ public partial class WorkflowTriggerService
   }
 
   [GeneratedRegex(@".*meta\.json$")]
-  private static partial Regex MatchMetadata();
+  private static partial Regex MatchContainerMetadataFiles();
 
   public void UnpackOutputsFromPath(string sourcePath, string targetPath)
   {
@@ -121,7 +121,7 @@ public partial class WorkflowTriggerService
     {
       // Path to workflow containers
       var containersPath = Path.Combine(targetPath, "containers");
-      _fsu.SelectivelyDelete(containersPath, MatchMetadata());
+      _fsu.SelectivelyDelete(containersPath, MatchContainerMetadataFiles());
     }
   }
 
