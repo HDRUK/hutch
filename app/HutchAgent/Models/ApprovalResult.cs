@@ -2,7 +2,7 @@ using HutchAgent.Constants;
 
 namespace HutchAgent.Models;
 
-public class ApprovalResult
+public class ApprovalResult : FileStorageDetails
 {
   public ApprovalType Status { get; set; }
 
