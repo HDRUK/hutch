@@ -113,14 +113,16 @@ public class InitiateEgressActionHandler : IActionHandler
 
     // 3. Get target bucket for egress checks
     var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.StandaloneMode);
-    var egressStore = useDefaultStore
+    var egressDetails = useDefaultStore
       ? null
-      : _mapper.Map<MinioOptions>(await _controller.RequestEgressBucket(job.Id));
+      : await _controller.RequestEgressBucket(job.Id);
 
-    var store = await _storeFactory.Create(egressStore);
+    var store = await _storeFactory.Create(_mapper.Map<MinioOptions>(egressDetails));
 
-    // Record the bucket details for later use
-    job.EgressTarget = JsonSerializer.Serialize(egressStore ?? _storeFactory.DefaultOptions);
+    // Record the full storage details for later use
+    job.EgressTarget = egressDetails is not null
+      ? JsonSerializer.Serialize(egressDetails)
+      : JsonSerializer.Serialize(_storeFactory.DefaultOptions);
     await _jobs.Set(job);
 
     _logger.LogDebug("job [{JobId}] Egress Target: {Target}", job.Id, job.EgressTarget);
@@ -137,7 +139,11 @@ public class InitiateEgressActionHandler : IActionHandler
 
     var files = await store.UploadFilesRecursively(
       job.WorkingDirectory.JobEgressOutputs(),
-      useDefaultStore ? job.Id : ""); // In the default store, it's a shared bucket; otherwise expect a per-job bucket
+      // In the default store, it's definitely a shared bucket,
+      // so we subfolder by job;
+      // otherwise use the details as provided.
+      useDefaultStore ? job.Id : egressDetails?.Path ?? "");
+
 
     // 5. Inform TRE that outputs are ready for checks
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
