@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AutoMapper;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models.JobQueue;
@@ -25,6 +26,7 @@ public class InitiateEgressActionHandler : IActionHandler
   private readonly StatusReportingService _status;
   private readonly JobActionsQueueOptions _queueOptions;
   private readonly ControllerApiService _controller;
+  private readonly IMapper _mapper;
 
   public InitiateEgressActionHandler(
     ILogger<InitiateEgressActionHandler> logger,
@@ -36,7 +38,8 @@ public class InitiateEgressActionHandler : IActionHandler
     StatusReportingService status,
     JobLifecycleService job,
     IOptions<JobActionsQueueOptions> queueOptions,
-    ControllerApiService controller)
+    ControllerApiService controller,
+    IMapper mapper)
   {
     _logger = logger;
     _features = features;
@@ -47,6 +50,7 @@ public class InitiateEgressActionHandler : IActionHandler
     _status = status;
     _job = job;
     _controller = controller;
+    _mapper = mapper;
     _queueOptions = queueOptions.Value;
   }
 
@@ -111,7 +115,7 @@ public class InitiateEgressActionHandler : IActionHandler
     var useDefaultStore = await _features.IsEnabledAsync(FeatureFlags.StandaloneMode);
     var egressStore = useDefaultStore
       ? null
-      : await _controller.RequestEgressBucket(job.Id);
+      : _mapper.Map<MinioOptions>(await _controller.RequestEgressBucket(job.Id));
 
     var store = await _storeFactory.Create(egressStore);
 
