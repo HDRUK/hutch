@@ -14,12 +14,7 @@ The Hutch Agent is a .NET application written in C#.
 
 Currently, there are no downloadable binaries for the Hutch Agent. To install it locally, clone the [Hutch Repository](https://github.com/HDRUK/hutch). Then in the `app/HutchAgent` directory run the following commands:
 
-- Build program in release mode
-```bash
-dotnet build --configuration Release
-```
-
-- Run the program
+- Build and run the application project
 ```bash
 dotnet run
 ```

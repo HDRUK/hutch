@@ -1,3 +1,7 @@
+using System.Xml;
+using System.Xml.Linq;
+using Flurl;
+using Flurl.Http;
 using HutchAgent.Config;
 using Microsoft.Extensions.Options;
 using Minio;
@@ -11,11 +15,22 @@ namespace HutchAgent.Services;
 public class MinioStoreServiceFactory
 {
   private readonly IServiceProvider _services;
+  private readonly ILogger<MinioStoreServiceFactory> _logger;
+  private readonly OpenIdIdentityService _identity;
+  private readonly OpenIdOptions _identityOptions;
 
-  public MinioStoreServiceFactory(IOptions<MinioOptions> defaultOptions, IServiceProvider services)
+  public MinioStoreServiceFactory(
+    IOptions<MinioOptions> defaultOptions,
+    IServiceProvider services,
+    IOptions<OpenIdOptions> identityOptions,
+    ILogger<MinioStoreServiceFactory> logger,
+    OpenIdIdentityService identity)
   {
     DefaultOptions = defaultOptions.Value;
     _services = services;
+    _logger = logger;
+    _identity = identity;
+    _identityOptions = identityOptions.Value;
   }
 
   /// <summary>
@@ -23,20 +38,82 @@ public class MinioStoreServiceFactory
   /// </summary>
   public MinioOptions DefaultOptions { get; }
 
-  private MinioClient GetClient(MinioOptions options)
+  private MinioClient GetClient(MinioOptions options, string? sessionToken)
   {
-    return new MinioClient()
+    var clientBuilder = new MinioClient()
       .WithEndpoint(options.Host)
       .WithCredentials(options.AccessKey, options.SecretKey)
-      .WithSSL(options.Secure)
-      .Build();
+      .WithSSL(options.Secure);
+
+    if (sessionToken is not null)
+      clientBuilder.WithSessionToken(sessionToken);
+    
+    return clientBuilder.Build();
   }
 
-  private MinioOptions MergeOptions(MinioOptions? options = null)
+  /// <summary>
+  /// Get temporary Minio access credentials via a client access token or a user identity token
+  /// </summary>
+  /// <param name="minioBaseUrl">The base url for the minio server - i.e. a scheme (http(s)) + the configured host</param>
+  /// <param name="token">The client's Access token or the User's Identity Token</param>
+  /// <param name="asUser">Whether to request credentials as a client or a user</param>
+  /// <returns>Temporary access key and secret key for use with Minio</returns>
+  private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(string minioBaseUrl, string token,
+    bool asUser)
   {
-    // TODO OIDC Minio Credentials support
+    if (!asUser)
+      throw new NotImplementedException(
+        "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is unfinished and untested.");
 
-    return new()
+    var url = minioBaseUrl
+      .SetQueryParams(new
+      {
+        Action = asUser ? "AssumeRoleWithWebIdentity" : "AssumeRoleWithClientGrants",
+        Version = "2011-06-15", // AWS stipulates this version for this endpoint...
+        DurationSeconds = 604800 // we ask for the max (7 days) - the credentials issued may be shorter
+      })
+      .SetQueryParam(asUser ? "WebIdentityToken" : "Token", token, true);
+
+    try
+    {
+
+      var response = await url.PostAsync().ReceiveString();
+
+      return ParseAssumeRoleResponse(response);
+    }
+    catch (FlurlHttpException e)
+    {
+      _logger.LogError("S3 STS AssumeRole Request failed: {ResponseBody}", await e.GetResponseStringAsync());
+      throw;
+    }
+  }
+
+  /// <summary>
+  /// Parse the XML response from an STS AssumeRole request to extract the desired details.
+  /// </summary>
+  /// <param name="response">The XML response from an STS AssumeRole request as a string.</param>
+  /// <returns>Access Token and Secret Key from the response.</returns>
+  private static (string accessKey, string secretKey, string sessionToken) ParseAssumeRoleResponse(string response)
+  {
+    var xml = XElement.Parse(response);
+    var accessKey = xml.Descendants().Single(x => x.Name.LocalName == "AccessKeyId").Value;
+    var secretKey = xml.Descendants().Single(x => x.Name.LocalName == "SecretAccessKey").Value;
+    var sessionToken = xml.Descendants().Single(x => x.Name.LocalName == "SessionToken").Value;
+
+    return (accessKey, secretKey, sessionToken);
+  }
+
+  /// <summary>
+  /// Combine provided options with default fallbacks where necessary
+  /// </summary>
+  /// <param name="options">The provided options</param>
+  /// <returns>
+  /// A complete options object built from those provided,
+  /// falling back on pre-configured defaults.
+  /// </returns>
+  private MinioOptions MergeOptionsWithDefaults(MinioOptions? options = null)
+  {
+    var mergedOptions = new MinioOptions
     {
       Host = string.IsNullOrWhiteSpace(options?.Host)
         ? DefaultOptions.Host
@@ -52,6 +129,8 @@ public class MinioStoreServiceFactory
         ? DefaultOptions.Bucket
         : options.Bucket,
     };
+
+    return mergedOptions;
   }
 
   /// <summary>
@@ -59,14 +138,46 @@ public class MinioStoreServiceFactory
   /// </summary>
   /// <param name="options">The provided options - omissions will fallback to Hutch's configured Default options.</param>
   /// <returns>A <see cref="MinioStoreService"/> instance configured with the provided options.</returns>
-  public MinioStoreService Create(MinioOptions? options = null)
+  public async Task<MinioStoreService> Create(MinioOptions? options = null)
   {
-    var mergedOptions = MergeOptions(options);
+    var useOpenId = string.IsNullOrWhiteSpace(options?.SecretKey)
+                    && string.IsNullOrWhiteSpace(options?.AccessKey)
+                    && _identityOptions.IsConfigComplete();
+    
+    var mergedOptions = MergeOptionsWithDefaults(options);
+
+    string? sessionToken = null;
+    if (useOpenId)
+    {
+      _logger.LogInformation(
+        "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
+
+      // Get an OIDC token
+      var asUser = true; // Minio only supports user tokens currently
+      var token = asUser
+        ? (await _identity.RequestUserTokens(_identityOptions)).identity
+        : await _identity.RequestClientAccessToken(_identityOptions);
+      // 
+
+      // Get MinIO STS credentials with the user's identity token
+      // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
+      // or with a client access token // NOTE: this seems to be unfinished; it's not in the docs site and gives 400 Bad Request on a real server
+      // https://github.com/minio/minio/blob/master/docs/sts/client-grants.md
+      var (accessKey, secretKey, returnedSessionToken) = await GetTemporaryCredentials(
+        $"{(mergedOptions.Secure ? "https" : "http")}://{mergedOptions.Host}",
+        token,
+        asUser);
+
+      // set the credentials to those from the STS response
+      mergedOptions.AccessKey = accessKey;
+      mergedOptions.SecretKey = secretKey;
+      sessionToken = returnedSessionToken;
+    }
 
     return new MinioStoreService(
       _services.GetRequiredService<ILogger<MinioStoreService>>(),
       mergedOptions,
-      GetClient(mergedOptions));
+      GetClient(mergedOptions, sessionToken));
   }
 }
 
@@ -74,16 +185,23 @@ public class MinioStoreService
 {
   private readonly ILogger<MinioStoreService> _logger;
   private readonly MinioOptions _options;
-  private readonly MinioClient _minio;
+  private readonly IMinioClient _minio;
 
   public MinioStoreService(
     ILogger<MinioStoreService> logger,
     MinioOptions options,
-    MinioClient minio)
+    IMinioClient minio)
   {
     _logger = logger;
     _options = options;
     _minio = minio;
+
+    // TODO One day we might need to handle expiry / refresh of credentials
+    // since the options provided to this instance may contain temporary credentials.
+    // Fetching new ones within the lifetime of a single store instance?
+    // Currently we hope instances are shortlived enough (due to use of the factory)
+    // and credentials are longlived enough that it won't matter,
+    // since we get new instances from the factory for distinct job actions
   }
 
   /// <summary>
@@ -100,67 +218,24 @@ public class MinioStoreService
   /// Upload a file to an S3 bucket.
   /// </summary>
   /// <param name="sourcePath">The path of the file to be uploaded.</param>
-  /// <param name="targetPath">Optional Directory path to put the file in within the bucket.</param>
+  /// <param name="objectId">Intended ObjectId in the target storage.</param>
   /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
   /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
   /// <exception cref="FileNotFoundException">Thrown when the file to be uploaded does not exist.</exception>
-  public async Task WriteToStore(string sourcePath, string targetPath = "")
+  public async Task WriteToStore(string sourcePath, string objectId)
   {
     if (!await StoreExists())
       throw new BucketNotFoundException(_options.Bucket, $"No such bucket: {_options.Bucket}");
 
     if (!File.Exists(sourcePath)) throw new FileNotFoundException();
-
-    var objectName = CalculateObjectName(targetPath);
     var putObjectArgs = new PutObjectArgs()
       .WithBucket(_options.Bucket)
       .WithFileName(sourcePath)
-      .WithObject(objectName);
+      .WithObject(objectId);
 
-    _logger.LogInformation("Uploading '{TargetObject} to {Bucket}...", objectName, _options.Bucket);
+    _logger.LogDebug("Uploading '{TargetObject} to {Bucket}...", objectId, _options.Bucket);
     await _minio.PutObjectAsync(putObjectArgs);
-    _logger.LogInformation("Successfully uploaded {TargetObject} to {Bucket}", objectName, _options.Bucket);
-  }
-
-  /// <summary>
-  /// Calculate what the object name in a bucket should be based on the source file path
-  /// </summary>
-  /// <param name="sourcePath">Path to the file to be uploaded</param>
-  /// <param name="targetPath">Optional directory path within the bucket to put the file at</param>
-  /// <returns>The full object name for the file to be placed in a bucket</returns>
-  public string CalculateObjectName(string sourcePath, string targetPath = "")
-  {
-    return Path.Combine(targetPath, Path.GetFileName(sourcePath));
-  }
-
-  /// <summary>
-  /// Check if a file already exists in an S3 bucket.
-  /// </summary>
-  /// <param name="objectName">The name of the file to check in the bucket.</param>
-  /// <exception cref="BucketNotFoundException">Thrown when the given bucket doesn't exists.</exception>
-  /// <exception cref="MinioException">Thrown when any other error related to MinIO occurs.</exception>
-  public async Task<bool> ResultExists(string objectName)
-  {
-    if (!await StoreExists())
-      throw new BucketNotFoundException(_options.Bucket, $"No such bucket: {_options.Bucket}");
-
-    var statObjectArgs = new StatObjectArgs()
-      .WithBucket(_options.Bucket)
-      .WithObject(objectName);
-
-    try
-    {
-      _logger.LogInformation("Looking for {Object} in {Bucket}...", objectName, _options.Bucket);
-      await _minio.StatObjectAsync(statObjectArgs);
-      _logger.LogInformation("Found {Object} in {Bucket}", objectName, _options.Bucket);
-      return true;
-    }
-    catch (ObjectNotFoundException)
-    {
-      _logger.LogInformation("Could not find {Object} in {Bucket}", objectName, _options.Bucket);
-    }
-
-    return false;
+    _logger.LogDebug("Successfully uploaded {TargetObject} to {Bucket}", objectId, _options.Bucket);
   }
 
   /// <summary>
@@ -182,5 +257,50 @@ public class MinioStoreService
       .WithExpiry((int)TimeSpan.FromDays(1).TotalSeconds)
       .WithBucket(_options.Bucket)
       .WithObject(objectId));
+  }
+
+  /// <summary>
+  /// Upload the contents of a Directory and its subdirectories,
+  /// optionally with an objectId prefix to "subdirectory" the objects in the target bucket.
+  /// </summary>
+  /// <param name="sourcePath">The starting directory path. Must be a directory not a single file.</param>
+  /// <param name="targetPrefix">Optional prefix to prepend to any uploaded objects (serves as a target directory path within the target bucket).</param>
+  /// <returns>A List of object IDs uploaded (i.e. effective file paths relative to the bucket root).</returns>
+  public async Task<List<string>> UploadFilesRecursively(string sourcePath, string targetPrefix = "")
+  {
+    var a = File.GetAttributes(sourcePath);
+    if ((a & FileAttributes.Directory) != FileAttributes.Directory)
+      throw new ArgumentException(
+        $"Expected a path to a Directory, but got a file: {sourcePath}", nameof(sourcePath));
+
+    return await UploadFilesRecursively(sourcePath, "", targetPrefix);
+  }
+
+  private async Task<List<string>> UploadFilesRecursively(string sourceRoot, string sourceSubPath, string targetPrefix)
+  {
+    // We do a bunch of path shenanigans to ensure relative directory paths are maintained inside the bucket
+    var sourcePath = Path.Combine(sourceRoot, sourceSubPath);
+    var a = File.GetAttributes(sourcePath);
+
+    // Directory
+    if ((a & FileAttributes.Directory) == FileAttributes.Directory)
+    {
+      var results = new List<string>();
+      foreach (var entry in Directory.EnumerateFileSystemEntries(sourcePath))
+      {
+        if (!Path.EndsInDirectorySeparator(sourceRoot))
+          sourceRoot += Path.DirectorySeparatorChar;
+        var relativeSubPath = entry.Replace(sourceRoot, "");
+
+        results.AddRange(await UploadFilesRecursively(sourceRoot, relativeSubPath, targetPrefix));
+      }
+
+      return results;
+    }
+
+    // Single File
+    var objectId = Path.Combine(targetPrefix, sourceSubPath);
+    await WriteToStore(sourcePath, objectId);
+    return new() { objectId };
   }
 }

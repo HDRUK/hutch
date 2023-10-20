@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="Moq" Version="4.18.4" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="19.2.69" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,7 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HutchAgent\HutchAgent.csproj" />
+    <ProjectReference Include="..\..\app\HutchAgent\HutchAgent.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TestBagit/**/*" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
 </Project>

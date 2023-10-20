@@ -5,12 +5,12 @@ namespace HutchAgent.Models;
 public class SubmitJobModel
 {
   /// <summary>
-  /// This is a Job ID as provided by the TRE Agent.
+  /// This is a Submission ID as provided by the TRE Controller.
   /// Hutch continues to use it to identify the job internally,
-  /// but also to interact with the TRE Agent in future.
+  /// but also to interact with the TRE Controller API in future.
   /// </summary>
   [Required]
-  public string JobId { get; set; } = string.Empty;
+  public string SubId { get; set; } = string.Empty;
 
   /// <summary>
   /// Optional Project Database Connection details.

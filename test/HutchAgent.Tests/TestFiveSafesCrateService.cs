@@ -1,6 +1,3 @@
-using System.Globalization;
-using System.IO.Compression;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Services;
@@ -8,8 +5,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using ROCrates;
-using ROCrates.Models;
-using File = System.IO.File;
 
 namespace HutchAgent.Tests;
 
@@ -23,6 +18,7 @@ public class TestFiveSafesCrateService : IClassFixture<CrateServiceFixture>
   private readonly CrateServiceFixture _crateServiceFixture;
   private readonly IOptions<PathOptions> _paths;
   private readonly Mock<ILogger<FiveSafesCrateService>> _logger;
+  private readonly BagItService _bagIt;
 
   public TestFiveSafesCrateService(CrateServiceFixture crateServiceFixture)
   {
@@ -31,6 +27,8 @@ public class TestFiveSafesCrateService : IClassFixture<CrateServiceFixture>
     _paths = Options.Create<PathOptions>(new());
 
     _logger = new Mock<ILogger<FiveSafesCrateService>>();
+
+    _bagIt = new BagItService();
   }
 
   // TODO FinalizeMetadata (replacing UpdateMetadata) isn't pure enough to test.
@@ -100,23 +98,24 @@ public class TestFiveSafesCrateService : IClassFixture<CrateServiceFixture>
         License = new()
         {
           Uri = _licenseUrl,
-          Properties = new JsonObject(new Dictionary<string, JsonNode?>()
+          Properties = new Dictionary<string, JsonNode?>
           {
             ["name"] = _licenseName,
             ["identifier"] = _licenseId
-          })
+          }
         }
       }),
-      _logger.Object);
+      _logger.Object,
+      _bagIt);
 
     // Act
     service.AddLicense(crate);
 
     // Assert
     var license = crate.Entities[_licenseUrl];
-    
+
     Assert.NotNull(license); // We found it? We must have got the entity id right (the license URL)
-    
+
     Assert.Equal(_licenseName, license.Properties["name"]?.ToString());
     Assert.Equal(_licenseId, license.Properties["identifier"]?.ToString());
   }

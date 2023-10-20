@@ -1,6 +1,6 @@
-namespace HutchAgent.Models;
-
 using YamlDotNet.Serialization;
+
+namespace HutchAgent.Models.Wfexs;
 
 public class WorkflowStageFile
 {

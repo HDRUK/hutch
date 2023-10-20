@@ -124,7 +124,7 @@ public class JobsController : ControllerBase
   }
 
   /// <summary>
-  /// Provide a Cloud Storage Cratae Source via POST Request Body for an already created job with the given id.
+  /// Provide a Cloud Storage Crate Source via POST Request Body for an already created job with the given id.
   /// </summary>
   /// <param name="id">The ID of the of the job to provide a crate URL for.</param>
   /// <param name="source">An object detailing where to find a TRE-FX 5 Safes RO-Crate for the job,
@@ -245,7 +245,7 @@ public class JobsController : ControllerBase
   [SwaggerResponse(202, "The Job was registered, and the submitted Request Crate Source queued to be fetched.",
     typeof(JobStatusModel))]
   [SwaggerResponse(400, "The Job details submitted are invalid.")]
-  [SwaggerResponse(409, "Hutch is already actively managing a Job with this Id.")]
+  [SwaggerResponse(409, "Hutch is already actively managing a Job with this Submission Id.")]
   public async Task<ActionResult<JobStatusModel>> Submit(SubmitJobModel model)
   {
     if (!ModelState.IsValid) return BadRequest();
@@ -263,13 +263,13 @@ public class JobsController : ControllerBase
     {
       await _jobs.Create(new()
       {
-        Id = model.JobId,
+        Id = model.SubId,
         DataAccess = JsonSerializer.Serialize(model.DataAccess),
         CrateSource = model.CrateUrl?.ToString()
                       ?? (model.CrateSource is not null
                         ? JsonSerializer.Serialize(model.CrateSource)
                         : null),
-        WorkingDirectory = _paths.JobWorkingDirectory(model.JobId)
+        WorkingDirectory = _paths.JobWorkingDirectory(model.SubId)
       });
     }
     catch (DbUpdateException)
@@ -284,24 +284,82 @@ public class JobsController : ControllerBase
         _queueOptions.QueueName,
         new JobQueueMessage
         {
-          JobId = model.JobId,
+          JobId = model.SubId,
           ActionType = JobActionTypes.FetchAndExecute,
         });
 
-      await _status.ReportStatus(model.JobId, JobStatus.FetchingCrate);
+      await _status.ReportStatus(model.SubId, JobStatus.FetchingCrate);
       return Accepted(new JobStatusModel
       {
-        Id = model.JobId,
+        Id = model.SubId,
         Status = JobStatus.FetchingCrate.ToString()
       });
     }
 
     // (otherwise, we expect a raw crate, or URL, to be submitted at a later time.)
-    await _status.ReportStatus(model.JobId, JobStatus.WaitingForCrate);
+    await _status.ReportStatus(model.SubId, JobStatus.WaitingForCrate);
     return Ok(new JobStatusModel
     {
-      Id = model.JobId,
+      Id = model.SubId,
       Status = JobStatus.WaitingForCrate.ToString()
     });
+  }
+
+  /// <summary>
+  /// Accept an approval outcome for a job. If a job with the specified ID is fully approved, queue it for finalization.
+  /// Otherwise treat the job as failed.
+  /// </summary>
+  /// <param name="id">The ID of the job.</param>
+  /// <param name="result">The outcome of the approval checks.</param>
+  /// <returns></returns>
+  [HttpPost("{id}/approval")]
+  [SwaggerResponse(200, "The approval process completed successfully.")]
+  [SwaggerResponse(400, "The request could not be parsed. " +
+                        "Check the status field is a supported value.")]
+  [SwaggerResponse(404, "The job corresponding to the given ID doesn't exist.")]
+  public async Task<IActionResult> Approval(string id, [FromBody] ApprovalResult result)
+  {
+    var jobStatus = new JobStatusModel()
+    {
+      Id = id,
+      Status = ""
+    };
+    try
+    {
+      var job = await _jobs.Get(id);
+
+      if (result.Status == ApprovalType.FullyApproved)
+      {
+        _job.DisclosureCheckCompleted(job);
+
+        _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
+        {
+          ActionType = JobActionTypes.Finalize,
+          JobId = id
+        });
+        jobStatus.Status = JobStatus.PackagingApprovedResults.ToString();
+
+        await _status.ReportStatus(id, JobStatus.PackagingApprovedResults);
+      }
+      else
+      {
+        // Todo: support partial approval
+        // Only finalise and include the approved files.
+
+        // Todo: when failed
+        // record disclosure check as failed and finalise without outputs.
+
+        // TODO: return some sort of job status
+
+        jobStatus.Status = JobStatus.Failure.ToString();
+        await _job.Cleanup(job);
+      }
+
+      return Ok(jobStatus);
+    }
+    catch (KeyNotFoundException)
+    {
+      return NotFound();
+    }
   }
 }

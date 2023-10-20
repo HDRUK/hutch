@@ -3,8 +3,8 @@ using Microsoft.Extensions.Options;
 
 namespace HutchAgent.Services;
 
-// TODO: Make compatible with hot-changing options like the Minio Writer does.
-[Obsolete("To be updated for later use")]
+// TODO: Store Services need reworking to support a unified interface
+// while also accepting target specific settings...
 public class FileSystemResultsStoreService
 {
   private readonly FileSystemResultsStoreOptions _options;

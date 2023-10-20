@@ -1,4 +1,6 @@
+using System.IO.Abstractions;
 using System.Reflection;
+using Flurl.Http.Configuration;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Data;
@@ -7,11 +9,17 @@ using HutchAgent.Services;
 using HutchAgent.Services.ActionHandlers;
 using HutchAgent.Services.Contracts;
 using HutchAgent.Services.Hosted;
+using HutchAgent.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, configuration) => 
+  configuration.ReadFrom.Configuration(context.Configuration));
+
 
 #region Configure Service
 
@@ -47,14 +55,17 @@ builder.Services.AddSwaggerGen(o =>
   o.IncludeXmlComments(Path.Combine(
     AppContext.BaseDirectory,
     $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
-  
+
   o.EnableAnnotations();
   o.SupportNonNullableReferenceTypes();
 });
 
 // Other Services
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
-builder.Services.AddHttpClient();
+builder.Services
+  .AddAutoMapper(typeof(Program).Assembly)
+  .AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>()
+  .AddHttpClient()  // We prefer Flurl for most use cases, but IdentityModel has extensions for vanilla HttpClient
+  .AddTransient<IFileSystem,FileSystem>();
 
 // IOptions
 builder.Services
@@ -63,7 +74,9 @@ builder.Services
   .Configure<JobActionsQueueOptions>(builder.Configuration.GetSection("Queue"))
   .Configure<MinioOptions>(builder.Configuration.GetSection("StoreDefaults"))
   .Configure<WorkflowTriggerOptions>(builder.Configuration.GetSection("WorkflowExecutor"))
-  .Configure<CratePublishingOptions>(builder.Configuration.GetSection("CratePublishing"));
+  .Configure<CratePublishingOptions>(builder.Configuration.GetSection("CratePublishing"))
+  .Configure<ControllerApiOptions>(builder.Configuration.GetSection("ControllerApi"))
+  .Configure<OpenIdOptions>(builder.Configuration.GetSection("IdentityProvider"));
 
 // JobAction Handlers
 builder.Services
@@ -78,6 +91,7 @@ builder.Services
 
 // Other Application Services
 builder.Services
+  .AddTransient<FileSystemUtility>()
   .AddTransient<JobLifecycleService>()
   .AddTransient<StatusReportingService>()
   .AddTransient<WorkflowJobService>()
@@ -87,12 +101,15 @@ builder.Services
   .AddTransient<WorkflowTriggerService>()
   .AddTransient<WorkflowFetchService>()
   .AddIntermediaryStoreFactory(builder.Configuration)
+  .AddTransient<OpenIdIdentityService>()
   .AddTransient<IQueueWriter, RabbitQueueWriter>()
   .AddTransient<IQueueReader, RabbitQueueReader>();
 
 #endregion
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 app.UseRouting();
 app.UseSwagger();

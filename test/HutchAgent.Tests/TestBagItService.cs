@@ -1,12 +1,12 @@
 using HutchAgent.Services;
-using Moq;
 
 namespace HutchAgent.Tests;
 
 public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<TagManifestFixture>
 {
-  private ManifestFixture _manifestFixture;
-  private TagManifestFixture _tagManifestFixture;
+  private readonly ManifestFixture _manifestFixture;
+  private readonly TagManifestFixture _tagManifestFixture;
+  private readonly string _testBagitPath = "TestBagit";
 
   public TestBagItService(ManifestFixture manifestFixture, TagManifestFixture tagManifestFixture)
   {
@@ -68,7 +68,7 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
   {
     // Arrange
     var service = new BagItService();
-    
+
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
 
@@ -81,7 +81,7 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
   {
     // Arrange
     var service = new BagItService();
-    
+
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
     var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
@@ -99,7 +99,7 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
   {
     // Arrange
     var service = new BagItService();
-    
+
     // Act
     await service.WriteTagManifestSha512(_tagManifestFixture.Dir.FullName);
     var lines = await File.ReadAllLinesAsync(_tagManifestFixture.TagManifestPath);
@@ -110,6 +110,19 @@ public class TestBagItService : IClassFixture<ManifestFixture>, IClassFixture<Ta
     {
       Assert.Contains(p, _tagManifestFixture.ExpectedPaths);
     }
+  }
+
+  [Fact]
+  public async Task VerifyChecksum_Returns_TrueWhenChecksumsAreCorrect()
+  {
+    // Arrange
+    var service = new BagItService();
+
+    // Act
+    var valid = await service.VerifyChecksums(_testBagitPath);
+
+    // Assert
+    Assert.True(valid);
   }
 }
 

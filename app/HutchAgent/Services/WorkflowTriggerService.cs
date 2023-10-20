@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Globalization;
+using System.IO.Abstractions;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
@@ -9,6 +9,7 @@ using HutchAgent.Constants;
 using HutchAgent.Models;
 using HutchAgent.Models.Wfexs;
 using HutchAgent.Results;
+using HutchAgent.Utilities;
 using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Models;
@@ -20,7 +21,7 @@ namespace HutchAgent.Services;
 
 // TODO this is all pretty wfexs specific;
 // maybe in future could be abstracted into a wfexs implementation of a more general interface?
-public class WorkflowTriggerService
+public partial class WorkflowTriggerService
 {
   private readonly WorkflowTriggerOptions _workflowOptions;
   private readonly ILogger<WorkflowTriggerService> _logger;
@@ -28,14 +29,26 @@ public class WorkflowTriggerService
   private const string _bashCmd = "bash";
   private readonly FiveSafesCrateService _crateService;
   private readonly IDeserializer _unyaml;
+  private readonly StatusReportingService _status;
+  private readonly WorkflowJobService _jobs;
+  private readonly PathOptions _paths;
+  private readonly FileSystemUtility _fsu;
 
   public WorkflowTriggerService(
     IOptions<WorkflowTriggerOptions> workflowOptions,
     ILogger<WorkflowTriggerService> logger,
-    FiveSafesCrateService crateService)
+    FiveSafesCrateService crateService,
+    StatusReportingService status,
+    WorkflowJobService jobs,
+    IOptions<PathOptions> paths,
+    FileSystemUtility fsu)
   {
     _logger = logger;
     _crateService = crateService;
+    _status = status;
+    _jobs = jobs;
+    _fsu = fsu;
+    _paths = paths.Value;
     _workflowOptions = workflowOptions.Value;
     _activateVenv = "source " + _workflowOptions.VirtualEnvironmentPath;
     _unyaml = new DeserializerBuilder()
@@ -70,22 +83,46 @@ public class WorkflowTriggerService
       GetExecutorWorkingDirectory(),
       executorRunId,
       "meta", "execution-state.yaml");
-    
+
     if (!File.Exists(pathToState))
     {
       _logger.LogDebug("Could not find execution status file at '{StatePath}'", pathToState);
+      // TODO check for wfexs errors? in case execution failed rather than is incomplete
       return result;
     }
 
     result.IsComplete = true;
 
-    var state = _unyaml.Deserialize<WfexsExecutionState>(await File.ReadAllTextAsync(pathToState));
+    // TODO do we need to support multiple executions in this state file?
+    var state = _unyaml.Deserialize<List<WfexsExecutionState>>(await File.ReadAllTextAsync(pathToState))[0];
 
     result.ExitCode = state.ExitCode;
     result.StartTime = state.StartTime;
     result.EndTime = state.EndTime;
 
     return result;
+  }
+
+  [GeneratedRegex(@".*meta\.json$")]
+  private static partial Regex MatchContainerMetadataFiles();
+
+  public void UnpackOutputsFromPath(string sourcePath, string targetPath)
+  {
+    if (!Directory.Exists(targetPath))
+      Directory.CreateDirectory(targetPath);
+
+    // Relative paths should be relative to Hutch working directory
+    if (!Path.IsPathFullyQualified(sourcePath))
+      sourcePath = Path.Combine(_paths.WorkingDirectoryBase, sourcePath);
+
+    ZipFile.ExtractToDirectory(sourcePath, targetPath);
+
+    if (!_workflowOptions.IncludeContainersInOutput)
+    {
+      // Path to workflow containers
+      var containersPath = Path.Combine(targetPath, "containers");
+      _fsu.SelectivelyDelete(containersPath, MatchContainerMetadataFiles());
+    }
   }
 
   public void UnpackOutputs(string executorRunId, string targetPath)
@@ -97,19 +134,7 @@ public class WorkflowTriggerService
       "outputs",
       "execution.crate.zip");
 
-    if (!Directory.Exists(targetPath))
-      Directory.CreateDirectory(targetPath);
-      
-    ZipFile.ExtractToDirectory(executionCratePath, targetPath);
-    
-    
-    // Path to workflow containers // TODO this should be INSIDE the unpacked crate!
-    var containersPath = Path.Combine(
-      "", //_wfexsWorkDir,
-      executorRunId,
-      "containers");
-    
-    //if (_workflowOptions.IncludeContainersInOutput) Directory.Delete(containersPath, recursive: true);
+    UnpackOutputsFromPath(executionCratePath, targetPath);
   }
 
   /// <summary>
@@ -118,20 +143,32 @@ public class WorkflowTriggerService
   /// <param name="job"></param>
   /// <param name="roCrate"></param>
   /// <exception cref="Exception"></exception>
-  public async Task TriggerWfexs(WorkflowJob job, ROCrate roCrate)
+  public async Task
+    TriggerWfexs(WorkflowJob job,
+      ROCrate roCrate) // TODO split this up into staging (producing the stage file) and executing (actually running wfexs)
   {
+    await _status.ReportStatus(job.Id, JobStatus.StagingWorkflow);
+
     //Get execute action and set status to active
     var executeAction = _crateService.GetExecuteEntity(roCrate);
     executeAction.SetProperty("startTime", DateTime.Now);
     _crateService.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, executeAction);
-    
+
     // Create stage file and save file path
-    var stageFilePath = WriteStageFile(job, roCrate);
+    var stageFilePath = await WriteStageFile(job, roCrate);
+
+    await _status.ReportStatus(job.Id, JobStatus.ExecutingWorkflow);
     // Commands to install WfExS and execute a workflow
     // given a path to the local config file and a path to the stage file of a workflow
     var command =
-      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath} --full";
-    var processStartInfo = new ProcessStartInfo
+      $"./WfExS-backend.py  -L {_workflowOptions.LocalConfigPath} execute -W {stageFilePath}";
+
+    if (!_workflowOptions.SkipFullProvenanceCrate)
+      command += " --full";
+
+    var p = new Process();
+
+    p.StartInfo = new ProcessStartInfo
     {
       RedirectStandardOutput = true,
       RedirectStandardInput = true,
@@ -141,30 +178,79 @@ public class WorkflowTriggerService
       FileName = _bashCmd,
       WorkingDirectory = _workflowOptions.ExecutorPath
     };
-    // start process
-    var process = Process.Start(processStartInfo);
-    if (process == null)
-      throw new Exception("Could not start process");
-    _logger.LogInformation($"Process started for job: {job.Id}");
+    if (_workflowOptions.RemainAttached)
+    {
+      p.EnableRaisingEvents = true;
+      const string message = "Job [{JobId}] ({ExecutorRunId}) {Stream}: {Data}";
 
-    await process.StandardInput.WriteLineAsync(_activateVenv);
-    await process.StandardInput.WriteLineAsync(command);
-    await process.StandardInput.FlushAsync();
-    process.StandardInput.Close();
+      // TODO tidy this the hell up
+      p.OutputDataReceived += async (sender, args) =>
+      {
+        if (string.IsNullOrEmpty(job.ExecutorRunId) && args.Data is not null)
+        {
+          job.ExecutorRunId = FindRunName(args.Data) ?? "";
+          if (!string.IsNullOrEmpty(job.ExecutorRunId))
+          {
+            _logger.LogDebug(
+              "Job [{JobId}] found ExecutorRunId: {RunId}", job.Id, job.ExecutorRunId);
+            await _jobs.Set(job);
+          }
+        }
+
+        _logger.LogDebug(message, job.Id, job.ExecutorRunId, "StdOut",
+          args.Data ?? "event received but data was null");
+      };
+
+      p.ErrorDataReceived += (sender, args) =>
+      {
+        _logger.LogDebug(message, job.Id, job.ExecutorRunId, "StdErr",
+          args.Data ?? "event received but data was null");
+      };
+    }
+
+    // start process
+    if (!p.Start())
+      throw new Exception("Could not start process");
+    _logger.LogInformation("Process started for job: {JobId}", job.Id);
+
+    // venv
+    _logger.LogDebug("Virtual Environment command: {Command}", _activateVenv);
+    await p.StandardInput.WriteLineAsync(_activateVenv);
+    await p.StandardInput.FlushAsync();
+    _logger.LogInformation("Virtual Environment activated");
+
+    // wfexs
+    _logger.LogDebug("Executor command: {Command}", command);
+    await p.StandardInput.WriteLineAsync(command);
+    await p.StandardInput.FlushAsync();
+    _logger.LogInformation("Executor command executed");
+
+    p.StandardInput.Close();
 
     // Read the stdout of the WfExS run to get the run ID
-    var reader = process.StandardOutput;
-    while (!process.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
+    if (!_workflowOptions.RemainAttached)
     {
-      var stdOutLine = await reader.ReadLineAsync();
-      if (stdOutLine is null) continue;
-      var runName = _findRunName(stdOutLine);
-      if (runName is null) continue;
-      job.ExecutorRunId = runName;
+      var reader = p.StandardOutput;
+      while (!p.HasExited && string.IsNullOrEmpty(job.ExecutorRunId))
+      {
+        var stdOutLine = await reader.ReadLineAsync();
+        if (stdOutLine is null) continue;
+        job.ExecutorRunId = FindRunName(stdOutLine) ?? "";
+        if (string.IsNullOrEmpty(job.ExecutorRunId)) continue;
+        await _jobs.Set(job);
+      }
+    }
+    else
+    {
+      p.BeginOutputReadLine();
+      p.BeginErrorReadLine();
+      await p.WaitForExitAsync();
+      p.CancelErrorRead();
+      p.CancelOutputRead();
     }
 
     // close our connection to the process
-    process.Close();
+    p.Close();
   }
 
   private async Task<string> WriteStageFile(WorkflowJob workflowJob, ROCrate roCrate)
@@ -180,7 +266,7 @@ public class WorkflowTriggerService
                              roCrate.Entities[mention!["@id"]!.ToString()].GetProperty<JsonNode>("result")) ??
                          throw new NullReferenceException("No download action found in the RO-Crate");
 
-    var cratePath = Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
+    var cratePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
       downloadAction.First()!["@id"]!.ToString());
     await InitialiseRepo(cratePath);
 
@@ -195,6 +281,10 @@ public class WorkflowTriggerService
     {
       WorkflowId = gitUrl,
       Nickname = "HutchAgent" + workflowJob.Id,
+      WorkflowConfig = new()
+      {
+        Container = _workflowOptions.ContainerEngine // TODO in future validate values 
+      },
       Params = new object()
     };
     // Get inputs from execute entity
@@ -220,7 +310,7 @@ public class WorkflowTriggerService
       {
         // get absolute path to input
         var absolutePath = Path.Combine(
-          Path.GetFullPath(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath()),
+          Path.GetFullPath(workflowJob.WorkingDirectory.JobCrateRoot()),
           objectEntity.Id);
         var filePath = "file://" + absolutePath;
 
@@ -233,9 +323,52 @@ public class WorkflowTriggerService
       }
       else
       {
-        var value = objectEntity.Properties["value"] ??
+        var value = objectEntity.Properties["value"]?.ToString() ??
                     throw new NullReferenceException("Could not get value for given input parameter.");
-        parameters[name.ToString()] = value.ToString();
+
+
+        // TODO the below is a temporary hack until we test wfexs environment variables
+        // and update workflows and guidance around data access.
+        try
+        {
+          // Basically we currently modify inputs with known names
+          // to have values from the job submission's data access details
+          // instead of what's contained in the job crate.
+          //
+          // This approach does rely on the job crate having the inputs defined,
+          // but they can have dummy values that will be replaced.
+          //
+          // When we switch to environment variables, they won't need defining as inputs or anything
+          // within the job crate; they'll just be added to the execution environment
+          // and optionally used by the workflow if it cares.
+
+          // Try and get the data access details
+          var dataAccess = JsonSerializer.Deserialize<DatabaseConnectionDetails>(workflowJob.DataAccess ?? "");
+
+          // Input value replacements!
+          if (dataAccess is not null)
+          {
+            value = name.ToString() switch
+            {
+              "db_host" => dataAccess.GetContainerHost(_workflowOptions.ContainerEngine),
+              "db_port" => dataAccess.Port.ToString(),
+              "db_name" => dataAccess.Database,
+              "db_user" => dataAccess.Username,
+              "db_password" => dataAccess.Password,
+              _ => value // leave it untouched
+            };
+          }
+        }
+        catch (JsonException)
+        {
+          // we've failed to deserialize data access.
+          // not much we can do, but shouldn't stop the job trying to run.
+          // 
+          // it may fail if it intends to try and access the data source,
+          // but that'll get handled and reported in the usual way.
+        }
+
+        parameters[name.ToString()] = value;
       }
     }
 
@@ -263,13 +396,13 @@ public class WorkflowTriggerService
     var serializer = new SerializerBuilder()
       .Build();
     var yaml = serializer.Serialize(stageFile);
-    var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
-      "hutch_cwl.wfex.stage");
-    using (StreamWriter outputStageFile =
-           new StreamWriter(stageFilePath))
-    {
-      outputStageFile.WriteLineAsync(yaml);
-    }
+    var stageFilePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
+      "hutch_cwl.wfex.stage"); // TODO rename later maybe if we support more than cwl ;)
+
+    // TODO should we write metadata for the stage file? (yes)
+
+    await using var outputStageFile = new StreamWriter(stageFilePath);
+    await outputStageFile.WriteLineAsync(yaml);
 
     var absoluteStageFilePath = Path.Combine(
       Path.GetFullPath(stageFilePath));
@@ -311,11 +444,12 @@ public class WorkflowTriggerService
       await streamWriter.FlushAsync();
       streamWriter.Close();
     }
+
     var reader = gitProcess.StandardOutput;
     while (!gitProcess.HasExited)
     {
       var stdOutLine = await reader.ReadLineAsync();
-      if (stdOutLine is null) continue; 
+      if (stdOutLine is null) continue;
     }
 
     gitProcess.Close();
@@ -323,37 +457,19 @@ public class WorkflowTriggerService
 
   private string CreateGitUrl(string pathToGitRepo, string pathToWorkflow)
   {
-    var absolutePath ="file://" + Path.GetFullPath(pathToGitRepo) + "#subdirectory=" +
+    var absolutePath = "file://" + Path.GetFullPath(pathToGitRepo) + "#subdirectory=" +
                        pathToWorkflow;
 
     return absolutePath;
   }
 
-  [Obsolete]
-  private string RewritePath(WorkflowJob workflowJob, string line)
+  [GeneratedRegex(
+    @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*")]
+  private static partial Regex WfexsRunIdLogLine();
+
+  private string? FindRunName(string text)
   {
-    var (linePrefix, relativePath) = line.Split("crate://") switch
-    {
-      { Length: 2 } a => (a[0], a[1]),
-      _ => (null, null)
-    };
-    if (relativePath is null) return line;
-
-    var absolutePath = Path.Combine(Path.GetFullPath(workflowJob.WorkingDirectory), relativePath);
-    var newLine = linePrefix + "file://" + absolutePath;
-
-    _logger.LogInformation($"Writing absolute input path {newLine}");
-
-    return newLine;
-  }
-
-  private string? _findRunName(string text)
-  {
-    var pattern =
-      @".*-\sInstance\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}).*";
-    var regex = new Regex(pattern);
-
-    var match = regex.Match(text);
+    var match = WfexsRunIdLogLine().Match(text);
     if (!match.Success)
     {
       _logger.LogError("Didn't match the pattern!");

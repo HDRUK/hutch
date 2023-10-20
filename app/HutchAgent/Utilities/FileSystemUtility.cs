@@ -1,9 +1,33 @@
 using System.IO;
+using System.IO.Abstractions;
+using System.Text.RegularExpressions;
 
 namespace HutchAgent.Utilities;
 
-public static class FilesystemUtility
+public class FileSystemUtility
 {
+  private readonly IFileSystem _fs;
+
+  public FileSystemUtility(IFileSystem fs)
+  {
+    _fs = fs;
+  }
+
+  /// <summary>
+  /// Delete everything from a directory (non-recursive)
+  /// EXCEPT files which match a provided pattern.
+  /// </summary>
+  /// <param name="targetPath">Path to the directory to delete files from</param>
+  /// <param name="keepPattern">A regex pattern for file paths to keep</param>
+  public void SelectivelyDelete(string targetPath, Regex keepPattern)
+  {
+    foreach (var filePath in _fs.Directory.EnumerateFiles(targetPath))
+    {
+      if (!keepPattern.IsMatch(filePath))
+        _fs.File.Delete(filePath);
+    }
+  }
+
   // https://learn.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories
   /// <summary>
   /// Copy a directory, optionally including all subdirectories recursively.

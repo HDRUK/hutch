@@ -20,14 +20,28 @@ public class FiveSafesCrateService
 {
   private readonly CratePublishingOptions _publishOptions;
   private readonly ILogger<FiveSafesCrateService> _logger;
+  private readonly BagItService _bagIt;
 
   public FiveSafesCrateService(
     IOptions<PathOptions> paths,
     IOptions<CratePublishingOptions> publishOptions,
-    ILogger<FiveSafesCrateService> logger)
+    ILogger<FiveSafesCrateService> logger,
+    BagItService bagIt)
   {
     _logger = logger;
+    _bagIt = bagIt;
     _publishOptions = publishOptions.Value;
+  }
+
+  /// <summary>
+  /// Get the CreateAction Entity for a 5S RO-Crate.
+  /// </summary>
+  /// <param name="crate">The 5S Crate to find the CreateAction in.</param>
+  /// <returns>The CreateAction Entity.</returns>
+  public Entity
+    GetCreateAction(ROCrate crate) // TODO some methods in here, like this one, could be extension methods on the Crate itself <3
+  {
+    return crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
   }
 
   /// <summary>
@@ -39,9 +53,6 @@ public class FiveSafesCrateService
     var roCrateRootPath = job.WorkingDirectory.JobCrateRoot();
     var crate = InitialiseCrate(roCrateRootPath);
 
-    // Entites
-    var createAction = crate.Entities.Values.First(x => x.GetProperty<string>("@type") == "CreateAction");
-
     // a) Add Outputs
     // TODO in future be more granular with outputs based on workflow definition?
 
@@ -50,29 +61,13 @@ public class FiveSafesCrateService
     crate.Add(outputs);
 
     // ii. CreateAction results
+    var createAction = GetCreateAction(crate);
     createAction.AppendTo("result", outputs);
 
     // iii. Root hasPart results
     crate.RootDataset.AppendTo("hasPart", outputs);
 
-
-    // b) Mark CreateAction complete
-    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, createAction);
-    createAction.SetProperty("startTime", job.ExecutionStartTime?.ToString(CultureInfo.InvariantCulture));
-    createAction.SetProperty("endTime", job.EndTime?.ToString(CultureInfo.InvariantCulture));
-
-
-    // c) Complete Disclosure AssessAction with outcome
-    // i. Amend AssessAction
-    var disclosureAction = GetAssessAction(crate, ActionType.DisclosureCheck);
-    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
-    disclosureAction.SetProperty("endTime",
-      job.EndTime?.ToString(CultureInfo.InvariantCulture)); // TODO get time from approval endpoint?
-    // ii. Root mentions
-    crate.RootDataset.AppendTo("mentions", disclosureAction);
-
-
-    // d) Add Licence and Publisher details
+    // b) Add Licence and Publisher details
     if (_publishOptions.Publisher is not null)
       crate.RootDataset.SetProperty("publisher", new Part()
       {
@@ -81,8 +76,10 @@ public class FiveSafesCrateService
     AddLicense(crate);
 
 
-    // e) Root datePublished
-    crate.RootDataset.SetProperty("datePublished", DateTimeOffset.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ssK"));
+    // c) Root datePublished
+    crate.RootDataset.SetProperty(
+      "datePublished",
+      DateTimeOffset.UtcNow.ToString("o", CultureInfo.InvariantCulture));
 
     crate.Save(roCrateRootPath);
   }
@@ -97,16 +94,24 @@ public class FiveSafesCrateService
   {
     var result = new BasicResult();
 
-    // TODO: BagIt checksum validation? or do this during execution?
-
-    // Validate that it's an RO-Crate at all, by trying to Initialise it
-    try
+    // throw invalid data if checksums don't match
+    var bagItDir = new DirectoryInfo(cratePath).Parent?.FullName;
+    if (bagItDir is not null && _bagIt.VerifyChecksums(bagItDir).Result)
     {
-      InitialiseCrate(cratePath);
+      // Validate that it's an RO-Crate at all, by trying to Initialise it
+      try
+      {
+        InitialiseCrate(cratePath);
+      }
+      catch (Exception e) when (e is CrateReadException || e is MetadataException)
+      {
+        result.Errors.Add("The provided file is not an RO-Crate.");
+      }
     }
-    catch (Exception e) when (e is CrateReadException || e is MetadataException)
+    else
     {
-      result.Errors.Add("The provided file is not an RO-Crate.");
+      result.Errors.Add(
+        "The files' checksums do not match. Check their contents, remake the checksums and re-submit the job.");
     }
 
     // TODO: 5 safes crate profile validation? or do this during execution?
@@ -130,7 +135,7 @@ public class FiveSafesCrateService
     Directory.CreateDirectory(targetPath);
     archive.ExtractToDirectory(targetPath, overwriteFiles: true);
 
-    _logger.LogInformation("Crate extracted at {TargetPath}", targetPath);
+    _logger.LogInformation("Job [{JobId}] Crate extracted at {TargetPath}", job.Id, targetPath);
 
     return targetPath;
   }
@@ -172,7 +177,7 @@ public class FiveSafesCrateService
     {
       Id = status
     });
-    _logger.LogInformation("Set {EntityId} actionStatus to {Status}", entity.Id, status);
+    _logger.LogDebug("Set {EntityId} actionStatus to {Status}", entity.Id, status);
   }
 
   /// <summary>
@@ -204,7 +209,7 @@ public class FiveSafesCrateService
       roCrate.Entities[
         executeEntityId.First()?["@id"]!.ToString() ??
         throw new InvalidOperationException($"No entity found with id of {executeEntityId.First()?["@id"]}")];
-    _logger.LogInformation("Retrieved execution details from RO-Crate");
+    _logger.LogDebug("Retrieved execution details from RO-Crate");
     return executeAction;
   }
 
@@ -361,7 +366,9 @@ public class FiveSafesCrateService
 
     var licenseEntity = new CreativeWork(
       identifier: _publishOptions.License.Uri,
-      properties: _publishOptions.License.Properties);
+      properties: new JsonObject(
+        _publishOptions.License.Properties
+        ?? new Dictionary<string, JsonNode?>()));
 
     // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
     licenseEntity.SetProperty("@type", "CreativeWork");
@@ -392,5 +399,22 @@ public class FiveSafesCrateService
       }
     }
     return false;
+  }
+
+  /// <summary>
+  /// Mark a disclosure check as successfully completed.
+  /// </summary>
+  /// <param name="crate"></param>
+  /// <param name="checkEndTime"></param>
+  public void CompleteDisclosureCheck(ROCrate crate, DateTimeOffset checkEndTime)
+  {
+    // i. Amend AssessAction
+    var disclosureAction = GetAssessAction(crate, ActionType.DisclosureCheck);
+    UpdateCrateActionStatus(ActionStatus.CompletedActionStatus, disclosureAction);
+    disclosureAction.SetProperty("endTime",
+      checkEndTime.ToString("o", CultureInfo.InvariantCulture));
+    disclosureAction.SetProperty("name",
+      "Disclosure check of workflow results: Fully approved"); // TODO Partial approval some day
+    // ii. Root mentions - already done when the AssessAction was created
   }
 }

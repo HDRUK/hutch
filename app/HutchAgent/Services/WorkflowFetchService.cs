@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text.RegularExpressions;
+using Flurl.Http;
 using HutchAgent.Constants;
 using HutchAgent.Models;
 using ROCrates;
@@ -23,14 +24,14 @@ public class WorkflowFetchService
     _logger = logger;
   }
 
-   /// <summary>
-   /// Fetch workflow specified in RO-Crate mainEntity
-   /// </summary>
-   /// <param name="workflowJob"></param>
-   /// <param name="roCrate"></param>
-   /// <returns></returns>
-   /// <exception cref="Exception"></exception>
-  public async Task<ROCrate> FetchWorkflowCrate(WorkflowJob workflowJob,ROCrate roCrate)
+  /// <summary>
+  /// Fetch workflow specified in RO-Crate mainEntity
+  /// </summary>
+  /// <param name="workflowJob"></param>
+  /// <param name="roCrate"></param>
+  /// <returns></returns>
+  /// <exception cref="Exception"></exception>
+  public async Task<ROCrate> FetchWorkflowCrate(WorkflowJob workflowJob, ROCrate roCrate)
   {
     // Get mainEntity from metadata, contains workflow location
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity");
@@ -45,37 +46,42 @@ public class WorkflowFetchService
     // Set DownloadAction status to Active
     _crates.UpdateCrateActionStatus(ActionStatus.ActiveActionStatus, downloadAction);
 
-    using (var client = new HttpClient())
+    try
     {
-      try
-      {
-        var clientStream = await client.GetStreamAsync(downloadAddress);
-        await using var file =
-          File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(), _workflowZip));
-        await clientStream.CopyToAsync(file);
-      }
-      catch (Exception e)
-      {
-        _logger.LogError(exception: e, "Could not download workflow for given address.");
-        // Set ActionStatus to failed and save updated
-        downloadAction.SetProperty("endTime", DateTime.Now);
-        _crates.UpdateCrateActionStatus(ActionStatus.FailedActionStatus, downloadAction);
-        roCrate.Save(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath());
-        throw;
-      }
+      var clientStream = await downloadAddress.GetAsync().ReceiveStream();
+
+      // ensure temp/ is available for downloading the workflow zip
+      if (!Directory.Exists(workflowJob.WorkingDirectory.JobTemp()))
+        Directory.CreateDirectory(workflowJob.WorkingDirectory.JobTemp());
+
+      await using var file =
+        File.OpenWrite(Path.Combine(workflowJob.WorkingDirectory.JobTemp(), _workflowZip));
+      await clientStream.CopyToAsync(file);
+    }
+    catch (Exception e)
+    {
+      _logger.LogError(exception: e, "Could not download workflow for given address");
+      // Set ActionStatus to failed and save updated
+      downloadAction.SetProperty("endTime", DateTime.Now);
+      _crates.UpdateCrateActionStatus(ActionStatus.FailedActionStatus, downloadAction);
+      roCrate.Save(workflowJob.WorkingDirectory.JobCrateRoot());
+      throw;
     }
 
-    _logger.LogInformation("Successfully downloaded workflow.");
+    _logger.LogInformation("Successfully downloaded workflow");
     var workflowCrateExtractPath =
-      Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(), "workflow", workflowId);
+      Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), "workflow", workflowId);
+
+    // extract the workflow zip
     using (var archive =
-           new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(),
+           new ZipArchive(File.OpenRead(Path.Combine(workflowJob.WorkingDirectory.JobTemp(),
              _workflowZip))))
     {
       Directory.CreateDirectory(workflowCrateExtractPath);
       archive.ExtractToDirectory(workflowCrateExtractPath);
-      _logger.LogInformation(
-        $"Unpacked workflow to {Path.Combine(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath(), "workflow", workflowId)}");
+      _logger.LogDebug(
+        "Unpacked workflow to {TargetPath}",
+        Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), "workflow", workflowId));
     }
 
     // Validate the Crate
@@ -90,7 +96,7 @@ public class WorkflowFetchService
       // Set ActionStatus to Failed and save updated
       downloadAction.SetProperty("endTime", DateTime.Now);
       _crates.UpdateCrateActionStatus(ActionStatus.FailedActionStatus, downloadAction);
-      roCrate.Save(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath());
+      roCrate.Save(workflowJob.WorkingDirectory.JobCrateRoot());
       throw;
     }
 
@@ -116,8 +122,8 @@ public class WorkflowFetchService
     workflowEntity.SetProperty("distribution", property.Properties["distribution"]);
     roCrate.Add(workflowEntity);
     roCrate.RootDataset.AppendTo("mentions", downloadAction);
-    roCrate.Save(workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath());
-    _logger.LogInformation($"Saved updated RO-Crate to {workflowJob.WorkingDirectory.JobBagItRoot().BagItPayloadPath()}.");
+    roCrate.Save(workflowJob.WorkingDirectory.JobCrateRoot());
+    _logger.LogDebug("Saved updated RO-Crate to {TargetPath}", workflowJob.WorkingDirectory.JobCrateRoot());
 
     return roCrate;
   }

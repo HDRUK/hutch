@@ -10,7 +10,7 @@ on:
 
 env:
   # Configure these
-  CI_node-version: "16"
+  CI_node-version: "20"
   CI_package: website
 
 jobs:
