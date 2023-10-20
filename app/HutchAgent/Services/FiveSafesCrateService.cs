@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using ROCrates;
 using ROCrates.Exceptions;
 using ROCrates.Models;
-using File = System.IO.File;
 
 namespace HutchAgent.Services;
 
@@ -376,7 +375,6 @@ public class FiveSafesCrateService
     crate.Add(licenseEntity);
 
     crate.RootDataset.SetProperty("license", new Part { Id = licenseEntity.Id });
-    
   }
 
   public bool WorkflowIsRelativePath(ROCrate roCrate, WorkflowJob workflowJob)
@@ -388,6 +386,7 @@ public class FiveSafesCrateService
     {
       return false;
     }
+
     var relPath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), mainEntity.Id);
     // If not absolute, check it exists
     if (Path.Exists(relPath))
@@ -398,6 +397,7 @@ public class FiveSafesCrateService
         return true;
       }
     }
+
     return false;
   }
 
