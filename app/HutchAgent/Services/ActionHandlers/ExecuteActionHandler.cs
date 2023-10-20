@@ -56,7 +56,7 @@ public class ExecuteActionHandler : IActionHandler
     _crates.CheckAssessActions(roCrate);
     
     // Check if Workflow RO-Crate URL is relative path
-    if (!_crates.WorkflowIsRelativePath(roCrate, job))
+    if (!_crates.WorkflowIsRelativePath(roCrate, job.WorkingDirectory))
     {
       // Fetch workflow.
       await _status.ReportStatus(jobId, JobStatus.FetchingWorkflow);

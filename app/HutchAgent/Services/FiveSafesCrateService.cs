@@ -377,7 +377,14 @@ public class FiveSafesCrateService
     crate.RootDataset.SetProperty("license", new Part { Id = licenseEntity.Id });
   }
 
-  public bool WorkflowIsRelativePath(ROCrate roCrate, WorkflowJob workflowJob)
+  /// <summary>
+  /// Check whether workflow path is relative & validate it exists
+  /// </summary>
+  /// <param name="roCrate"></param>
+  /// <param name="workDir"></param>
+  /// <returns></returns>
+  /// <exception cref="NullReferenceException"></exception>
+  public bool WorkflowIsRelativePath(ROCrate roCrate, string workDir)
   {
     var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ??
                      throw new NullReferenceException("No main entity found in RO-Crate");
@@ -387,7 +394,7 @@ public class FiveSafesCrateService
       return false;
     }
 
-    var relPath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), mainEntity.Id);
+    var relPath = Path.Combine(workDir.JobCrateRoot(), mainEntity.Id);
     // If not absolute, check it exists
     if (Path.Exists(relPath))
     {
