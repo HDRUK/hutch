@@ -1,0 +1,15 @@
+{
+  "CratePublishing": {
+    "Publisher": {
+      "Id": "https://trefx.example.com/"
+    },
+    "License": {
+      "Uri": "https://spdx.org/licenses/CC-BY-4.0",
+      "Properties": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "identifier": "CC-BY-4.0"
+      }
+    }
+  },
+  "hello": "world"
+}
