@@ -325,55 +325,38 @@ public partial class WorkflowTriggerService
       {
         var value = objectEntity.Properties["value"]?.ToString() ??
                     throw new NullReferenceException("Could not get value for given input parameter.");
-
-
-        // TODO the below is a temporary hack until we test wfexs environment variables
-        // and update workflows and guidance around data access.
-        try
-        {
-          // Basically we currently modify inputs with known names
-          // to have values from the job submission's data access details
-          // instead of what's contained in the job crate.
-          //
-          // This approach does rely on the job crate having the inputs defined,
-          // but they can have dummy values that will be replaced.
-          //
-          // When we switch to environment variables, they won't need defining as inputs or anything
-          // within the job crate; they'll just be added to the execution environment
-          // and optionally used by the workflow if it cares.
-
-          // Try and get the data access details
-          var dataAccess = JsonSerializer.Deserialize<DatabaseConnectionDetails>(workflowJob.DataAccess ?? "");
-
-          // Input value replacements!
-          if (dataAccess is not null)
-          {
-            value = name.ToString() switch
-            {
-              "db_host" => dataAccess.GetContainerHost(_workflowOptions.ContainerEngine),
-              "db_port" => dataAccess.Port.ToString(),
-              "db_name" => dataAccess.Database,
-              "db_user" => dataAccess.Username,
-              "db_password" => dataAccess.Password,
-              _ => value // leave it untouched
-            };
-          }
-        }
-        catch (JsonException)
-        {
-          // we've failed to deserialize data access.
-          // not much we can do, but shouldn't stop the job trying to run.
-          // 
-          // it may fail if it intends to try and access the data source,
-          // but that'll get handled and reported in the usual way.
-        }
-
         parameters[name.ToString()] = value;
       }
     }
 
     // Set input params
     stageFile.Params = parameters;
+    
+    //Set environment variables
+    var envVars = new Dictionary<string, string>();
+    try
+    {
+      // Try and get the data access details
+      var dataAccess = JsonSerializer.Deserialize<DatabaseConnectionDetails>(workflowJob.DataAccess ?? "");
+      // set environment params to match dataAccess details
+      if (dataAccess is not null)
+      {
+        envVars.Add("DATASOURCE_DB_HOST",dataAccess.GetContainerHost(_workflowOptions.ContainerEngine));
+        envVars.Add("DATASOURCE_DB_PORT", dataAccess.Port.ToString());
+        envVars.Add("DATASOURCE_DB_DATABASE", dataAccess.Database);
+        envVars.Add("DATASOURCE_DB_USERNAME", dataAccess.Username);
+        envVars.Add("DATASOURCE_DB_PASSWORD", dataAccess.Password);
+      }
+    }
+    catch (JsonException)
+    {
+      // we've failed to deserialize data access.
+      // not much we can do, but shouldn't stop the job trying to run.
+      // 
+      // it may fail if it intends to try and access the data source,
+      // but that'll get handled and reported in the usual way.
+    }
+    stageFile.EnvironmentVars = envVars;
 
     // Get outputs from workflow crate
     var workflowMainEntity = workflowCrate.Entities[workflow.Id];
