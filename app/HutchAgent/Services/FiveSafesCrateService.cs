@@ -396,34 +396,6 @@ public class FiveSafesCrateService
     {
       return false;
     }
-    // Check if mainEntity is absolute url
-    if (mainEntity.Id.StartsWith("/"))
-    {
-      var workflowDir = new DirectoryInfo(mainEntity.Id);
-      if (!workflowDir.Exists)
-        throw new DirectoryNotFoundException($"Directory not found: {workflowDir}");
-      InitialiseCrate(workflowDir.FullName);
-      var destinationDir = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), "workflow");
-      
-      Directory.CreateDirectory(destinationDir);
-      
-      var directories = Directory.GetDirectories(workflowDir.FullName, "*", SearchOption.AllDirectories);
-      foreach (string dir in directories) 
-      { 
-        string dirToCreate = dir.Replace(workflowDir.FullName, destinationDir); 
-        Directory.CreateDirectory(dirToCreate); 
-      }
-      var files = Directory.GetFiles(workflowDir.FullName, "*.*", SearchOption.AllDirectories);
-      foreach (string newPath in files) 
-      {
-        File.Copy(newPath, newPath.Replace(workflowDir.FullName, destinationDir),overwrite:true); 
-      }
-
-      AddWorkflowEntity(roCrate, mainEntity, "workflow/");
-      roCrate.Save(workflowJob.WorkingDirectory.JobCrateRoot());
-      return true;
-    }
-    
     var relPath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), mainEntity.Id);
     // If not absolute, check it exists
     if (Path.Exists(relPath))
@@ -434,7 +406,6 @@ public class FiveSafesCrateService
         return true;
       }
     }
-
     return false;
   }
 }
