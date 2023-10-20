@@ -369,22 +369,7 @@ public class FiveSafesCrateService
     crate.Add(licenseEntity);
 
     crate.RootDataset.SetProperty("license", new Part { Id = licenseEntity.Id });
-  }
-
-  private void AddWorkflowEntity(ROCrate roCrate, Part mainEntity, string workflowPath)
-  {
-    var workflowEntity = new Entity(roCrate, identifier: workflowPath);
-    roCrate.Entities.TryGetValue(mainEntity.Id, out var property);
-    workflowEntity.SetProperty("sameAs", new Part()
-    {
-      Id = property!.Id
-    });
-    workflowEntity.SetProperty("@type", property.Properties["@type"]);
-    workflowEntity.SetProperty("name", property.Properties["name"]);
-    workflowEntity.SetProperty("conformsTo", property.Properties["conformsTo"]);
-    workflowEntity.SetProperty("distribution", property.Properties["distribution"]);
-    roCrate.Add(workflowEntity);
-    roCrate.RootDataset.AppendTo("hasPart",workflowEntity);
+    
   }
 
   public bool WorkflowIsRelativePath(ROCrate roCrate, WorkflowJob workflowJob)
