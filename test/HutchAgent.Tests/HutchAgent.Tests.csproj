@@ -31,9 +31,6 @@
 
   <ItemGroup>
     <None Update="TestBagit/**/*" CopyToOutputDirectory="PreserveNewest"/>
-    <None Update="Data\testConfigParse.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
