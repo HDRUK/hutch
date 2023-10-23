@@ -1,4 +1,3 @@
-using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Services;
 using Microsoft.Extensions.Logging;
@@ -98,10 +97,10 @@ public class TestFiveSafesCrateService : IClassFixture<CrateServiceFixture>
         License = new()
         {
           Uri = _licenseUrl,
-          Properties = new Dictionary<string, JsonNode?>
+          Properties = new LicenseProperties()
           {
-            ["name"] = _licenseName,
-            ["identifier"] = _licenseId
+            Name = _licenseName,
+            Identifier = _licenseId
           }
         }
       }),
