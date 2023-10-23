@@ -11,6 +11,7 @@ using HutchAgent.Models.Wfexs;
 using HutchAgent.Results;
 using HutchAgent.Utilities;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using ROCrates;
 using ROCrates.Models;
 using YamlDotNet.Serialization;
@@ -263,11 +264,22 @@ public partial class WorkflowTriggerService
                              roCrate.Entities[mention["@id"]!.ToString()].Properties["@type"]?.ToString() ==
                              "DownloadAction")
                            .Select(mention =>
-                             roCrate.Entities[mention!["@id"]!.ToString()].GetProperty<JsonNode>("result")) ??
+                             roCrate.Entities[mention!["@id"]!.ToString()].GetProperty<JsonNode>("result")).ToList() ??
                          throw new NullReferenceException("No download action found in the RO-Crate");
-
-    var cratePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
-      downloadAction.First()!["@id"]!.ToString());
+    string cratePath;
+    if (!downloadAction.IsNullOrEmpty())
+    {
+      cratePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(),
+        downloadAction.First()!["@id"]!.ToString());
+    }
+    else
+    {
+      // no download action, assumes relative path workflow is used
+      var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ??
+                       throw new NullReferenceException("Cannot find main entity in input crate");
+      cratePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), mainEntity.Id);
+    }
+    
     await InitialiseRepo(cratePath);
 
     var workflowCrate = _crateService.InitialiseCrate(cratePath);
