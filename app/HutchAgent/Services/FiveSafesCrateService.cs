@@ -378,7 +378,7 @@ public class FiveSafesCrateService
   }
 
   /// <summary>
-  /// Check whether workflow path is relative & validate it exists
+  /// Check whether workflow path is relative and validate it exists
   /// </summary>
   /// <param name="roCrate"></param>
   /// <param name="workDir"></param>
