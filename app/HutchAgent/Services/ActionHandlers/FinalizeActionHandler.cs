@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Text.Json;
+using AutoMapper;
 using HutchAgent.Config;
 using HutchAgent.Constants;
 using HutchAgent.Models;
@@ -20,6 +21,7 @@ public class FinalizeActionHandler : IActionHandler
   private readonly StatusReportingService _status;
   private readonly IFeatureManager _features;
   private readonly ControllerApiService _controller;
+  private readonly IMapper _mapper;
 
   private const string _finalPackageFilename = "final-result-crate.zip";
 
@@ -32,7 +34,8 @@ public class FinalizeActionHandler : IActionHandler
     JobLifecycleService job,
     StatusReportingService status,
     IFeatureManager features,
-    ControllerApiService controller)
+    ControllerApiService controller,
+    IMapper mapper)
   {
     _bagItService = bagItService;
     _crateService = crateService;
@@ -43,6 +46,7 @@ public class FinalizeActionHandler : IActionHandler
     _status = status;
     _features = features;
     _controller = controller;
+    _mapper = mapper;
   }
 
   public async Task HandleAction(string jobId, object? payload)
@@ -109,12 +113,14 @@ public class FinalizeActionHandler : IActionHandler
       throw new InvalidOperationException(
         $"Finalized Job {job.Id} cannot be egressed as no egress target was recorded.");
 
-    var egressTarget = JsonSerializer.Deserialize<MinioOptions>(job.EgressTarget);
-    var store = await _storeFactory.Create(egressTarget);
+    var egressTarget = JsonSerializer.Deserialize<FileStorageDetails>(job.EgressTarget);
+    var store = await _storeFactory.Create(_mapper.Map<MinioOptions>(egressTarget));
 
-    var finalObjectId = await _features.IsEnabledAsync(FeatureFlags.StandaloneMode)
-      ? Path.Combine(job.Id, _finalPackageFilename)
-      : _finalPackageFilename;
+    var pathPrefix = egressTarget?.Path
+     ?? (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode)
+       ? job.Id
+       : string.Empty);
+    var finalObjectId = Path.Combine(pathPrefix, _finalPackageFilename);
 
     // Make sure results store exists
     if (!await store.StoreExists())
