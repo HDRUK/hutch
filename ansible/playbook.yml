@@ -14,22 +14,72 @@
 - name: Install WfExS
   ansible.builtin.import_playbook: playbooks/wfexs.yml
 
-- name: Install HutchAgent
+- name: Upload and Run Dev Docker Compose
   hosts: tre_server
+  vars:
+    dev_mode: false
   tasks:
-    - name: Clone HUTCH
-      ansible.builtin.git:
-        repo: https://github.com/HDRUK/hutch
-        dest: "{{ ansible_env.HOME }}/hutch"
-        version: main
+    - name: Upload docker-compose.yml
+      ansible.builtin.copy:
+        src: playbooks/files/docker-compose.yml
+        dest: "{{ ansible_env.HOME }}/docker-compose.yml"
+        mode: "0644"
+      when: dev_mode | bool
 
-- name: Run Nexus, MinIO, Postgres, etc.
-  hosts: tre_server
-  tasks:
-    - name: Run Docker Compose
+    - name: Run Nexus, MinIO, Postgres, etc.
       community.docker.docker_compose:
-        project_src: "{{ ansible_env.HOME }}/hutch"
+        project_src: "{{ ansible_env.HOME }}"
         project_name: hutch
         files:
           - docker-compose.yml
       register: output
+      when: dev_mode | bool
+
+- name: Install HutchAgent
+  hosts: tre_server
+  vars:
+    hutch_version: v1.0.0-beta.2
+    download_zip: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}.zip"
+    install_dir: "{{ ansible_env.HOME }}/HutchAgent"
+  tasks:
+    - name: Download Hutch
+      ansible.builtin.get_url:
+        dest: "{{ download_zip }}"
+        url: "https://github.com/HDRUK/hutch/releases/download/{{ hutch_version }}/hutch_linux-x64.zip"
+        mode: "0644"
+
+    - name: Make Install Directory
+      ansible.builtin.file:
+        path: "{{ install_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Unzip Hutch
+      ansible.builtin.unarchive:
+        src: "{{ download_zip }}"
+        remote_src: true
+        dest: "{{ install_dir }}"
+
+    - name: Update Program Permissions
+      ansible.builtin.file:
+        path: "{{ install_dir }}/HutchAgent"
+        state: "file"
+        mode: u+x
+
+    - name: dotnet dev certs
+      ansible.builtin.command:
+        cmd: dotnet dev-certs https --trust
+
+    - name: Upload hutch-agent.service
+      become: true
+      ansible.builtin.copy:
+        src: playbooks/files/hutch-agent.service
+        dest: /etc/systemd/system/hutch-agent.service
+        mode: "0644"
+
+    - name: Start HutchAgent
+      become: true
+      ansible.builtin.systemd_service:
+        name: hutch-agent
+        enabled: true
+        state: started
