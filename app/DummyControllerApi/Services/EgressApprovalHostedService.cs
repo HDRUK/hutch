@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DummyControllerApi.Config;
 using DummyControllerApi.Models;
 using Flurl;
 using Flurl.Http;
@@ -32,6 +33,7 @@ public class EgressApprovalHostedService : BackgroundService
 
         var queue = _serviceProvider.GetRequiredService<InMemoryApprovalQueue>();
         var config = _serviceProvider.GetRequiredService<IConfiguration>();
+        var bucketDetails = _serviceProvider.GetRequiredService<IOptions<EgressBucketDetailsOptions>>().Value;
 
         if (queue.HasItems())
         {
@@ -49,6 +51,9 @@ public class EgressApprovalHostedService : BackgroundService
 
           var details = new HutchApprovalRequestModel
           {
+            Bucket = bucketDetails.Bucket,
+            Host = bucketDetails.Host,
+            Path = bucketDetails.Path,
             Files = new() { ["file1"] = true, ["file2"] = true }
           };
 
