@@ -38,7 +38,7 @@
 - name: Install HutchAgent
   hosts: tre_server
   vars:
-    hutch_version: v1.0.0-beta.2
+    hutch_version: v1.0.0-beta.3
     download_zip: "{{ ansible_env.HOME }}/hutch-{{ hutch_version }}.zip"
     install_dir: "{{ ansible_env.HOME }}/HutchAgent"
   tasks:
