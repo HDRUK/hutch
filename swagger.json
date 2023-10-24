@@ -309,8 +309,35 @@
   "components": {
     "schemas": {
       "ApprovalResult": {
+        "required": [
+          "path"
+        ],
         "type": "object",
         "properties": {
+          "host": {
+            "type": "string",
+            "description": "Cloud Storage Host e.g. a Min.io Server. Defaults to preconfigured value if omitted."
+          },
+          "secure": {
+            "type": "boolean",
+            "description": "Connection to HutchAgent.Models.FileStorageDetails.Host should use SSL.\r\nDefaults to true; should only really be false for development/testing."
+          },
+          "bucket": {
+            "type": "string",
+            "description": "Cloud Storage Container name e.g. a Min.io Bucket. Defaults to preconfigured value if omitted."
+          },
+          "path": {
+            "type": "string",
+            "description": "Object ID for a single Cloud Storage item in the named HutchAgent.Models.FileStorageDetails.Bucket,\r\nfunctionally the \"Path\" to the stored file -\r\nor optionally a partial path denoting an item prefix (i.e. a directory path)"
+          },
+          "accessKey": {
+            "type": "string",
+            "description": "Access Key for Cloud Storage. If omitted, will use OIDC if configured, or default to preconfigured value if not."
+          },
+          "secretKey": {
+            "type": "string",
+            "description": "Secret Key for Cloud Storage. If omitted, will use OIDC if configured, or default to preconfigured value if not."
+          },
           "status": {
             "$ref": "#/components/schemas/ApprovalType"
           },
@@ -387,9 +414,8 @@
             "description": "Cloud Storage Container name e.g. a Min.io Bucket. Defaults to preconfigured value if omitted."
           },
           "path": {
-            "minLength": 1,
             "type": "string",
-            "description": "Object ID for a single Cloud Storage item in the named HutchAgent.Models.FileStorageDetails.Bucket,\r\nfunctionally the \"Path\" to the stored file."
+            "description": "Object ID for a single Cloud Storage item in the named HutchAgent.Models.FileStorageDetails.Bucket,\r\nfunctionally the \"Path\" to the stored file -\r\nor optionally a partial path denoting an item prefix (i.e. a directory path)"
           },
           "accessKey": {
             "type": "string",
