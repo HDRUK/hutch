@@ -81,8 +81,10 @@ public class SubmissionController : ControllerBase
   {
     var details = new EgressBucketResponseModel
     {
+      SubId = subId,
       Host = _bucketOptions.Host,
-      Bucket = _bucketOptions.Bucket
+      Bucket = _bucketOptions.Bucket,
+      Path = _bucketOptions.Path
     };
 
     _logger.LogInformation(
