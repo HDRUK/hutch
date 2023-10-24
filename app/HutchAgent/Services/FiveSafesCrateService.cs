@@ -378,6 +378,37 @@ public class FiveSafesCrateService
   }
 
   /// <summary>
+  /// Check whether workflow path is relative and validate it exists
+  /// </summary>
+  /// <param name="roCrate"></param>
+  /// <param name="workDir"></param>
+  /// <returns></returns>
+  /// <exception cref="NullReferenceException"></exception>
+  public bool WorkflowIsRelativePath(ROCrate roCrate, string workDir)
+  {
+    var mainEntity = roCrate.RootDataset.GetProperty<Part>("mainEntity") ??
+                     throw new NullReferenceException("No main entity found in RO-Crate");
+    // Check if mainEntity is remote URL
+    if (Uri.IsWellFormedUriString(mainEntity.Id, UriKind.Absolute))
+    {
+      return false;
+    }
+
+    var relPath = Path.Combine(workDir.JobCrateRoot(), mainEntity.Id);
+    // Check relative path exists
+    if (Path.Exists(relPath))
+    {
+      {
+        // check it's a valid crate
+        InitialiseCrate(relPath);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// <summary>
   /// Mark a disclosure check as successfully completed.
   /// </summary>
   /// <param name="crate"></param>

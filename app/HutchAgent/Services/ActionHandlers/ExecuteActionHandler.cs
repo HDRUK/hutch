@@ -43,6 +43,7 @@ public class ExecuteActionHandler : IActionHandler
 
   public async Task HandleAction(string jobId, object? payload)
   {
+    
     // Get job.
     var job = await _workflowJobService.Get(jobId);
 
@@ -53,12 +54,15 @@ public class ExecuteActionHandler : IActionHandler
 
     // Check AssessActions exist and are complete
     _crates.CheckAssessActions(roCrate);
-
-    // Fetch workflow.
-    await _status.ReportStatus(jobId, JobStatus.FetchingWorkflow);
-
-    roCrate = await _workflowFetchService.FetchWorkflowCrate(job, roCrate);
-
+    
+    // Check if Workflow RO-Crate URL is relative path
+    if (!_crates.WorkflowIsRelativePath(roCrate, job.WorkingDirectory))
+    {
+      // Fetch workflow.
+      await _status.ReportStatus(jobId, JobStatus.FetchingWorkflow);
+      roCrate = await _workflowFetchService.FetchWorkflowCrate(job, roCrate);
+    }
+    
     // Execute workflow.
     if (string.IsNullOrWhiteSpace(_workflowOptions.SkipExecutionUsingOutputFile))
       await _workflowTriggerService.TriggerWfexs(job, roCrate);
