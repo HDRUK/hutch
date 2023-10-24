@@ -395,7 +395,7 @@ public class FiveSafesCrateService
     }
 
     var relPath = Path.Combine(workDir.JobCrateRoot(), mainEntity.Id);
-    // If not absolute, check it exists
+    // Check relative path exists
     if (Path.Exists(relPath))
     {
       {
