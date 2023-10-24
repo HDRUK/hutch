@@ -332,6 +332,36 @@ public class JobsController : ControllerBase
       {
         _job.DisclosureCheckCompleted(job);
 
+        // update egress details by merging with new incoming deets
+        FileStorageDetails? egressDetails = null;
+        if (job.EgressTarget is not null)
+          egressDetails = JsonSerializer.Deserialize<FileStorageDetails?>(job.EgressTarget);
+
+        // map the incoming, falling back to the previously stored
+        egressDetails = new FileStorageDetails
+        {
+          Host = string.IsNullOrWhiteSpace(result.Host)
+            ? egressDetails?.Host ?? string.Empty
+            : result.Host,
+          Bucket = string.IsNullOrWhiteSpace(result.Bucket)
+            ? egressDetails?.Bucket ?? string.Empty
+            : result.Bucket,
+          Path = string.IsNullOrWhiteSpace(result.Path)
+            ? egressDetails?.Path ?? string.Empty
+            : result.Path,
+          AccessKey = string.IsNullOrWhiteSpace(result.AccessKey)
+            ? egressDetails?.AccessKey ?? string.Empty
+            : result.AccessKey,
+          SecretKey = string.IsNullOrWhiteSpace(result.SecretKey)
+            ? egressDetails?.SecretKey ?? string.Empty
+            : result.SecretKey,
+          Secure = result.Secure // TODO better handle fallback (nullable bool?)
+        };
+        
+        // update our records for finalize
+        job.EgressTarget = JsonSerializer.Serialize(egressDetails);
+        await _jobs.Set(job);
+
         _queueWriter.SendMessage(_queueOptions.QueueName, new JobQueueMessage()
         {
           ActionType = JobActionTypes.Finalize,

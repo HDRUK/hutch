@@ -25,9 +25,10 @@ public class FileStorageDetails
 
   /// <summary>
   /// Object ID for a single Cloud Storage item in the named <see cref="Bucket"/>,
-  /// functionally the "Path" to the stored file.
+  /// functionally the "Path" to the stored file -
+  /// or optionally a partial path denoting an item prefix (i.e. a directory path)
   /// </summary>
-  [Required]
+  [Required(AllowEmptyStrings = true)]
   public string Path { get; set; } = string.Empty;
 
   /// <summary>

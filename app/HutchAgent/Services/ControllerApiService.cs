@@ -3,6 +3,7 @@ using Flurl.Http;
 using Flurl.Http.Configuration;
 using HutchAgent.Config;
 using HutchAgent.Constants;
+using HutchAgent.Models;
 using HutchAgent.Models.ControllerApi;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
@@ -50,7 +51,7 @@ public class ControllerApiService
   /// </summary>
   /// <param name="jobId"></param>
   /// <returns></returns>
-  public async Task<MinioOptions> RequestEgressBucket(string jobId)
+  public async Task<FileStorageDetails> RequestEgressBucket(string jobId)
   {
     if (await _features.IsEnabledAsync(FeatureFlags.StandaloneMode))
       throw new InvalidOperationException(_standaloneModeError);
@@ -64,7 +65,7 @@ public class ControllerApiService
     return await _http.Request(url)
              .WithOAuthBearerToken(_accessToken)
              .GetAsync()
-             .ReceiveJson<MinioOptions>()
+             .ReceiveJson<GetOutputBucketInfoReponse>()
            ?? throw new InvalidOperationException(
              "No Response Body was received for an Egress Bucket request.");
     // TODO attempt refreshing if token rejected?
