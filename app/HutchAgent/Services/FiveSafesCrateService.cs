@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO.Compression;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using HutchAgent.Config;
 using HutchAgent.Constants;
@@ -363,11 +364,10 @@ public class FiveSafesCrateService
   {
     if (string.IsNullOrEmpty(_publishOptions.License?.Uri)) return;
 
+    var licenseProps = _publishOptions.License.Properties;
     var licenseEntity = new CreativeWork(
       identifier: _publishOptions.License.Uri,
-      properties: new JsonObject(
-        _publishOptions.License.Properties
-        ?? new Dictionary<string, JsonNode?>()));
+      properties: JsonSerializer.SerializeToNode(licenseProps)?.AsObject());
 
     // Bug in ROCrates.Net: CreativeWork class uses the base constructor so @type is Thing by default
     licenseEntity.SetProperty("@type", "CreativeWork");

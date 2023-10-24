@@ -1,14 +1,14 @@
-using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace HutchAgent.Config;
 
-public class CratePublishingOptions {
-  
+public class CratePublishingOptions
+{
   /// <summary>
   /// Optional Publisher information to include when publishing Results Crates
   /// </summary>
   public PublisherOptions? Publisher { get; set; }
-  
+
   /// <summary>
   /// Optional license information to include when publishing Results Crates
   /// </summary>
@@ -33,5 +33,12 @@ public class LicenseOptions
   /// <summary>
   /// This attribute contains any other properties for the license entity.
   /// </summary>
-  public Dictionary<string,JsonNode?>? Properties { get; set; }
+  public LicenseProperties? Properties { get; set; }
+}
+
+public class LicenseProperties
+{
+  [JsonPropertyName("name")] public string? Name { get; set; }
+
+  [JsonPropertyName("identifier")] public string? Identifier { get; set; }
 }
