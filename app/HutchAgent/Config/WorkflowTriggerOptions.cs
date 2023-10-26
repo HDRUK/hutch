@@ -7,17 +7,26 @@ public class WorkflowTriggerOptions
   /// <summary>
   /// Path where Wfexs is installed
   /// </summary>
-  public string ExecutorPath { get; set; } = string.Empty;
+  public string ExecutorPath { get; set; } = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    "WfExS-backend");
 
   /// <summary>
   /// Path to the Wfexs virtual environment
   /// </summary>
-  public string VirtualEnvironmentPath { get; set; } = string.Empty;
+  public string VirtualEnvironmentPath { get; set; } = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    "WfExS-backend",
+    ".pyWEenv",
+    "bin",
+    "activate");
 
   /// <summary>
   /// Path to the Wfexs local config file 
   /// </summary>
-  public string LocalConfigPath { get; set; } = string.Empty;
+  public string LocalConfigPath { get; set; } = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    "local_config.yaml");
 
   /// <summary>
   /// Should container images downloaded for workflows be included in the outputs?
@@ -45,7 +54,7 @@ public class WorkflowTriggerOptions
   /// 
   /// </summary>
   public string SkipExecutionUsingOutputFile { get; set; } = string.Empty;
-  
+
   /// <summary>
   /// Don't ask WfExS for a full provenance output crate (i.e. don't use `--full`).
   /// `--full` is typically preferred but can be unreliable in some environments,
@@ -57,7 +66,6 @@ public class WorkflowTriggerOptions
   /// The container engine generated stage files should use e.g. `docker` (default), singularity or `podman`.
   /// Should match the `containerType` configured in the Executor's local config.
   /// </summary>
-  // TODO enum this
   public ContainerEngineType ContainerEngine { get; set; } = ContainerEngineType.Docker;
 
   /// <summary>

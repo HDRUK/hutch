@@ -25,7 +25,6 @@ public class WorkflowStageFile
 
 public class Configuration
 {
-  [YamlMember(Alias = "container")] public string Container { get; set; } = "docker";
   [YamlMember(Alias = "container")]
   public string Container { get; set; } = ContainerEngineType.Docker.ToString().ToLower();
 
