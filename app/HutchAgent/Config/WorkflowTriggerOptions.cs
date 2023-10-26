@@ -1,3 +1,5 @@
+using HutchAgent.Constants;
+
 namespace HutchAgent.Config;
 
 public class WorkflowTriggerOptions
@@ -56,8 +58,8 @@ public class WorkflowTriggerOptions
   /// Should match the `containerType` configured in the Executor's local config.
   /// </summary>
   // TODO enum this
-  public string ContainerEngine { get; set; } = "docker";
-  
+  public ContainerEngineType ContainerEngine { get; set; } = ContainerEngineType.Docker;
+
   /// <summary>
   /// Keep Hutch attached to Executor processes that it triggers.
   /// This uses up threads in the pool, but is useful for debugging.

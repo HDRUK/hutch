@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using HutchAgent.Constants;
 
 namespace HutchAgent.Models;
 
@@ -51,14 +52,14 @@ public static class DatabaseConnectionDetailsExtensions
   /// <param name="dataAccess">The <see cref="DatabaseConnectionDetails" /> object.</param>
   /// <param name="containerEngine">The target container engine.</param>
   /// <returns></returns>
-  public static string GetContainerHost(this DatabaseConnectionDetails dataAccess, string containerEngine)
+  public static string GetContainerHost(this DatabaseConnectionDetails dataAccess, ContainerEngineType containerEngine)
   {
     return dataAccess.Hostname != "localhost"
       ? dataAccess.Hostname // if it's not localhost, it's irrelevant; use the configured value
       : containerEngine switch
       {
-        "podman" => "host.containers.internal",
-        "docker" or "singularity" => "172.17.0.1",
+        ContainerEngineType.Podman => "host.containers.internal",
+        ContainerEngineType.Docker or ContainerEngineType.Singularity => "172.17.0.1",
         _ => dataAccess.Hostname
       };
   }
