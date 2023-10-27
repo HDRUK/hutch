@@ -95,7 +95,7 @@ Below are the available configurable settings for `HutchAgent`. The variables sh
 
     // If a path is provided, Hutch will skip Workflow Execution altogether
     // and instead use the zip file from this path as if it were the execution output
-    "SkipExecutionUsingOutputFile": "",
+    "SkipExecutionUsingOutputFile": "", // e.g. `"path/to/execution.crate.zip"`
 
     // Really we always want a full crate, but some wfexs configs
     // particularly with certain container engines
@@ -129,7 +129,7 @@ Below are the available configurable settings for `HutchAgent`. The variables sh
       "Properties": {
         "Identifier": null, // short-form of the license e.g. CC-BY-4.0
         "Name": null // long-form name of the license e.g. Creative Commons Attribution 4.0 International
-      } // Any valid CreativeWork properties as desirable to be included for the License.
+      }
     }
   },
 
