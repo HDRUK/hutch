@@ -10,6 +10,8 @@ Hutch can be configured using the following source in [the usual .NET way](https
 - Command line arguments
 - (.NET User Secrets in development)
 
+Below are the available configurable settings for `HutchAgent`. The variables shown are the defaults, unless specified otherwise.
+
 ## Available values
 
 ```json
@@ -32,20 +34,24 @@ Hutch can be configured using the following source in [the usual .NET way](https
 
   // Local working paths used by Hutch itself
   "Paths": {
-    "WorkingDirectoryBase": "hutch-workdir", // Hutch's working directory
+    "WorkingDirectoryBase": "$HOME/hutch-workdir", // Hutch's working directory
     "Jobs": "jobs" // Sub-directory for per-job working directories
   },
 
   // Configuration for Hutch's internal Action Queue (RabbitMQ)
+  // For actual defaults, see RabbitMQ documentation
   "Queue": {
-    "Hostname": "", // Rabbit MQ Host
-    "Port": 0, // Rabbit MQ Port
-    "UserName": "", // Rabbit MQ User
-    "Password": "", // Rabbit MQ Password
+    "Hostname": "", // RabbitMQ Host
+    "Port": 0, // RabbitMQ Port
+    "UserName": "", // RabbitMQ User
+    "Password": "" // RabbitMQ Password
+  },
 
+  // Configure the internal queue name, how it checks for jobs, and how many can run concurrently
+  "JobActionsQueueOptions": {
     "QueueName": "WorkflowJobActions",
-    "PollingIntervalSeconds": 5, // How often Hutch checks the internal queue for new Actions
-    "MaxParallelism": 10 // How many actions from the queue will Hutch run simultaneously
+    "PollingIntervalSeconds": 5, // How often Hutch checks the queue for new Actions
+    "MaxParallelism": 10 // How many actions from the queue will Hutch run concurrently
   },
 
   // MinIO Intermediary Store Defaults
@@ -53,10 +59,10 @@ Hutch can be configured using the following source in [the usual .NET way](https
   // And as a fallback for Submissions/Egress when only partial bucket details are provided.
   "StoreDefaults": {
     "Host": "localhost:9000",
-    "AccessKey": "accesskey",
-    "SecretKey": "secretkey",
-    "Secure": false,
-    "Bucket": "hutch.bucket"
+    "AccessKey": "",
+    "SecretKey": "",
+    "Secure": true,
+    "Bucket": ""
   },
 
   "IdentityProvider": {
@@ -80,16 +86,16 @@ Hutch can be configured using the following source in [the usual .NET way](https
   // Configuration for tracking Workflow Execution
   // Currently WfExS specific
   "WorkflowExecutor": {
-    "ExecutorPath": "/WfExS-backend",
-    "VirtualEnvironmentPath": "/WfExS-backend/.pyWEenv/bin/activate",
-    "LocalConfigPath": "workflow_examples/local_config.yaml",
+    "ExecutorPath": "$HOME/WfExS-backend",
+    "VirtualEnvironmentPath": "$HOME/WfExS-backend/.pyWEenv/bin/activate",
+    "LocalConfigPath": "$HOME/WfExS-backend/local_config.yaml",
     "ContainerEngine": "docker", // other valid options are "singularity" and "podman"
 
     // The below are more for development / debugging
 
     // If a path is provided, Hutch will skip Workflow Execution altogether
     // and instead use the zip file from this path as if it were the execution output
-    "SkipExecutionUsingOutputFile": "path/to/exection.crate.zip",
+    "SkipExecutionUsingOutputFile": "", // e.g. `"path/to/execution.crate.zip"`
 
     // Really we always want a full crate, but some wfexs configs
     // particularly with certain container engines
@@ -113,12 +119,17 @@ Hutch can be configured using the following source in [the usual .NET way](https
 
   // Configurable details to add to published Results Crates.
   "CratePublishing": {
+    // this section defaults to `null`
     "Publisher": {
       "Id": "" // Desired Identifier (typically URL) for the Publisher in Results Crates.
     },
+    // this section defaults to `null`
     "License": {
-      "Uri": "", // A URI to be used as th License `@id` in Results crate metadata
-      "Properties": {} // Any valid CreativeWork properties as desirable to be included for the License.
+      "Uri": "", // A URI to the license e.g. https://spdx.org/licenses/CC-BY-4.0
+      "Properties": {
+        "Identifier": null, // short-form of the license e.g. CC-BY-4.0
+        "Name": null // long-form name of the license e.g. Creative Commons Attribution 4.0 International
+      }
     }
   },
 
@@ -127,8 +138,7 @@ Hutch can be configured using the following source in [the usual .NET way](https
   // and their continued presence cannot be relied upon from one build to the next!
   "Flags": {
     "StandaloneMode": false, // Hutch will skip TRE Controller interactions
-    "RetainFailures": false, // Hutch will not clean up working directories or database records for jobs that fail.
-    "
+    "RetainFailures": false // Hutch will not clean up working directories or database records for jobs that fail.
   }
 }
 ```

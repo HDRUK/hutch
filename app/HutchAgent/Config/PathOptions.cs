@@ -5,7 +5,9 @@ public class PathOptions
   /// <summary>
   /// A path for Hutch to use as a working directory. Relative paths start adjacent to the Hutch executable.
   /// </summary>
-  public string WorkingDirectoryBase { get; set; } = "hutch-workdir";
+  public string WorkingDirectoryBase { get; set; } = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    "hutch-workdir");
 
   /// <summary>
   /// <para>A Path to where job working directories should be.</para>
@@ -28,4 +30,3 @@ public static class PathOptionsExtensions
   public static string JobWorkingDirectory(this PathOptions paths, string jobId)
     => Path.Combine(paths.WorkingDirectoryBase, paths.Jobs, jobId);
 }
-

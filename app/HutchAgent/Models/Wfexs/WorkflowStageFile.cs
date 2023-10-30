@@ -1,3 +1,4 @@
+using HutchAgent.Constants;
 using YamlDotNet.Serialization;
 
 namespace HutchAgent.Models.Wfexs;
@@ -18,13 +19,14 @@ public class WorkflowStageFile
   [YamlMember(Alias = "outputs")] public object Outputs = new();
 
   [YamlMember(Alias = "params")] public object? Params { get; set; }
-  
+
   [YamlMember(Alias = "environment")] public object EnvironmentVars { get; set; } = new();
 }
 
 public class Configuration
 {
-  [YamlMember(Alias = "container")] public string Container { get; set; } = "docker";
+  [YamlMember(Alias = "container")]
+  public string Container { get; set; } = ContainerEngineType.Docker.ToString().ToLower();
 
   [YamlMember(Alias = "secure")] public bool Secure { get; set; } = false;
 

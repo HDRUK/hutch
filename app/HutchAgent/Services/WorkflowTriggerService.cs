@@ -1,8 +1,7 @@
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.IO.Abstractions;
-using System.IO.Compression;
 using System.Text.RegularExpressions;
 using HutchAgent.Config;
 using HutchAgent.Constants;
@@ -279,7 +278,7 @@ public partial class WorkflowTriggerService
                        throw new NullReferenceException("Cannot find main entity in input crate");
       cratePath = Path.Combine(workflowJob.WorkingDirectory.JobCrateRoot(), mainEntity.Id);
     }
-    
+
     await InitialiseRepo(cratePath);
 
     var workflowCrate = _crateService.InitialiseCrate(cratePath);
@@ -295,7 +294,7 @@ public partial class WorkflowTriggerService
       Nickname = "HutchAgent" + workflowJob.Id,
       WorkflowConfig = new()
       {
-        Container = _workflowOptions.ContainerEngine // TODO in future validate values 
+        Container = _workflowOptions.ContainerEngine.ToString().ToLower()
       },
       Params = new object()
     };
@@ -343,7 +342,7 @@ public partial class WorkflowTriggerService
 
     // Set input params
     stageFile.Params = parameters;
-    
+
     //Set environment variables
     var envVars = new Dictionary<string, string>();
     try
@@ -353,7 +352,7 @@ public partial class WorkflowTriggerService
       // set environment params to match dataAccess details
       if (dataAccess is not null)
       {
-        envVars.Add("DATASOURCE_DB_HOST",dataAccess.GetContainerHost(_workflowOptions.ContainerEngine));
+        envVars.Add("DATASOURCE_DB_HOST", dataAccess.GetContainerHost(_workflowOptions.ContainerEngine));
         envVars.Add("DATASOURCE_DB_PORT", dataAccess.Port.ToString());
         envVars.Add("DATASOURCE_DB_DATABASE", dataAccess.Database);
         envVars.Add("DATASOURCE_DB_USERNAME", dataAccess.Username);
@@ -368,6 +367,7 @@ public partial class WorkflowTriggerService
       // it may fail if it intends to try and access the data source,
       // but that'll get handled and reported in the usual way.
     }
+
     stageFile.EnvironmentVars = envVars;
 
     // Get outputs from workflow crate
