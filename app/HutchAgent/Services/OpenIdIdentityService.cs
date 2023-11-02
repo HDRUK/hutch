@@ -179,6 +179,28 @@ public class OpenIdIdentityService
     return tokenResponse.AccessToken;
   }
 
+  public async Task<(string access, string refresh)> RefreshAccessToken(OpenIdOptions options, string refreshToken) =>
+    await RefreshAccessToken(options.ClientId, options.ClientSecret, refreshToken);
+
+  public async Task<(string access, string refresh)> RefreshAccessToken(string clientId, string secret,
+    string refreshToken)
+  {
+    var disco = await GetDiscoveryDocument();
+
+    // Make a password token request for a user
+    var tokenResponse = await _http.RequestRefreshTokenAsync(new()
+    {
+      Address = disco.TokenEndpoint,
+      ClientId = clientId,
+      RefreshToken = secret,
+    });
+
+    if (!tokenResponse.IsError) return (tokenResponse.AccessToken, tokenResponse.RefreshToken);
+
+    _logger.LogError("Attempted OIDC Token Request failed: {Error}", tokenResponse.Error);
+    throw new InvalidOperationException(tokenResponse.Error);
+  }
+
   // JWT content validation example
   // var jwtHandler = new JwtSecurityTokenHandler();
   // var token = jwtHandler.ReadJwtToken(tokenResponse.AccessToken);
