@@ -1,4 +1,3 @@
-using System.Xml;
 using System.Xml.Linq;
 using Flurl;
 using Flurl.Http;
@@ -47,7 +46,7 @@ public class MinioStoreServiceFactory
 
     if (sessionToken is not null)
       clientBuilder.WithSessionToken(sessionToken);
-    
+
     return clientBuilder.Build();
   }
 
@@ -58,12 +57,13 @@ public class MinioStoreServiceFactory
   /// <param name="token">The client's Access token or the User's Identity Token</param>
   /// <param name="asUser">Whether to request credentials as a client or a user</param>
   /// <returns>Temporary access key and secret key for use with Minio</returns>
-  private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(string minioBaseUrl, string token,
+  private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(
+    string minioBaseUrl, string token,
     bool asUser)
   {
-    if (!asUser)
-      throw new NotImplementedException(
-        "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is unfinished and untested.");
+    // if (!asUser)
+    //   throw new NotImplementedException(
+    //     "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is unfinished and untested.");
 
     var url = minioBaseUrl
       .SetQueryParams(new
@@ -76,7 +76,6 @@ public class MinioStoreServiceFactory
 
     try
     {
-
       var response = await url.PostAsync().ReceiveString();
 
       return ParseAssumeRoleResponse(response);
@@ -143,7 +142,7 @@ public class MinioStoreServiceFactory
     var useOpenId = string.IsNullOrWhiteSpace(options?.SecretKey)
                     && string.IsNullOrWhiteSpace(options?.AccessKey)
                     && _identityOptions.IsConfigComplete();
-    
+
     var mergedOptions = MergeOptionsWithDefaults(options);
 
     string? sessionToken = null;
@@ -153,7 +152,7 @@ public class MinioStoreServiceFactory
         "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
 
       // Get an OIDC token
-      var asUser = true; // Minio only supports user tokens currently
+      var asUser = false; // Minio only supports user tokens currently
       var token = asUser
         ? (await _identity.RequestUserTokens(_identityOptions)).identity
         : await _identity.RequestClientAccessToken(_identityOptions);
