@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using HutchAgent.Config;
 using IdentityModel.Client;
 using Microsoft.Extensions.Options;
-using Scriban.Parsing;
 
 namespace HutchAgent.Services;
 
@@ -92,7 +91,7 @@ public class OpenIdIdentityService
   /// </para>
   /// </param>
   /// <returns>The requested tokens</returns>
-  public async Task<(string identity, string access)> RequestUserTokens(OpenIdOptions options)
+  public async Task<(string identity, string access, string refresh)> RequestUserTokens(OpenIdOptions options)
     => await RequestUserTokens(options.ClientId, options.ClientSecret, options.Username, options.Password);
 
   /// <summary>
@@ -104,7 +103,8 @@ public class OpenIdIdentityService
   /// <param name="username">The User's Username</param>
   /// <param name="password">The User's Password</param>
   /// <returns>The requested tokens</returns>
-  public async Task<(string identity, string access)> RequestUserTokens(string clientId, string secret, string username,
+  public async Task<(string identity, string access, string refresh)> RequestUserTokens(string clientId, string secret,
+    string username,
     string password)
   {
     var disco = await GetDiscoveryDocument();
@@ -129,7 +129,7 @@ public class OpenIdIdentityService
     // TODO any claim validation Hutch cares about? somewhat depends on use case (e.g. Controller vs Store?)
 
     // return the tokens for use
-    return (tokenResponse.IdentityToken, tokenResponse.AccessToken);
+    return (tokenResponse.IdentityToken, tokenResponse.AccessToken, tokenResponse.RefreshToken);
   }
 
   /// <summary>
