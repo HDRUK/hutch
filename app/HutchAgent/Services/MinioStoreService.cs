@@ -58,21 +58,16 @@ public class MinioStoreServiceFactory
   /// <param name="asUser">Whether to request credentials as a client or a user</param>
   /// <returns>Temporary access key and secret key for use with Minio</returns>
   private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(
-    string minioBaseUrl, string token,
-    bool asUser)
+    string minioBaseUrl, string token)
   {
-    // if (!asUser)
-    //   throw new NotImplementedException(
-    //     "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is unfinished and untested.");
-
     var url = minioBaseUrl
       .SetQueryParams(new
       {
-        Action = asUser ? "AssumeRoleWithWebIdentity" : "AssumeRoleWithClientGrants",
+        Action = "AssumeRoleWithClientGrants",
         Version = "2011-06-15", // AWS stipulates this version for this endpoint...
         DurationSeconds = 604800 // we ask for the max (7 days) - the credentials issued may be shorter
       })
-      .SetQueryParam(asUser ? "WebIdentityToken" : "Token", token, true);
+      .SetQueryParam("Token", token, true);
 
     try
     {
@@ -152,11 +147,8 @@ public class MinioStoreServiceFactory
         "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
 
       // Get an OIDC token
-      var asUser = false; // Minio only supports user tokens currently
-      var token = asUser
-        ? (await _identity.RequestUserTokens(_identityOptions)).identity
-        : await _identity.RequestClientAccessToken(_identityOptions);
-      // 
+      var token = await _identity.RequestClientAccessToken(_identityOptions);
+      
 
       // Get MinIO STS credentials with the user's identity token
       // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
@@ -164,8 +156,7 @@ public class MinioStoreServiceFactory
       // https://github.com/minio/minio/blob/master/docs/sts/client-grants.md
       var (accessKey, secretKey, returnedSessionToken) = await GetTemporaryCredentials(
         $"{(mergedOptions.Secure ? "https" : "http")}://{mergedOptions.Host}",
-        token,
-        asUser);
+        token);
 
       // set the credentials to those from the STS response
       mergedOptions.AccessKey = accessKey;
