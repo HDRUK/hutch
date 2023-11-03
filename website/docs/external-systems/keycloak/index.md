@@ -1,3 +1,5 @@
+# Keycloak
+
 Keycloak is a popular Open ID Connect (OIDC) Identity Provider.
 
 The TRE-FX stack uses OIDC Token auth for:
@@ -8,7 +10,7 @@ Hutch can bypass the need for OIDC Token auth when in Standalone mode (i.e. not 
 
 To use KeyCloak, some configuration is needed.
 
-The `docker-compose` in the Hutch repo has an example of a keycloak instance suitable for development.
+The `docker-compose` in the Hutch repo has an example of a keycloak instance suitable for development. This instance uses the `postgreSQL` service to store its data. Create a database on this service called `bitnami_keycloak`. Then when keycloak starts, it will populate the database with tables.
 
 There is some futher configuration once this is running before it can be used.
 
