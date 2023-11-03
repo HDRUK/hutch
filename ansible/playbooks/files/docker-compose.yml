@@ -63,6 +63,7 @@ services:
       - KEYCLOAK_MANAGEMENT_PASSWORD=manager
       - KEYCLOAK_ENABLE_STATISTICS=true
       - KEYCLOAK_DATABASE_HOST=host.docker.internal
+      - KEYCLOAK_DATABASE_PORT=5432
       - KEYCLOAK_DATABASE_NAME=bitnami_keycloak
       - KEYCLOAK_DATABASE_USER=postgres
       - KEYCLOAK_DATABASE_PASSWORD=example
