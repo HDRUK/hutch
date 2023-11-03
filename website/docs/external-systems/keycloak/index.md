@@ -20,6 +20,22 @@ There is some futher configuration once this is running before it can be used.
 
 Minio in the sample `docker-compose` expects the realm to be called `hutch-dev`.
 
+### Create (a) User(s)
+
+Both MinIO and the TRE Controller API currently expect user tokens, so Hutch currently must have a user to get tokens for, which it does via the Password Grant Flow.
+
+Additionally it's worth being aware that the TRE Controller expects an **access token** (so in future Hutch could use the Client Credentials flow), but Minio requires an **identity token**.
+
+In the realm created above, navigate to the Users tab and click "Add user". Give the user a username and click "Save". The new user will now appear in the Users tab.
+
+#### Add a password
+
+In the user's settings, go to the "Credentials" tab and click "Set password". Enter and verify a password and set "Temporary" to "off".
+
+#### Add required MinIO attributes to user
+
+MinIO by default expects a claim in the user called `policy`. This is an array which can contain one or more of the following: `consoleAdmin`, `readonly`, `readwrite`, `diagnostics` or `writeonly`. In the "Attributes" tab of the user created above, click "Add an attribute" and enter "policy" in the "Key" box, followed by one of the options previously listed in the "Value" box. To add another "policy", click "Add an attribute" underneath and once again enter "policy" in the "Key" box with another of the choices in the "Value" box.
+
 ### Create a Client for Hutch
 
 NOTE: You may wish to re-use the same client for Hutch and MinIO, since MinIO will only accept token from Hutch if they were requested using the MinIO Client Credentials.
@@ -72,22 +88,6 @@ not sure what is needed here as we aren't doing an interactive user login flow..
 
 - Root URL should be Hutch's configured URL e.g. for development `http://host.docker.internal:5209`
 - Most other settings are URLs and for development can just be wildcarded with `*`
-
-### Create (a) User(s)
-
-Both MinIO and the TRE Controller API currently expect user tokens, so Hutch currently must have a user to get tokens for, which it does via the Password Grant Flow.
-
-Additionally it's worth being aware that the TRE Controller expects an **access token** (so in future Hutch could use the Client Credentials flow), but Minio requires an **identity token**.
-
-In the realm created above, navigate to the Users tab and click "Add user". Give the user a username and click "Save". The new user will now appear in the Users tab.
-
-#### Add a password
-
-In the user's settings, go to the "Credentials" tab and click "Set password". Enter and verify a password and set "Temporary" to "off".
-
-#### Add required MinIO attributes to user
-
-MinIO by default expects a claim in the user called `policy`. This is an array which can contain one or more of the following: `consoleAdmin`, `readonly`, `readwrite`, `diagnostics` or `writeonly`. In the "Attributes" tab of the user created above, click "Add an attribute" and enter "policy" in the "Key" box, followed by one of the options previously listed in the "Value" box. To add another "policy", click "Add an attribute" underneath and once again enter "policy" in the "Key" box with another of the choices in the "Value" box.
 
 ### Configure Hutch
 
