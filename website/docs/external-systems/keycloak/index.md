@@ -40,6 +40,32 @@ Capability Config:
 Do not check "Service account roles" or keycloak will try to log into MinIO as a service account, rather than the user's account. This would require additional configuration.
 :::
 
+### Add a Client Scope for the Client
+
+:::note
+This advice assumes the client is called `hutch-agent`. Substitute `hutch-agent` if using another client name.
+:::
+
+The MinIO instance in the `docker-compose` file expects a scope called `openid`. To create this, go to the "Client scopes" tab in the keycloak console and click "Create client scope". Call it "openid" and click "Save". Now create a mapper for the `policy` user attribute by going to the "Mappers" tab on the new scope and clicking "Configure a new mapper". Select "User Attribute" from the menu.
+
+Give the mapper the following settings:
+
+- Name: openid-mapper
+- User Attribute: policy
+- Token Claim Name: policy
+- Claim JSON Type: String
+- Add to ID token: on
+- Add to access token: on
+- Add to userinfo: on
+- Multivalued: on
+- Aggregate attribute values: on
+
+Then click "Save".
+
+Go back to the Client scopes tab and back into openid. Navigate to the scopes tab and click "Assign role". Select `default-role-hutch-dev` and click "Assign".
+
+Now go to the "Clients" tab and select the `hutch-agent`. Go to the "Client Scopes" tab **in the middle of the screen** and click "Add client scope". Select `openid` from the menu and click "Add" choosing "Default" from the drop-down menu.
+
 Login Settings:
 
 not sure what is needed here as we aren't doing an interactive user login flow...
