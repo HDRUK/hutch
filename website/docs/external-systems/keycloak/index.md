@@ -36,6 +36,10 @@ Capability Config:
   - [x] Direct access grants
     - This is OIDC's "Resource Owner Password Credentials Grant" and is currently all Hutch supports, because MinIO and the TRE Controller API expect user tokens, not client ones.
 
+:::caution
+Do not check "Service account roles" or keycloak will try to log into MinIO as a service account, rather than the user's account. This would require additional configuration.
+:::
+
 Login Settings:
 
 not sure what is needed here as we aren't doing an interactive user login flow...
