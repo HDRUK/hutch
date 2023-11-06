@@ -1,4 +1,3 @@
-using System.Xml;
 using System.Xml.Linq;
 using Flurl;
 using Flurl.Http;
@@ -47,36 +46,30 @@ public class MinioStoreServiceFactory
 
     if (sessionToken is not null)
       clientBuilder.WithSessionToken(sessionToken);
-    
+
     return clientBuilder.Build();
   }
 
   /// <summary>
-  /// Get temporary Minio access credentials via a client access token or a user identity token
+  /// Get temporary Minio access credentials via a client access token
   /// </summary>
   /// <param name="minioBaseUrl">The base url for the minio server - i.e. a scheme (http(s)) + the configured host</param>
-  /// <param name="token">The client's Access token or the User's Identity Token</param>
-  /// <param name="asUser">Whether to request credentials as a client or a user</param>
+  /// <param name="token">The client's Access token</param>
   /// <returns>Temporary access key and secret key for use with Minio</returns>
-  private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(string minioBaseUrl, string token,
-    bool asUser)
+  private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(
+    string minioBaseUrl, string token)
   {
-    if (!asUser)
-      throw new NotImplementedException(
-        "Minio currently does not fully support Client Credentials for Assume Role, so this functionality is unfinished and untested.");
-
     var url = minioBaseUrl
       .SetQueryParams(new
       {
-        Action = asUser ? "AssumeRoleWithWebIdentity" : "AssumeRoleWithClientGrants",
+        Action = "AssumeRoleWithClientGrants",
         Version = "2011-06-15", // AWS stipulates this version for this endpoint...
         DurationSeconds = 604800 // we ask for the max (7 days) - the credentials issued may be shorter
       })
-      .SetQueryParam(asUser ? "WebIdentityToken" : "Token", token, true);
+      .SetQueryParam("Token", token, true);
 
     try
     {
-
       var response = await url.PostAsync().ReceiveString();
 
       return ParseAssumeRoleResponse(response);
@@ -143,7 +136,7 @@ public class MinioStoreServiceFactory
     var useOpenId = string.IsNullOrWhiteSpace(options?.SecretKey)
                     && string.IsNullOrWhiteSpace(options?.AccessKey)
                     && _identityOptions.IsConfigComplete();
-    
+
     var mergedOptions = MergeOptionsWithDefaults(options);
 
     string? sessionToken = null;
@@ -153,11 +146,8 @@ public class MinioStoreServiceFactory
         "No Minio access credentials were provided directly and OIDC is configured; attempting to retrieve credentials via OIDC");
 
       // Get an OIDC token
-      var asUser = true; // Minio only supports user tokens currently
-      var token = asUser
-        ? (await _identity.RequestUserTokens(_identityOptions)).identity
-        : await _identity.RequestClientAccessToken(_identityOptions);
-      // 
+      var token = await _identity.RequestClientAccessToken(_identityOptions);
+      
 
       // Get MinIO STS credentials with the user's identity token
       // https://min.io/docs/minio/linux/developers/security-token-service/AssumeRoleWithWebIdentity.html#minio-sts-assumerolewithwebidentity
@@ -165,8 +155,7 @@ public class MinioStoreServiceFactory
       // https://github.com/minio/minio/blob/master/docs/sts/client-grants.md
       var (accessKey, secretKey, returnedSessionToken) = await GetTemporaryCredentials(
         $"{(mergedOptions.Secure ? "https" : "http")}://{mergedOptions.Host}",
-        token,
-        asUser);
+        token);
 
       // set the credentials to those from the STS response
       mergedOptions.AccessKey = accessKey;

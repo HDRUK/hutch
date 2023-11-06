@@ -22,7 +22,8 @@ public class ControllerApiService
   private readonly ControllerApiOptions _apiOptions;
   private readonly OpenIdIdentityService _identity;
   private const string _standaloneModeError = "TRE Controller API should not be used in Standalone Mode.";
-  private string _accessToken = string.Empty;
+  private string _accessToken;
+  private string _refreshToken;
 
   public ControllerApiService(
     IFeatureManager features,
@@ -38,12 +39,19 @@ public class ControllerApiService
     _identityOptions = identityOptions.Value;
     _apiOptions = apiOptions.Value;
     _http = httpFactory.Get(_apiOptions.BaseUrl);
+
+    // initialise tokens
+    var tokens = _identity.RequestUserTokens(_identityOptions).Result;
+    _accessToken = tokens.access;
+    _refreshToken = tokens.refresh;
   }
 
   private async Task UpdateToken()
   {
     // TODO one day support Client Credentials?
-    _accessToken = (await _identity.RequestUserTokens(_identityOptions)).access;
+    var tokens = await _identity.RefreshAccessToken(_identityOptions, _refreshToken);
+    _accessToken = tokens.access;
+    _refreshToken = tokens.refresh;
   }
 
   /// <summary>
