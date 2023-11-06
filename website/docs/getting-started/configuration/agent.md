@@ -137,7 +137,7 @@ Below are the available configurable settings for `HutchAgent`. The variables sh
   "ControllerApi": {
     // The URL of the controller API
     "BaseUrl": ""
-  }
+  },
 
   // Development Flags
   // These are really intended for development or debugging use
