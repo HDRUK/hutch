@@ -133,6 +133,12 @@ Below are the available configurable settings for `HutchAgent`. The variables sh
     }
   },
 
+  // This section tells Hutch where the controller API is hosted
+  "ControllerApi": {
+    // The URL of the controller API
+    "BaseUrl": ""
+  }
+
   // Development Flags
   // These are really intended for development or debugging use
   // and their continued presence cannot be relied upon from one build to the next!
