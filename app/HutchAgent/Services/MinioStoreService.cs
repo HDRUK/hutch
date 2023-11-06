@@ -55,7 +55,7 @@ public class MinioStoreServiceFactory
   /// </summary>
   /// <param name="minioBaseUrl">The base url for the minio server - i.e. a scheme (http(s)) + the configured host</param>
   /// <param name="token">The client's Access token</param>
-  /// /// <returns>Temporary access key and secret key for use with Minio</returns>
+  /// <returns>Temporary access key and secret key for use with Minio</returns>
   private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(
     string minioBaseUrl, string token)
   {
