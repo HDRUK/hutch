@@ -51,12 +51,11 @@ public class MinioStoreServiceFactory
   }
 
   /// <summary>
-  /// Get temporary Minio access credentials via a client access token or a user identity token
+  /// Get temporary Minio access credentials via a client access token
   /// </summary>
   /// <param name="minioBaseUrl">The base url for the minio server - i.e. a scheme (http(s)) + the configured host</param>
-  /// <param name="token">The client's Access token or the User's Identity Token</param>
-  /// <param name="asUser">Whether to request credentials as a client or a user</param>
-  /// <returns>Temporary access key and secret key for use with Minio</returns>
+  /// <param name="token">The client's Access token</param>
+  /// /// <returns>Temporary access key and secret key for use with Minio</returns>
   private async Task<(string accessKey, string secretKey, string sessionToken)> GetTemporaryCredentials(
     string minioBaseUrl, string token)
   {
