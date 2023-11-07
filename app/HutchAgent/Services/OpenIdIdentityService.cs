@@ -156,17 +156,18 @@ public class OpenIdIdentityService
   /// <param name="clientId">Client ID</param>
   /// <param name="secret">Client Secret</param>
   /// <returns>An OIDC access token for the requesting client.</returns>
-  public async Task<string> RequestClientAccessToken(string clientId, string secret)
+  public async Task<string> RequestClientAccessToken(string clientId, string? secret)
   {
     var disco = await GetDiscoveryDocument();
 
     // Make a password token request for a user
-    var tokenResponse = await _http.RequestClientCredentialsTokenAsync(new()
+    var tokenRequest = new ClientCredentialsTokenRequest
     {
       Address = disco.TokenEndpoint,
-      ClientId = clientId,
-      ClientSecret = secret,
-    });
+      ClientId = clientId
+    };
+    if (!secret.IsNullOrEmpty()) tokenRequest.ClientSecret = secret;
+    var tokenResponse = await _http.RequestClientCredentialsTokenAsync(tokenRequest);
 
     if (tokenResponse.IsError)
     {
