@@ -201,7 +201,6 @@ public class OpenIdIdentityService
   {
     var disco = await GetDiscoveryDocument();
 
-    // Make a password token request for a user
     var tokenResponse = await _http.RequestRefreshTokenAsync(new()
     {
       Address = disco.TokenEndpoint,
