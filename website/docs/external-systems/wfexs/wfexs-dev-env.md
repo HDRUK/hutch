@@ -48,3 +48,15 @@ ansible-playbook -i inventory.ini -u <your new username> -K playbook.yml
 Ansible will ask for the password of your new user.
 
 Depending on the resources your VM has, your WfExS environment will be ready after several minutes.
+
+:::info Node:slim
+node:slim from docker.io is needed in the environment.
+Can be pre-loaded with:
+```
+# Docker
+docker load <image>
+# Podman 
+podman load <image>
+```
+WfExS always pulls it to be safe since CWL Tool uses a node:slim container to execute inline javascript steps defined in CWL workflows.
+:::
