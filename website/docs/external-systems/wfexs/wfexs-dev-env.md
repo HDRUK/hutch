@@ -49,7 +49,7 @@ Ansible will ask for the password of your new user.
 
 Depending on the resources your VM has, your WfExS environment will be ready after several minutes.
 
-:::info Node:slim
+:::info node:slim
 node:slim from docker.io is needed in the environment.
 Can be pre-loaded with:
 ```
