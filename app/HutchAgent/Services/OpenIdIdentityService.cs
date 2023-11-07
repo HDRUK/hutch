@@ -178,7 +178,7 @@ public class OpenIdIdentityService
     // return the tokens for use
     return tokenResponse.AccessToken;
   }
-  
+
   /// <summary>
   /// Refreshing access token
   /// </summary>
@@ -186,16 +186,17 @@ public class OpenIdIdentityService
   /// <param name="refreshToken"></param>
   /// <returns></returns>
   public async Task<(string access, string refresh)> RefreshAccessToken(OpenIdOptions options, string refreshToken) =>
-    await RefreshAccessToken(options.ClientId, refreshToken);
-  
+    await RefreshAccessToken(options.ClientId, options.ClientSecret, refreshToken);
+
   /// <summary>
   /// Refreshing token using refresh token endpoint
   /// </summary>
   /// <param name="clientId"></param>
+  /// <param name="secret"></param>
   /// <param name="refreshToken"></param>
   /// <returns></returns>
   /// <exception cref="InvalidOperationException"></exception>
-  public async Task<(string access, string refresh)> RefreshAccessToken(string clientId,
+  public async Task<(string access, string refresh)> RefreshAccessToken(string clientId, string secret,
     string refreshToken)
   {
     var disco = await GetDiscoveryDocument();
@@ -205,6 +206,7 @@ public class OpenIdIdentityService
     {
       Address = disco.TokenEndpoint,
       ClientId = clientId,
+      ClientSecret = secret,
       RefreshToken = refreshToken,
     });
 
