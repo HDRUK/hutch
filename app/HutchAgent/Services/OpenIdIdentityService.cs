@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using HutchAgent.Config;
 using IdentityModel.Client;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HutchAgent.Services;
 
@@ -196,18 +197,20 @@ public class OpenIdIdentityService
   /// <param name="refreshToken"></param>
   /// <returns></returns>
   /// <exception cref="InvalidOperationException"></exception>
-  public async Task<(string access, string refresh)> RefreshAccessToken(string clientId, string secret,
+  public async Task<(string access, string refresh)> RefreshAccessToken(string clientId, string? secret,
     string refreshToken)
   {
     var disco = await GetDiscoveryDocument();
 
-    var tokenResponse = await _http.RequestRefreshTokenAsync(new()
+    var tokenRequest = new RefreshTokenRequest
     {
       Address = disco.TokenEndpoint,
       ClientId = clientId,
-      ClientSecret = secret,
       RefreshToken = refreshToken,
-    });
+    };
+    if (!secret.IsNullOrEmpty()) tokenRequest.ClientSecret = secret;
+
+    var tokenResponse = await _http.RequestRefreshTokenAsync(tokenRequest);
 
     if (!tokenResponse.IsError) return (tokenResponse.AccessToken, tokenResponse.RefreshToken);
 
