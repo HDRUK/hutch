@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using HutchAgent.Config;
 using IdentityModel.Client;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HutchAgent.Services;
 
@@ -155,17 +156,18 @@ public class OpenIdIdentityService
   /// <param name="clientId">Client ID</param>
   /// <param name="secret">Client Secret</param>
   /// <returns>An OIDC access token for the requesting client.</returns>
-  public async Task<string> RequestClientAccessToken(string clientId, string secret)
+  public async Task<string> RequestClientAccessToken(string clientId, string? secret)
   {
     var disco = await GetDiscoveryDocument();
 
     // Make a password token request for a user
-    var tokenResponse = await _http.RequestClientCredentialsTokenAsync(new()
+    var tokenRequest = new ClientCredentialsTokenRequest
     {
       Address = disco.TokenEndpoint,
-      ClientId = clientId,
-      ClientSecret = secret,
-    });
+      ClientId = clientId
+    };
+    if (!secret.IsNullOrEmpty()) tokenRequest.ClientSecret = secret;
+    var tokenResponse = await _http.RequestClientCredentialsTokenAsync(tokenRequest);
 
     if (tokenResponse.IsError)
     {
@@ -178,7 +180,7 @@ public class OpenIdIdentityService
     // return the tokens for use
     return tokenResponse.AccessToken;
   }
-  
+
   /// <summary>
   /// Refreshing access token
   /// </summary>
@@ -186,27 +188,30 @@ public class OpenIdIdentityService
   /// <param name="refreshToken"></param>
   /// <returns></returns>
   public async Task<(string access, string refresh)> RefreshAccessToken(OpenIdOptions options, string refreshToken) =>
-    await RefreshAccessToken(options.ClientId, refreshToken);
-  
+    await RefreshAccessToken(options.ClientId, options.ClientSecret, refreshToken);
+
   /// <summary>
   /// Refreshing token using refresh token endpoint
   /// </summary>
   /// <param name="clientId"></param>
+  /// <param name="secret"></param>
   /// <param name="refreshToken"></param>
   /// <returns></returns>
   /// <exception cref="InvalidOperationException"></exception>
-  public async Task<(string access, string refresh)> RefreshAccessToken(string clientId,
+  public async Task<(string access, string refresh)> RefreshAccessToken(string clientId, string? secret,
     string refreshToken)
   {
     var disco = await GetDiscoveryDocument();
 
-    // Make a password token request for a user
-    var tokenResponse = await _http.RequestRefreshTokenAsync(new()
+    var tokenRequest = new RefreshTokenRequest
     {
       Address = disco.TokenEndpoint,
       ClientId = clientId,
       RefreshToken = refreshToken,
-    });
+    };
+    if (!secret.IsNullOrEmpty()) tokenRequest.ClientSecret = secret;
+
+    var tokenResponse = await _http.RequestRefreshTokenAsync(tokenRequest);
 
     if (!tokenResponse.IsError) return (tokenResponse.AccessToken, tokenResponse.RefreshToken);
 
