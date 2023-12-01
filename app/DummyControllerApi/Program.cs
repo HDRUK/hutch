@@ -36,7 +36,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Configure Options Models
-builder.Services.Configure<EgressBucketDetailsOptions>(builder.Configuration.GetSection("EgressBucketDetails"));
+builder.Services
+  .Configure<EgressBucketDetailsOptions>(builder.Configuration.GetSection("EgressBucketDetails"))
+  .Configure<WebhookOptions>(builder.Configuration.GetSection("WebhookOptions"));
 
 // MVC and stuff
 builder.Services.AddControllers();
