@@ -1,6 +1,6 @@
 namespace DummyControllerApi.Config;
 
-public class WebhookOptions
+public class WebHookOptions
 {
   public string CallbackUrl { get; set; } = string.Empty;
   public bool VerifySsl { get; set; } = true;

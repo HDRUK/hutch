@@ -38,7 +38,7 @@ builder.Services.AddAuthorization();
 // Configure Options Models
 builder.Services
   .Configure<EgressBucketDetailsOptions>(builder.Configuration.GetSection("EgressBucketDetails"))
-  .Configure<WebhookOptions>(builder.Configuration.GetSection("WebhookOptions"));
+  .Configure<WebHookOptions>(builder.Configuration.GetSection("WebHookOptions"));
 
 // MVC and stuff
 builder.Services.AddControllers();
