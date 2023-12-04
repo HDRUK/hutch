@@ -38,7 +38,7 @@ builder.Services.AddAuthorization();
 // Configure Options Models
 builder.Services
   .Configure<EgressBucketDetailsOptions>(builder.Configuration.GetSection("EgressBucketDetails"))
-  .Configure<WebHookOptions>(builder.Configuration.GetSection("WebHookOptions"));
+  .Configure<WebHookOptions>(builder.Configuration.GetSection("WebHooks"));
 
 // MVC and stuff
 builder.Services.AddControllers();
@@ -48,6 +48,7 @@ builder.Services.AddSwaggerGen();
 
 
 // Application Services
+builder.Services.AddTransient<WebHookService>();
 
 // Use this combo for delaying approvals while running
 builder.Services

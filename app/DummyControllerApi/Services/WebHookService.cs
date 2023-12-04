@@ -1,6 +1,8 @@
-using System.Text.Json;
 using DummyControllerApi.Config;
+using DummyControllerApi.Constants;
 using DummyControllerApi.Models;
+using DummyControllerApi.Models.WebHooks;
+using Flurl.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -8,11 +10,13 @@ namespace DummyControllerApi.Services;
 
 public class WebHookService
 {
-  private readonly WebHookOptions _options;
+  private readonly WebHookOptions _webHookOptions;
+  private readonly EgressBucketDetailsOptions _bucketDetails;
 
-  public WebHookService(IOptions<WebHookOptions> options)
+  public WebHookService(IOptions<WebHookOptions> options, IOptions<EgressBucketDetailsOptions> bucketDetails)
   {
-    _options = options.Value;
+    _bucketDetails = bucketDetails.Value;
+    _webHookOptions = options.Value;
   }
 
   /// <summary>
@@ -22,18 +26,25 @@ public class WebHookService
   public async Task SendFinalOutcome(FinalOutcomeRequestModel finalOutcome)
   {
     // Check Web Hook is configured
-    if (!WebHookIsConfigured) return;
+    if (!WebHookIsConfigured(WebHookEventTypes.FinalOutcome)) return;
 
-    // Serialise the outcome
-    var serialisedOutcome = JsonSerializer.Serialize(finalOutcome);
-    var content = new StringContent(serialisedOutcome);
-
-    // Todo: 1. check for verify SSL; 2. check event list
+    // Add bucket details
+    var payload = new FinalOutcomeWebHookModel()
+    {
+      AccessKey = _bucketDetails.AccessKey,
+      Bucket = _bucketDetails.Bucket,
+      File = finalOutcome.File,
+      Host = _bucketDetails.Host,
+      SecretKey = _bucketDetails.SecretKey,
+      Secure = false,
+      SubId = finalOutcome.SubId
+    };
 
     // Send the request
-    using var client = new HttpClient();
-    await client.PostAsync(_options.CallbackUrl, content);
+    await _webHookOptions.CallbackUrl.PostJsonAsync(payload);
   }
 
-  private bool WebHookIsConfigured => !_options.CallbackUrl.IsNullOrEmpty();
+  private bool WebHookIsConfigured(WebHookEventTypes eventType) =>
+    !_webHookOptions.CallbackUrl.IsNullOrEmpty() &&
+    _webHookOptions.Events.Contains(eventType.ToString(), StringComparer.OrdinalIgnoreCase);
 }
