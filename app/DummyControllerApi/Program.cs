@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using DummyControllerApi.Config;
 using DummyControllerApi.Services;
+using DummyControllerApi.Utilities;
+using Flurl.Http;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -9,6 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, configuration) =>
   configuration.ReadFrom.Configuration(context.Configuration));
+
+// Flurl configuration
+var webhookOptions = builder.Configuration.GetSection("WebHooks").Get<WebHookOptions>() ?? new();
+if (!webhookOptions.CallbackUrl.IsNullOrEmpty() && !webhookOptions.VerifySsl)
+  FlurlHttp.ConfigureClient(webhookOptions.CallbackUrl, cli =>
+    cli.Settings.HttpClientFactory = new UntrustedCertClientFactory());
+
 
 // Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
