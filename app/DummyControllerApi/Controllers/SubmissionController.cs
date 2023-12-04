@@ -20,14 +20,16 @@ public class SubmissionController : ControllerBase
   private readonly ILogger<SubmissionController> _logger;
   private readonly InMemoryApprovalQueue _approvalQueue;
   private readonly EgressBucketDetailsOptions _bucketOptions;
+  private readonly WebHookService _webHookService;
 
   public SubmissionController(
     ILogger<SubmissionController> logger,
     IOptions<EgressBucketDetailsOptions> bucketOptions,
-    InMemoryApprovalQueue approvalQueue)
+    InMemoryApprovalQueue approvalQueue, WebHookService webHookService)
   {
     _logger = logger;
     _approvalQueue = approvalQueue;
+    _webHookService = webHookService;
     _bucketOptions = bucketOptions.Value;
   }
 
@@ -97,13 +99,14 @@ public class SubmissionController : ControllerBase
   }
 
   [HttpPost("finalOutcome")]
-  public IActionResult FinalOutcome([FromBody] FinalOutcomeRequestModel model)
+  public async Task<IActionResult> FinalOutcome([FromBody] FinalOutcomeRequestModel model)
   {
     _logger.LogInformation(
       "Submission [{SubId}] FinalOutcome file submitted: {FileObjectId}",
       model.SubId,
       model.File);
 
+    await _webHookService.SendFinalOutcome(model);
     // Unsure of this response body and code; TODO confirm with swagger
     return Ok();
   }
