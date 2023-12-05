@@ -1,6 +1,6 @@
-namespace DummyControllerApi.Models;
+namespace DummyControllerApi.Models.WebHooks;
 
-public class EgressBucketResponseModel
+public class FinalOutcomeWebHookModel
 {
   /// <summary>
   /// Submission ID
@@ -20,8 +20,7 @@ public class EgressBucketResponseModel
   /// <summary>
   /// A path to prefix to object id's uploaded for this submission
   /// </summary>
-
-  public string Path { get; set; } = string.Empty;
+  public string File { get; set; } = string.Empty;
 
   /// <summary>
   /// A real TRE Controller API is unlikely to provide this (even though Hutch will accept it)
